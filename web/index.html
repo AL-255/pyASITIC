@@ -4,14 +4,14 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width,initial-scale=1">
   <meta name="description" content="Generate ASITIC coil layouts, run conductor estimates in Python, and download GDSII files in your browser.">
-  <title>reASITIC · Coil workbench</title>
+  <title>pyASITIC · Coil workbench</title>
   <link rel="stylesheet" href="style.css">
   <script type="module" src="app.js"></script>
 </head>
 <body>
   <header class="topbar">
-    <a class="brand" href="./"><span class="brand-icon">◎</span> reASITIC <span class="tag">COIL WORKBENCH</span></a>
-    <div class="top-actions"><span id="runtime" role="status"><i class="led loading"></i> Loading Python…</span><a href="https://github.com/AL-255/reASITIC" target="_blank" rel="noreferrer">Source ↗</a></div>
+    <a class="brand" href="./"><span class="brand-icon">◎</span> pyASITIC <span class="tag">COIL WORKBENCH</span></a>
+    <div class="top-actions"><span id="runtime" role="status"><i class="led loading"></i> Loading Python…</span><a href="https://github.com/AL-255/pyASITIC" target="_blank" rel="noreferrer">Source ↗</a></div>
   </header>
   <main>
     <aside class="sidebar">
@@ -90,7 +90,7 @@
         <details id="lmat-section"><summary>Filament EM solver · LMAT</summary><p class="muted method-note">Solves the original filament impedance assembly and reduction, including via corrections. The native eddy control above applies here too; substrate capacitance is separate. Mesh cell sizes are in µm.</p><div class="sweep-controls"><label>Length cell <span>µm</span><input id="mesh-length" type="number" value="50" min="0.001" step="any"></label><label>Width cell <span>µm</span><input id="mesh-width" type="number" value="3" min="0.001" step="any"></label><label>Thickness cell <span>µm</span><input id="mesh-thickness" type="number" value="0.5" min="0.001" step="any"></label><button id="lmat" disabled>Run LMAT</button><button id="download-matrix" disabled>↓ Matrix CSV</button></div><p class="muted method-note">Uses the frequency above. Up to 256 filaments; larger cell sizes reduce the mesh. Compare meshes to check convergence.</p><div id="lmat-result" class="muted"></div><div id="matrix-table"></div></details>
         <p id="analysis-status" role="status" class="muted">Generate a layout to begin.</p>
       </section>
-      <footer><span>Python in your browser · No simulation server</span><a href="https://github.com/AL-255/reASITIC/blob/main/PORTING.md" target="_blank" rel="noreferrer">Port coverage & validation ↗</a></footer>
+      <footer><span>Python in your browser · No simulation server</span><a href="https://github.com/AL-255/pyASITIC/blob/main/PORTING.md" target="_blank" rel="noreferrer">Port coverage & validation ↗</a></footer>
     </section>
   </main>
   <noscript>This workbench requires JavaScript to load the Python runtime. The Python package can also be run locally from the source repository.</noscript>

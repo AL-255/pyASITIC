@@ -1,11 +1,11 @@
-# reASITIC
+# pyASITIC
 
 Python reconstruction of ASITIC, with a static browser application for GitHub
 Pages. The reference is [`AL-255/asitic-re`](https://github.com/AL-255/asitic-re),
 specifically its `recomp_cpp` reconstruction. This repository implements the
 algorithms in Python; it does not invoke the reference executable at runtime.
 
-**[Open the workbench](https://al-255.github.io/reASITIC/)**
+**[Open the workbench](https://al-255.github.io/pyASITIC/)**
 
 This is an active port, **not yet a complete replacement** for ASITIC.
 
