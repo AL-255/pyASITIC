@@ -14,6 +14,8 @@ Reference checkout: `~/github/asitic-re`, revision recorded in each fixture.
 | `solver.py` | `geometry.cpp`, `filament_setup.cpp`, `filaments.cpp`, `impedance.cpp`, `vias.cpp`, `solver.cpp` | 36 complete C++ LMAT matrices: coarse 1 GHz, refined 2 GHz, and unequal inductive/capacitive length cells; within 1e-8 Ω per component in CPython and WebAssembly |
 | `potential.py` | `potential_tables.cpp`, `potential.cpp`, `contacts.cpp`, `potential_solver.cpp` | Eight CAP sessions across CMOS/BiCMOS: full potential snapshots, folded admittance matrices, and actual cache FFT samples for every metal pair; browser runtime checks cover all eight reduced matrices |
 | `network.py` | `combined_network.cpp`, `node_equations.cpp`, `network.cpp`, `two_port_output.cpp` | Eight no-eddy PI2 sessions: CAP/inductive/nodal snapshots, 15-digit Y/S output, printed L/R/C/Q/shunt-R/resonance reports; isolated node/S checks and JSON/WebAssembly interfaces |
+| `network.py` Pi3/Pi4 | `analysis_dispatch.cpp`, `extended_analysis.cpp`, `composite_geometry.cpp` | Eight more wire/square PI3/PI4 sessions at 1/5 GHz, including precise native 2PORT/2PORTPAD Y/S records, printed Q, explicit ground, pad mesh sentinels, and distinct-origin wire/spiral joins |
+| `web/analysis-views.mjs`, `web/app.js` | New static plotting/circuit interface | Selectable L/R/Q plots, log/linear sampling, curve gaps for undefined values, point-to-circuit inspection, Pi-family diagrams, ground/pad controls, SVG/CSV/JSON exports; pure-view checks and rendered SVG visual inspection |
 | `quadrature.py` | `quadrature.cpp` | DQK15I transformed rule, DQPSRT ranking, DQELG epsilon extrapolation and DQAGIE adaptive infinite integration; direct 32-bit C++ probe covers 60 integrations and 36 rules, including convergence/failure statuses and exact evaluation/subdivision counts |
 | `green.py` | `green.cpp`, `legacy_complex.cpp` | 186 direct 32-bit C++ object probes: propagation constants, complex tanh, reflection, layered/limiting integrands, oscillating/reflection kernels; realistic and extreme conductivities, zero frequency/wave number, decay cutoff and native nonfinite classifications |
 | `oscillatory.py` | `oscillatory.cpp` | Native DQK15W/DQCHEB/DGTSL/DQC25F/DQAWOE/DQAWFE: 176 oscillatory rules, 88 weighted rules, 4 Chebyshev transforms, 8 pivoted tridiagonal cases, 168 adaptive integrals and 80 Fourier runs with per-cycle values/statuses and extrapolation history |
@@ -57,7 +59,7 @@ does not change with frequency in estimate mode. LMAT's separate series Q is
 Im(sum Z)/Re(sum Z). CAP now computes layered-substrate capacitance and substrate
 loss independently. Pi2 combines those two distributed solvers and reports the
 original frequency-dependent network metrics. Eddy-current corrections, the
-fast Pi path, full transformer/grounded/pad networks and self-resonance search
+fast Pi path, extended/transformer/multiport networks and self-resonance search
 remain pending.
 
 Outstanding validation: broader rotated/fractional/negative-phase geometry
@@ -96,6 +98,24 @@ wire with a zero RC branch) are JSON null and appear as Undefined in the app.
 Native printed Pi metrics have only three significant digits; full Y/S records
 provide the stronger numerical comparisons. More devices, grounds with vias,
 near-singular networks and process stacks remain to validate.
+
+PI3 dispatch uses the same combined network backend as PI2, with a required
+explicit reference. PI4 copies the two parser-type-8 pads (-1/-1 mesh counts),
+clones the winding, joins the three structures, solves the combined network,
+then subtracts the pad-only folded capacitance contribution before extracting
+the Pi model. Native copied-segment order, coordinate translation and the
+wire-target/square-or-polygon-source origin promotion are preserved. The API
+also retains the native optional PI4 reference default (the original device),
+which can make some overlapping-contact configurations singular. The UI offers
+that reference and an explicit ground strip/other winding.
+
+The supplied Linux fast PI implementation deliberately retains a native FLDCW
+fault at 0xfffffffc before conductor block construction (`model.cpp`). It cannot
+produce a finite conductor Pi model in the reference. The Pi circuit view
+therefore shows the topology and this explicit limitation; it does not label
+Pi2 values as fast PI output. Pi2/Pi3/Pi4 diagrams and sweeps use their respective
+validated native paths. UI interactions still require a connected browser for
+full verification; SVG plots/circuits are separately rendered and inspected.
 
 The eddy-current dependency port has started with the native infinite-interval
 integrator. Its rule coefficients, adaptive subdivision, error ranking,

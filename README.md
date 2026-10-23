@@ -26,15 +26,22 @@ Implemented so far:
   spectral Green functions, reflected FFT tables, potential-matrix inversion,
   and admittance reduction. Includes explicit ground winding selection, total
   capacitance, substrate equivalent resistance and admittance CSV download.
-- Distributed `PI2` two-port model with eddy currents disabled: combines CAP
+- Distributed `PI2` / `PI3` two-port models with eddy currents disabled: combines CAP
   and filament admittance through the original node equations. Reports series
   L/R, two RC shunts, port/differential Q, input impedances, shunt resistance,
   narrowband resonance estimate and native 50 Ω Y/S output, with JSON/CSV export.
+  `PI3` requires an explicit reference; `PI4` solves with two pad strips and
+  subtracts their capacitive contribution using the original de-embedding path.
+- Three-terminal Pi circuit diagrams with labeled series L/R and RC shunts,
+  shared ground/pad settings, and circuit SVG download. The native fast `PI`
+  conductor path faults before producing values; its view shows that limitation.
 - GDSII export with actual via cuts and metal landing pads. Default mapping:
   metal index + 1, via index + 100; datatype 0. Python callers can override it.
   Units are micrometres, with a 1 nm export grid.
 - Browser preview, pan/zoom, process-file import, project save/open, conductor
-  estimates, logarithmic frequency sweeps and CSV download. Python runs in a
+  estimates, selectable L/R/Q frequency plots, linear/log frequency scales,
+  progressive Pi2/Pi3/Pi4 sweeps, sample-to-circuit inspection, plot SVG and CSV
+  download. Python runs in a
   module worker using pinned Pyodide 314.0.7; the runtime loads from jsDelivr.
 
 Records use binary64 with selected retained-precision intermediates matching the
@@ -64,6 +71,7 @@ python3 tools/capture_network.py --reference ~/github/asitic-re
 python3 tools/capture_quadrature.py --reference ~/github/asitic-re
 python3 tools/capture_green.py --reference ~/github/asitic-re
 python3 tools/capture_oscillatory.py --reference ~/github/asitic-re
+python3 tools/capture_pi_models.py --reference ~/github/asitic-re
 ```
 
 Install `gdstk==1.0.2` to enable the independent GDS reader tests. CI runs those
@@ -95,7 +103,7 @@ add `--gds coil.gds` to export a layout request. See `src/reasitic/bridge.py`.
 ## Remaining scope
 
 The full objective includes geometry editing/session commands;
-substrate eddy-current algorithms; grounded/pad/transformer and multiport networks;
+substrate eddy-current algorithms; extended/transformer and multiport networks;
 EM frequency sweeps and optimization. Work will be validated against the reference
 one connected path at a time. No fitted spiral-inductance formula is substituted
 for the original electromagnetic solver.

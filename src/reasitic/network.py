@@ -5,6 +5,7 @@ use pivoted binary64 elimination; the native LAPACK/x87 result is not bitwise
 identical. Public Y matrices follow the native output port order (y22 first).
 """
 from decimal import Decimal,localcontext
+import copy
 import math
 from .solver import discretize,solve_impedance
 from .potential import solve_capacitance,_divide
@@ -192,3 +193,65 @@ def solve_pi2(shape,technology,frequency_hz,*,ground=None,length_cell=1000,width
     if include_matrices:
         data.update(capacitance_matrix=cap["matrix"],inductive_admittance_matrix=ind["matrix"],nodal_capacitance_matrix=_pairs(nodal))
     return data
+
+
+def solve_pi3(shape,technology,frequency_hz,*,ground,**mesh):
+    """Native PI3 dispatch uses the same combined solver with explicit ground."""
+    if ground is None:
+        raise ValueError("Pi3 requires an explicit ground shape")
+    result=solve_pi2(shape,technology,frequency_hz,ground=ground,**mesh)
+    result["method"]="ASITIC PI3, eddy off"
+    return result
+
+
+def _join_for_pads(target,source):
+    """Native copied segment concatenation, including wire/spiral origin history."""
+    result=copy.deepcopy(target)
+    other=copy.deepcopy(source)
+    with localcontext() as context:
+        context.prec=25
+        for segment in other.segments:
+            for point in segment.points:
+                for axis in range(2):
+                    delta=Decimal.from_float(float(source.origin[axis]))-Decimal.from_float(float(target.origin[axis]))
+                    point[axis]=float(delta+Decimal.from_float(float(point[axis])))
+    result.segments.extend(other.segments)
+    if target.kind=="wire" and source.kind in ("square","polygon"):
+        result.origin=source.origin.copy()
+        result.parameters=copy.deepcopy(source.parameters)
+    result.kind="joined"
+    return result
+
+
+def solve_pi4(shape,technology,frequency_hz,*,first_pad,second_pad,ground=None,**mesh):
+    """Native PI4: device plus pads, then subtract folded pad capacitance."""
+    length_cell=mesh.get("length_cell",1000)
+    capacitance_length_cell=mesh.get("capacitance_length_cell",1000)
+    if not all(math.isfinite(v) and v>0 for v in (frequency_hz,length_cell,capacitance_length_cell)):
+        raise ValueError("Pi4 frequency and mesh sizes must be finite and positive")
+    reference=shape if ground is None else ground
+    pads=[copy.deepcopy(first_pad),copy.deepcopy(second_pad)]
+    # Native command arguments of parser type 8 mark pad mesh counts -1/-1.
+    for pad in pads:
+        for segment in pad.segments:
+            segment.nx=segment.ny=-1
+    winding=discretize(shape,capacitance_length_cell,length_cell)
+    with_pads=_join_for_pads(_join_for_pads(pads[0],winding),pads[1])
+    with_pads.name=first_pad.name+"_"
+    pad_shape=_join_for_pads(pads[0],pads[1])
+    pad_shape.name=first_pad.name+"_pads"
+    result=solve_pi2(with_pads,technology,frequency_hz,ground=reference,**mesh)
+    pad_cap=solve_capacitance(pad_shape,technology,frequency_hz,ground=reference,
+                              length_cell=capacitance_length_cell,width_cell=mesh.get("capacitance_width_cell",1000))
+    cap=_complex_matrix(pad_cap["matrix"])
+    if len(cap)<2:
+        raise ValueError("Pi4 needs at least two pad conductor groups")
+    saved=_complex_matrix(result["admittance_matrix"])
+    first,second,cross=cap[0][0]+cap[1][0],cap[1][1]+cap[1][0],-cap[1][0]
+    y=dict(y22=saved[0][0]-first,y11=saved[1][1]-second,y21=saved[0][1]-cross,y12=saved[1][0]-cross)
+    z1,z2,zd=two_port_impedance(y,port=1),two_port_impedance(y,port=2),two_port_impedance(y,differential=True)
+    result.update(method="ASITIC PI4, eddy off",admittance_matrix=_pairs([[y["y22"],y["y21"]],[y["y12"],y["y11"]]]),
+                  scattering_matrix=_pairs(convert_scattering(y)),pi=extract_pi_equivalent(y,frequency_hz),
+                  input_impedance_first_ohm=[z1.real,z1.imag],input_impedance_second_ohm=[z2.real,z2.imag],
+                  differential_impedance_ohm=[zd.real,zd.imag],pad_admittance_matrix=pad_cap["matrix"],pad_contacts=pad_cap["contacts"])
+    return result

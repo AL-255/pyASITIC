@@ -10,7 +10,7 @@ from .gds import write_gds, layout_polygons
 from .solver import solve_impedance
 from .devices import build_device, PAIRED_KINDS
 from .potential import solve_capacitance
-from .network import solve_pi2
+from .network import solve_pi2,solve_pi3,solve_pi4
 
 
 def _technology(request):
@@ -44,10 +44,14 @@ def handle(request):
         mutual,k = coupling_estimate(a,b,tech)
         return dict(mutual_nh=mutual,k=k)
     shape = _shape(request,tech)
-    if action == "pi2":
+    if action in ("pi","pi2","pi3","pi4"):
+        if action=="pi":
+            raise ValueError("The native fast Pi command faults on conductor coils before producing a model. Pi2, Pi3 and Pi4 use the working distributed solver.")
         mesh=request.get("mesh",{})
         ground=_shape(request["ground"],tech) if request.get("ground") else None
-        return solve_pi2(shape,tech,float(request.get("frequency_hz",1e9)),ground=ground,
+        pads={"first_pad":_shape(request["first_pad"],tech),"second_pad":_shape(request["second_pad"],tech)} if action=="pi4" else {}
+        solver={"pi2":solve_pi2,"pi3":solve_pi3,"pi4":solve_pi4}[action]
+        return solver(shape,tech,float(request.get("frequency_hz",1e9)),ground=ground,**pads,
                          **{key:float(mesh.get(key,1000)) for key in ("length_cell","width_cell","thickness_cell","capacitance_length_cell","capacitance_width_cell")})
     if action == "capacitance":
         mesh=request.get("mesh",{})

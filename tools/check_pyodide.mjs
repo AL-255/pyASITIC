@@ -99,6 +99,21 @@ for(const fixture of networkCases){
   if(fixture.kind==="wire" && !fixture.ground)assert.equal(result.pi.shunt_differential_ohm,null);
 }
 console.log("Eight native distributed Pi2 Y/S matrices passed in WebAssembly.");
+const piModelCases=JSON.parse(readFileSync(new URL("../tests/fixtures/pi_models.json",import.meta.url))).cases;
+for(const fixture of piModelCases){
+  const result=request({action:fixture.model,kind:fixture.kind,parameters:fixture.parameters,technology:fixture.technology,
+    ground:fixture.ground,first_pad:fixture.first_pad,second_pad:fixture.second_pad,frequency_hz:fixture.frequency_hz});
+  for(const key of ["admittance_matrix","scattering_matrix"]){
+    result[key].forEach((row,i)=>row.forEach((value,j)=>value.forEach((component,k)=>{
+      const expected=fixture[key][i][j][k];
+      assert.ok(Math.abs(component-expected)<=Math.max(1e-10,Math.abs(expected)*1e-8),`${fixture.model} ${fixture.kind} ${key}`);
+    })));
+  }
+  if(fixture.model==="pi4")assert.ok(result.filaments>=19);
+}
+assert.throws(()=>request({action:"pi"}),/native fast Pi/);
+assert.throws(()=>request({action:"pi3"}),/explicit ground/);
+console.log("Eight native Pi3/Pi4 models and explicit fast-Pi limitation passed in WebAssembly.");
 }
 py.runPython(`
 from dataclasses import asdict

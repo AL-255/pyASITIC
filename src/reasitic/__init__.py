@@ -8,6 +8,7 @@ from .solver import solve_impedance
 from .devices import build_device
 from .potential import solve_capacitance
 from .network import solve_pi2
+from .network import solve_pi3,solve_pi4
 
 __all__ = ["build", "Technology", "resistance_dc", "resistance_hf", "write_gds",
-           "inductance_estimate", "coupling_estimate", "solve_impedance", "solve_capacitance", "solve_pi2", "build_device"]
+           "inductance_estimate", "coupling_estimate", "solve_impedance", "solve_capacitance", "solve_pi2", "solve_pi3", "solve_pi4", "build_device"]
