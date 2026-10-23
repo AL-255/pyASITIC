@@ -6,6 +6,7 @@ const COLORS = ["#e8bd65", "#81b4ef", "#b899eb", "#8fd1ae", "#e89971", "#e88fbd"
 let worker, ready = false, busy = false, nextId = 0, current = null, currentDefinition = null, technology = null, technologyText = "", sweepRows = null, matrixResult = null, capacitanceResult = null, pi2Result = null;
 let sweepContext=null,sweepModels=[];
 let selfresResult=null,selfresTrace=[];
+let technologyPreset=null,technologyPresets=[];
 const MODEL_NAMES={pi:"Pi",pi2:"Pi2",pi3:"Pi3",pi4:"Pi4",pix:"PiX"};
 const eddyEnabled=()=>!!$("#eddy-mode")?.checked;
 const pending = new Map();
@@ -14,6 +15,7 @@ const fmt = (value, digits=4) => Number(value).toLocaleString(undefined, { maxim
 function error(message="") { $("#error").hidden = !message; $("#error").textContent = message; }
 function status(message) { $("#analysis-status").textContent = message; }
 function controls() {
+  for(const el of document.querySelectorAll(".technology input,.technology select,.technology button"))el.disabled=!ready||busy;
   for(const el of document.querySelectorAll(".analysis-panel input,.analysis-panel select"))el.disabled=busy;
   $("#generate").disabled = !ready || busy;
   for (const id of ["simulate", "sweep", "lmat", "capacitance", "pi2", "selfres", "download-gds", "download-project"]) $("#"+id).disabled = !ready || busy || !current;
@@ -119,22 +121,42 @@ async function generate() {
 }
 function fillTechnology(data) {
   technology=data.technology;
+  technologyPreset=data.preset||null;technologyPresets=data.presets||technologyPresets;
+  const selector=$("#technology-preset"),groups=new Map();selector.replaceChildren();
+  selector.append(new Option("Sample CMOS · 5 metals","sample-cmos"));
+  for(const preset of technologyPresets.filter(p=>p.id!=="sample-cmos")){
+    if(!groups.has(preset.routing_metals)){const group=document.createElement("optgroup");group.label=`GF180 · ${preset.routing_metals} routing metals`;groups.set(preset.routing_metals,group);selector.append(group);}
+    groups.get(preset.routing_metals).append(new Option(`${preset.label} (§${preset.section})`,preset.id));
+  }
+  const custom=new Option("Custom .tek file","custom");custom.disabled=true;selector.append(custom);
+  selector.value=technologyPreset?.id||(technologyText?"custom":"sample-cmos");
+  $("#tech-name").textContent=technologyPreset?`GF180 · ${technologyPreset.routing_metals}M · ${technologyPreset.top_metal_ka}kÅ`:technologyText?"Custom":"CMOS";
+  $("#gf180-settings").hidden=!technologyPreset;
+  if(technologyPreset){
+    $("#mim-density-field").hidden=technologyPreset.mim==="none";
+    if(technologyPreset.density!=="none")$("#mim-density").value=technologyPreset.density;
+    $("#substrate-rho").value=technology.substrate[0].rho;$("#substrate-thickness").value=technology.substrate[0].t;
+    $("#technology-source").href=technologyPreset.source;
+    $("#technology-note").textContent="Nominal coil stack. Substrate values are assumptions. Local MIM nitride and transistor topography are omitted; CAP is not a calibrated MIM model."+(technologyPreset.top_metal_ka===11?" Uses drawing values: top metal 1.1925 µm, oxide passivation 2.3925 µm; the general tables differ.":"");
+  }
+  $("#technology-description").textContent=technologyPreset?"All 45 documented GF180 cross sections are available. MIM stacks include a selectable MIM plate and both documented dielectric thicknesses. GDS uses GF180 drawn layer numbers.":"Choose a bundled stack or load an ASITIC .tek file. The sample CMOS process is illustrative.";
   const metalOptions = technology.metals.map((m,i)=>[String(i),`${m.name} · ${fmt(m.thickness)} µm`]);
+  const routing=technology.metals.map((m,i)=>!technologyPreset||m.name!=="MIM"?i:null).filter(i=>i!==null),top=routing.at(-1),lower=routing.at(-2)??top;
   function fill(selector,options,selected) {
     $(selector).replaceChildren(...options.map(([value,text])=>new Option(text,value,false,value===String(selected))));
   }
-  fill("#metal",metalOptions,technology.metals.length-1);
+  fill("#metal",metalOptions,top);
   fill("#exit-metal",[["-1","No exit lead"],...metalOptions],-1);
-  fill("#bottom-metal",metalOptions,Math.max(0,technology.metals.length-2));
-  fill("#secondary-metal",metalOptions,Math.max(0,technology.metals.length-2));
+  fill("#bottom-metal",metalOptions,lower);
+  fill("#secondary-metal",metalOptions,lower);
   fill("#via",technology.vias.map((v,i)=>[String(i),v.name]),0);
   fill("#model-ground-metal",metalOptions,0);
   for(const id of ["model-pad1-metal","model-pad2-metal"])fill("#"+id,metalOptions,technology.metals.length-1);
   const table=document.createElement("table");
   const head=table.createTHead().insertRow();
-  for (const name of ["Metal","Height µm","Rsh Ω/□"]) { const cell=document.createElement("th");cell.textContent=name;head.append(cell); }
+  for (const name of ["Metal","Height µm","Thick. µm","Rsh Ω/□"]) { const cell=document.createElement("th");cell.textContent=name;head.append(cell); }
   const body=table.createTBody();
-  for (const m of technology.metals) { const row=body.insertRow();for(const value of [m.name,fmt(m.height),fmt(m.resistance)]) row.insertCell().textContent=value; }
+  for (const m of technology.metals) { const row=body.insertRow();for(const value of [m.name,fmt(m.height),fmt(m.thickness),fmt(m.resistance)]) row.insertCell().textContent=value; }
   $("#tech-table").replaceChildren(table);
 }
 function download(data,type,filename) {
@@ -428,7 +450,7 @@ $("#project-file").addEventListener("change",event=>task(async()=>{
   const init=await request({action:"init",technology:text});
   // Verify geometry before replacing the current project.
   const restored=await request({action:"build",...data.shape,technology:text});
-  technologyText=text;fillTechnology(init);$("#tech-name").textContent=text?"Custom":"CMOS";
+  technologyText=text;fillTechnology(init);
   $("#kind").value=data.shape.kind;showFields();
   for(const [key,value] of Object.entries(data.shape.parameters)) if(form.elements.namedItem(key))form.elements.namedItem(key).value=String(value);
   currentDefinition=data.shape;current=restored;render(current);resetResults();status("Project restored. Run analysis on the selected winding.");
@@ -440,7 +462,27 @@ $("#technology-file").addEventListener("change",event=>task(async()=>{
   technologyText=text;fillTechnology(init);$("#tech-name").textContent=file.name;
   current=null;currentDefinition=null;$("#drawing").replaceChildren();resetResults();status("Technology loaded. Generate a new layout.");event.target.value="";
 }));
-$("#reset-technology").addEventListener("click",()=>task(async()=>{fillTechnology(await request({action:"init"}));technologyText="";$("#tech-name").textContent="CMOS";current=null;await generate();}));
+async function chooseTechnology(){
+  const id=$("#technology-preset").value;
+  const loaded=await request({action:"technology",preset:id,mim_density:$("#mim-density").value,
+    substrate_rho:numeric("#substrate-rho"),substrate_thickness:numeric("#substrate-thickness")});
+  technologyText=id==="sample-cmos"?"":loaded.text;fillTechnology(loaded);
+  current=null;currentDefinition=null;$("#drawing").replaceChildren();resetResults();
+  status("Technology loaded. Generate a new layout.");
+}
+for(const id of ["technology-preset","mim-density","substrate-rho","substrate-thickness"]){
+  $("#"+id).addEventListener("change",()=>task(async()=>{
+    const previous=technologyPreset?.id||(technologyText?"custom":"sample-cmos");
+    try{await chooseTechnology();}catch(error){$("#technology-preset").value=previous;throw error;}
+  }));
+}
+$("#download-technology").addEventListener("click",()=>task(async()=>{
+  const text=technologyText||(await request({action:"technology",preset:"sample-cmos"})).text;
+  download(text,"text/plain",String(technology.chip.techfile||"custom.tek").replace(/[^\w.-]/g,"_"));
+}));
+$("#reset-technology").addEventListener("click",()=>task(async()=>{
+  const init=await request({action:"init"});technologyText="";fillTechnology(init);current=null;await generate();
+}));
 $("#layout").addEventListener("wheel",event=>{
   event.preventDefault();viewport.scale=Math.max(.3,Math.min(15,viewport.scale*Math.exp(-event.deltaY*.001)));transform();
 },{passive:false});

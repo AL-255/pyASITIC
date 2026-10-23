@@ -1,0 +1,807 @@
+{
+  "source_revision": "de3240d7529a6970437ac3344820aaae7839f215",
+  "source_sha256": {
+    "docs/analog/layout/inter_specs/inter_specs_3_28.rst": "5947f9de505c20e46ffba21b9bdb5c42cb17ab97731bedb58bc0d8b6a74c3276",
+    "docs/analog/layout/inter_specs/inter_specs_3_10.rst": "764e951a88b48b9102116294511f183bfd20aa89e61b4aba6666b4d69d928170",
+    "docs/analog/layout/inter_specs/inter_specs_3_19.rst": "560a42407d4c910dedea55d137dc90ef0613772d6fe1e4c1ed70618aeb441950",
+    "docs/analog/layout/inter_specs/inter_specs_3_38.rst": "5e5f23118cea75eb2ed8e800b6b4d71fb01a18c435539ccd90d8a2ad66e2ae87",
+    "docs/analog/layout/inter_specs/inter_specs_3_25.rst": "95d659a79d84c035c1675a874d62599a4fef1383feb94fac412f553bfd5f5ec2",
+    "docs/analog/layout/inter_specs/inter_specs_3_34.rst": "095abe7961dba507eb0a833a82ea78628e3a9f5aadfe178203d89aa5b9aa3e17",
+    "docs/analog/layout/inter_specs/inter_specs_3_41.rst": "ee9aa64d06bf98d2bd8d81f896e3a05c0f56640b1c9539a4d6ee8dfdbbd06fe4",
+    "docs/analog/layout/inter_specs/inter_specs_3_23.rst": "0ed598c8970248e2caf918f1b14f5a49a7923a74f378e15bf91d95f8145a9972",
+    "docs/analog/layout/inter_specs/inter_specs_3_31.rst": "76c656389bc7f18e07d66a6cc1cdecfdf7cf202873b93d03adf73c53d3010b81",
+    "docs/analog/layout/inter_specs/inter_specs_3_36.rst": "0f7b755f9fcf43eb2763e98de9c94dacbd41574533ba1c3787afdffba8013f27",
+    "docs/analog/layout/inter_specs/inter_specs_3_05.rst": "95dc682c1a6f71adf6eafa65acde8b8c5f96486913b4c5833811aba3b16f83a7",
+    "docs/analog/layout/inter_specs/inter_specs_3_21.rst": "46a84d37521375e80dc708a8ee2e3be2374f2638fcf7bcd7fefb46764a0205ca",
+    "docs/analog/layout/inter_specs/inter_specs_3_33.rst": "30a3df29a7d561b07cab4160d52dc5a3b0a6acc1de27f1c83ab6798aa7897c58",
+    "docs/analog/layout/inter_specs/inter_specs_3_12.rst": "a7cc218c05bab5c41fbb34e00bfad71541fb924ae8aad5828ecc8eb313fcef59",
+    "docs/analog/layout/inter_specs/inter_specs_3_24.rst": "42f0e5d7a6d7f6884f4f5ee3087e29fbe0f874ae4ee449e127567dd364dae7a2",
+    "docs/analog/layout/inter_specs/inter_specs_3_45.rst": "f29efb9c1e4539eab438e4cfd81bdeacf0b4518430ba94163df6233ac1f944ad",
+    "docs/analog/layout/inter_specs/inter_specs_3_15.rst": "f5039645d3d871e1db8dd4f0309a11a1cc2c4220c624335226c199c8bacaa3fd",
+    "docs/analog/layout/inter_specs/inter_specs_3_16.rst": "b62a696eca3ed5c7985f6ef10cc832dbb08495cac611f4e78ed2df7f40194f96",
+    "docs/analog/layout/inter_specs/inter_specs_3_43.rst": "197b73ac6fe24b1a88d1f45c242dd10416c53264da3dbc3bca8614c8c9fa8dd9",
+    "docs/analog/layout/inter_specs/inter_specs_3_39.rst": "e43ba167f2ee9bfbd34845b6374f63355c03188fda5a4b690ee1d4f9793fa77a",
+    "docs/analog/layout/inter_specs/inter_specs_3_32.rst": "49df6fc79f2c4869f3d9cfe028b55f22b4216de03fad9cf61f4a8391e6d980c7",
+    "docs/analog/layout/inter_specs/inter_specs_3_14.rst": "68852b0426d92cd083d6ec165a12deced652b7d486fe547fc21f89e273089a93",
+    "docs/analog/layout/inter_specs/inter_specs_3_13.rst": "a2b568dc3cbb543f2abe1e3a287c8f404a9a44fdbfcf7a770ca44987a4f031b7",
+    "docs/analog/layout/inter_specs/inter_specs_3.rst": "065d866d851b917203c906e03333f5d1e7c6eed7391419b0852ea77d84b8566b",
+    "docs/analog/layout/inter_specs/inter_specs_3_37.rst": "247e6c47b7faac3710171dc9c4ef6d5a0544626628becf3fd25fdf076d6203a9",
+    "docs/analog/layout/inter_specs/inter_specs_3_08.rst": "deae12caf77c18559c24b8ab5113870329167494087a5bd6c753d7fa547e4a31",
+    "docs/analog/layout/inter_specs/inter_specs_3_07.rst": "3d00e5ac8253df5f1c855d53afcddd394112791647b9e65b4bb491cf18a36d03",
+    "docs/analog/layout/inter_specs/inter_specs_3_04.rst": "f4190409c36ac4c0f40810de36530032f91b681ee03d9207ba1cbc6a656279b5",
+    "docs/analog/layout/inter_specs/inter_specs_3_09.rst": "3f9d8d95423b3fc5f57f418d7be14e612805dd1362cdf6ff4d3fd983e95160e4",
+    "docs/analog/layout/inter_specs/inter_specs_3_01.rst": "57a95e2113503459edeec04662ca8a2ed90c8df53bd04b32edeba8bfbada2dee",
+    "docs/analog/layout/inter_specs/inter_specs_3_29.rst": "42bfdb9ba0c8bcf07268969a2cc47cdf37522ae78966b516069bb9d431a71bc5",
+    "docs/analog/layout/inter_specs/inter_specs_3_11.rst": "6b759ddab84b2d7b432a6e8d85f45b282651558a268cd5bfc716de0b00bd5920",
+    "docs/analog/layout/inter_specs/inter_specs_3_17.rst": "898fff3d74d6cc064b656c1fe789a9c3c57430eed721d95d246ca30e3b059654",
+    "docs/analog/layout/inter_specs/inter_specs_3_02.rst": "b0d3afb8751993348e06a797f9571d596be6a8ae888890443e50bbc03f08dc12",
+    "docs/analog/layout/inter_specs/inter_specs_3_26.rst": "6908d8a9de4a0ba17c4cadc0f62c7418de0af2c23f813c41a67d76398426d311",
+    "docs/analog/layout/inter_specs/inter_specs_3_42.rst": "340db5c749bb7336e8b7683707ccf44f7dd9d156f4508772888a24e89f4f5f0b",
+    "docs/analog/layout/inter_specs/inter_specs_3_20.rst": "1e99cc6e478ecf35292dd673c5cfc8569640b89fb2732f5083b6db903de47c6a",
+    "docs/analog/layout/inter_specs/inter_specs_3_03.rst": "a9ddbff5f164e796c3acd5684281fa6092cecafb2059728d0b8a23d55efdb4d7",
+    "docs/analog/layout/inter_specs/inter_specs_3_06.rst": "6961b06bf9d3fdedfa5700f1e7cd59ac5c67ae39783ac1d4269c6d02178c071a",
+    "docs/analog/layout/inter_specs/inter_specs_3_30.rst": "61d69d83872f7e8dbbd7756a6d592ef0bad158f87beb197fc09da8ca705e1497",
+    "docs/analog/layout/inter_specs/inter_specs_3_22.rst": "03218659341a762c4df0aaf0d11f48d75cf5e5275470a1633f6dba271a1fd9ed",
+    "docs/analog/layout/inter_specs/inter_specs_3_40.rst": "654f413adf8d47ea2fd192e71ff4111b9744e7a41693f8d780c894a05b828607",
+    "docs/analog/layout/inter_specs/inter_specs_3_18.rst": "ddf6843644769a83cf7e6b50af299ea3a9d405fa6a439c2b391c2a07305bc67f",
+    "docs/analog/layout/inter_specs/inter_specs_3_35.rst": "50dd3e62ed92d8c77b43be247c1f7737a95c5b1110407128555c545d7f1fb1e0",
+    "docs/analog/layout/inter_specs/inter_specs_3_44.rst": "cc3c5f6cb1bcaa9dc55b82dcbd5094124c959488958601527e871ceac36eae81",
+    "docs/analog/layout/inter_specs/inter_specs_3_27.rst": "0f49e6c4c3f170b198ee540c3159f362981d0c52b78fe7393bfbcf0e11f1e2fb",
+    "docs/analog/layout/inter_specs/images/2_cross_section_29.png": "3a95407448080a76b9acd750125423c92e9902ac21deabffd7a701b3453bc689",
+    "docs/analog/layout/inter_specs/images/2_cross_section_41.png": "d84dd6d6045b3567dcca7027e630904ec8fedccf01c71f239c51074aaff9456b",
+    "docs/analog/layout/inter_specs/images/2_cross_section_24.png": "7dede2511898ba62f361986a6d016e35c9abc527098c14633f8f3bc67d6fddec",
+    "docs/analog/layout/inter_specs/images/2_cross_section_12.png": "88630067d2a94dbfa1d343aa676a4fc8ff5b169de12851c65b492f353a2f9415",
+    "docs/analog/layout/inter_specs/images/2_cross_section_15.png": "3a927bd6b5201025d757b22ce6e60a24c3244c89dfc7ed9e7cbc68b38e97f8c8",
+    "docs/analog/layout/inter_specs/images/2_cross_section_03.png": "476cd743a16b249245359ad0406a4a6cf18fa4a10f7fe47a2349031046c7c68f",
+    "docs/analog/layout/inter_specs/images/2_cross_section_45.png": "b8a7f01234be11adcd26d7d21b8b6dbb21043b82ac5323d0798b74d7159dbed1",
+    "docs/analog/layout/inter_specs/images/2_cross_section_43.png": "7b606e4114a1bbfe21aba5fb70270f93979913eb40294603120881ff05ac58f3",
+    "docs/analog/layout/inter_specs/images/2_cross_section_30.png": "96fb92063a375b88b5e1dc87b5ce6cc6b3139c45dd933337fb92805e837bf216",
+    "docs/analog/layout/inter_specs/images/2_cross_section_07.png": "9703e86c2e3aacd619c48c02c717f0cb0656213f3423eae867e69720091de3eb",
+    "docs/analog/layout/inter_specs/images/2_cross_section_44.png": "a04200f0f7527cb25d5b8870f636a51b456bf0133f71928382fcc53811c1e86c",
+    "docs/analog/layout/inter_specs/images/2_cross_section_37.png": "b63842b1e70208bc9d4af5d1b0403579509bf960eb7f141b30dc750dd2fa0166",
+    "docs/analog/layout/inter_specs/images/2_cross_section_36.png": "4c93d98ebd3d6f03b4fef7540f1b2bc655f66b771703147fc0d194280171d8c0",
+    "docs/analog/layout/inter_specs/images/2_cross_section_13.png": "de0eb1a6521f07b0321adf8b7606b6e7c2fad88437f9ef13c129c726e21ffa2d",
+    "docs/analog/layout/inter_specs/images/2_cross_section_38.png": "d2629a65a3f2613681d70a28356cdfa087b663d8985e672d3ffbd35f35bbf1dd",
+    "docs/analog/layout/inter_specs/images/2_cross_section_25.png": "026c84cdbccc90b031d27f058447ee16e8af50e49d5f3a4a4f77aebca55ff807",
+    "docs/analog/layout/inter_specs/images/2_cross_section_01.png": "9c58545b1fef93c26a5ee94fbfbab939c9589eef75c7a25592a0ab9753690895",
+    "docs/analog/layout/inter_specs/images/2_cross_section_02.png": "bb7433a81f35be37f497c073c4a32194abb888671b9a611ccec7112d7bb69f5a",
+    "docs/analog/layout/inter_specs/images/2_cross_section_06.png": "5fb673bbf7675b35f413e950b24fbf968a9d0de0f08b980632632258bfb34fd7",
+    "docs/analog/layout/inter_specs/images/2_cross_section_18.png": "52e5d4d7674245bed1f79ae852b7b51151a54f4c8affb01b22044abedfde72c4",
+    "docs/analog/layout/inter_specs/images/2_cross_section_33.png": "a22ee881b7127ec497518aaa2b220bf075fcd91ce3d30ef8ccb2eb33a75d084d",
+    "docs/analog/layout/inter_specs/images/2_cross_section_04.png": "068df16d3f68a8d3130e34b46d3b3a092e9d895339397d25599c4cbf6ca5f4bf",
+    "docs/analog/layout/inter_specs/images/2_cross_section_22.png": "332da70966ad13d01a41d930df89a2778d90d2cff4d7a7c18cebe936d6f233f6",
+    "docs/analog/layout/inter_specs/images/2_cross_section_23.png": "dd0ad31ee41d0b69ada67759a8efd642f9df0fda6208de12decb5a58b27dccf4",
+    "docs/analog/layout/inter_specs/images/2_cross_section_27.png": "331515af4be816958730a6258d1217be8ce23eaedf7e5f723fcb1327414dd60e",
+    "docs/analog/layout/inter_specs/images/2_cross_section_20.png": "c4af1062b6e74ca9d6af8655e8d636ccc170bf21d3f6b017ada0554fbe92ac9f",
+    "docs/analog/layout/inter_specs/images/2_cross_section_40.png": "3c6dc427ea8aca735dab4985baee3e47066b3756807b65156ed8661ef6206b80",
+    "docs/analog/layout/inter_specs/images/2_cross_section_35.png": "74809649afe724f31792c88830ec5fa0db89e32bb8fa2cb2a4dff6d208cdaaa0",
+    "docs/analog/layout/inter_specs/images/2_cross_section_19.png": "f2c1c527cc01abd6ce8b7d81227e78e21be942951f86842aaec44c2890938745",
+    "docs/analog/layout/inter_specs/images/2_cross_section_05.png": "a680e653c2401997e0efb7be050b8d3a2fcd1fcb64604713912fcc19905c20b0",
+    "docs/analog/layout/inter_specs/images/2_cross_section_28.png": "f65618f9c34512126f6fffdef43b176f43480773445b5a5a0b8c291cd6a95cb0",
+    "docs/analog/layout/inter_specs/images/2_cross_section_17.png": "4d75238685e2c1fbc67e3cae2f000f222b857a06c1d284daf43e65953ea7d627",
+    "docs/analog/layout/inter_specs/images/2_cross_section_21.png": "33fad0d486a0dbc08096052b4ad93620eece02a4bfad14313936a31ce102f421",
+    "docs/analog/layout/inter_specs/images/2_cross_section_08.png": "931d6cf4bad66c8aed0518d24bbf6a292b092a7edf756461852acc9a4d029f33",
+    "docs/analog/layout/inter_specs/images/2_cross_section_26.png": "4a33e9b355ca32f8ace76bf022a2f960f5cfcfb2001159bd82fe81110d3ea916",
+    "docs/analog/layout/inter_specs/images/2_cross_section_11.png": "256bf3b0bf9b5908a621f902e129a5ce23a1bcda17d7cecc3acddedaeb93536d",
+    "docs/analog/layout/inter_specs/images/2_cross_section_14.png": "4f740880d90621bd2ae91ab37a552e68c1c404e607c4bf9f77cf521385cffc98",
+    "docs/analog/layout/inter_specs/images/2_cross_section_09.png": "1d6d4850cbc6161edd7be343f055894926e472c8bda7be70443345bde10a42f9",
+    "docs/analog/layout/inter_specs/images/2_cross_section_16.png": "22abbf388d388a4ff1fa683e4f7117ed8ffbd38e3af39e10035d146487dad314",
+    "docs/analog/layout/inter_specs/images/2_cross_section_39.png": "a83c820cbbe29cafc89e8d05af54d31f379bec3aefc8dfde1f0d1d260bedd7df",
+    "docs/analog/layout/inter_specs/images/2_cross_section_31.png": "95ab3a71bebeacc8c37ffa147e651ec1731d8f49cc0d60fca849ca86b86d9081",
+    "docs/analog/layout/inter_specs/images/2_cross_section_10.png": "6196e1b5899bd086d0fd6257e0e2df4ca3cc5a7e7112a1d610747c08793bb4b3",
+    "docs/analog/layout/inter_specs/images/2_cross_section_34.png": "799fb939abe2cc359c708dc692dff9e80038addde23baa2c49c9c59a1f08f8ab",
+    "docs/analog/layout/inter_specs/images/2_cross_section_42.png": "bd7bd7c1f411f7a4704dad142fab00237c1ffc9da8bc3e2bd9d11ff71bbaf144",
+    "docs/analog/layout/inter_specs/images/2_cross_section_32.png": "58599924a26ca268ee854e55769a07ead29fcee87cb4f7619704d4fc8fb84854",
+    "docs/analog/layout/inter_specs/tables_clear/4_General_Dielectric.csv": "af8ee705b8f3713bc133c8811b7c4fbaf6f0c7f04124677bb578d59ceba37640",
+    "docs/analog/layout/inter_specs/tables_clear/5_Sheet_Rho_table.csv": "98e9a330fcfea7e1918fa9b90ca7cac457456f29174447337a3c793794e1ce17",
+    "docs/analog/layout/inter_specs/tables_clear/3_General_conductor.csv": "8cc79cb291280a03bed6d08d5bf440cabe81b0e22381a0c358b99d8be6e44114",
+    "docs/analog/spice/elec_specs/tables_clear/5_General_Specification2.csv": "eb9a9e7983bd4f83205a329b99e9a0516cba079d9067357d5e899c73b584980e",
+    "docs/physical_verification/design_manual/tables_clear/23_Vian_59.csv": "94606470dba70a4a4267227dc21bf226cb0dd14de91a93df0760b5898f69a6e4",
+    "docs/physical_verification/design_manual/tables_clear/06_Drawn_layer10.csv": "c93b839a3952e72cda5f623467f5ce0246f9b394ad2b10f100cf45a7468a54f8"
+  },
+  "presets": [
+    {
+      "id": "gf180-1p3m-6ka-no-mim",
+      "label": "GF180 \u00b7 1P3M \u00b7 6 k\u00c5 \u00b7 no MIM",
+      "section": "3.1",
+      "routing_metals": 3,
+      "top_metal_ka": 6,
+      "top_thickness_um": 0.7025,
+      "oxide_passivation_um": 1.4025,
+      "mim": "none",
+      "mim_bottom": null,
+      "source": "https://gf180mcu-pdk.readthedocs.io/en/latest/analog/layout/inter_specs/inter_specs_3_01.html",
+      "variants": {
+        "none": "gf180-1p3m-6ka-no-mim.tek"
+      }
+    },
+    {
+      "id": "gf180-1p3m-6ka-mim-a",
+      "label": "GF180 \u00b7 1P3M \u00b7 6 k\u00c5 \u00b7 MIM A",
+      "section": "3.2",
+      "routing_metals": 3,
+      "top_metal_ka": 6,
+      "top_thickness_um": 0.7025,
+      "oxide_passivation_um": 1.4025,
+      "mim": "A",
+      "mim_bottom": 2,
+      "source": "https://gf180mcu-pdk.readthedocs.io/en/latest/analog/layout/inter_specs/inter_specs_3_02.html",
+      "variants": {
+        "1.5": "gf180-1p3m-6ka-mim-a-1p5ff.tek",
+        "1.0": "gf180-1p3m-6ka-mim-a-1p0ff.tek"
+      }
+    },
+    {
+      "id": "gf180-1p3m-9ka-no-mim",
+      "label": "GF180 \u00b7 1P3M \u00b7 9 k\u00c5 \u00b7 no MIM",
+      "section": "3.3",
+      "routing_metals": 3,
+      "top_metal_ka": 9,
+      "top_thickness_um": 1.0025,
+      "oxide_passivation_um": 2.0025,
+      "mim": "none",
+      "mim_bottom": null,
+      "source": "https://gf180mcu-pdk.readthedocs.io/en/latest/analog/layout/inter_specs/inter_specs_3_03.html",
+      "variants": {
+        "none": "gf180-1p3m-9ka-no-mim.tek"
+      }
+    },
+    {
+      "id": "gf180-1p3m-9ka-mim-a",
+      "label": "GF180 \u00b7 1P3M \u00b7 9 k\u00c5 \u00b7 MIM A",
+      "section": "3.4",
+      "routing_metals": 3,
+      "top_metal_ka": 9,
+      "top_thickness_um": 1.0025,
+      "oxide_passivation_um": 2.0025,
+      "mim": "A",
+      "mim_bottom": 2,
+      "source": "https://gf180mcu-pdk.readthedocs.io/en/latest/analog/layout/inter_specs/inter_specs_3_04.html",
+      "variants": {
+        "1.5": "gf180-1p3m-9ka-mim-a-1p5ff.tek",
+        "1.0": "gf180-1p3m-9ka-mim-a-1p0ff.tek"
+      }
+    },
+    {
+      "id": "gf180-1p4m-6ka-no-mim",
+      "label": "GF180 \u00b7 1P4M \u00b7 6 k\u00c5 \u00b7 no MIM",
+      "section": "3.5",
+      "routing_metals": 4,
+      "top_metal_ka": 6,
+      "top_thickness_um": 0.7025,
+      "oxide_passivation_um": 1.4025,
+      "mim": "none",
+      "mim_bottom": null,
+      "source": "https://gf180mcu-pdk.readthedocs.io/en/latest/analog/layout/inter_specs/inter_specs_3_05.html",
+      "variants": {
+        "none": "gf180-1p4m-6ka-no-mim.tek"
+      }
+    },
+    {
+      "id": "gf180-1p4m-6ka-mim-a",
+      "label": "GF180 \u00b7 1P4M \u00b7 6 k\u00c5 \u00b7 MIM A",
+      "section": "3.6",
+      "routing_metals": 4,
+      "top_metal_ka": 6,
+      "top_thickness_um": 0.7025,
+      "oxide_passivation_um": 1.4025,
+      "mim": "A",
+      "mim_bottom": 2,
+      "source": "https://gf180mcu-pdk.readthedocs.io/en/latest/analog/layout/inter_specs/inter_specs_3_06.html",
+      "variants": {
+        "1.5": "gf180-1p4m-6ka-mim-a-1p5ff.tek",
+        "1.0": "gf180-1p4m-6ka-mim-a-1p0ff.tek"
+      }
+    },
+    {
+      "id": "gf180-1p4m-9ka-no-mim",
+      "label": "GF180 \u00b7 1P4M \u00b7 9 k\u00c5 \u00b7 no MIM",
+      "section": "3.7",
+      "routing_metals": 4,
+      "top_metal_ka": 9,
+      "top_thickness_um": 1.0025,
+      "oxide_passivation_um": 2.0025,
+      "mim": "none",
+      "mim_bottom": null,
+      "source": "https://gf180mcu-pdk.readthedocs.io/en/latest/analog/layout/inter_specs/inter_specs_3_07.html",
+      "variants": {
+        "none": "gf180-1p4m-9ka-no-mim.tek"
+      }
+    },
+    {
+      "id": "gf180-1p4m-9ka-mim-a",
+      "label": "GF180 \u00b7 1P4M \u00b7 9 k\u00c5 \u00b7 MIM A",
+      "section": "3.8",
+      "routing_metals": 4,
+      "top_metal_ka": 9,
+      "top_thickness_um": 1.0025,
+      "oxide_passivation_um": 2.0025,
+      "mim": "A",
+      "mim_bottom": 2,
+      "source": "https://gf180mcu-pdk.readthedocs.io/en/latest/analog/layout/inter_specs/inter_specs_3_08.html",
+      "variants": {
+        "1.5": "gf180-1p4m-9ka-mim-a-1p5ff.tek",
+        "1.0": "gf180-1p4m-9ka-mim-a-1p0ff.tek"
+      }
+    },
+    {
+      "id": "gf180-1p5m-6ka-no-mim",
+      "label": "GF180 \u00b7 1P5M \u00b7 6 k\u00c5 \u00b7 no MIM",
+      "section": "3.9",
+      "routing_metals": 5,
+      "top_metal_ka": 6,
+      "top_thickness_um": 0.7025,
+      "oxide_passivation_um": 1.4025,
+      "mim": "none",
+      "mim_bottom": null,
+      "source": "https://gf180mcu-pdk.readthedocs.io/en/latest/analog/layout/inter_specs/inter_specs_3_09.html",
+      "variants": {
+        "none": "gf180-1p5m-6ka-no-mim.tek"
+      }
+    },
+    {
+      "id": "gf180-1p5m-6ka-mim-a",
+      "label": "GF180 \u00b7 1P5M \u00b7 6 k\u00c5 \u00b7 MIM A",
+      "section": "3.10",
+      "routing_metals": 5,
+      "top_metal_ka": 6,
+      "top_thickness_um": 0.7025,
+      "oxide_passivation_um": 1.4025,
+      "mim": "A",
+      "mim_bottom": 2,
+      "source": "https://gf180mcu-pdk.readthedocs.io/en/latest/analog/layout/inter_specs/inter_specs_3_10.html",
+      "variants": {
+        "1.5": "gf180-1p5m-6ka-mim-a-1p5ff.tek",
+        "1.0": "gf180-1p5m-6ka-mim-a-1p0ff.tek"
+      }
+    },
+    {
+      "id": "gf180-1p5m-9ka-no-mim",
+      "label": "GF180 \u00b7 1P5M \u00b7 9 k\u00c5 \u00b7 no MIM",
+      "section": "3.11",
+      "routing_metals": 5,
+      "top_metal_ka": 9,
+      "top_thickness_um": 1.0025,
+      "oxide_passivation_um": 2.0025,
+      "mim": "none",
+      "mim_bottom": null,
+      "source": "https://gf180mcu-pdk.readthedocs.io/en/latest/analog/layout/inter_specs/inter_specs_3_11.html",
+      "variants": {
+        "none": "gf180-1p5m-9ka-no-mim.tek"
+      }
+    },
+    {
+      "id": "gf180-1p5m-9ka-mim-a",
+      "label": "GF180 \u00b7 1P5M \u00b7 9 k\u00c5 \u00b7 MIM A",
+      "section": "3.12",
+      "routing_metals": 5,
+      "top_metal_ka": 9,
+      "top_thickness_um": 1.0025,
+      "oxide_passivation_um": 2.0025,
+      "mim": "A",
+      "mim_bottom": 2,
+      "source": "https://gf180mcu-pdk.readthedocs.io/en/latest/analog/layout/inter_specs/inter_specs_3_12.html",
+      "variants": {
+        "1.5": "gf180-1p5m-9ka-mim-a-1p5ff.tek",
+        "1.0": "gf180-1p5m-9ka-mim-a-1p0ff.tek"
+      }
+    },
+    {
+      "id": "gf180-1p6m-6ka-no-mim",
+      "label": "GF180 \u00b7 1P6M \u00b7 6 k\u00c5 \u00b7 no MIM",
+      "section": "3.13",
+      "routing_metals": 6,
+      "top_metal_ka": 6,
+      "top_thickness_um": 0.7025,
+      "oxide_passivation_um": 1.4025,
+      "mim": "none",
+      "mim_bottom": null,
+      "source": "https://gf180mcu-pdk.readthedocs.io/en/latest/analog/layout/inter_specs/inter_specs_3_13.html",
+      "variants": {
+        "none": "gf180-1p6m-6ka-no-mim.tek"
+      }
+    },
+    {
+      "id": "gf180-1p6m-6ka-mim-a",
+      "label": "GF180 \u00b7 1P6M \u00b7 6 k\u00c5 \u00b7 MIM A",
+      "section": "3.14",
+      "routing_metals": 6,
+      "top_metal_ka": 6,
+      "top_thickness_um": 0.7025,
+      "oxide_passivation_um": 1.4025,
+      "mim": "A",
+      "mim_bottom": 2,
+      "source": "https://gf180mcu-pdk.readthedocs.io/en/latest/analog/layout/inter_specs/inter_specs_3_14.html",
+      "variants": {
+        "1.5": "gf180-1p6m-6ka-mim-a-1p5ff.tek",
+        "1.0": "gf180-1p6m-6ka-mim-a-1p0ff.tek"
+      }
+    },
+    {
+      "id": "gf180-1p6m-9ka-no-mim",
+      "label": "GF180 \u00b7 1P6M \u00b7 9 k\u00c5 \u00b7 no MIM",
+      "section": "3.15",
+      "routing_metals": 6,
+      "top_metal_ka": 9,
+      "top_thickness_um": 1.0025,
+      "oxide_passivation_um": 2.0025,
+      "mim": "none",
+      "mim_bottom": null,
+      "source": "https://gf180mcu-pdk.readthedocs.io/en/latest/analog/layout/inter_specs/inter_specs_3_15.html",
+      "variants": {
+        "none": "gf180-1p6m-9ka-no-mim.tek"
+      }
+    },
+    {
+      "id": "gf180-1p6m-9ka-mim-a",
+      "label": "GF180 \u00b7 1P6M \u00b7 9 k\u00c5 \u00b7 MIM A",
+      "section": "3.16",
+      "routing_metals": 6,
+      "top_metal_ka": 9,
+      "top_thickness_um": 1.0025,
+      "oxide_passivation_um": 2.0025,
+      "mim": "A",
+      "mim_bottom": 2,
+      "source": "https://gf180mcu-pdk.readthedocs.io/en/latest/analog/layout/inter_specs/inter_specs_3_16.html",
+      "variants": {
+        "1.5": "gf180-1p6m-9ka-mim-a-1p5ff.tek",
+        "1.0": "gf180-1p6m-9ka-mim-a-1p0ff.tek"
+      }
+    },
+    {
+      "id": "gf180-1p4m-6ka-mim-b",
+      "label": "GF180 \u00b7 1P4M \u00b7 6 k\u00c5 \u00b7 MIM B",
+      "section": "3.17",
+      "routing_metals": 4,
+      "top_metal_ka": 6,
+      "top_thickness_um": 0.7025,
+      "oxide_passivation_um": 1.4025,
+      "mim": "B",
+      "mim_bottom": 3,
+      "source": "https://gf180mcu-pdk.readthedocs.io/en/latest/analog/layout/inter_specs/inter_specs_3_17.html",
+      "variants": {
+        "1.5": "gf180-1p4m-6ka-mim-b-1p5ff.tek",
+        "1.0": "gf180-1p4m-6ka-mim-b-1p0ff.tek"
+      }
+    },
+    {
+      "id": "gf180-1p4m-9ka-mim-b",
+      "label": "GF180 \u00b7 1P4M \u00b7 9 k\u00c5 \u00b7 MIM B",
+      "section": "3.18",
+      "routing_metals": 4,
+      "top_metal_ka": 9,
+      "top_thickness_um": 1.0025,
+      "oxide_passivation_um": 2.0025,
+      "mim": "B",
+      "mim_bottom": 3,
+      "source": "https://gf180mcu-pdk.readthedocs.io/en/latest/analog/layout/inter_specs/inter_specs_3_18.html",
+      "variants": {
+        "1.5": "gf180-1p4m-9ka-mim-b-1p5ff.tek",
+        "1.0": "gf180-1p4m-9ka-mim-b-1p0ff.tek"
+      }
+    },
+    {
+      "id": "gf180-1p5m-6ka-mim-b",
+      "label": "GF180 \u00b7 1P5M \u00b7 6 k\u00c5 \u00b7 MIM B",
+      "section": "3.19",
+      "routing_metals": 5,
+      "top_metal_ka": 6,
+      "top_thickness_um": 0.7025,
+      "oxide_passivation_um": 1.4025,
+      "mim": "B",
+      "mim_bottom": 4,
+      "source": "https://gf180mcu-pdk.readthedocs.io/en/latest/analog/layout/inter_specs/inter_specs_3_19.html",
+      "variants": {
+        "1.5": "gf180-1p5m-6ka-mim-b-1p5ff.tek",
+        "1.0": "gf180-1p5m-6ka-mim-b-1p0ff.tek"
+      }
+    },
+    {
+      "id": "gf180-1p5m-9ka-mim-b",
+      "label": "GF180 \u00b7 1P5M \u00b7 9 k\u00c5 \u00b7 MIM B",
+      "section": "3.20",
+      "routing_metals": 5,
+      "top_metal_ka": 9,
+      "top_thickness_um": 1.0025,
+      "oxide_passivation_um": 2.0025,
+      "mim": "B",
+      "mim_bottom": 4,
+      "source": "https://gf180mcu-pdk.readthedocs.io/en/latest/analog/layout/inter_specs/inter_specs_3_20.html",
+      "variants": {
+        "1.5": "gf180-1p5m-9ka-mim-b-1p5ff.tek",
+        "1.0": "gf180-1p5m-9ka-mim-b-1p0ff.tek"
+      }
+    },
+    {
+      "id": "gf180-1p6m-6ka-mim-b",
+      "label": "GF180 \u00b7 1P6M \u00b7 6 k\u00c5 \u00b7 MIM B",
+      "section": "3.21",
+      "routing_metals": 6,
+      "top_metal_ka": 6,
+      "top_thickness_um": 0.7025,
+      "oxide_passivation_um": 1.4025,
+      "mim": "B",
+      "mim_bottom": 5,
+      "source": "https://gf180mcu-pdk.readthedocs.io/en/latest/analog/layout/inter_specs/inter_specs_3_21.html",
+      "variants": {
+        "1.5": "gf180-1p6m-6ka-mim-b-1p5ff.tek",
+        "1.0": "gf180-1p6m-6ka-mim-b-1p0ff.tek"
+      }
+    },
+    {
+      "id": "gf180-1p6m-9ka-mim-b",
+      "label": "GF180 \u00b7 1P6M \u00b7 9 k\u00c5 \u00b7 MIM B",
+      "section": "3.22",
+      "routing_metals": 6,
+      "top_metal_ka": 9,
+      "top_thickness_um": 1.0025,
+      "oxide_passivation_um": 2.0025,
+      "mim": "B",
+      "mim_bottom": 5,
+      "source": "https://gf180mcu-pdk.readthedocs.io/en/latest/analog/layout/inter_specs/inter_specs_3_22.html",
+      "variants": {
+        "1.5": "gf180-1p6m-9ka-mim-b-1p5ff.tek",
+        "1.0": "gf180-1p6m-9ka-mim-b-1p0ff.tek"
+      }
+    },
+    {
+      "id": "gf180-1p3m-30ka-no-mim",
+      "label": "GF180 \u00b7 1P3M \u00b7 30 k\u00c5 \u00b7 no MIM",
+      "section": "3.23",
+      "routing_metals": 3,
+      "top_metal_ka": 30,
+      "top_thickness_um": 3.0,
+      "oxide_passivation_um": 3.3,
+      "mim": "none",
+      "mim_bottom": null,
+      "source": "https://gf180mcu-pdk.readthedocs.io/en/latest/analog/layout/inter_specs/inter_specs_3_23.html",
+      "variants": {
+        "none": "gf180-1p3m-30ka-no-mim.tek"
+      }
+    },
+    {
+      "id": "gf180-1p3m-30ka-mim-a",
+      "label": "GF180 \u00b7 1P3M \u00b7 30 k\u00c5 \u00b7 MIM A",
+      "section": "3.24",
+      "routing_metals": 3,
+      "top_metal_ka": 30,
+      "top_thickness_um": 3.0,
+      "oxide_passivation_um": 3.3,
+      "mim": "A",
+      "mim_bottom": 2,
+      "source": "https://gf180mcu-pdk.readthedocs.io/en/latest/analog/layout/inter_specs/inter_specs_3_24.html",
+      "variants": {
+        "1.5": "gf180-1p3m-30ka-mim-a-1p5ff.tek",
+        "1.0": "gf180-1p3m-30ka-mim-a-1p0ff.tek"
+      }
+    },
+    {
+      "id": "gf180-1p4m-30ka-no-mim",
+      "label": "GF180 \u00b7 1P4M \u00b7 30 k\u00c5 \u00b7 no MIM",
+      "section": "3.25",
+      "routing_metals": 4,
+      "top_metal_ka": 30,
+      "top_thickness_um": 3.0,
+      "oxide_passivation_um": 3.3,
+      "mim": "none",
+      "mim_bottom": null,
+      "source": "https://gf180mcu-pdk.readthedocs.io/en/latest/analog/layout/inter_specs/inter_specs_3_25.html",
+      "variants": {
+        "none": "gf180-1p4m-30ka-no-mim.tek"
+      }
+    },
+    {
+      "id": "gf180-1p4m-30ka-mim-a",
+      "label": "GF180 \u00b7 1P4M \u00b7 30 k\u00c5 \u00b7 MIM A",
+      "section": "3.26",
+      "routing_metals": 4,
+      "top_metal_ka": 30,
+      "top_thickness_um": 3.0,
+      "oxide_passivation_um": 3.3,
+      "mim": "A",
+      "mim_bottom": 2,
+      "source": "https://gf180mcu-pdk.readthedocs.io/en/latest/analog/layout/inter_specs/inter_specs_3_26.html",
+      "variants": {
+        "1.5": "gf180-1p4m-30ka-mim-a-1p5ff.tek",
+        "1.0": "gf180-1p4m-30ka-mim-a-1p0ff.tek"
+      }
+    },
+    {
+      "id": "gf180-1p4m-30ka-mim-b",
+      "label": "GF180 \u00b7 1P4M \u00b7 30 k\u00c5 \u00b7 MIM B",
+      "section": "3.27",
+      "routing_metals": 4,
+      "top_metal_ka": 30,
+      "top_thickness_um": 3.0,
+      "oxide_passivation_um": 3.3,
+      "mim": "B",
+      "mim_bottom": 3,
+      "source": "https://gf180mcu-pdk.readthedocs.io/en/latest/analog/layout/inter_specs/inter_specs_3_27.html",
+      "variants": {
+        "1.5": "gf180-1p4m-30ka-mim-b-1p5ff.tek",
+        "1.0": "gf180-1p4m-30ka-mim-b-1p0ff.tek"
+      }
+    },
+    {
+      "id": "gf180-1p5m-30ka-no-mim",
+      "label": "GF180 \u00b7 1P5M \u00b7 30 k\u00c5 \u00b7 no MIM",
+      "section": "3.28",
+      "routing_metals": 5,
+      "top_metal_ka": 30,
+      "top_thickness_um": 3.0,
+      "oxide_passivation_um": 3.3,
+      "mim": "none",
+      "mim_bottom": null,
+      "source": "https://gf180mcu-pdk.readthedocs.io/en/latest/analog/layout/inter_specs/inter_specs_3_28.html",
+      "variants": {
+        "none": "gf180-1p5m-30ka-no-mim.tek"
+      }
+    },
+    {
+      "id": "gf180-1p5m-30ka-mim-a",
+      "label": "GF180 \u00b7 1P5M \u00b7 30 k\u00c5 \u00b7 MIM A",
+      "section": "3.29",
+      "routing_metals": 5,
+      "top_metal_ka": 30,
+      "top_thickness_um": 3.0,
+      "oxide_passivation_um": 3.3,
+      "mim": "A",
+      "mim_bottom": 2,
+      "source": "https://gf180mcu-pdk.readthedocs.io/en/latest/analog/layout/inter_specs/inter_specs_3_29.html",
+      "variants": {
+        "1.5": "gf180-1p5m-30ka-mim-a-1p5ff.tek",
+        "1.0": "gf180-1p5m-30ka-mim-a-1p0ff.tek"
+      }
+    },
+    {
+      "id": "gf180-1p5m-30ka-mim-b",
+      "label": "GF180 \u00b7 1P5M \u00b7 30 k\u00c5 \u00b7 MIM B",
+      "section": "3.30",
+      "routing_metals": 5,
+      "top_metal_ka": 30,
+      "top_thickness_um": 3.0,
+      "oxide_passivation_um": 3.3,
+      "mim": "B",
+      "mim_bottom": 4,
+      "source": "https://gf180mcu-pdk.readthedocs.io/en/latest/analog/layout/inter_specs/inter_specs_3_30.html",
+      "variants": {
+        "1.5": "gf180-1p5m-30ka-mim-b-1p5ff.tek",
+        "1.0": "gf180-1p5m-30ka-mim-b-1p0ff.tek"
+      }
+    },
+    {
+      "id": "gf180-1p6m-30ka-no-mim",
+      "label": "GF180 \u00b7 1P6M \u00b7 30 k\u00c5 \u00b7 no MIM",
+      "section": "3.31",
+      "routing_metals": 6,
+      "top_metal_ka": 30,
+      "top_thickness_um": 3.0,
+      "oxide_passivation_um": 3.3,
+      "mim": "none",
+      "mim_bottom": null,
+      "source": "https://gf180mcu-pdk.readthedocs.io/en/latest/analog/layout/inter_specs/inter_specs_3_31.html",
+      "variants": {
+        "none": "gf180-1p6m-30ka-no-mim.tek"
+      }
+    },
+    {
+      "id": "gf180-1p6m-30ka-mim-a",
+      "label": "GF180 \u00b7 1P6M \u00b7 30 k\u00c5 \u00b7 MIM A",
+      "section": "3.32",
+      "routing_metals": 6,
+      "top_metal_ka": 30,
+      "top_thickness_um": 3.0,
+      "oxide_passivation_um": 3.3,
+      "mim": "A",
+      "mim_bottom": 2,
+      "source": "https://gf180mcu-pdk.readthedocs.io/en/latest/analog/layout/inter_specs/inter_specs_3_32.html",
+      "variants": {
+        "1.5": "gf180-1p6m-30ka-mim-a-1p5ff.tek",
+        "1.0": "gf180-1p6m-30ka-mim-a-1p0ff.tek"
+      }
+    },
+    {
+      "id": "gf180-1p6m-30ka-mim-b",
+      "label": "GF180 \u00b7 1P6M \u00b7 30 k\u00c5 \u00b7 MIM B",
+      "section": "3.33",
+      "routing_metals": 6,
+      "top_metal_ka": 30,
+      "top_thickness_um": 3.0,
+      "oxide_passivation_um": 3.3,
+      "mim": "B",
+      "mim_bottom": 5,
+      "source": "https://gf180mcu-pdk.readthedocs.io/en/latest/analog/layout/inter_specs/inter_specs_3_33.html",
+      "variants": {
+        "1.5": "gf180-1p6m-30ka-mim-b-1p5ff.tek",
+        "1.0": "gf180-1p6m-30ka-mim-b-1p0ff.tek"
+      }
+    },
+    {
+      "id": "gf180-1p3m-11ka-no-mim",
+      "label": "GF180 \u00b7 1P3M \u00b7 11 k\u00c5 \u00b7 no MIM",
+      "section": "3.34",
+      "routing_metals": 3,
+      "top_metal_ka": 11,
+      "top_thickness_um": 1.1925,
+      "oxide_passivation_um": 2.3925,
+      "mim": "none",
+      "mim_bottom": null,
+      "source": "https://gf180mcu-pdk.readthedocs.io/en/latest/analog/layout/inter_specs/inter_specs_3_34.html",
+      "variants": {
+        "none": "gf180-1p3m-11ka-no-mim.tek"
+      }
+    },
+    {
+      "id": "gf180-1p3m-11ka-mim-a",
+      "label": "GF180 \u00b7 1P3M \u00b7 11 k\u00c5 \u00b7 MIM A",
+      "section": "3.35",
+      "routing_metals": 3,
+      "top_metal_ka": 11,
+      "top_thickness_um": 1.1925,
+      "oxide_passivation_um": 2.3925,
+      "mim": "A",
+      "mim_bottom": 2,
+      "source": "https://gf180mcu-pdk.readthedocs.io/en/latest/analog/layout/inter_specs/inter_specs_3_35.html",
+      "variants": {
+        "1.5": "gf180-1p3m-11ka-mim-a-1p5ff.tek",
+        "1.0": "gf180-1p3m-11ka-mim-a-1p0ff.tek"
+      }
+    },
+    {
+      "id": "gf180-1p4m-11ka-no-mim",
+      "label": "GF180 \u00b7 1P4M \u00b7 11 k\u00c5 \u00b7 no MIM",
+      "section": "3.36",
+      "routing_metals": 4,
+      "top_metal_ka": 11,
+      "top_thickness_um": 1.1925,
+      "oxide_passivation_um": 2.3925,
+      "mim": "none",
+      "mim_bottom": null,
+      "source": "https://gf180mcu-pdk.readthedocs.io/en/latest/analog/layout/inter_specs/inter_specs_3_36.html",
+      "variants": {
+        "none": "gf180-1p4m-11ka-no-mim.tek"
+      }
+    },
+    {
+      "id": "gf180-1p4m-11ka-mim-a",
+      "label": "GF180 \u00b7 1P4M \u00b7 11 k\u00c5 \u00b7 MIM A",
+      "section": "3.37",
+      "routing_metals": 4,
+      "top_metal_ka": 11,
+      "top_thickness_um": 1.1925,
+      "oxide_passivation_um": 2.3925,
+      "mim": "A",
+      "mim_bottom": 2,
+      "source": "https://gf180mcu-pdk.readthedocs.io/en/latest/analog/layout/inter_specs/inter_specs_3_37.html",
+      "variants": {
+        "1.5": "gf180-1p4m-11ka-mim-a-1p5ff.tek",
+        "1.0": "gf180-1p4m-11ka-mim-a-1p0ff.tek"
+      }
+    },
+    {
+      "id": "gf180-1p5m-11ka-no-mim",
+      "label": "GF180 \u00b7 1P5M \u00b7 11 k\u00c5 \u00b7 no MIM",
+      "section": "3.38",
+      "routing_metals": 5,
+      "top_metal_ka": 11,
+      "top_thickness_um": 1.1925,
+      "oxide_passivation_um": 2.3925,
+      "mim": "none",
+      "mim_bottom": null,
+      "source": "https://gf180mcu-pdk.readthedocs.io/en/latest/analog/layout/inter_specs/inter_specs_3_38.html",
+      "variants": {
+        "none": "gf180-1p5m-11ka-no-mim.tek"
+      }
+    },
+    {
+      "id": "gf180-1p5m-11ka-mim-a",
+      "label": "GF180 \u00b7 1P5M \u00b7 11 k\u00c5 \u00b7 MIM A",
+      "section": "3.39",
+      "routing_metals": 5,
+      "top_metal_ka": 11,
+      "top_thickness_um": 1.1925,
+      "oxide_passivation_um": 2.3925,
+      "mim": "A",
+      "mim_bottom": 2,
+      "source": "https://gf180mcu-pdk.readthedocs.io/en/latest/analog/layout/inter_specs/inter_specs_3_39.html",
+      "variants": {
+        "1.5": "gf180-1p5m-11ka-mim-a-1p5ff.tek",
+        "1.0": "gf180-1p5m-11ka-mim-a-1p0ff.tek"
+      }
+    },
+    {
+      "id": "gf180-1p6m-11ka-no-mim",
+      "label": "GF180 \u00b7 1P6M \u00b7 11 k\u00c5 \u00b7 no MIM",
+      "section": "3.40",
+      "routing_metals": 6,
+      "top_metal_ka": 11,
+      "top_thickness_um": 1.1925,
+      "oxide_passivation_um": 2.3925,
+      "mim": "none",
+      "mim_bottom": null,
+      "source": "https://gf180mcu-pdk.readthedocs.io/en/latest/analog/layout/inter_specs/inter_specs_3_40.html",
+      "variants": {
+        "none": "gf180-1p6m-11ka-no-mim.tek"
+      }
+    },
+    {
+      "id": "gf180-1p6m-11ka-mim-a",
+      "label": "GF180 \u00b7 1P6M \u00b7 11 k\u00c5 \u00b7 MIM A",
+      "section": "3.41",
+      "routing_metals": 6,
+      "top_metal_ka": 11,
+      "top_thickness_um": 1.1925,
+      "oxide_passivation_um": 2.3925,
+      "mim": "A",
+      "mim_bottom": 2,
+      "source": "https://gf180mcu-pdk.readthedocs.io/en/latest/analog/layout/inter_specs/inter_specs_3_41.html",
+      "variants": {
+        "1.5": "gf180-1p6m-11ka-mim-a-1p5ff.tek",
+        "1.0": "gf180-1p6m-11ka-mim-a-1p0ff.tek"
+      }
+    },
+    {
+      "id": "gf180-1p4m-11ka-mim-b",
+      "label": "GF180 \u00b7 1P4M \u00b7 11 k\u00c5 \u00b7 MIM B",
+      "section": "3.42",
+      "routing_metals": 4,
+      "top_metal_ka": 11,
+      "top_thickness_um": 1.1925,
+      "oxide_passivation_um": 2.3925,
+      "mim": "B",
+      "mim_bottom": 3,
+      "source": "https://gf180mcu-pdk.readthedocs.io/en/latest/analog/layout/inter_specs/inter_specs_3_42.html",
+      "variants": {
+        "1.5": "gf180-1p4m-11ka-mim-b-1p5ff.tek",
+        "1.0": "gf180-1p4m-11ka-mim-b-1p0ff.tek"
+      }
+    },
+    {
+      "id": "gf180-1p5m-11ka-mim-b",
+      "label": "GF180 \u00b7 1P5M \u00b7 11 k\u00c5 \u00b7 MIM B",
+      "section": "3.43",
+      "routing_metals": 5,
+      "top_metal_ka": 11,
+      "top_thickness_um": 1.1925,
+      "oxide_passivation_um": 2.3925,
+      "mim": "B",
+      "mim_bottom": 4,
+      "source": "https://gf180mcu-pdk.readthedocs.io/en/latest/analog/layout/inter_specs/inter_specs_3_43.html",
+      "variants": {
+        "1.5": "gf180-1p5m-11ka-mim-b-1p5ff.tek",
+        "1.0": "gf180-1p5m-11ka-mim-b-1p0ff.tek"
+      }
+    },
+    {
+      "id": "gf180-1p6m-11ka-mim-b",
+      "label": "GF180 \u00b7 1P6M \u00b7 11 k\u00c5 \u00b7 MIM B",
+      "section": "3.44",
+      "routing_metals": 6,
+      "top_metal_ka": 11,
+      "top_thickness_um": 1.1925,
+      "oxide_passivation_um": 2.3925,
+      "mim": "B",
+      "mim_bottom": 5,
+      "source": "https://gf180mcu-pdk.readthedocs.io/en/latest/analog/layout/inter_specs/inter_specs_3_44.html",
+      "variants": {
+        "1.5": "gf180-1p6m-11ka-mim-b-1p5ff.tek",
+        "1.0": "gf180-1p6m-11ka-mim-b-1p0ff.tek"
+      }
+    },
+    {
+      "id": "gf180-1p2m-30ka-no-mim",
+      "label": "GF180 \u00b7 1P2M \u00b7 30 k\u00c5 \u00b7 no MIM",
+      "section": "3.45",
+      "routing_metals": 2,
+      "top_metal_ka": 30,
+      "top_thickness_um": 3.0,
+      "oxide_passivation_um": 3.3,
+      "mim": "none",
+      "mim_bottom": null,
+      "source": "https://gf180mcu-pdk.readthedocs.io/en/latest/analog/layout/inter_specs/inter_specs_3_45.html",
+      "variants": {
+        "none": "gf180-1p2m-30ka-no-mim.tek"
+      }
+    }
+  ]
+}

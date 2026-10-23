@@ -13,6 +13,7 @@ from .potential import solve_capacitance
 from .network import solve_pi2,solve_pi3,solve_pi4
 from .resonance import solve_self_resonance
 from .extended import solve_pix
+from .presets import list_presets,load_preset,identify
 
 
 def _technology(request):
@@ -36,7 +37,12 @@ def handle(request,*,progress=None):
     tech = _technology(request)
     action = request.get("action","build")
     if action == "init":
-        return dict(technology=tech.to_dict(),generators=list(KINDS)+list(PAIRED_KINDS))
+        return dict(technology=tech.to_dict(),generators=list(KINDS)+list(PAIRED_KINDS),presets=list_presets(),preset=identify(tech))
+    if action == "technology":
+        text=load_preset(request["preset"],request.get("mim_density","1.5"),
+                         substrate_rho=float(request.get("substrate_rho",10)),substrate_thickness=float(request.get("substrate_thickness",700)))
+        selected=Technology.from_text(text)
+        return dict(text=text,technology=selected.to_dict(),presets=list_presets(),preset=identify(selected))
     if action == "gds":
         definitions = request.get("shapes") or [request]
         shapes = [shape for definition in definitions for shape in _shapes(definition,tech)]

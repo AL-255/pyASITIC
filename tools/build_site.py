@@ -9,7 +9,7 @@ ROOT = Path(__file__).resolve().parents[1]
 DIST = ROOT/"dist"
 DIST.mkdir(exist_ok=True)
 web_sources=sorted(file for file in (ROOT/"web").iterdir() if file.is_file())
-python_sources=sorted(source for source in (ROOT/"src/reasitic").iterdir() if source.suffix in (".py",".tek"))
+python_sources=sorted(source for source in (ROOT/"src/reasitic").rglob("*") if source.is_file() and source.suffix in (".py",".tek",".json",".txt"))
 digest=hashlib.sha256()
 for source in web_sources+python_sources+[Path(__file__).resolve()]:
     digest.update(source.relative_to(ROOT).as_posix().encode()+b"\0"+source.read_bytes())
@@ -19,7 +19,7 @@ for file in web_sources:
         shutil.copyfile(file,DIST/file.name)
 with zipfile.ZipFile(DIST/"reasitic.zip","w",zipfile.ZIP_DEFLATED) as archive:
     for source in python_sources:
-        archive.write(source,"reasitic/"+source.name)
+        archive.write(source,"reasitic/"+source.relative_to(ROOT/"src/reasitic").as_posix())
 for name,replacements in {
     "index.html":{'src="app.js"':f'src="app.js?v={version}"','href="style.css"':f'href="style.css?v={version}"'},
     "app.js":{'"./analysis-views.mjs"':f'"./analysis-views.mjs?v={version}"','"worker.js"':f'"worker.js?v={version}"'},

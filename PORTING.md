@@ -29,6 +29,7 @@ Reference checkout: `~/github/asitic-re`, revision recorded in each fixture.
 | `extended.py` PiX pipeline | `potential_solver.cpp`, `extended_twoport.cpp`, `extended_node.cpp`, `console_analysis.cpp` | Ten complete PIX sessions across CMOS/BiCMOS, wires, square/polygon coils, vias, joined capacitors and multimetal windings; unfolded CAP, final LMAT, node vectors, full-precision Pi/ZIN reports, direct port Y for all ten and six native 2PORTX Y/S exports |
 | `gds.py` | Native ribbon and `layout_export.cpp` via pitch conventions | Independent gdstk round-trip for nine generators, units, coordinates, layer mapping, via counts and cut area |
 | `bridge.py`, `web/worker.js` | New browser interface | Generation, estimates, sweeps and exports exercised in pinned Pyodide WebAssembly runtime |
+| `presets.py`, `technologies/` | GF180MCU interconnect sections 2–4 and drawn layer/via specifications, revision de3240d | All 45 documented stacks / 73 `.tek` variants; nominal sheet resistance, independent drawing dimensions and MIM placement, three unmodified C++ distributed-network sessions, GDS readback, WebAssembly and actual process-selection DOM handlers; substrate and planar-model assumptions documented in `docs/GF180.md` |
 
 All twelve creator IDs in the reference's creator process suite now have Python
 implementations and original saved-geometry fixtures. This is a creator-surface

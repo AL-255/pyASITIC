@@ -17,6 +17,11 @@ Implemented so far:
   selection for electrical analysis, and combined GDS export.
 - `.tek` technology loading, conductor DC resistance and the original empirical
   high-frequency resistance model, including parallel via counts.
+- All 45 GF180 interconnect stacks selectable in the process panel, with 73
+  downloadable `.tek` variants covering both published MIM gaps, editable
+  substrate assumptions and GF180 GDS layer mappings. See [data and model
+  assumptions](docs/GF180.md); these are nominal coil models, not calibrated RF
+  or MIM PDK models.
 - Original `Inductance` and `Coupling` estimate algorithms: segment self terms,
   signed parallel, planar and spatial mutual-inductance cases.
 - `LMAT` filament solver with longitudinal and cross-section meshing,
@@ -48,7 +53,8 @@ Implemented so far:
   plot and JSON/CSV/SVG export. Reports the native stopping criterion and keeps
   the last evaluated circuit separate from a possibly unevaluated result.
 - GDSII export with actual via cuts and metal landing pads. Default mapping:
-  metal index + 1, via index + 100; datatype 0. Python callers can override it.
+  metal index + 1, via index + 100; datatype 0. GF180 presets supply their drawn
+  layer numbers. Python/JSON callers can override the mapping.
   Units are micrometres, with a 1 nm export grid.
 - Browser preview, pan/zoom, process-file import, project save/open, conductor
   estimates, selectable L/R/Q frequency plots, linear/log frequency scales,

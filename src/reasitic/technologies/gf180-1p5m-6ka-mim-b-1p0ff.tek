@@ -1,0 +1,153 @@
+; Copyright 2022 GlobalFoundries PDK Authors. Derived data, Apache-2.0.
+; Converted to ASITIC format by reASITIC. See GF180-NOTICE.txt.
+; 3.19 1P5M (TM 6KA with MIM Option B) Structure
+; Source: https://gf180mcu-pdk.readthedocs.io/en/latest/analog/layout/inter_specs/inter_specs_3_19.html
+; Upstream revision: de3240d7529a6970437ac3344820aaae7839f215
+; Nominal BEOL geometry and sheet R. Substrate 10 ohm-cm / 700 um is ASSUMED.
+; Planar coil model: ILD/IMD/oxide passivation eps=4, nitride passivation eps=7.
+; Local STI/poly/conformal liner and local MIM nitride are not blanket layers.
+; MIM plate geometry is included; CAP is not a calibrated MIM capacitor model.
+; Air 100 um and dielectric rho=1e10 ohm-cm are modeling assumptions.
+; Via spacing 0.36 um covers the published >=4x4-array rule; enclosure 0.12 um.
+; GDS uses GF180 drawn layer numbers. Additional device/marker rules still apply.
+; MIM option B: M4/MIM gap=0.062 um, nominal 1.0 fF/um2 (local nitride eps=7).
+; MIMVIA assumes 4.5 ohm/cut; spacing/enclosure are 0.5/0.4 um per MIM rules.
+
+<chip>
+chipx = 512
+chipy = 512
+fftx = 128
+ffty = 128
+TechFile = gf180-1p5m-6ka-mim-b-1p0ff.tek
+TechPath = .
+freq = 2
+eddy = 0
+gds_m1 = 34
+gds_m2 = 36
+gds_m3 = 42
+gds_m4 = 46
+gds_mim = 75
+gds_m5 = 81
+gds_via1 = 35
+gds_via2 = 38
+gds_via3 = 40
+gds_via4 = 41
+gds_mimvia = 41
+
+<layer> 0
+t = 700
+rho = 10
+eps = 11.9
+
+<layer> 1
+t = 7.1625
+rho = 1e10
+eps = 4
+
+<layer> 2
+t = 0.3
+rho = 1e10
+eps = 7
+
+<layer> 3
+t = 100
+rho = 1e10
+eps = 1
+
+<metal> 0
+name = M1
+layer = 1
+d = 0.86
+t = 0.55
+rsh = 90
+color = #81b4ef
+
+<metal> 1
+name = M2
+layer = 1
+d = 2.01
+t = 0.55
+rsh = 90
+color = #f0b567
+
+<metal> 2
+name = M3
+layer = 1
+d = 3.16
+t = 0.55
+rsh = 90
+color = #8fd1ae
+
+<metal> 3
+name = M4
+layer = 1
+d = 4.31
+t = 0.55
+rsh = 90
+color = #b899eb
+
+<metal> 4
+name = MIM
+layer = 1
+d = 4.922
+t = 0.295
+rsh = 180
+color = #dce17d
+
+<metal> 5
+name = M5
+layer = 1
+d = 5.76
+t = 0.7025
+rsh = 60
+color = #e5a4b4
+
+<via> 0
+name = VIA1
+bottom = 0
+top = 1
+r = 4.5
+width = 0.26
+space = 0.36
+overplot1 = 0.12
+overplot2 = 0.12
+
+<via> 1
+name = VIA2
+bottom = 1
+top = 2
+r = 4.5
+width = 0.26
+space = 0.36
+overplot1 = 0.12
+overplot2 = 0.12
+
+<via> 2
+name = VIA3
+bottom = 2
+top = 3
+r = 4.5
+width = 0.26
+space = 0.36
+overplot1 = 0.12
+overplot2 = 0.12
+
+<via> 3
+name = VIA4
+bottom = 3
+top = 5
+r = 4.5
+width = 0.26
+space = 0.36
+overplot1 = 0.12
+overplot2 = 0.12
+
+<via> 4
+name = MIMVIA
+bottom = 4
+top = 5
+r = 4.5
+width = 0.26
+space = 0.5
+overplot1 = 0.4
+overplot2 = 0.4

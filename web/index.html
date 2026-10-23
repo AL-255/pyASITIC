@@ -43,7 +43,17 @@
         <details class="placement"><summary>Placement & direction</summary><div class="field-pair"><label>Origin X <span>µm</span><input name="x" type="number" value="0" step="any" required></label><label>Origin Y <span>µm</span><input name="y" type="number" value="0" step="any" required></label><label data-kinds="square polygon multimetal ring wire capacitor symmetric_square symmetric_polygon transformer balun transformer3d">Orientation <span>°</span><input name="angle" type="number" value="0" min="-360" max="360" step="any" required></label><label data-kinds="square multimetal wire via symmetric_square symmetric_polygon transformer transformer3d">Current phase<select name="phase"><option value="1">+1</option><option value="-1">−1</option></select></label></div></details>
         <button class="primary" id="generate" disabled type="submit">Generate layout <span>↗</span></button>
       </form>
-      <details class="technology"><summary>Process technology <span id="tech-name">CMOS</span></summary><p class="muted">Load an ASITIC .tek file. The sample process uses five metals; it is not a fabrication PDK.</p><label class="file-button">Load .tek file<input id="technology-file" type="file" accept=".tek,.txt" hidden></label><button class="quiet" id="reset-technology">Reset sample</button><div id="tech-table"></div></details>
+      <details class="technology"><summary>Process technology <span id="tech-name">CMOS</span></summary>
+        <label>Technology stack<select id="technology-preset" disabled><option value="sample-cmos">Sample CMOS · 5 metals</option></select></label>
+        <div id="gf180-settings" hidden>
+          <label id="mim-density-field">MIM option<select id="mim-density"><option value="1.5">1.5 fF/µm² · 42 nm SiN</option><option value="1.0">1.0 fF/µm² · 62 nm SiN</option></select></label>
+          <p class="muted">Assumed silicon substrate · edit for your wafer:</p>
+          <div class="field-pair"><label>Resistivity <span>Ω·cm</span><input id="substrate-rho" type="number" value="10" min="0.000001" step="any"></label><label>Thickness <span>µm</span><input id="substrate-thickness" type="number" value="700" min="0.001" step="any"></label></div>
+          <p class="muted" id="technology-note"></p><a id="technology-source" target="_blank" rel="noreferrer">GF180 stack specification ↗</a>
+        </div>
+        <p class="muted" id="technology-description">Choose a bundled stack or load an ASITIC .tek file. The sample CMOS process is illustrative.</p>
+        <label class="file-button">Load .tek file<input id="technology-file" type="file" accept=".tek,.txt" hidden></label><button class="quiet" id="download-technology" disabled>↓ .tek</button><button class="quiet" id="reset-technology">Reset sample</button><div id="tech-table"></div>
+      </details>
     </aside>
     <section class="workspace">
       <div id="error" role="alert" hidden></div>

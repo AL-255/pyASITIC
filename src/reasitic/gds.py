@@ -1,7 +1,8 @@
 """Dependency-free GDSII stream output; 1 µm user unit, 1 nm database unit.
 
-Metal i maps to GDS layer i+1; via i maps to 100+i. Foundry layer maps
-can be supplied explicitly. Ribbons are BOUNDARY elements, never PATH strokes.
+Metal i defaults to GDS layer i+1; via i defaults to 100+i. Foundry presets
+can set chip gds_<name> mappings, and caller mappings override them.
+Ribbons are BOUNDARY elements, never PATH strokes.
 """
 import math
 import struct
@@ -69,7 +70,10 @@ def write_gds(shapes, technology, layer_map=None):
         shapes = [shapes]
     if not shapes:
         raise ValueError("No shapes to export")
-    layer_map = layer_map or {}
+    # Bundled foundry presets can specify their drawn GDS layers in <chip>.
+    # Explicit caller mappings retain precedence, including per-layer datatypes.
+    layer_map = {**{m.name:int(technology.chip["gds_"+m.name.lower()]) for m in technology.metals+technology.vias
+                   if "gds_"+m.name.lower() in technology.chip},**(layer_map or {})}
     stamp = struct.pack(">12h",*(2000,1,1,0,0,0)*2)
     data = bytearray(_record(0,2,struct.pack(">h",600))+_record(1,2,stamp))
     data += _record(2,6,b"reASITIC")+_record(3,5,_real8(1e-3)+_real8(1e-9))
