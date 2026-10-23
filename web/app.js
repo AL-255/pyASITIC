@@ -207,15 +207,11 @@ $("#project-file").addEventListener("change",event=>task(async()=>{
   const text=data.technology||"";
   const init=await request({action:"init",technology:text});
   // Verify geometry before replacing the current project.
-  await request({action:"build",...data.shape,technology:text});
+  const restored=await request({action:"build",...data.shape,technology:text});
   technologyText=text;fillTechnology(init);$("#tech-name").textContent=text?"Custom":"CMOS";
   $("#kind").value=data.shape.kind;showFields();
   for(const [key,value] of Object.entries(data.shape.parameters)) if(form.elements.namedItem(key))form.elements.namedItem(key).value=String(value);
-  await generate();
-  if(data.shape.winding){
-    currentDefinition.winding=data.shape.winding;
-    current=await request({action:"build",...currentDefinition,technology:technologyText});render(current);
-  }
+  currentDefinition=data.shape;current=restored;render(current);resetResults();status("Project restored. Run analysis on the selected winding.");
   event.target.value="";
 }));
 $("#technology-file").addEventListener("change",event=>task(async()=>{
