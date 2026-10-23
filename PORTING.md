@@ -22,6 +22,7 @@ Reference checkout: `~/github/asitic-re`, revision recorded in each fixture.
 | `green_integration.py` | `green_integration.cpp` | 58 complete integrations: native selector boundaries, warm-up callbacks, final scaling, partial statuses and retained Fourier history |
 | `eddy.py`, `solver.py` | `eddy.cpp`, `solver.cpp` | 16 EDDY ON LMAT matrices across CMOS/BiCMOS wire, square, polygon and via-exit cases; coarse/refined meshes and square Eddy.out snapshots |
 | `network.py` eddy integration | `combined_network.cpp`, `extended_analysis.cpp` | Eight additional PI2 and eight PI3/PI4 sessions with EDDY ON, compared using native precise Y/S outputs and printed metrics |
+| `resonance.py` | `analysis_commands.cpp`, `network.cpp` | 184 direct native search traces and 12 complete SELFRES SLOW sessions: reversed bounds, differential excitation, native device reference, refined unequal meshes, CMOS/BiCMOS, joined capacitor geometry and layered eddy correction; streamed JSON/WebAssembly progress |
 | `gds.py` | Native ribbon and `layout_export.cpp` via pitch conventions | Independent gdstk round-trip for nine generators, units, coordinates, layer mapping, via counts and cut area |
 | `bridge.py`, `web/worker.js` | New browser interface | Generation, estimates, sweeps and exports exercised in pinned Pyodide WebAssembly runtime |
 
@@ -62,8 +63,9 @@ does not change with frequency in estimate mode. LMAT's separate series Q is
 Im(sum Z)/Re(sum Z). CAP now computes layered-substrate capacitance and substrate
 loss independently. Pi2 combines those two distributed solvers and reports the
 original frequency-dependent network metrics. Native eddy correction is optional
-for LMAT and Pi2/Pi3/Pi4. The fast Pi path, extended/transformer/multiport networks
-and self-resonance search remain pending.
+for LMAT and Pi2/Pi3/Pi4. The fast Pi path and extended/transformer/multiport networks
+remain pending. SELFRES SLOW now repeats the distributed solver through the
+original midpoint search.
 
 Outstanding validation: broader rotated/fractional/negative-phase geometry
 fixtures, arbitrary technology files, segment-kernel precision fixtures, real
@@ -119,6 +121,36 @@ therefore shows the topology and this explicit limitation; it does not label
 Pi2 values as fast PI output. Pi2/Pi3/Pi4 diagrams and sweeps use their respective
 validated native paths. UI interactions still require a connected browser for
 full verification; SVG plots/circuits are separately rendered and inspected.
+
+SELFRES retains the native ignored iteration-limit argument, hard 100 observed
+samples / up to 101 analyses, strict 0.01-ohm reactance test, frequency-step
+stop, reversed-bound ordering and native fast quantization arithmetic. The
+controlled-callback probe compiles unmodified `analysis_commands.cpp` into
+function sections to discard unrelated console commands, then links native
+network/complex objects. Exact sample frequencies, counts and reported results
+are checked across 184 cases, including the strict 0.01-ohm boundary, zero-step exhaustion and NaN impedance.
+Finite progress values use max(1e-12 absolute, 1e-12 relative).
+
+Twelve physical sessions compare the complete distributed search against the
+unmodified CLI. A printf/sprintf tap records its already-computed progress and
+reported frequency at full precision; it changes no numerical arguments or
+solver algorithms. Input reactance uses max(1e-8 ohm, 1e-8 relative), and stopping
+frequencies agree within 1e-10 GHz. Native command frequency arguments are
+stored as binary32 **after conversion to hertz** (100 GHz becomes 99999997952
+Hz); direct Python and JSON requests use binary64 hertz. The fixtures account
+for this input boundary rather than weakening search comparisons.
+
+The search assumes a suitable resonance interval; it does not evaluate endpoint
+signs or guarantee a zero crossing. It can report the next midpoint without
+evaluating it, so the API and UI retain the last actual model frequency. A
+frequency-resolution stop is shown explicitly. The command's device-reference
+default is preserved, alongside explicit grounds. The production binding uses
+SLOW: fast conductor SELFRES invokes the same unavailable analytical path as
+fast PI. Controlled fast-callback tests validate quantization only. Arbitrary
+nonfinite frequency/step inputs, failed-network incoming-state histories and
+all geometry/process combinations remain outside the evidence. Generated
+console capacitors are joined type 21 and use the combined network path; the
+separate native type-4 capacitive dispatch is not implied by these fixtures.
 
 The eddy-current dependency port has started with the native infinite-interval
 integrator. Its rule coefficients, adaptive subdivision, error ranking,

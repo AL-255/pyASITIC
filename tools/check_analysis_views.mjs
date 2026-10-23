@@ -1,5 +1,5 @@
 import assert from "node:assert/strict";
-import { mkdirSync,writeFileSync } from "node:fs";
+import { mkdirSync,writeFileSync,readFileSync } from "node:fs";
 import { circuitSVG,sweepSVG } from "../web/analysis-views.mjs";
 
 const model={inductance_h:1.02175e-9,resistance_ohm:5.0983,capacitance_first_f:24.33e-15,
@@ -31,9 +31,17 @@ for(const metric of ["q","inductance_nh","resistance_ohm"]){
 }
 assert.ok(!/NaN|Infinity/.test(sweepSVG([],"q")));
 assert.ok(!/NaN|Infinity/.test(sweepSVG([{frequency_hz:1e9,q:0}],"q")));
+const resonanceCase=JSON.parse(readFileSync(new URL("../tests/fixtures/resonance_physical.json",import.meta.url))).cases[0];
+const resonanceRows=resonanceCase.progress.map(point=>({frequency_hz:point[2]*1e9,reactance_ohm:point[3]})).sort((a,b)=>a.frequency_hz-b.frequency_hz);
+const resonance=sweepSVG(resonanceRows,"reactance_ohm",{model:"SELFRES SLOW",scale:"linear",interactive:false});
+assert.ok(resonance.includes("Input reactance (Ω)"));
+assert.ok(resonance.includes('class="zero-axis"'));
+assert.ok(!resonance.includes('role="button"'));
+assert.ok(!/NaN|Infinity/.test(resonance));
 if(process.argv[2]){
   mkdirSync(process.argv[2],{recursive:true});
   writeFileSync(process.argv[2]+"/circuit.svg",circuit);
   writeFileSync(process.argv[2]+"/plot.svg",plot);
+  writeFileSync(process.argv[2]+"/resonance.svg",resonance);
 }
 console.log("Circuit units, SVG escaping, plot gaps, negative values and finite axes passed.");

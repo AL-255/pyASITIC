@@ -33,7 +33,8 @@ export function circuitSVG(pi={},options={}){
 export const SWEEP_METRICS={
   inductance_nh:{title:"Inductance",unit:"nH",color:"#81b4ef"},
   resistance_ohm:{title:"Resistance",unit:"Ω",color:"#f0b567"},
-  q:{title:"Quality factor",unit:"",color:"#8fd1ae"}
+  q:{title:"Quality factor",unit:"",color:"#8fd1ae"},
+  reactance_ohm:{title:"Input reactance",unit:"Ω",color:"#b899eb"}
 };
 
 export function sweepSVG(rows,metric="q",options={}){
@@ -54,6 +55,7 @@ export function sweepSVG(rows,metric="q",options={}){
   const y=value=>270-240*(value-low)/(high-low);
   const label=options.label||`${setting.title}${setting.unit?` (${setting.unit})`:""}`;
   const title=`${label} versus frequency · ${options.model||"ASITIC"}`;
+  const zero=low<0?`<path class="zero-axis" d="M90 ${y(0)}H730" stroke="#8294a3" stroke-dasharray="4 4"/><g font-family="monospace" font-size="12" fill="#9cabb9">${text(738,y(0)+4,"0")}</g>`:"";
   let grid="",points="",curve="",drawing=false;
   for(let i=0;i<=4;i++){
     const v=low+(high-low)*i/4;
@@ -66,11 +68,13 @@ export function sweepSVG(rows,metric="q",options={}){
     if(!Number.isFinite(value)||!Number.isFinite(f)||f<=0){drawing=false;return;}
     curve+=`${drawing?"L":"M"}${x(f)} ${y(value)} `;drawing=true;
     const caption=`${number(f/1e9)} GHz: ${number(value)} ${setting.unit}`;
-    points+=`<g class="plot-point" data-index="${i}" tabindex="0" role="button" aria-label="${escape(caption)}"><title>${escape(caption)}</title><circle cx="${x(f)}" cy="${y(value)}" r="10" fill="transparent"/><circle cx="${x(f)}" cy="${y(value)}" r="3" fill="${setting.color}"/></g>`;
+    const attributes=options.interactive===false?"":` data-index="${i}" tabindex="0" role="button" aria-label="${escape(caption)}"`;
+    points+=`<g class="plot-point"${attributes}><title>${escape(caption)}</title><circle cx="${x(f)}" cy="${y(value)}" r="10" fill="transparent"/><circle cx="${x(f)}" cy="${y(value)}" r="3" fill="${setting.color}"/></g>`;
   });
   return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 760 320" role="img" aria-label="${escape(title)}"><title>${escape(title)}</title><rect width="760" height="320" fill="#101820" rx="7"/>
   <g font-family="monospace" font-size="12" fill="#9cabb9">${grid}${text(90,18,label)}${text(730,18,options.model||"ASITIC",'text-anchor="end"')}${text(730,314,`Frequency · GHz${log?" (log)":""}`,'text-anchor="end"')}</g>
   <path d="M90 30V270H730" fill="none" stroke="#61788b"/>
+  ${zero}
   <g><path class="sweep-curve" d="${curve}" fill="none" stroke="${setting.color}" stroke-width="2"/>${points}</g>
   ${values.length?"":`<g font-family="monospace" font-size="13" fill="#9cabb9">${text(400,150,"Run a sweep to plot the selected metric",'text-anchor="middle"')}</g>`}</svg>`;
 }

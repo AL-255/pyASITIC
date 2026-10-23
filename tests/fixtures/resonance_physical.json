@@ -1,0 +1,1036 @@
+{
+  "reference": "Unmodified native SELFRES SLOW command; printf/sprintf output taps retain full precision without altering numerical inputs or algorithms",
+  "reference_commit": "63885e808b522bdeba3f254d353afc72e643c761",
+  "executable_sha256": "184b58bf4c6b28bf0cf88a9fc39cd0a27ab24ca26f60d5b3a6bf92424362c67a",
+  "tap": "\nextern \"C\" int strcmp(const char*,const char*);\nextern \"C\" int vprintf(const char*,__builtin_va_list);\nextern \"C\" int vsprintf(char*,const char*,__builtin_va_list);\nextern \"C\" void* fopen(const char*,const char*);\nextern \"C\" int fprintf(void*,const char*,...);\nextern \"C\" int fclose(void*);\nextern \"C\" int printf(const char* format,...) {\n    __builtin_va_list args;__builtin_va_start(args,format);\n    if(!strcmp(format,\"\\nf1=%5.2lf f2=%5.2lf f_g=%5.2lf Zin.i=%lf\")) {\n        __builtin_va_list copy;__builtin_va_copy(copy,args);\n        double v[4];for(int i=0;i<4;++i)v[i]=__builtin_va_arg(copy,double);__builtin_va_end(copy);\n        void* file=fopen(\"resonance-trace.out\",\"a\");fprintf(file,\"P %.17g %.17g %.17g %.17g\\n\",v[0],v[1],v[2],v[3]);fclose(file);\n    }\n    int result=vprintf(format,args);__builtin_va_end(args);return result;\n}\nextern \"C\" int sprintf(char* output,const char* format,...) {\n    __builtin_va_list args;__builtin_va_start(args,format);\n    if(!strcmp(format,\"Self Resonant Frequency Occurs at %5.2lf (GHz).\")) {\n        __builtin_va_list copy;__builtin_va_copy(copy,args);double v=__builtin_va_arg(copy,double);__builtin_va_end(copy);\n        void* file=fopen(\"resonance-trace.out\",\"a\");fprintf(file,\"R %.17g\\n\",v);fclose(file);\n    }\n    int result=vsprintf(output,format,args);__builtin_va_end(args);return result;\n}\n",
+  "cases": [
+    {
+      "kind": "square",
+      "process": "CMOS",
+      "parameters": {
+        "length": 80,
+        "width": 5,
+        "spacing": 3,
+        "turns": 1,
+        "metal": "M1",
+        "x": 10,
+        "y": 20
+      },
+      "technology": "; Sample CMOS technology file\n\n<chip>\n\n\tchipx = 128\t; dimensions of the chip in x direction\n\tchipy = 128\t; dimensions of the chip in y direction\n\tfftx = 32\t; x-fft size (must be a power of 2)\n\tffty = 32\t; y-fft size\n\tTechFile = CMOS.tek\n\tTechPath = .\n\tfreq = 2 \t\t; frequency of operation\n\teddy = 0\n\n<layer> 0 \t\t\t; p(-) bulk layer\n\trho = 1e-3\t\t; ohm-cm\n\tt   = 700 \t\t; microns\n        eps = 11.9\n\n<layer>\t1\t   \t\t; Oxide Layer\n\trho = 1e10\n\tt = 50\n\teps = 3.9\n\n<metal> 0\n        layer = 1\t\t; in oxide layer\n        rsh = 65\t\t; sheet resistance3\n        t   = 0.5\t\t; thickness\n        d = 1.3\t\t\t; distance from bottom of layer\n        name = m1\t\n        color = yellow\n\n<metal> 1\n        layer = 1\n        rsh = 55 \n        t = 0.5\n        d = 2.4 \n        name = m2\n        color = LightSkyBlue1\n\n<metal> 2\n        layer = 1\n        rsh = 55 \n        t = 0.5\n        d =  3.5\n        name = m3\n        color = medium purple\n\n<metal> 3\n        layer = 1\n        rsh = 55 \n        t = 0.5\n        d =  4.5\n        name = m4\n        color = light green\n\n<metal> 4\n        layer = 1\n        rsh = 30\n        t = 1\n        d =  6\n        name = m5\n        color = grey\n\n<via> 0                        ; metal 1 to metal 2\n        top = 1\n        bottom = 0\n        r = 4\n        width = .5\n        space = 1.1\n        overplot1 = .2         ; to metal 1\n        overplot2 = .2         ; to metal 2\n        name = via1\n        color = purple\n<via> 1                        ; metal 2 to metal 3\n        top = 2\n        bottom = 1\n        r = 4\n        width = .4\n        space = 1.1\n        overplot1 = .2         ; to metal 1\n        overplot2 = .2         ; to metal 2\n        name = via2\n        color = cyan1\n<via> 2                        ; metal 3 to metal 4\n        top = 3\n        bottom = 2\n        r = 4\n        width = .4\n        space = 1.1\n        overplot1 = .2\n        overplot2 = .2\n        name = via3\n        color = red\n\n<via> 3                        ; metal 3 to metal 4\n        top = 4\n        bottom = 3\n        r = 4\n        width = .4\n        space = 1.2\n        overplot1 = .2\n        overplot2 = .2\n        name = via4\n        color = white\n\n",
+      "ground": {
+        "kind": "wire",
+        "parameters": {
+          "name": "G",
+          "length": 100,
+          "width": 5,
+          "metal": "M1",
+          "x": 10,
+          "y": 110
+        }
+      },
+      "eddy": false,
+      "mesh": {
+        "length_cell": 1000,
+        "width_cell": 1000,
+        "thickness_cell": 1000,
+        "capacitance_length_cell": 1000,
+        "capacitance_width_cell": 1000
+      },
+      "first_hz": 1000000000.0,
+      "last_hz": 99999997952.0,
+      "step_hz": 100000000.0,
+      "differential": false,
+      "frequency_ghz": 57.9443347595,
+      "progress": [
+        [
+          50.499998976,
+          99.999997952,
+          50.499998976,
+          232.6896298588451
+        ],
+        [
+          50.499998976,
+          75.249998464,
+          75.249998464,
+          -116.73437533603288
+        ],
+        [
+          50.499998976,
+          62.87499872,
+          62.87499872,
+          -360.36531526006496
+        ],
+        [
+          56.687498848000004,
+          62.87499872,
+          56.687498848000004,
+          492.4598431059422
+        ],
+        [
+          56.687498848000004,
+          59.781248784000006,
+          59.781248784000006,
+          -558.2035414530776
+        ],
+        [
+          56.687498848000004,
+          58.234373816,
+          58.234373816,
+          -177.65491556281654
+        ],
+        [
+          57.460936332,
+          58.234373816,
+          57.460936332,
+          262.520718389872
+        ],
+        [
+          57.847655074,
+          58.234373816,
+          57.847655074,
+          51.536038963307384
+        ],
+        [
+          57.847655074,
+          58.041014445,
+          58.041014445,
+          -64.58216919616125
+        ]
+      ],
+      "script": "CELL 1000 1000 1000\nCCELL 1000 1000\nEDDY OFF\nSQUARE NAME=A:LEN=80:W=5:S=3:N=1:METAL=M1:EXIT=-1:XORG=10:YORG=20\nWIRE NAME=G:LEN=100:WID=5:METAL=M1:XORG=10:YORG=110\nSELFRES A 1 100 0.1 S SLOW 1 G\n",
+      "stdout": "\nASITIC version 10.20.99.0.0.0\nAnalysis & Simulation of Inductors and Transformers for ICs\nReading technology file <process.tek>...\nRunning in console mode...\n\nExecuting script <input.asit>...\nCELL 1000 1000 1000\n\nCCELL 1000 1000\n\nEDDY OFF\n\nTurning OFF eddy current calculation mode.\nSQUARE NAME=A:LEN=80:W=5:S=3:N=1:METAL=M1:EXIT=-1:XORG=10:YORG=20\n\nWIRE NAME=G:LEN=100:WID=5:METAL=M1:XORG=10:YORG=110\n\nSELFRES A 1 100 0.1 S SLOW 1 G\n\nPerforming Analysis at 50.50 GHz\nGenerating capacitance matrix (7x7).\nWarning:  Could not open data file at frequency = 50.50.\nTried using . as path.\n\n\nGenerating data at 50.50 GHz...\n\nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nWriting data.....\nGenerating inductance matrix (4x4)..\nInverting matrix.....\nSolving node equations...(4x4)\nf1=50.50 f2=100.00 f_g=50.50 Zin.i=232.689630\nPerforming Analysis at 75.25 GHz\nGenerating capacitance matrix (7x7).\nWarning:  Could not open data file at frequency = 75.25.\nTried using . as path.\n\n\nGenerating data at 75.25 GHz...\n\nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nWriting data.....\nGenerating inductance matrix (4x4)..\nInverting matrix.....\nSolving node equations...(4x4)\nf1=50.50 f2=75.25 f_g=75.25 Zin.i=-116.734375\nPerforming Analysis at 62.87 GHz\nGenerating capacitance matrix (7x7).\nWarning:  Could not open data file at frequency = 62.87.\nTried using . as path.\n\n\nGenerating data at 62.87 GHz...\n\nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nWriting data.....\nGenerating inductance matrix (4x4)..\nInverting matrix.....\nSolving node equations...(4x4)\nf1=50.50 f2=62.87 f_g=62.87 Zin.i=-360.365315\nPerforming Analysis at 56.69 GHz\nGenerating capacitance matrix (7x7).\nWarning:  Could not open data file at frequency = 56.69.\nTried using . as path.\n\n\nGenerating data at 56.69 GHz...\n\nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nWriting data.....\nGenerating inductance matrix (4x4)..\nInverting matrix.....\nSolving node equations...(4x4)\nf1=56.69 f2=62.87 f_g=56.69 Zin.i=492.459843\nPerforming Analysis at 59.78 GHz\nGenerating capacitance matrix (7x7).\nWarning:  Could not open data file at frequency = 59.78.\nTried using . as path.\n\n\nGenerating data at 59.78 GHz...\n\nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nWriting data.....\nGenerating inductance matrix (4x4)..\nInverting matrix.....\nSolving node equations...(4x4)\nf1=56.69 f2=59.78 f_g=59.78 Zin.i=-558.203541\nPerforming Analysis at 58.23 GHz\nGenerating capacitance matrix (7x7).\nWarning:  Could not open data file at frequency = 58.23.\nTried using . as path.\n\n\nGenerating data at 58.23 GHz...\n\nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nWriting data.....\nGenerating inductance matrix (4x4)..\nInverting matrix.....\nSolving node equations...(4x4)\nf1=56.69 f2=58.23 f_g=58.23 Zin.i=-177.654916\nPerforming Analysis at 57.46 GHz\nGenerating capacitance matrix (7x7).\nWarning:  Could not open data file at frequency = 57.46.\nTried using . as path.\n\n\nGenerating data at 57.46 GHz...\n\nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nWriting data.....\nGenerating inductance matrix (4x4)..\nInverting matrix.....\nSolving node equations...(4x4)\nf1=57.46 f2=58.23 f_g=57.46 Zin.i=262.520718\nPerforming Analysis at 57.85 GHz\nGenerating capacitance matrix (7x7).\nWarning:  Could not open data file at frequency = 57.85.\nTried using . as path.\n\n\nGenerating data at 57.85 GHz...\n\nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nWriting data.....\nGenerating inductance matrix (4x4)..\nInverting matrix.....\nSolving node equations...(4x4)\nf1=57.85 f2=58.23 f_g=57.85 Zin.i=51.536039\nPerforming Analysis at 58.04 GHz\nGenerating capacitance matrix (7x7).\nWarning:  Could not open data file at frequency = 58.04.\nTried using . as path.\n\n\nGenerating data at 58.04 GHz...\n\nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nWriting data.....\nGenerating inductance matrix (4x4)..\nInverting matrix.....\nSolving node equations...(4x4)\nf1=57.85 f2=58.04 f_g=58.04 Zin.i=-64.582169\nSelf Resonant Frequency Occurs at 57.94 (GHz).\nASITIC>  "
+    },
+    {
+      "kind": "square",
+      "process": "CMOS",
+      "parameters": {
+        "length": 80,
+        "width": 5,
+        "spacing": 3,
+        "turns": 1,
+        "metal": "M1",
+        "x": 10,
+        "y": 20
+      },
+      "technology": "; Sample CMOS technology file\n\n<chip>\n\n\tchipx = 128\t; dimensions of the chip in x direction\n\tchipy = 128\t; dimensions of the chip in y direction\n\tfftx = 32\t; x-fft size (must be a power of 2)\n\tffty = 32\t; y-fft size\n\tTechFile = CMOS.tek\n\tTechPath = .\n\tfreq = 2 \t\t; frequency of operation\n\teddy = 0\n\n<layer> 0 \t\t\t; p(-) bulk layer\n\trho = 1e-3\t\t; ohm-cm\n\tt   = 700 \t\t; microns\n        eps = 11.9\n\n<layer>\t1\t   \t\t; Oxide Layer\n\trho = 1e10\n\tt = 50\n\teps = 3.9\n\n<metal> 0\n        layer = 1\t\t; in oxide layer\n        rsh = 65\t\t; sheet resistance3\n        t   = 0.5\t\t; thickness\n        d = 1.3\t\t\t; distance from bottom of layer\n        name = m1\t\n        color = yellow\n\n<metal> 1\n        layer = 1\n        rsh = 55 \n        t = 0.5\n        d = 2.4 \n        name = m2\n        color = LightSkyBlue1\n\n<metal> 2\n        layer = 1\n        rsh = 55 \n        t = 0.5\n        d =  3.5\n        name = m3\n        color = medium purple\n\n<metal> 3\n        layer = 1\n        rsh = 55 \n        t = 0.5\n        d =  4.5\n        name = m4\n        color = light green\n\n<metal> 4\n        layer = 1\n        rsh = 30\n        t = 1\n        d =  6\n        name = m5\n        color = grey\n\n<via> 0                        ; metal 1 to metal 2\n        top = 1\n        bottom = 0\n        r = 4\n        width = .5\n        space = 1.1\n        overplot1 = .2         ; to metal 1\n        overplot2 = .2         ; to metal 2\n        name = via1\n        color = purple\n<via> 1                        ; metal 2 to metal 3\n        top = 2\n        bottom = 1\n        r = 4\n        width = .4\n        space = 1.1\n        overplot1 = .2         ; to metal 1\n        overplot2 = .2         ; to metal 2\n        name = via2\n        color = cyan1\n<via> 2                        ; metal 3 to metal 4\n        top = 3\n        bottom = 2\n        r = 4\n        width = .4\n        space = 1.1\n        overplot1 = .2\n        overplot2 = .2\n        name = via3\n        color = red\n\n<via> 3                        ; metal 3 to metal 4\n        top = 4\n        bottom = 3\n        r = 4\n        width = .4\n        space = 1.2\n        overplot1 = .2\n        overplot2 = .2\n        name = via4\n        color = white\n\n",
+      "ground": {
+        "kind": "wire",
+        "parameters": {
+          "name": "G",
+          "length": 100,
+          "width": 5,
+          "metal": "M1",
+          "x": 10,
+          "y": 110
+        }
+      },
+      "eddy": false,
+      "mesh": {
+        "length_cell": 20,
+        "width_cell": 3,
+        "thickness_cell": 0.5,
+        "capacitance_length_cell": 50,
+        "capacitance_width_cell": 8
+      },
+      "first_hz": 99999997952.0,
+      "last_hz": 1000000000.0,
+      "step_hz": 100000000.0,
+      "differential": true,
+      "frequency_ghz": 99.90331826650001,
+      "progress": [
+        [
+          50.499998976,
+          99.999997952,
+          50.499998976,
+          72.72871844582218
+        ],
+        [
+          75.249998464,
+          99.999997952,
+          75.249998464,
+          134.22197142066517
+        ],
+        [
+          87.62499820800001,
+          99.999997952,
+          87.62499820800001,
+          186.834626504904
+        ],
+        [
+          93.81249808000001,
+          99.999997952,
+          93.81249808000001,
+          225.46697560208523
+        ],
+        [
+          96.906248016,
+          99.999997952,
+          96.906248016,
+          249.94952127098458
+        ],
+        [
+          98.453122984,
+          99.999997952,
+          98.453122984,
+          263.93919820664576
+        ],
+        [
+          99.226560468,
+          99.999997952,
+          99.226560468,
+          271.45027505404715
+        ],
+        [
+          99.61327921,
+          99.999997952,
+          99.61327921,
+          275.3466975783673
+        ],
+        [
+          99.806638581,
+          99.999997952,
+          99.806638581,
+          277.33175317190967
+        ]
+      ],
+      "script": "CELL 20 3 0.5\nCCELL 50 8\nEDDY OFF\nSQUARE NAME=A:LEN=80:W=5:S=3:N=1:METAL=M1:EXIT=-1:XORG=10:YORG=20\nWIRE NAME=G:LEN=100:WID=5:METAL=M1:XORG=10:YORG=110\nSELFRES A 100 1 0.1 D SLOW 1 G\n",
+      "stdout": "\nASITIC version 10.20.99.0.0.0\nAnalysis & Simulation of Inductors and Transformers for ICs\nReading technology file <process.tek>...\nRunning in console mode...\n\nExecuting script <input.asit>...\nCELL 20 3 0.5\n\nCCELL 50 8\n\nEDDY OFF\n\nTurning OFF eddy current calculation mode.\nSQUARE NAME=A:LEN=80:W=5:S=3:N=1:METAL=M1:EXIT=-1:XORG=10:YORG=20\n\nWIRE NAME=G:LEN=100:WID=5:METAL=M1:XORG=10:YORG=110\n\nSELFRES A 100 1 0.1 D SLOW 1 G\n\nPerforming Analysis at 50.50 GHz\nGenerating capacitance matrix (19x19).\nWarning:  Could not open data file at frequency = 50.50.\nTried using . as path.\n\n\nGenerating data at 50.50 GHz...\n\nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nWriting data.....\nGenerating inductance matrix (32x32)..\nInverting matrix.....\nSolving node equations...(16x16)\nf1=50.50 f2=100.00 f_g=50.50 Zin.i=72.728718\nPerforming Analysis at 75.25 GHz\nGenerating capacitance matrix (19x19).\nWarning:  Could not open data file at frequency = 75.25.\nTried using . as path.\n\n\nGenerating data at 75.25 GHz...\n\nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nWriting data.....\nGenerating inductance matrix (32x32)..\nInverting matrix.....\nSolving node equations...(16x16)\nf1=75.25 f2=100.00 f_g=75.25 Zin.i=134.221971\nPerforming Analysis at 87.62 GHz\nGenerating capacitance matrix (19x19).\nWarning:  Could not open data file at frequency = 87.62.\nTried using . as path.\n\n\nGenerating data at 87.62 GHz...\n\nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nWriting data.....\nGenerating inductance matrix (32x32)..\nInverting matrix.....\nSolving node equations...(16x16)\nf1=87.62 f2=100.00 f_g=87.62 Zin.i=186.834627\nPerforming Analysis at 93.81 GHz\nGenerating capacitance matrix (19x19).\nWarning:  Could not open data file at frequency = 93.81.\nTried using . as path.\n\n\nGenerating data at 93.81 GHz...\n\nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nWriting data.....\nGenerating inductance matrix (32x32)..\nInverting matrix.....\nSolving node equations...(16x16)\nf1=93.81 f2=100.00 f_g=93.81 Zin.i=225.466976\nPerforming Analysis at 96.91 GHz\nGenerating capacitance matrix (19x19).\nWarning:  Could not open data file at frequency = 96.91.\nTried using . as path.\n\n\nGenerating data at 96.91 GHz...\n\nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nWriting data.....\nGenerating inductance matrix (32x32)..\nInverting matrix.....\nSolving node equations...(16x16)\nf1=96.91 f2=100.00 f_g=96.91 Zin.i=249.949521\nPerforming Analysis at 98.45 GHz\nGenerating capacitance matrix (19x19).\nWarning:  Could not open data file at frequency = 98.45.\nTried using . as path.\n\n\nGenerating data at 98.45 GHz...\n\nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nWriting data.....\nGenerating inductance matrix (32x32)..\nInverting matrix.....\nSolving node equations...(16x16)\nf1=98.45 f2=100.00 f_g=98.45 Zin.i=263.939198\nPerforming Analysis at 99.23 GHz\nGenerating capacitance matrix (19x19).\nWarning:  Could not open data file at frequency = 99.23.\nTried using . as path.\n\n\nGenerating data at 99.23 GHz...\n\nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nWriting data.....\nGenerating inductance matrix (32x32)..\nInverting matrix.....\nSolving node equations...(16x16)\nf1=99.23 f2=100.00 f_g=99.23 Zin.i=271.450275\nPerforming Analysis at 99.61 GHz\nGenerating capacitance matrix (19x19).\nWarning:  Could not open data file at frequency = 99.61.\nTried using . as path.\n\n\nGenerating data at 99.61 GHz...\n\nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nWriting data.....\nGenerating inductance matrix (32x32)..\nInverting matrix.....\nSolving node equations...(16x16)\nf1=99.61 f2=100.00 f_g=99.61 Zin.i=275.346698\nPerforming Analysis at 99.81 GHz\nGenerating capacitance matrix (19x19).\nWarning:  Could not open data file at frequency = 99.81.\nTried using . as path.\n\n\nGenerating data at 99.81 GHz...\n\nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nWriting data.....\nGenerating inductance matrix (32x32)..\nInverting matrix.....\nSolving node equations...(16x16)\nf1=99.81 f2=100.00 f_g=99.81 Zin.i=277.331753\nSelf Resonant Frequency Occurs at 99.90 (GHz).\nASITIC>  "
+    },
+    {
+      "kind": "square",
+      "process": "CMOS",
+      "parameters": {
+        "length": 80,
+        "width": 5,
+        "spacing": 3,
+        "turns": 2.5,
+        "metal": "M4",
+        "x": 10,
+        "y": 10
+      },
+      "technology": "; Sample CMOS technology file\n\n<chip>\n\n\tchipx = 128\t; dimensions of the chip in x direction\n\tchipy = 128\t; dimensions of the chip in y direction\n\tfftx = 32\t; x-fft size (must be a power of 2)\n\tffty = 32\t; y-fft size\n\tTechFile = CMOS.tek\n\tTechPath = .\n\tfreq = 2 \t\t; frequency of operation\n\teddy = 0\n\n<layer> 0 \t\t\t; p(-) bulk layer\n\trho = 1e-3\t\t; ohm-cm\n\tt   = 700 \t\t; microns\n        eps = 11.9\n\n<layer>\t1\t   \t\t; Oxide Layer\n\trho = 1e10\n\tt = 50\n\teps = 3.9\n\n<metal> 0\n        layer = 1\t\t; in oxide layer\n        rsh = 65\t\t; sheet resistance3\n        t   = 0.5\t\t; thickness\n        d = 1.3\t\t\t; distance from bottom of layer\n        name = m1\t\n        color = yellow\n\n<metal> 1\n        layer = 1\n        rsh = 55 \n        t = 0.5\n        d = 2.4 \n        name = m2\n        color = LightSkyBlue1\n\n<metal> 2\n        layer = 1\n        rsh = 55 \n        t = 0.5\n        d =  3.5\n        name = m3\n        color = medium purple\n\n<metal> 3\n        layer = 1\n        rsh = 55 \n        t = 0.5\n        d =  4.5\n        name = m4\n        color = light green\n\n<metal> 4\n        layer = 1\n        rsh = 30\n        t = 1\n        d =  6\n        name = m5\n        color = grey\n\n<via> 0                        ; metal 1 to metal 2\n        top = 1\n        bottom = 0\n        r = 4\n        width = .5\n        space = 1.1\n        overplot1 = .2         ; to metal 1\n        overplot2 = .2         ; to metal 2\n        name = via1\n        color = purple\n<via> 1                        ; metal 2 to metal 3\n        top = 2\n        bottom = 1\n        r = 4\n        width = .4\n        space = 1.1\n        overplot1 = .2         ; to metal 1\n        overplot2 = .2         ; to metal 2\n        name = via2\n        color = cyan1\n<via> 2                        ; metal 3 to metal 4\n        top = 3\n        bottom = 2\n        r = 4\n        width = .4\n        space = 1.1\n        overplot1 = .2\n        overplot2 = .2\n        name = via3\n        color = red\n\n<via> 3                        ; metal 3 to metal 4\n        top = 4\n        bottom = 3\n        r = 4\n        width = .4\n        space = 1.2\n        overplot1 = .2\n        overplot2 = .2\n        name = via4\n        color = white\n\n",
+      "ground": {
+        "kind": "wire",
+        "parameters": {
+          "name": "G",
+          "length": 100,
+          "width": 5,
+          "metal": "M1",
+          "x": 10,
+          "y": 110
+        }
+      },
+      "eddy": false,
+      "mesh": {
+        "length_cell": 1000,
+        "width_cell": 1000,
+        "thickness_cell": 1000,
+        "capacitance_length_cell": 1000,
+        "capacitance_width_cell": 1000
+      },
+      "first_hz": 1000000000.0,
+      "last_hz": 99999997952.0,
+      "step_hz": 100000000.0,
+      "differential": false,
+      "frequency_ghz": 42.4755850795,
+      "progress": [
+        [
+          1.0,
+          50.499998976,
+          50.499998976,
+          -465.36401362902666
+        ],
+        [
+          25.749999488,
+          50.499998976,
+          25.749999488,
+          165.1988935185131
+        ],
+        [
+          38.124999232,
+          50.499998976,
+          38.124999232,
+          738.0233324693461
+        ],
+        [
+          38.124999232,
+          44.312499104000004,
+          44.312499104000004,
+          -1563.3993850608424
+        ],
+        [
+          41.218749168,
+          44.312499104000004,
+          41.218749168,
+          1717.186064339699
+        ],
+        [
+          41.218749168,
+          42.765624136,
+          42.765624136,
+          -998.0959716033332
+        ],
+        [
+          41.992186652,
+          42.765624136,
+          41.992186652,
+          1441.5514285011527
+        ],
+        [
+          42.378905394,
+          42.765624136,
+          42.378905394,
+          379.9138209830187
+        ],
+        [
+          42.378905394,
+          42.572264765,
+          42.572264765,
+          -340.44392541104924
+        ]
+      ],
+      "script": "CELL 1000 1000 1000\nCCELL 1000 1000\nEDDY OFF\nSQUARE NAME=A:LEN=80:W=5:S=3:N=2.5:METAL=M4:EXIT=-1:XORG=10:YORG=10\nWIRE NAME=G:LEN=100:WID=5:METAL=M1:XORG=10:YORG=110\nSELFRES A 1 100 0.1 S SLOW 1 G\n",
+      "stdout": "\nASITIC version 10.20.99.0.0.0\nAnalysis & Simulation of Inductors and Transformers for ICs\nReading technology file <process.tek>...\nRunning in console mode...\n\nExecuting script <input.asit>...\nCELL 1000 1000 1000\n\nCCELL 1000 1000\n\nEDDY OFF\n\nTurning OFF eddy current calculation mode.\nSQUARE NAME=A:LEN=80:W=5:S=3:N=2.5:METAL=M4:EXIT=-1:XORG=10:YORG=10\n\nWIRE NAME=G:LEN=100:WID=5:METAL=M1:XORG=10:YORG=110\n\nSELFRES A 1 100 0.1 S SLOW 1 G\n\nPerforming Analysis at 50.50 GHz\nGenerating capacitance matrix (13x13).\nWarning:  Could not open data file at frequency = 50.50.\nTried using . as path.\n\n\nGenerating data at 50.50 GHz...\n\nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nWriting data.....\nGenerating inductance matrix (10x10)..\nInverting matrix.....\nSolving node equations...(10x10)\nf1= 1.00 f2=50.50 f_g=50.50 Zin.i=-465.364014\nPerforming Analysis at 25.75 GHz\nGenerating capacitance matrix (13x13).\nWarning:  Could not open data file at frequency = 25.75.\nTried using . as path.\n\n\nGenerating data at 25.75 GHz...\n\nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nWriting data.....\nGenerating inductance matrix (10x10)..\nInverting matrix.....\nSolving node equations...(10x10)\nf1=25.75 f2=50.50 f_g=25.75 Zin.i=165.198894\nPerforming Analysis at 38.12 GHz\nGenerating capacitance matrix (13x13).\nWarning:  Could not open data file at frequency = 38.12.\nTried using . as path.\n\n\nGenerating data at 38.12 GHz...\n\nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nWriting data.....\nGenerating inductance matrix (10x10)..\nInverting matrix.....\nSolving node equations...(10x10)\nf1=38.12 f2=50.50 f_g=38.12 Zin.i=738.023332\nPerforming Analysis at 44.31 GHz\nGenerating capacitance matrix (13x13).\nWarning:  Could not open data file at frequency = 44.31.\nTried using . as path.\n\n\nGenerating data at 44.31 GHz...\n\nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nWriting data.....\nGenerating inductance matrix (10x10)..\nInverting matrix.....\nSolving node equations...(10x10)\nf1=38.12 f2=44.31 f_g=44.31 Zin.i=-1563.399385\nPerforming Analysis at 41.22 GHz\nGenerating capacitance matrix (13x13).\nWarning:  Could not open data file at frequency = 41.22.\nTried using . as path.\n\n\nGenerating data at 41.22 GHz...\n\nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nWriting data.....\nGenerating inductance matrix (10x10)..\nInverting matrix.....\nSolving node equations...(10x10)\nf1=41.22 f2=44.31 f_g=41.22 Zin.i=1717.186064\nPerforming Analysis at 42.77 GHz\nGenerating capacitance matrix (13x13).\nWarning:  Could not open data file at frequency = 42.77.\nTried using . as path.\n\n\nGenerating data at 42.77 GHz...\n\nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nWriting data.....\nGenerating inductance matrix (10x10)..\nInverting matrix.....\nSolving node equations...(10x10)\nf1=41.22 f2=42.77 f_g=42.77 Zin.i=-998.095972\nPerforming Analysis at 41.99 GHz\nGenerating capacitance matrix (13x13).\nWarning:  Could not open data file at frequency = 41.99.\nTried using . as path.\n\n\nGenerating data at 41.99 GHz...\n\nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nWriting data.....\nGenerating inductance matrix (10x10)..\nInverting matrix.....\nSolving node equations...(10x10)\nf1=41.99 f2=42.77 f_g=41.99 Zin.i=1441.551429\nPerforming Analysis at 42.38 GHz\nGenerating capacitance matrix (13x13).\nWarning:  Could not open data file at frequency = 42.38.\nTried using . as path.\n\n\nGenerating data at 42.38 GHz...\n\nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nWriting data.....\nGenerating inductance matrix (10x10)..\nInverting matrix.....\nSolving node equations...(10x10)\nf1=42.38 f2=42.77 f_g=42.38 Zin.i=379.913821\nPerforming Analysis at 42.57 GHz\nGenerating capacitance matrix (13x13).\nWarning:  Could not open data file at frequency = 42.57.\nTried using . as path.\n\n\nGenerating data at 42.57 GHz...\n\nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nWriting data.....\nGenerating inductance matrix (10x10)..\nInverting matrix.....\nSolving node equations...(10x10)\nf1=42.38 f2=42.57 f_g=42.57 Zin.i=-340.443925\nSelf Resonant Frequency Occurs at 42.48 (GHz).\nASITIC>  "
+    },
+    {
+      "kind": "square",
+      "process": "CMOS",
+      "parameters": {
+        "length": 80,
+        "width": 5,
+        "spacing": 3,
+        "turns": 2.5,
+        "metal": "M4",
+        "x": 10,
+        "y": 10
+      },
+      "technology": "; Sample CMOS technology file\n\n<chip>\n\n\tchipx = 128\t; dimensions of the chip in x direction\n\tchipy = 128\t; dimensions of the chip in y direction\n\tfftx = 32\t; x-fft size (must be a power of 2)\n\tffty = 32\t; y-fft size\n\tTechFile = CMOS.tek\n\tTechPath = .\n\tfreq = 2 \t\t; frequency of operation\n\teddy = 0\n\n<layer> 0 \t\t\t; p(-) bulk layer\n\trho = 1e-3\t\t; ohm-cm\n\tt   = 700 \t\t; microns\n        eps = 11.9\n\n<layer>\t1\t   \t\t; Oxide Layer\n\trho = 1e10\n\tt = 50\n\teps = 3.9\n\n<metal> 0\n        layer = 1\t\t; in oxide layer\n        rsh = 65\t\t; sheet resistance3\n        t   = 0.5\t\t; thickness\n        d = 1.3\t\t\t; distance from bottom of layer\n        name = m1\t\n        color = yellow\n\n<metal> 1\n        layer = 1\n        rsh = 55 \n        t = 0.5\n        d = 2.4 \n        name = m2\n        color = LightSkyBlue1\n\n<metal> 2\n        layer = 1\n        rsh = 55 \n        t = 0.5\n        d =  3.5\n        name = m3\n        color = medium purple\n\n<metal> 3\n        layer = 1\n        rsh = 55 \n        t = 0.5\n        d =  4.5\n        name = m4\n        color = light green\n\n<metal> 4\n        layer = 1\n        rsh = 30\n        t = 1\n        d =  6\n        name = m5\n        color = grey\n\n<via> 0                        ; metal 1 to metal 2\n        top = 1\n        bottom = 0\n        r = 4\n        width = .5\n        space = 1.1\n        overplot1 = .2         ; to metal 1\n        overplot2 = .2         ; to metal 2\n        name = via1\n        color = purple\n<via> 1                        ; metal 2 to metal 3\n        top = 2\n        bottom = 1\n        r = 4\n        width = .4\n        space = 1.1\n        overplot1 = .2         ; to metal 1\n        overplot2 = .2         ; to metal 2\n        name = via2\n        color = cyan1\n<via> 2                        ; metal 3 to metal 4\n        top = 3\n        bottom = 2\n        r = 4\n        width = .4\n        space = 1.1\n        overplot1 = .2\n        overplot2 = .2\n        name = via3\n        color = red\n\n<via> 3                        ; metal 3 to metal 4\n        top = 4\n        bottom = 3\n        r = 4\n        width = .4\n        space = 1.2\n        overplot1 = .2\n        overplot2 = .2\n        name = via4\n        color = white\n\n",
+      "ground": {
+        "kind": "wire",
+        "parameters": {
+          "name": "G",
+          "length": 100,
+          "width": 5,
+          "metal": "M1",
+          "x": 10,
+          "y": 110
+        }
+      },
+      "eddy": false,
+      "mesh": {
+        "length_cell": 1000,
+        "width_cell": 1000,
+        "thickness_cell": 1000,
+        "capacitance_length_cell": 1000,
+        "capacitance_width_cell": 1000
+      },
+      "first_hz": 99999997952.0,
+      "last_hz": 1000000000.0,
+      "step_hz": 100000000.0,
+      "differential": true,
+      "frequency_ghz": 79.6005843115,
+      "progress": [
+        [
+          50.499998976,
+          99.999997952,
+          50.499998976,
+          337.97227793834406
+        ],
+        [
+          75.249998464,
+          99.999997952,
+          75.249998464,
+          2577.9580337333377
+        ],
+        [
+          75.249998464,
+          87.62499820800001,
+          87.62499820800001,
+          -1497.8559770555305
+        ],
+        [
+          75.249998464,
+          81.437498336,
+          81.437498336,
+          -5134.560022954569
+        ],
+        [
+          78.34374840000001,
+          81.437498336,
+          78.34374840000001,
+          5977.35275764609
+        ],
+        [
+          78.34374840000001,
+          79.890623368,
+          79.890623368,
+          -3821.360812440567
+        ],
+        [
+          79.11718588400001,
+          79.890623368,
+          79.11718588400001,
+          4787.3353734834045
+        ],
+        [
+          79.50390462600001,
+          79.890623368,
+          79.50390462600001,
+          836.5924647441232
+        ],
+        [
+          79.50390462600001,
+          79.69726399700001,
+          79.69726399700001,
+          -1667.8725044863477
+        ]
+      ],
+      "script": "CELL 1000 1000 1000\nCCELL 1000 1000\nEDDY OFF\nSQUARE NAME=A:LEN=80:W=5:S=3:N=2.5:METAL=M4:EXIT=-1:XORG=10:YORG=10\nWIRE NAME=G:LEN=100:WID=5:METAL=M1:XORG=10:YORG=110\nSELFRES A 100 1 0.1 D SLOW 1 G\n",
+      "stdout": "\nASITIC version 10.20.99.0.0.0\nAnalysis & Simulation of Inductors and Transformers for ICs\nReading technology file <process.tek>...\nRunning in console mode...\n\nExecuting script <input.asit>...\nCELL 1000 1000 1000\n\nCCELL 1000 1000\n\nEDDY OFF\n\nTurning OFF eddy current calculation mode.\nSQUARE NAME=A:LEN=80:W=5:S=3:N=2.5:METAL=M4:EXIT=-1:XORG=10:YORG=10\n\nWIRE NAME=G:LEN=100:WID=5:METAL=M1:XORG=10:YORG=110\n\nSELFRES A 100 1 0.1 D SLOW 1 G\n\nPerforming Analysis at 50.50 GHz\nGenerating capacitance matrix (13x13).\nWarning:  Could not open data file at frequency = 50.50.\nTried using . as path.\n\n\nGenerating data at 50.50 GHz...\n\nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nWriting data.....\nGenerating inductance matrix (10x10)..\nInverting matrix.....\nSolving node equations...(10x10)\nf1=50.50 f2=100.00 f_g=50.50 Zin.i=337.972278\nPerforming Analysis at 75.25 GHz\nGenerating capacitance matrix (13x13).\nWarning:  Could not open data file at frequency = 75.25.\nTried using . as path.\n\n\nGenerating data at 75.25 GHz...\n\nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nWriting data.....\nGenerating inductance matrix (10x10)..\nInverting matrix.....\nSolving node equations...(10x10)\nf1=75.25 f2=100.00 f_g=75.25 Zin.i=2577.958034\nPerforming Analysis at 87.62 GHz\nGenerating capacitance matrix (13x13).\nWarning:  Could not open data file at frequency = 87.62.\nTried using . as path.\n\n\nGenerating data at 87.62 GHz...\n\nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nWriting data.....\nGenerating inductance matrix (10x10)..\nInverting matrix.....\nSolving node equations...(10x10)\nf1=75.25 f2=87.62 f_g=87.62 Zin.i=-1497.855977\nPerforming Analysis at 81.44 GHz\nGenerating capacitance matrix (13x13).\nWarning:  Could not open data file at frequency = 81.44.\nTried using . as path.\n\n\nGenerating data at 81.44 GHz...\n\nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nWriting data.....\nGenerating inductance matrix (10x10)..\nInverting matrix.....\nSolving node equations...(10x10)\nf1=75.25 f2=81.44 f_g=81.44 Zin.i=-5134.560023\nPerforming Analysis at 78.34 GHz\nGenerating capacitance matrix (13x13).\nWarning:  Could not open data file at frequency = 78.34.\nTried using . as path.\n\n\nGenerating data at 78.34 GHz...\n\nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nWriting data.....\nGenerating inductance matrix (10x10)..\nInverting matrix.....\nSolving node equations...(10x10)\nf1=78.34 f2=81.44 f_g=78.34 Zin.i=5977.352758\nPerforming Analysis at 79.89 GHz\nGenerating capacitance matrix (13x13).\nWarning:  Could not open data file at frequency = 79.89.\nTried using . as path.\n\n\nGenerating data at 79.89 GHz...\n\nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nWriting data.....\nGenerating inductance matrix (10x10)..\nInverting matrix.....\nSolving node equations...(10x10)\nf1=78.34 f2=79.89 f_g=79.89 Zin.i=-3821.360812\nPerforming Analysis at 79.12 GHz\nGenerating capacitance matrix (13x13).\nWarning:  Could not open data file at frequency = 79.12.\nTried using . as path.\n\n\nGenerating data at 79.12 GHz...\n\nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nWriting data.....\nGenerating inductance matrix (10x10)..\nInverting matrix.....\nSolving node equations...(10x10)\nf1=79.12 f2=79.89 f_g=79.12 Zin.i=4787.335373\nPerforming Analysis at 79.50 GHz\nGenerating capacitance matrix (13x13).\nWarning:  Could not open data file at frequency = 79.50.\nTried using . as path.\n\n\nGenerating data at 79.50 GHz...\n\nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nWriting data.....\nGenerating inductance matrix (10x10)..\nInverting matrix.....\nSolving node equations...(10x10)\nf1=79.50 f2=79.89 f_g=79.50 Zin.i=836.592465\nPerforming Analysis at 79.70 GHz\nGenerating capacitance matrix (13x13).\nWarning:  Could not open data file at frequency = 79.70.\nTried using . as path.\n\n\nGenerating data at 79.70 GHz...\n\nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nWriting data.....\nGenerating inductance matrix (10x10)..\nInverting matrix.....\nSolving node equations...(10x10)\nf1=79.50 f2=79.70 f_g=79.70 Zin.i=-1667.872504\nSelf Resonant Frequency Occurs at 79.60 (GHz).\nASITIC>  "
+    },
+    {
+      "kind": "polygon",
+      "process": "CMOS",
+      "parameters": {
+        "radius": 35,
+        "sides": 6,
+        "width": 5,
+        "spacing": 3,
+        "turns": 1.25,
+        "metal": "M4",
+        "x": 20,
+        "y": 20
+      },
+      "technology": "; Sample CMOS technology file\n\n<chip>\n\n\tchipx = 128\t; dimensions of the chip in x direction\n\tchipy = 128\t; dimensions of the chip in y direction\n\tfftx = 32\t; x-fft size (must be a power of 2)\n\tffty = 32\t; y-fft size\n\tTechFile = CMOS.tek\n\tTechPath = .\n\tfreq = 2 \t\t; frequency of operation\n\teddy = 0\n\n<layer> 0 \t\t\t; p(-) bulk layer\n\trho = 1e-3\t\t; ohm-cm\n\tt   = 700 \t\t; microns\n        eps = 11.9\n\n<layer>\t1\t   \t\t; Oxide Layer\n\trho = 1e10\n\tt = 50\n\teps = 3.9\n\n<metal> 0\n        layer = 1\t\t; in oxide layer\n        rsh = 65\t\t; sheet resistance3\n        t   = 0.5\t\t; thickness\n        d = 1.3\t\t\t; distance from bottom of layer\n        name = m1\t\n        color = yellow\n\n<metal> 1\n        layer = 1\n        rsh = 55 \n        t = 0.5\n        d = 2.4 \n        name = m2\n        color = LightSkyBlue1\n\n<metal> 2\n        layer = 1\n        rsh = 55 \n        t = 0.5\n        d =  3.5\n        name = m3\n        color = medium purple\n\n<metal> 3\n        layer = 1\n        rsh = 55 \n        t = 0.5\n        d =  4.5\n        name = m4\n        color = light green\n\n<metal> 4\n        layer = 1\n        rsh = 30\n        t = 1\n        d =  6\n        name = m5\n        color = grey\n\n<via> 0                        ; metal 1 to metal 2\n        top = 1\n        bottom = 0\n        r = 4\n        width = .5\n        space = 1.1\n        overplot1 = .2         ; to metal 1\n        overplot2 = .2         ; to metal 2\n        name = via1\n        color = purple\n<via> 1                        ; metal 2 to metal 3\n        top = 2\n        bottom = 1\n        r = 4\n        width = .4\n        space = 1.1\n        overplot1 = .2         ; to metal 1\n        overplot2 = .2         ; to metal 2\n        name = via2\n        color = cyan1\n<via> 2                        ; metal 3 to metal 4\n        top = 3\n        bottom = 2\n        r = 4\n        width = .4\n        space = 1.1\n        overplot1 = .2\n        overplot2 = .2\n        name = via3\n        color = red\n\n<via> 3                        ; metal 3 to metal 4\n        top = 4\n        bottom = 3\n        r = 4\n        width = .4\n        space = 1.2\n        overplot1 = .2\n        overplot2 = .2\n        name = via4\n        color = white\n\n",
+      "ground": {
+        "kind": "wire",
+        "parameters": {
+          "name": "G",
+          "length": 100,
+          "width": 5,
+          "metal": "M1",
+          "x": 10,
+          "y": 110
+        }
+      },
+      "eddy": false,
+      "mesh": {
+        "length_cell": 1000,
+        "width_cell": 1000,
+        "thickness_cell": 1000,
+        "capacitance_length_cell": 1000,
+        "capacitance_width_cell": 1000
+      },
+      "first_hz": 1000000000.0,
+      "last_hz": 99999997952.0,
+      "step_hz": 100000000.0,
+      "differential": false,
+      "frequency_ghz": 99.90331826650001,
+      "progress": [
+        [
+          50.499998976,
+          99.999997952,
+          50.499998976,
+          43.188662257564886
+        ],
+        [
+          75.249998464,
+          99.999997952,
+          75.249998464,
+          73.24852555721328
+        ],
+        [
+          87.62499820800001,
+          99.999997952,
+          87.62499820800001,
+          93.83970970966298
+        ],
+        [
+          93.81249808000001,
+          99.999997952,
+          93.81249808000001,
+          106.47278747856997
+        ],
+        [
+          96.906248016,
+          99.999997952,
+          96.906248016,
+          113.57466162020575
+        ],
+        [
+          98.453122984,
+          99.999997952,
+          98.453122984,
+          117.35611640708134
+        ],
+        [
+          99.226560468,
+          99.999997952,
+          99.226560468,
+          119.30952889312493
+        ],
+        [
+          99.61327921,
+          99.999997952,
+          99.61327921,
+          120.30259666820562
+        ],
+        [
+          99.806638581,
+          99.999997952,
+          99.806638581,
+          120.80331121535684
+        ]
+      ],
+      "script": "CELL 1000 1000 1000\nCCELL 1000 1000\nEDDY OFF\nSPIRAL NAME=A:RAD=35:SIDES=6:W=5:S=3:N=1.25:METAL=M4:XORG=20:YORG=20\nWIRE NAME=G:LEN=100:WID=5:METAL=M1:XORG=10:YORG=110\nSELFRES A 1 100 0.1 S SLOW 1 G\n",
+      "stdout": "\nASITIC version 10.20.99.0.0.0\nAnalysis & Simulation of Inductors and Transformers for ICs\nReading technology file <process.tek>...\nRunning in console mode...\n\nExecuting script <input.asit>...\nCELL 1000 1000 1000\n\nCCELL 1000 1000\n\nEDDY OFF\n\nTurning OFF eddy current calculation mode.\nSPIRAL NAME=A:RAD=35:SIDES=6:W=5:S=3:N=1.25:METAL=M4:XORG=20:YORG=20\n\nWIRE NAME=G:LEN=100:WID=5:METAL=M1:XORG=10:YORG=110\n\nSELFRES A 1 100 0.1 S SLOW 1 G\n\nPerforming Analysis at 50.50 GHz\nGenerating capacitance matrix (10x10).\nWarning:  Could not open data file at frequency = 50.50.\nTried using . as path.\n\n\nGenerating data at 50.50 GHz...\n\nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nWriting data.....\nGenerating inductance matrix (7x7)..\nInverting matrix.....\nSolving node equations...(7x7)\nf1=50.50 f2=100.00 f_g=50.50 Zin.i=43.188662\nPerforming Analysis at 75.25 GHz\nGenerating capacitance matrix (10x10).\nWarning:  Could not open data file at frequency = 75.25.\nTried using . as path.\n\n\nGenerating data at 75.25 GHz...\n\nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nWriting data.....\nGenerating inductance matrix (7x7)..\nInverting matrix.....\nSolving node equations...(7x7)\nf1=75.25 f2=100.00 f_g=75.25 Zin.i=73.248526\nPerforming Analysis at 87.62 GHz\nGenerating capacitance matrix (10x10).\nWarning:  Could not open data file at frequency = 87.62.\nTried using . as path.\n\n\nGenerating data at 87.62 GHz...\n\nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nWriting data.....\nGenerating inductance matrix (7x7)..\nInverting matrix.....\nSolving node equations...(7x7)\nf1=87.62 f2=100.00 f_g=87.62 Zin.i=93.839710\nPerforming Analysis at 93.81 GHz\nGenerating capacitance matrix (10x10).\nWarning:  Could not open data file at frequency = 93.81.\nTried using . as path.\n\n\nGenerating data at 93.81 GHz...\n\nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nWriting data.....\nGenerating inductance matrix (7x7)..\nInverting matrix.....\nSolving node equations...(7x7)\nf1=93.81 f2=100.00 f_g=93.81 Zin.i=106.472787\nPerforming Analysis at 96.91 GHz\nGenerating capacitance matrix (10x10).\nWarning:  Could not open data file at frequency = 96.91.\nTried using . as path.\n\n\nGenerating data at 96.91 GHz...\n\nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nWriting data.....\nGenerating inductance matrix (7x7)..\nInverting matrix.....\nSolving node equations...(7x7)\nf1=96.91 f2=100.00 f_g=96.91 Zin.i=113.574662\nPerforming Analysis at 98.45 GHz\nGenerating capacitance matrix (10x10).\nWarning:  Could not open data file at frequency = 98.45.\nTried using . as path.\n\n\nGenerating data at 98.45 GHz...\n\nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nWriting data.....\nGenerating inductance matrix (7x7)..\nInverting matrix.....\nSolving node equations...(7x7)\nf1=98.45 f2=100.00 f_g=98.45 Zin.i=117.356116\nPerforming Analysis at 99.23 GHz\nGenerating capacitance matrix (10x10).\nWarning:  Could not open data file at frequency = 99.23.\nTried using . as path.\n\n\nGenerating data at 99.23 GHz...\n\nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nWriting data.....\nGenerating inductance matrix (7x7)..\nInverting matrix.....\nSolving node equations...(7x7)\nf1=99.23 f2=100.00 f_g=99.23 Zin.i=119.309529\nPerforming Analysis at 99.61 GHz\nGenerating capacitance matrix (10x10).\nWarning:  Could not open data file at frequency = 99.61.\nTried using . as path.\n\n\nGenerating data at 99.61 GHz...\n\nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nWriting data.....\nGenerating inductance matrix (7x7)..\nInverting matrix.....\nSolving node equations...(7x7)\nf1=99.61 f2=100.00 f_g=99.61 Zin.i=120.302597\nPerforming Analysis at 99.81 GHz\nGenerating capacitance matrix (10x10).\nWarning:  Could not open data file at frequency = 99.81.\nTried using . as path.\n\n\nGenerating data at 99.81 GHz...\n\nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nWriting data.....\nGenerating inductance matrix (7x7)..\nInverting matrix.....\nSolving node equations...(7x7)\nf1=99.81 f2=100.00 f_g=99.81 Zin.i=120.803311\nSelf Resonant Frequency Occurs at 99.90 (GHz).\nASITIC>  "
+    },
+    {
+      "kind": "polygon",
+      "process": "CMOS",
+      "parameters": {
+        "radius": 35,
+        "sides": 6,
+        "width": 5,
+        "spacing": 3,
+        "turns": 1.25,
+        "metal": "M4",
+        "x": 20,
+        "y": 20
+      },
+      "technology": "; Sample CMOS technology file\n\n<chip>\n\n\tchipx = 128\t; dimensions of the chip in x direction\n\tchipy = 128\t; dimensions of the chip in y direction\n\tfftx = 32\t; x-fft size (must be a power of 2)\n\tffty = 32\t; y-fft size\n\tTechFile = CMOS.tek\n\tTechPath = .\n\tfreq = 2 \t\t; frequency of operation\n\teddy = 0\n\n<layer> 0 \t\t\t; p(-) bulk layer\n\trho = 1e-3\t\t; ohm-cm\n\tt   = 700 \t\t; microns\n        eps = 11.9\n\n<layer>\t1\t   \t\t; Oxide Layer\n\trho = 1e10\n\tt = 50\n\teps = 3.9\n\n<metal> 0\n        layer = 1\t\t; in oxide layer\n        rsh = 65\t\t; sheet resistance3\n        t   = 0.5\t\t; thickness\n        d = 1.3\t\t\t; distance from bottom of layer\n        name = m1\t\n        color = yellow\n\n<metal> 1\n        layer = 1\n        rsh = 55 \n        t = 0.5\n        d = 2.4 \n        name = m2\n        color = LightSkyBlue1\n\n<metal> 2\n        layer = 1\n        rsh = 55 \n        t = 0.5\n        d =  3.5\n        name = m3\n        color = medium purple\n\n<metal> 3\n        layer = 1\n        rsh = 55 \n        t = 0.5\n        d =  4.5\n        name = m4\n        color = light green\n\n<metal> 4\n        layer = 1\n        rsh = 30\n        t = 1\n        d =  6\n        name = m5\n        color = grey\n\n<via> 0                        ; metal 1 to metal 2\n        top = 1\n        bottom = 0\n        r = 4\n        width = .5\n        space = 1.1\n        overplot1 = .2         ; to metal 1\n        overplot2 = .2         ; to metal 2\n        name = via1\n        color = purple\n<via> 1                        ; metal 2 to metal 3\n        top = 2\n        bottom = 1\n        r = 4\n        width = .4\n        space = 1.1\n        overplot1 = .2         ; to metal 1\n        overplot2 = .2         ; to metal 2\n        name = via2\n        color = cyan1\n<via> 2                        ; metal 3 to metal 4\n        top = 3\n        bottom = 2\n        r = 4\n        width = .4\n        space = 1.1\n        overplot1 = .2\n        overplot2 = .2\n        name = via3\n        color = red\n\n<via> 3                        ; metal 3 to metal 4\n        top = 4\n        bottom = 3\n        r = 4\n        width = .4\n        space = 1.2\n        overplot1 = .2\n        overplot2 = .2\n        name = via4\n        color = white\n\n",
+      "ground": {
+        "kind": "wire",
+        "parameters": {
+          "name": "G",
+          "length": 100,
+          "width": 5,
+          "metal": "M1",
+          "x": 10,
+          "y": 110
+        }
+      },
+      "eddy": false,
+      "mesh": {
+        "length_cell": 1000,
+        "width_cell": 1000,
+        "thickness_cell": 1000,
+        "capacitance_length_cell": 1000,
+        "capacitance_width_cell": 1000
+      },
+      "first_hz": 99999997952.0,
+      "last_hz": 1000000000.0,
+      "step_hz": 100000000.0,
+      "differential": true,
+      "frequency_ghz": 99.90331826650001,
+      "progress": [
+        [
+          50.499998976,
+          99.999997952,
+          50.499998976,
+          40.20801649105675
+        ],
+        [
+          75.249998464,
+          99.999997952,
+          75.249998464,
+          61.563933258052025
+        ],
+        [
+          87.62499820800001,
+          99.999997952,
+          87.62499820800001,
+          73.00443047941545
+        ],
+        [
+          93.81249808000001,
+          99.999997952,
+          93.81249808000001,
+          78.9725394339412
+        ],
+        [
+          96.906248016,
+          99.999997952,
+          96.906248016,
+          82.02699762874352
+        ],
+        [
+          98.453122984,
+          99.999997952,
+          98.453122984,
+          83.57298326836109
+        ],
+        [
+          99.226560468,
+          99.999997952,
+          99.226560468,
+          84.3508167552621
+        ],
+        [
+          99.61327921,
+          99.999997952,
+          99.61327921,
+          84.74096307658684
+        ],
+        [
+          99.806638581,
+          99.999997952,
+          99.806638581,
+          84.93634608835653
+        ]
+      ],
+      "script": "CELL 1000 1000 1000\nCCELL 1000 1000\nEDDY OFF\nSPIRAL NAME=A:RAD=35:SIDES=6:W=5:S=3:N=1.25:METAL=M4:XORG=20:YORG=20\nWIRE NAME=G:LEN=100:WID=5:METAL=M1:XORG=10:YORG=110\nSELFRES A 100 1 0.1 D SLOW 1 G\n",
+      "stdout": "\nASITIC version 10.20.99.0.0.0\nAnalysis & Simulation of Inductors and Transformers for ICs\nReading technology file <process.tek>...\nRunning in console mode...\n\nExecuting script <input.asit>...\nCELL 1000 1000 1000\n\nCCELL 1000 1000\n\nEDDY OFF\n\nTurning OFF eddy current calculation mode.\nSPIRAL NAME=A:RAD=35:SIDES=6:W=5:S=3:N=1.25:METAL=M4:XORG=20:YORG=20\n\nWIRE NAME=G:LEN=100:WID=5:METAL=M1:XORG=10:YORG=110\n\nSELFRES A 100 1 0.1 D SLOW 1 G\n\nPerforming Analysis at 50.50 GHz\nGenerating capacitance matrix (10x10).\nWarning:  Could not open data file at frequency = 50.50.\nTried using . as path.\n\n\nGenerating data at 50.50 GHz...\n\nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nWriting data.....\nGenerating inductance matrix (7x7)..\nInverting matrix.....\nSolving node equations...(7x7)\nf1=50.50 f2=100.00 f_g=50.50 Zin.i=40.208016\nPerforming Analysis at 75.25 GHz\nGenerating capacitance matrix (10x10).\nWarning:  Could not open data file at frequency = 75.25.\nTried using . as path.\n\n\nGenerating data at 75.25 GHz...\n\nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nWriting data.....\nGenerating inductance matrix (7x7)..\nInverting matrix.....\nSolving node equations...(7x7)\nf1=75.25 f2=100.00 f_g=75.25 Zin.i=61.563933\nPerforming Analysis at 87.62 GHz\nGenerating capacitance matrix (10x10).\nWarning:  Could not open data file at frequency = 87.62.\nTried using . as path.\n\n\nGenerating data at 87.62 GHz...\n\nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nWriting data.....\nGenerating inductance matrix (7x7)..\nInverting matrix.....\nSolving node equations...(7x7)\nf1=87.62 f2=100.00 f_g=87.62 Zin.i=73.004430\nPerforming Analysis at 93.81 GHz\nGenerating capacitance matrix (10x10).\nWarning:  Could not open data file at frequency = 93.81.\nTried using . as path.\n\n\nGenerating data at 93.81 GHz...\n\nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nWriting data.....\nGenerating inductance matrix (7x7)..\nInverting matrix.....\nSolving node equations...(7x7)\nf1=93.81 f2=100.00 f_g=93.81 Zin.i=78.972539\nPerforming Analysis at 96.91 GHz\nGenerating capacitance matrix (10x10).\nWarning:  Could not open data file at frequency = 96.91.\nTried using . as path.\n\n\nGenerating data at 96.91 GHz...\n\nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nWriting data.....\nGenerating inductance matrix (7x7)..\nInverting matrix.....\nSolving node equations...(7x7)\nf1=96.91 f2=100.00 f_g=96.91 Zin.i=82.026998\nPerforming Analysis at 98.45 GHz\nGenerating capacitance matrix (10x10).\nWarning:  Could not open data file at frequency = 98.45.\nTried using . as path.\n\n\nGenerating data at 98.45 GHz...\n\nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nWriting data.....\nGenerating inductance matrix (7x7)..\nInverting matrix.....\nSolving node equations...(7x7)\nf1=98.45 f2=100.00 f_g=98.45 Zin.i=83.572983\nPerforming Analysis at 99.23 GHz\nGenerating capacitance matrix (10x10).\nWarning:  Could not open data file at frequency = 99.23.\nTried using . as path.\n\n\nGenerating data at 99.23 GHz...\n\nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nWriting data.....\nGenerating inductance matrix (7x7)..\nInverting matrix.....\nSolving node equations...(7x7)\nf1=99.23 f2=100.00 f_g=99.23 Zin.i=84.350817\nPerforming Analysis at 99.61 GHz\nGenerating capacitance matrix (10x10).\nWarning:  Could not open data file at frequency = 99.61.\nTried using . as path.\n\n\nGenerating data at 99.61 GHz...\n\nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nWriting data.....\nGenerating inductance matrix (7x7)..\nInverting matrix.....\nSolving node equations...(7x7)\nf1=99.61 f2=100.00 f_g=99.61 Zin.i=84.740963\nPerforming Analysis at 99.81 GHz\nGenerating capacitance matrix (10x10).\nWarning:  Could not open data file at frequency = 99.81.\nTried using . as path.\n\n\nGenerating data at 99.81 GHz...\n\nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nWriting data.....\nGenerating inductance matrix (7x7)..\nInverting matrix.....\nSolving node equations...(7x7)\nf1=99.81 f2=100.00 f_g=99.81 Zin.i=84.936346\nSelf Resonant Frequency Occurs at 99.90 (GHz).\nASITIC>  "
+    },
+    {
+      "kind": "wire",
+      "process": "BiCMOS",
+      "parameters": {
+        "length": 40,
+        "width": 5,
+        "metal": "M2",
+        "x": 10,
+        "y": 20
+      },
+      "technology": "; Sample BiCMOS Model\n\n<chip>\n\n\tchipx = 128\t; dimensions of the chip in x direction\n\tchipy = 128\t; dimensions of the chip in y direction\n\tfftx = 32\t; x-fft size (must be a power of 2)\n\tffty = 32   \t; y-fft size\n\tTechFile = BiCMOS.tek\n\tTechPath = .\n\tfreq = .1\n\teddy = 0\n\teddy = 1\n\n<layer> 0 \t\t\t; p(-) Layer\n\trho = 10\t\t; ohm-cm\n\tt   = 800\t\t; microns\n        eps = 11.9\n\n<layer>\t1\t   \t\t; p(+) layer\n\trho =  .1\n\tt = 2\n\teps = 11.9\n\n<layer>\t2   \t\t\t; Oxide Layer\n\trho = 1e10\n\tt = 50\n\teps = 4\n\n<metal>  0\n\tlayer = 1\t\t; in p(+) layer\n\trsh = 35\t\t; sheet resistance (milli-ohm/sq)\n\tt = 0.4\t\t\t; thickness in microns\n\td =  2\t\t\t; dist from bottom of layer (at surface)\n\tname = msub\n\tcolor = blue\n\n<metal> 1 \n\tlayer = 2\n\trsh = 50\n\tt = .8\n\td =  3\n\tname = m2\n\tcolor = green\n\n<metal> 2 \n\tlayer = 2\n\trsh = 20\n\tt = 2\n\td =  5\n\tname = m3\n\tcolor = red\n<via> 0\t\t\t; metal 3 to metal 2\n\ttop = 2\t\t; top metal layer\n\tbottom = 1\t; bottom metal layer\n\tr = 2\t\t; resistance per via\n\twidth = .75\t; width of via\n\tspace = 1.5\t; spacing btwn vias\n\toverplot1 = .5\t; min spacing to metal layers\n\toverplot2 = .5\n\tname = via3\n\tcolor = white\n<via> 1\t\t\t; metal 3 to metal 2\n\ttop = 1\n\tbottom = 0\n\tr = 3\n\twidth = .5\n\tspace = 1.3\n\toverplot1 = .35\n\toverplot2 = .35\n\tname = via2\n\tcolor = greenish\n\n",
+      "ground": {
+        "kind": "wire",
+        "parameters": {
+          "name": "G",
+          "length": 100,
+          "width": 5,
+          "metal": "M2",
+          "x": 10,
+          "y": 110
+        }
+      },
+      "eddy": false,
+      "mesh": {
+        "length_cell": 1000,
+        "width_cell": 1000,
+        "thickness_cell": 1000,
+        "capacitance_length_cell": 1000,
+        "capacitance_width_cell": 1000
+      },
+      "first_hz": 1000000000.0,
+      "last_hz": 99999997952.0,
+      "step_hz": 100000000.0,
+      "differential": false,
+      "frequency_ghz": 99.90331826650001,
+      "progress": [
+        [
+          50.499998976,
+          99.999997952,
+          50.499998976,
+          8.118902436034588
+        ],
+        [
+          75.249998464,
+          99.999997952,
+          75.249998464,
+          12.203125777359864
+        ],
+        [
+          87.62499820800001,
+          99.999997952,
+          87.62499820800001,
+          14.287848704274346
+        ],
+        [
+          93.81249808000001,
+          99.999997952,
+          93.81249808000001,
+          15.343143758295737
+        ],
+        [
+          96.906248016,
+          99.999997952,
+          96.906248016,
+          15.874324320152594
+        ],
+        [
+          98.453122984,
+          99.999997952,
+          98.453122984,
+          16.140836264407017
+        ],
+        [
+          99.226560468,
+          99.999997952,
+          99.226560468,
+          16.274327514946233
+        ],
+        [
+          99.61327921,
+          99.999997952,
+          99.61327921,
+          16.341132571614725
+        ],
+        [
+          99.806638581,
+          99.999997952,
+          99.806638581,
+          16.374550034524805
+        ]
+      ],
+      "script": "CELL 1000 1000 1000\nCCELL 1000 1000\nEDDY OFF\nWIRE NAME=A:LEN=40:WID=5:METAL=M2:XORG=10:YORG=20\nWIRE NAME=G:LEN=100:WID=5:METAL=M2:XORG=10:YORG=110\nSELFRES A 1 100 0.1 S SLOW 1 G\n",
+      "stdout": "\nASITIC version 10.20.99.0.0.0\nAnalysis & Simulation of Inductors and Transformers for ICs\nReading technology file <process.tek>...\nRunning in console mode...\n\nExecuting script <input.asit>...\nCELL 1000 1000 1000\n\nCCELL 1000 1000\n\nEDDY OFF\n\nTurning OFF eddy current calculation mode.\nWIRE NAME=A:LEN=40:WID=5:METAL=M2:XORG=10:YORG=20\n\nWIRE NAME=G:LEN=100:WID=5:METAL=M2:XORG=10:YORG=110\n\nSELFRES A 1 100 0.1 S SLOW 1 G\n\nWarning:  User defined structure type may not be compatible with 2port command.\nPerforming Analysis at 50.50 GHz\nGenerating capacitance matrix (4x4).\nWarning:  Could not open data file at frequency = 50.50.\nTried using . as path.\n\n\nGenerating data at 50.50 GHz...\n\nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nWriting data.....\nGenerating inductance matrix (1x1)..\nInverting matrix.....\nSolving node equations...(1x1)\nf1=50.50 f2=100.00 f_g=50.50 Zin.i=8.118902\nWarning:  User defined structure type may not be compatible with 2port command.\nPerforming Analysis at 75.25 GHz\nGenerating capacitance matrix (4x4).\nWarning:  Could not open data file at frequency = 75.25.\nTried using . as path.\n\n\nGenerating data at 75.25 GHz...\n\nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nWriting data.....\nGenerating inductance matrix (1x1)..\nInverting matrix.....\nSolving node equations...(1x1)\nf1=75.25 f2=100.00 f_g=75.25 Zin.i=12.203126\nWarning:  User defined structure type may not be compatible with 2port command.\nPerforming Analysis at 87.62 GHz\nGenerating capacitance matrix (4x4).\nWarning:  Could not open data file at frequency = 87.62.\nTried using . as path.\n\n\nGenerating data at 87.62 GHz...\n\nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nWriting data.....\nGenerating inductance matrix (1x1)..\nInverting matrix.....\nSolving node equations...(1x1)\nf1=87.62 f2=100.00 f_g=87.62 Zin.i=14.287849\nWarning:  User defined structure type may not be compatible with 2port command.\nPerforming Analysis at 93.81 GHz\nGenerating capacitance matrix (4x4).\nWarning:  Could not open data file at frequency = 93.81.\nTried using . as path.\n\n\nGenerating data at 93.81 GHz...\n\nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nWriting data.....\nGenerating inductance matrix (1x1)..\nInverting matrix.....\nSolving node equations...(1x1)\nf1=93.81 f2=100.00 f_g=93.81 Zin.i=15.343144\nWarning:  User defined structure type may not be compatible with 2port command.\nPerforming Analysis at 96.91 GHz\nGenerating capacitance matrix (4x4).\nWarning:  Could not open data file at frequency = 96.91.\nTried using . as path.\n\n\nGenerating data at 96.91 GHz...\n\nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nWriting data.....\nGenerating inductance matrix (1x1)..\nInverting matrix.....\nSolving node equations...(1x1)\nf1=96.91 f2=100.00 f_g=96.91 Zin.i=15.874324\nWarning:  User defined structure type may not be compatible with 2port command.\nPerforming Analysis at 98.45 GHz\nGenerating capacitance matrix (4x4).\nWarning:  Could not open data file at frequency = 98.45.\nTried using . as path.\n\n\nGenerating data at 98.45 GHz...\n\nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nWriting data.....\nGenerating inductance matrix (1x1)..\nInverting matrix.....\nSolving node equations...(1x1)\nf1=98.45 f2=100.00 f_g=98.45 Zin.i=16.140836\nWarning:  User defined structure type may not be compatible with 2port command.\nPerforming Analysis at 99.23 GHz\nGenerating capacitance matrix (4x4).\nWarning:  Could not open data file at frequency = 99.23.\nTried using . as path.\n\n\nGenerating data at 99.23 GHz...\n\nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nWriting data.....\nGenerating inductance matrix (1x1)..\nInverting matrix.....\nSolving node equations...(1x1)\nf1=99.23 f2=100.00 f_g=99.23 Zin.i=16.274328\nWarning:  User defined structure type may not be compatible with 2port command.\nPerforming Analysis at 99.61 GHz\nGenerating capacitance matrix (4x4).\nWarning:  Could not open data file at frequency = 99.61.\nTried using . as path.\n\n\nGenerating data at 99.61 GHz...\n\nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nWriting data.....\nGenerating inductance matrix (1x1)..\nInverting matrix.....\nSolving node equations...(1x1)\nf1=99.61 f2=100.00 f_g=99.61 Zin.i=16.341133\nWarning:  User defined structure type may not be compatible with 2port command.\nPerforming Analysis at 99.81 GHz\nGenerating capacitance matrix (4x4).\nWarning:  Could not open data file at frequency = 99.81.\nTried using . as path.\n\n\nGenerating data at 99.81 GHz...\n\nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nWriting data.....\nGenerating inductance matrix (1x1)..\nInverting matrix.....\nSolving node equations...(1x1)\nf1=99.81 f2=100.00 f_g=99.81 Zin.i=16.374550\nSelf Resonant Frequency Occurs at 99.90 (GHz).\nASITIC>  "
+    },
+    {
+      "kind": "wire",
+      "process": "BiCMOS",
+      "parameters": {
+        "length": 40,
+        "width": 5,
+        "metal": "M2",
+        "x": 10,
+        "y": 20
+      },
+      "technology": "; Sample BiCMOS Model\n\n<chip>\n\n\tchipx = 128\t; dimensions of the chip in x direction\n\tchipy = 128\t; dimensions of the chip in y direction\n\tfftx = 32\t; x-fft size (must be a power of 2)\n\tffty = 32   \t; y-fft size\n\tTechFile = BiCMOS.tek\n\tTechPath = .\n\tfreq = .1\n\teddy = 0\n\teddy = 1\n\n<layer> 0 \t\t\t; p(-) Layer\n\trho = 10\t\t; ohm-cm\n\tt   = 800\t\t; microns\n        eps = 11.9\n\n<layer>\t1\t   \t\t; p(+) layer\n\trho =  .1\n\tt = 2\n\teps = 11.9\n\n<layer>\t2   \t\t\t; Oxide Layer\n\trho = 1e10\n\tt = 50\n\teps = 4\n\n<metal>  0\n\tlayer = 1\t\t; in p(+) layer\n\trsh = 35\t\t; sheet resistance (milli-ohm/sq)\n\tt = 0.4\t\t\t; thickness in microns\n\td =  2\t\t\t; dist from bottom of layer (at surface)\n\tname = msub\n\tcolor = blue\n\n<metal> 1 \n\tlayer = 2\n\trsh = 50\n\tt = .8\n\td =  3\n\tname = m2\n\tcolor = green\n\n<metal> 2 \n\tlayer = 2\n\trsh = 20\n\tt = 2\n\td =  5\n\tname = m3\n\tcolor = red\n<via> 0\t\t\t; metal 3 to metal 2\n\ttop = 2\t\t; top metal layer\n\tbottom = 1\t; bottom metal layer\n\tr = 2\t\t; resistance per via\n\twidth = .75\t; width of via\n\tspace = 1.5\t; spacing btwn vias\n\toverplot1 = .5\t; min spacing to metal layers\n\toverplot2 = .5\n\tname = via3\n\tcolor = white\n<via> 1\t\t\t; metal 3 to metal 2\n\ttop = 1\n\tbottom = 0\n\tr = 3\n\twidth = .5\n\tspace = 1.3\n\toverplot1 = .35\n\toverplot2 = .35\n\tname = via2\n\tcolor = greenish\n\n",
+      "ground": {
+        "kind": "wire",
+        "parameters": {
+          "name": "G",
+          "length": 100,
+          "width": 5,
+          "metal": "M2",
+          "x": 10,
+          "y": 110
+        }
+      },
+      "eddy": true,
+      "mesh": {
+        "length_cell": 1000,
+        "width_cell": 1000,
+        "thickness_cell": 1000,
+        "capacitance_length_cell": 1000,
+        "capacitance_width_cell": 1000
+      },
+      "first_hz": 99999997952.0,
+      "last_hz": 1000000000.0,
+      "step_hz": 100000000.0,
+      "differential": true,
+      "frequency_ghz": 99.90331826650001,
+      "progress": [
+        [
+          50.499998976,
+          99.999997952,
+          50.499998976,
+          8.054344637291235
+        ],
+        [
+          75.249998464,
+          99.999997952,
+          75.249998464,
+          12.001770967812027
+        ],
+        [
+          87.62499820800001,
+          99.999997952,
+          87.62499820800001,
+          13.975484133072454
+        ],
+        [
+          93.81249808000001,
+          99.999997952,
+          93.81249808000001,
+          14.962340715702634
+        ],
+        [
+          96.906248016,
+          99.999997952,
+          96.906248016,
+          15.455769007017746
+        ],
+        [
+          98.453122984,
+          99.999997952,
+          98.453122984,
+          15.70248315267527
+        ],
+        [
+          99.226560468,
+          99.999997952,
+          99.226560468,
+          15.825840225504045
+        ],
+        [
+          99.61327921,
+          99.999997952,
+          99.61327921,
+          15.887518761918443
+        ],
+        [
+          99.806638581,
+          99.999997952,
+          99.806638581,
+          15.91835803012563
+        ]
+      ],
+      "script": "CELL 1000 1000 1000\nCCELL 1000 1000\nEDDY ON\nWIRE NAME=A:LEN=40:WID=5:METAL=M2:XORG=10:YORG=20\nWIRE NAME=G:LEN=100:WID=5:METAL=M2:XORG=10:YORG=110\nSELFRES A 100 1 0.1 D SLOW 1 G\n",
+      "stdout": "\nASITIC version 10.20.99.0.0.0\nAnalysis & Simulation of Inductors and Transformers for ICs\nReading technology file <process.tek>...\nRunning in console mode...\n\nExecuting script <input.asit>...\nCELL 1000 1000 1000\n\nCCELL 1000 1000\n\nEDDY ON\n\nTurning ON eddy current calculation mode.\nWIRE NAME=A:LEN=40:WID=5:METAL=M2:XORG=10:YORG=20\n\nWIRE NAME=G:LEN=100:WID=5:METAL=M2:XORG=10:YORG=110\n\nSELFRES A 100 1 0.1 D SLOW 1 G\n\nWarning:  User defined structure type may not be compatible with 2port command.\nPerforming Analysis at 50.50 GHz\nGenerating capacitance matrix (4x4).\nWarning:  Could not open data file at frequency = 50.50.\nTried using . as path.\n\n\nGenerating data at 50.50 GHz...\n\nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nWriting data.....\nGenerating inductance matrix (1x1)..\nInverting matrix......\nSolving node equations...(1x1)\nf1=50.50 f2=100.00 f_g=50.50 Zin.i=8.054345\nWarning:  User defined structure type may not be compatible with 2port command.\nPerforming Analysis at 75.25 GHz\nGenerating capacitance matrix (4x4).\nWarning:  Could not open data file at frequency = 75.25.\nTried using . as path.\n\n\nGenerating data at 75.25 GHz...\n\nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nWriting data.....\nGenerating inductance matrix (1x1)..\nInverting matrix......\nSolving node equations...(1x1)\nf1=75.25 f2=100.00 f_g=75.25 Zin.i=12.001771\nWarning:  User defined structure type may not be compatible with 2port command.\nPerforming Analysis at 87.62 GHz\nGenerating capacitance matrix (4x4).\nWarning:  Could not open data file at frequency = 87.62.\nTried using . as path.\n\n\nGenerating data at 87.62 GHz...\n\nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nWriting data.....\nGenerating inductance matrix (1x1)..\nInverting matrix......\nSolving node equations...(1x1)\nf1=87.62 f2=100.00 f_g=87.62 Zin.i=13.975484\nWarning:  User defined structure type may not be compatible with 2port command.\nPerforming Analysis at 93.81 GHz\nGenerating capacitance matrix (4x4).\nWarning:  Could not open data file at frequency = 93.81.\nTried using . as path.\n\n\nGenerating data at 93.81 GHz...\n\nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nWriting data.....\nGenerating inductance matrix (1x1)..\nInverting matrix......\nSolving node equations...(1x1)\nf1=93.81 f2=100.00 f_g=93.81 Zin.i=14.962341\nWarning:  User defined structure type may not be compatible with 2port command.\nPerforming Analysis at 96.91 GHz\nGenerating capacitance matrix (4x4).\nWarning:  Could not open data file at frequency = 96.91.\nTried using . as path.\n\n\nGenerating data at 96.91 GHz...\n\nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nWriting data.....\nGenerating inductance matrix (1x1)..\nInverting matrix......\nSolving node equations...(1x1)\nf1=96.91 f2=100.00 f_g=96.91 Zin.i=15.455769\nWarning:  User defined structure type may not be compatible with 2port command.\nPerforming Analysis at 98.45 GHz\nGenerating capacitance matrix (4x4).\nWarning:  Could not open data file at frequency = 98.45.\nTried using . as path.\n\n\nGenerating data at 98.45 GHz...\n\nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nWriting data.....\nGenerating inductance matrix (1x1)..\nInverting matrix......\nSolving node equations...(1x1)\nf1=98.45 f2=100.00 f_g=98.45 Zin.i=15.702483\nWarning:  User defined structure type may not be compatible with 2port command.\nPerforming Analysis at 99.23 GHz\nGenerating capacitance matrix (4x4).\nWarning:  Could not open data file at frequency = 99.23.\nTried using . as path.\n\n\nGenerating data at 99.23 GHz...\n\nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nWriting data.....\nGenerating inductance matrix (1x1)..\nInverting matrix......\nSolving node equations...(1x1)\nf1=99.23 f2=100.00 f_g=99.23 Zin.i=15.825840\nWarning:  User defined structure type may not be compatible with 2port command.\nPerforming Analysis at 99.61 GHz\nGenerating capacitance matrix (4x4).\nWarning:  Could not open data file at frequency = 99.61.\nTried using . as path.\n\n\nGenerating data at 99.61 GHz...\n\nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nWriting data.....\nGenerating inductance matrix (1x1)..\nInverting matrix......\nSolving node equations...(1x1)\nf1=99.61 f2=100.00 f_g=99.61 Zin.i=15.887519\nWarning:  User defined structure type may not be compatible with 2port command.\nPerforming Analysis at 99.81 GHz\nGenerating capacitance matrix (4x4).\nWarning:  Could not open data file at frequency = 99.81.\nTried using . as path.\n\n\nGenerating data at 99.81 GHz...\n\nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nWriting data.....\nGenerating inductance matrix (1x1)..\nInverting matrix......\nSolving node equations...(1x1)\nf1=99.81 f2=100.00 f_g=99.81 Zin.i=15.918358\nSelf Resonant Frequency Occurs at 99.90 (GHz).\nASITIC>  "
+    },
+    {
+      "kind": "wire",
+      "process": "CMOS",
+      "parameters": {
+        "length": 40,
+        "width": 5,
+        "metal": "M1",
+        "x": 10,
+        "y": 20
+      },
+      "technology": "; Sample CMOS technology file\n\n<chip>\n\n\tchipx = 128\t; dimensions of the chip in x direction\n\tchipy = 128\t; dimensions of the chip in y direction\n\tfftx = 32\t; x-fft size (must be a power of 2)\n\tffty = 32\t; y-fft size\n\tTechFile = CMOS.tek\n\tTechPath = .\n\tfreq = 2 \t\t; frequency of operation\n\teddy = 0\n\n<layer> 0 \t\t\t; p(-) bulk layer\n\trho = 1e-3\t\t; ohm-cm\n\tt   = 700 \t\t; microns\n        eps = 11.9\n\n<layer>\t1\t   \t\t; Oxide Layer\n\trho = 1e10\n\tt = 50\n\teps = 3.9\n\n<metal> 0\n        layer = 1\t\t; in oxide layer\n        rsh = 65\t\t; sheet resistance3\n        t   = 0.5\t\t; thickness\n        d = 1.3\t\t\t; distance from bottom of layer\n        name = m1\t\n        color = yellow\n\n<metal> 1\n        layer = 1\n        rsh = 55 \n        t = 0.5\n        d = 2.4 \n        name = m2\n        color = LightSkyBlue1\n\n<metal> 2\n        layer = 1\n        rsh = 55 \n        t = 0.5\n        d =  3.5\n        name = m3\n        color = medium purple\n\n<metal> 3\n        layer = 1\n        rsh = 55 \n        t = 0.5\n        d =  4.5\n        name = m4\n        color = light green\n\n<metal> 4\n        layer = 1\n        rsh = 30\n        t = 1\n        d =  6\n        name = m5\n        color = grey\n\n<via> 0                        ; metal 1 to metal 2\n        top = 1\n        bottom = 0\n        r = 4\n        width = .5\n        space = 1.1\n        overplot1 = .2         ; to metal 1\n        overplot2 = .2         ; to metal 2\n        name = via1\n        color = purple\n<via> 1                        ; metal 2 to metal 3\n        top = 2\n        bottom = 1\n        r = 4\n        width = .4\n        space = 1.1\n        overplot1 = .2         ; to metal 1\n        overplot2 = .2         ; to metal 2\n        name = via2\n        color = cyan1\n<via> 2                        ; metal 3 to metal 4\n        top = 3\n        bottom = 2\n        r = 4\n        width = .4\n        space = 1.1\n        overplot1 = .2\n        overplot2 = .2\n        name = via3\n        color = red\n\n<via> 3                        ; metal 3 to metal 4\n        top = 4\n        bottom = 3\n        r = 4\n        width = .4\n        space = 1.2\n        overplot1 = .2\n        overplot2 = .2\n        name = via4\n        color = white\n\n",
+      "ground": null,
+      "eddy": false,
+      "mesh": {
+        "length_cell": 1000,
+        "width_cell": 1000,
+        "thickness_cell": 1000,
+        "capacitance_length_cell": 1000,
+        "capacitance_width_cell": 1000
+      },
+      "first_hz": 500000000.0,
+      "last_hz": 600000000.0,
+      "step_hz": 100000000.0,
+      "differential": false,
+      "frequency_ghz": 0.5750000000000001,
+      "progress": [
+        [
+          0.55,
+          0.6000000000000001,
+          0.55,
+          0.0891122444907116
+        ]
+      ],
+      "script": "CELL 1000 1000 1000\nCCELL 1000 1000\nEDDY OFF\nWIRE NAME=A:LEN=40:WID=5:METAL=M1:XORG=10:YORG=20\nSELFRES A 0.5 0.6 0.1 S SLOW 1\n",
+      "stdout": "\nASITIC version 10.20.99.0.0.0\nAnalysis & Simulation of Inductors and Transformers for ICs\nReading technology file <process.tek>...\nRunning in console mode...\n\nExecuting script <input.asit>...\nCELL 1000 1000 1000\n\nCCELL 1000 1000\n\nEDDY OFF\n\nTurning OFF eddy current calculation mode.\nWIRE NAME=A:LEN=40:WID=5:METAL=M1:XORG=10:YORG=20\n\nSELFRES A 0.5 0.6 0.1 S SLOW 1\n\nWarning:  User defined structure type may not be compatible with 2port command.\nPerforming Analysis at 0.55 GHz\nGenerating capacitance matrix (1x1).\nWarning:  Could not open data file at frequency = 0.55.\nTried using . as path.\n\n\nGenerating data at 0.55 GHz...\n\nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nWriting data.....\nGenerating inductance matrix (1x1)..\nInverting matrix.....\nSolving node equations...(1x1)\nf1= 0.55 f2= 0.60 f_g= 0.55 Zin.i=0.089112\nSelf Resonant Frequency Occurs at  0.58 (GHz).\nASITIC>  "
+    },
+    {
+      "kind": "wire",
+      "process": "CMOS",
+      "parameters": {
+        "length": 40,
+        "width": 5,
+        "metal": "M1",
+        "x": 10,
+        "y": 20
+      },
+      "technology": "; Sample CMOS technology file\n\n<chip>\n\n\tchipx = 128\t; dimensions of the chip in x direction\n\tchipy = 128\t; dimensions of the chip in y direction\n\tfftx = 32\t; x-fft size (must be a power of 2)\n\tffty = 32\t; y-fft size\n\tTechFile = CMOS.tek\n\tTechPath = .\n\tfreq = 2 \t\t; frequency of operation\n\teddy = 0\n\n<layer> 0 \t\t\t; p(-) bulk layer\n\trho = 1e-3\t\t; ohm-cm\n\tt   = 700 \t\t; microns\n        eps = 11.9\n\n<layer>\t1\t   \t\t; Oxide Layer\n\trho = 1e10\n\tt = 50\n\teps = 3.9\n\n<metal> 0\n        layer = 1\t\t; in oxide layer\n        rsh = 65\t\t; sheet resistance3\n        t   = 0.5\t\t; thickness\n        d = 1.3\t\t\t; distance from bottom of layer\n        name = m1\t\n        color = yellow\n\n<metal> 1\n        layer = 1\n        rsh = 55 \n        t = 0.5\n        d = 2.4 \n        name = m2\n        color = LightSkyBlue1\n\n<metal> 2\n        layer = 1\n        rsh = 55 \n        t = 0.5\n        d =  3.5\n        name = m3\n        color = medium purple\n\n<metal> 3\n        layer = 1\n        rsh = 55 \n        t = 0.5\n        d =  4.5\n        name = m4\n        color = light green\n\n<metal> 4\n        layer = 1\n        rsh = 30\n        t = 1\n        d =  6\n        name = m5\n        color = grey\n\n<via> 0                        ; metal 1 to metal 2\n        top = 1\n        bottom = 0\n        r = 4\n        width = .5\n        space = 1.1\n        overplot1 = .2         ; to metal 1\n        overplot2 = .2         ; to metal 2\n        name = via1\n        color = purple\n<via> 1                        ; metal 2 to metal 3\n        top = 2\n        bottom = 1\n        r = 4\n        width = .4\n        space = 1.1\n        overplot1 = .2         ; to metal 1\n        overplot2 = .2         ; to metal 2\n        name = via2\n        color = cyan1\n<via> 2                        ; metal 3 to metal 4\n        top = 3\n        bottom = 2\n        r = 4\n        width = .4\n        space = 1.1\n        overplot1 = .2\n        overplot2 = .2\n        name = via3\n        color = red\n\n<via> 3                        ; metal 3 to metal 4\n        top = 4\n        bottom = 3\n        r = 4\n        width = .4\n        space = 1.2\n        overplot1 = .2\n        overplot2 = .2\n        name = via4\n        color = white\n\n",
+      "ground": null,
+      "eddy": false,
+      "mesh": {
+        "length_cell": 1000,
+        "width_cell": 1000,
+        "thickness_cell": 1000,
+        "capacitance_length_cell": 1000,
+        "capacitance_width_cell": 1000
+      },
+      "first_hz": 500000000.0,
+      "last_hz": 600000000.0,
+      "step_hz": 100000000.0,
+      "differential": true,
+      "frequency_ghz": 0.5750000000000001,
+      "progress": [
+        [
+          0.55,
+          0.6000000000000001,
+          0.55,
+          0.08911974694599109
+        ]
+      ],
+      "script": "CELL 1000 1000 1000\nCCELL 1000 1000\nEDDY OFF\nWIRE NAME=A:LEN=40:WID=5:METAL=M1:XORG=10:YORG=20\nSELFRES A 0.5 0.6 0.1 D SLOW 1\n",
+      "stdout": "\nASITIC version 10.20.99.0.0.0\nAnalysis & Simulation of Inductors and Transformers for ICs\nReading technology file <process.tek>...\nRunning in console mode...\n\nExecuting script <input.asit>...\nCELL 1000 1000 1000\n\nCCELL 1000 1000\n\nEDDY OFF\n\nTurning OFF eddy current calculation mode.\nWIRE NAME=A:LEN=40:WID=5:METAL=M1:XORG=10:YORG=20\n\nSELFRES A 0.5 0.6 0.1 D SLOW 1\n\nWarning:  User defined structure type may not be compatible with 2port command.\nPerforming Analysis at 0.55 GHz\nGenerating capacitance matrix (1x1).\nWarning:  Could not open data file at frequency = 0.55.\nTried using . as path.\n\n\nGenerating data at 0.55 GHz...\n\nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nWriting data.....\nGenerating inductance matrix (1x1)..\nInverting matrix.....\nSolving node equations...(1x1)\nf1= 0.55 f2= 0.60 f_g= 0.55 Zin.i=0.089120\nSelf Resonant Frequency Occurs at  0.58 (GHz).\nASITIC>  "
+    },
+    {
+      "kind": "capacitor",
+      "process": "CMOS",
+      "parameters": {
+        "length": 40,
+        "width": 5,
+        "metal": "M2",
+        "bottom_metal": "M1",
+        "x": 40,
+        "y": 50
+      },
+      "technology": "; Sample CMOS technology file\n\n<chip>\n\n\tchipx = 128\t; dimensions of the chip in x direction\n\tchipy = 128\t; dimensions of the chip in y direction\n\tfftx = 32\t; x-fft size (must be a power of 2)\n\tffty = 32\t; y-fft size\n\tTechFile = CMOS.tek\n\tTechPath = .\n\tfreq = 2 \t\t; frequency of operation\n\teddy = 0\n\n<layer> 0 \t\t\t; p(-) bulk layer\n\trho = 1e-3\t\t; ohm-cm\n\tt   = 700 \t\t; microns\n        eps = 11.9\n\n<layer>\t1\t   \t\t; Oxide Layer\n\trho = 1e10\n\tt = 50\n\teps = 3.9\n\n<metal> 0\n        layer = 1\t\t; in oxide layer\n        rsh = 65\t\t; sheet resistance3\n        t   = 0.5\t\t; thickness\n        d = 1.3\t\t\t; distance from bottom of layer\n        name = m1\t\n        color = yellow\n\n<metal> 1\n        layer = 1\n        rsh = 55 \n        t = 0.5\n        d = 2.4 \n        name = m2\n        color = LightSkyBlue1\n\n<metal> 2\n        layer = 1\n        rsh = 55 \n        t = 0.5\n        d =  3.5\n        name = m3\n        color = medium purple\n\n<metal> 3\n        layer = 1\n        rsh = 55 \n        t = 0.5\n        d =  4.5\n        name = m4\n        color = light green\n\n<metal> 4\n        layer = 1\n        rsh = 30\n        t = 1\n        d =  6\n        name = m5\n        color = grey\n\n<via> 0                        ; metal 1 to metal 2\n        top = 1\n        bottom = 0\n        r = 4\n        width = .5\n        space = 1.1\n        overplot1 = .2         ; to metal 1\n        overplot2 = .2         ; to metal 2\n        name = via1\n        color = purple\n<via> 1                        ; metal 2 to metal 3\n        top = 2\n        bottom = 1\n        r = 4\n        width = .4\n        space = 1.1\n        overplot1 = .2         ; to metal 1\n        overplot2 = .2         ; to metal 2\n        name = via2\n        color = cyan1\n<via> 2                        ; metal 3 to metal 4\n        top = 3\n        bottom = 2\n        r = 4\n        width = .4\n        space = 1.1\n        overplot1 = .2\n        overplot2 = .2\n        name = via3\n        color = red\n\n<via> 3                        ; metal 3 to metal 4\n        top = 4\n        bottom = 3\n        r = 4\n        width = .4\n        space = 1.2\n        overplot1 = .2\n        overplot2 = .2\n        name = via4\n        color = white\n\n",
+      "ground": {
+        "kind": "wire",
+        "parameters": {
+          "name": "G",
+          "length": 100,
+          "width": 5,
+          "metal": "M1",
+          "x": 10,
+          "y": 110
+        }
+      },
+      "eddy": false,
+      "mesh": {
+        "length_cell": 1000,
+        "width_cell": 1000,
+        "thickness_cell": 1000,
+        "capacitance_length_cell": 1000,
+        "capacitance_width_cell": 1000
+      },
+      "first_hz": 1000000000.0,
+      "last_hz": 99999997952.0,
+      "step_hz": 100000000.0,
+      "differential": false,
+      "frequency_ghz": 99.90331826650001,
+      "progress": [
+        [
+          50.499998976,
+          99.999997952,
+          50.499998976,
+          32.27687555667191
+        ],
+        [
+          75.249998464,
+          99.999997952,
+          75.249998464,
+          51.8605626865782
+        ],
+        [
+          87.62499820800001,
+          99.999997952,
+          87.62499820800001,
+          63.614111152542925
+        ],
+        [
+          93.81249808000001,
+          99.999997952,
+          93.81249808000001,
+          70.1940862627337
+        ],
+        [
+          96.906248016,
+          99.999997952,
+          96.906248016,
+          73.69642691112689
+        ],
+        [
+          98.453122984,
+          99.999997952,
+          98.453122984,
+          75.50614361271873
+        ],
+        [
+          99.226560468,
+          99.999997952,
+          99.226560468,
+          76.42638825302917
+        ],
+        [
+          99.61327921,
+          99.999997952,
+          99.61327921,
+          76.8904555220979
+        ],
+        [
+          99.806638581,
+          99.999997952,
+          99.806638581,
+          77.12348799804076
+        ]
+      ],
+      "script": "CELL 1000 1000 1000\nCCELL 1000 1000\nEDDY OFF\nCAPACITOR NAME=A:LEN=40:WID=5:METAL1=M2:METAL2=M1:XORG=40:YORG=50\nWIRE NAME=G:LEN=100:WID=5:METAL=M1:XORG=10:YORG=110\nSELFRES A 1 100 0.1 S SLOW 1 G\n",
+      "stdout": "\nASITIC version 10.20.99.0.0.0\nAnalysis & Simulation of Inductors and Transformers for ICs\nReading technology file <process.tek>...\nRunning in console mode...\n\nExecuting script <input.asit>...\nCELL 1000 1000 1000\n\nCCELL 1000 1000\n\nEDDY OFF\n\nTurning OFF eddy current calculation mode.\nCAPACITOR NAME=A:LEN=40:WID=5:METAL1=M2:METAL2=M1:XORG=40:YORG=50\n\nWIRE NAME=G:LEN=100:WID=5:METAL=M1:XORG=10:YORG=110\n\nSELFRES A 1 100 0.1 S SLOW 1 G\n\nWarning:  User defined structure type may not be compatible with 2port command.\nPerforming Analysis at 50.50 GHz\nGenerating capacitance matrix (5x5).\nWarning:  Could not open data file at frequency = 50.50.\nTried using . as path.\n\n\nGenerating data at 50.50 GHz...\n\nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nWriting data.....\nGenerating inductance matrix (2x2)..\nInverting matrix.....\nSolving node equations...(2x2)\nf1=50.50 f2=100.00 f_g=50.50 Zin.i=32.276876\nWarning:  User defined structure type may not be compatible with 2port command.\nPerforming Analysis at 75.25 GHz\nGenerating capacitance matrix (5x5).\nWarning:  Could not open data file at frequency = 75.25.\nTried using . as path.\n\n\nGenerating data at 75.25 GHz...\n\nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nWriting data.....\nGenerating inductance matrix (2x2)..\nInverting matrix.....\nSolving node equations...(2x2)\nf1=75.25 f2=100.00 f_g=75.25 Zin.i=51.860563\nWarning:  User defined structure type may not be compatible with 2port command.\nPerforming Analysis at 87.62 GHz\nGenerating capacitance matrix (5x5).\nWarning:  Could not open data file at frequency = 87.62.\nTried using . as path.\n\n\nGenerating data at 87.62 GHz...\n\nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nWriting data.....\nGenerating inductance matrix (2x2)..\nInverting matrix.....\nSolving node equations...(2x2)\nf1=87.62 f2=100.00 f_g=87.62 Zin.i=63.614111\nWarning:  User defined structure type may not be compatible with 2port command.\nPerforming Analysis at 93.81 GHz\nGenerating capacitance matrix (5x5).\nWarning:  Could not open data file at frequency = 93.81.\nTried using . as path.\n\n\nGenerating data at 93.81 GHz...\n\nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nWriting data.....\nGenerating inductance matrix (2x2)..\nInverting matrix.....\nSolving node equations...(2x2)\nf1=93.81 f2=100.00 f_g=93.81 Zin.i=70.194086\nWarning:  User defined structure type may not be compatible with 2port command.\nPerforming Analysis at 96.91 GHz\nGenerating capacitance matrix (5x5).\nWarning:  Could not open data file at frequency = 96.91.\nTried using . as path.\n\n\nGenerating data at 96.91 GHz...\n\nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nWriting data.....\nGenerating inductance matrix (2x2)..\nInverting matrix.....\nSolving node equations...(2x2)\nf1=96.91 f2=100.00 f_g=96.91 Zin.i=73.696427\nWarning:  User defined structure type may not be compatible with 2port command.\nPerforming Analysis at 98.45 GHz\nGenerating capacitance matrix (5x5).\nWarning:  Could not open data file at frequency = 98.45.\nTried using . as path.\n\n\nGenerating data at 98.45 GHz...\n\nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nWriting data.....\nGenerating inductance matrix (2x2)..\nInverting matrix.....\nSolving node equations...(2x2)\nf1=98.45 f2=100.00 f_g=98.45 Zin.i=75.506144\nWarning:  User defined structure type may not be compatible with 2port command.\nPerforming Analysis at 99.23 GHz\nGenerating capacitance matrix (5x5).\nWarning:  Could not open data file at frequency = 99.23.\nTried using . as path.\n\n\nGenerating data at 99.23 GHz...\n\nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nWriting data.....\nGenerating inductance matrix (2x2)..\nInverting matrix.....\nSolving node equations...(2x2)\nf1=99.23 f2=100.00 f_g=99.23 Zin.i=76.426388\nWarning:  User defined structure type may not be compatible with 2port command.\nPerforming Analysis at 99.61 GHz\nGenerating capacitance matrix (5x5).\nWarning:  Could not open data file at frequency = 99.61.\nTried using . as path.\n\n\nGenerating data at 99.61 GHz...\n\nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nWriting data.....\nGenerating inductance matrix (2x2)..\nInverting matrix.....\nSolving node equations...(2x2)\nf1=99.61 f2=100.00 f_g=99.61 Zin.i=76.890456\nWarning:  User defined structure type may not be compatible with 2port command.\nPerforming Analysis at 99.81 GHz\nGenerating capacitance matrix (5x5).\nWarning:  Could not open data file at frequency = 99.81.\nTried using . as path.\n\n\nGenerating data at 99.81 GHz...\n\nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nWriting data.....\nGenerating inductance matrix (2x2)..\nInverting matrix.....\nSolving node equations...(2x2)\nf1=99.81 f2=100.00 f_g=99.81 Zin.i=77.123488\nSelf Resonant Frequency Occurs at 99.90 (GHz).\nASITIC>  "
+    },
+    {
+      "kind": "capacitor",
+      "process": "CMOS",
+      "parameters": {
+        "length": 40,
+        "width": 5,
+        "metal": "M2",
+        "bottom_metal": "M1",
+        "x": 40,
+        "y": 50
+      },
+      "technology": "; Sample CMOS technology file\n\n<chip>\n\n\tchipx = 128\t; dimensions of the chip in x direction\n\tchipy = 128\t; dimensions of the chip in y direction\n\tfftx = 32\t; x-fft size (must be a power of 2)\n\tffty = 32\t; y-fft size\n\tTechFile = CMOS.tek\n\tTechPath = .\n\tfreq = 2 \t\t; frequency of operation\n\teddy = 0\n\n<layer> 0 \t\t\t; p(-) bulk layer\n\trho = 1e-3\t\t; ohm-cm\n\tt   = 700 \t\t; microns\n        eps = 11.9\n\n<layer>\t1\t   \t\t; Oxide Layer\n\trho = 1e10\n\tt = 50\n\teps = 3.9\n\n<metal> 0\n        layer = 1\t\t; in oxide layer\n        rsh = 65\t\t; sheet resistance3\n        t   = 0.5\t\t; thickness\n        d = 1.3\t\t\t; distance from bottom of layer\n        name = m1\t\n        color = yellow\n\n<metal> 1\n        layer = 1\n        rsh = 55 \n        t = 0.5\n        d = 2.4 \n        name = m2\n        color = LightSkyBlue1\n\n<metal> 2\n        layer = 1\n        rsh = 55 \n        t = 0.5\n        d =  3.5\n        name = m3\n        color = medium purple\n\n<metal> 3\n        layer = 1\n        rsh = 55 \n        t = 0.5\n        d =  4.5\n        name = m4\n        color = light green\n\n<metal> 4\n        layer = 1\n        rsh = 30\n        t = 1\n        d =  6\n        name = m5\n        color = grey\n\n<via> 0                        ; metal 1 to metal 2\n        top = 1\n        bottom = 0\n        r = 4\n        width = .5\n        space = 1.1\n        overplot1 = .2         ; to metal 1\n        overplot2 = .2         ; to metal 2\n        name = via1\n        color = purple\n<via> 1                        ; metal 2 to metal 3\n        top = 2\n        bottom = 1\n        r = 4\n        width = .4\n        space = 1.1\n        overplot1 = .2         ; to metal 1\n        overplot2 = .2         ; to metal 2\n        name = via2\n        color = cyan1\n<via> 2                        ; metal 3 to metal 4\n        top = 3\n        bottom = 2\n        r = 4\n        width = .4\n        space = 1.1\n        overplot1 = .2\n        overplot2 = .2\n        name = via3\n        color = red\n\n<via> 3                        ; metal 3 to metal 4\n        top = 4\n        bottom = 3\n        r = 4\n        width = .4\n        space = 1.2\n        overplot1 = .2\n        overplot2 = .2\n        name = via4\n        color = white\n\n",
+      "ground": {
+        "kind": "wire",
+        "parameters": {
+          "name": "G",
+          "length": 100,
+          "width": 5,
+          "metal": "M1",
+          "x": 10,
+          "y": 110
+        }
+      },
+      "eddy": false,
+      "mesh": {
+        "length_cell": 1000,
+        "width_cell": 1000,
+        "thickness_cell": 1000,
+        "capacitance_length_cell": 1000,
+        "capacitance_width_cell": 1000
+      },
+      "first_hz": 99999997952.0,
+      "last_hz": 1000000000.0,
+      "step_hz": 100000000.0,
+      "differential": true,
+      "frequency_ghz": 99.90331826650001,
+      "progress": [
+        [
+          50.499998976,
+          99.999997952,
+          50.499998976,
+          31.244337103792546
+        ],
+        [
+          75.249998464,
+          99.999997952,
+          75.249998464,
+          48.0621674713419
+        ],
+        [
+          87.62499820800001,
+          99.999997952,
+          87.62499820800001,
+          57.16733637846167
+        ],
+        [
+          93.81249808000001,
+          99.999997952,
+          93.81249808000001,
+          61.94638660042698
+        ],
+        [
+          96.906248016,
+          99.999997952,
+          96.906248016,
+          64.40026018507514
+        ],
+        [
+          98.453122984,
+          99.999997952,
+          98.453122984,
+          65.64434314801086
+        ],
+        [
+          99.226560468,
+          99.999997952,
+          99.226560468,
+          66.27081005066275
+        ],
+        [
+          99.61327921,
+          99.999997952,
+          99.61327921,
+          66.58516764793261
+        ],
+        [
+          99.806638581,
+          99.999997952,
+          99.806638581,
+          66.74262973462933
+        ]
+      ],
+      "script": "CELL 1000 1000 1000\nCCELL 1000 1000\nEDDY OFF\nCAPACITOR NAME=A:LEN=40:WID=5:METAL1=M2:METAL2=M1:XORG=40:YORG=50\nWIRE NAME=G:LEN=100:WID=5:METAL=M1:XORG=10:YORG=110\nSELFRES A 100 1 0.1 D SLOW 1 G\n",
+      "stdout": "\nASITIC version 10.20.99.0.0.0\nAnalysis & Simulation of Inductors and Transformers for ICs\nReading technology file <process.tek>...\nRunning in console mode...\n\nExecuting script <input.asit>...\nCELL 1000 1000 1000\n\nCCELL 1000 1000\n\nEDDY OFF\n\nTurning OFF eddy current calculation mode.\nCAPACITOR NAME=A:LEN=40:WID=5:METAL1=M2:METAL2=M1:XORG=40:YORG=50\n\nWIRE NAME=G:LEN=100:WID=5:METAL=M1:XORG=10:YORG=110\n\nSELFRES A 100 1 0.1 D SLOW 1 G\n\nWarning:  User defined structure type may not be compatible with 2port command.\nPerforming Analysis at 50.50 GHz\nGenerating capacitance matrix (5x5).\nWarning:  Could not open data file at frequency = 50.50.\nTried using . as path.\n\n\nGenerating data at 50.50 GHz...\n\nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nWriting data.....\nGenerating inductance matrix (2x2)..\nInverting matrix.....\nSolving node equations...(2x2)\nf1=50.50 f2=100.00 f_g=50.50 Zin.i=31.244337\nWarning:  User defined structure type may not be compatible with 2port command.\nPerforming Analysis at 75.25 GHz\nGenerating capacitance matrix (5x5).\nWarning:  Could not open data file at frequency = 75.25.\nTried using . as path.\n\n\nGenerating data at 75.25 GHz...\n\nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nWriting data.....\nGenerating inductance matrix (2x2)..\nInverting matrix.....\nSolving node equations...(2x2)\nf1=75.25 f2=100.00 f_g=75.25 Zin.i=48.062167\nWarning:  User defined structure type may not be compatible with 2port command.\nPerforming Analysis at 87.62 GHz\nGenerating capacitance matrix (5x5).\nWarning:  Could not open data file at frequency = 87.62.\nTried using . as path.\n\n\nGenerating data at 87.62 GHz...\n\nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nWriting data.....\nGenerating inductance matrix (2x2)..\nInverting matrix.....\nSolving node equations...(2x2)\nf1=87.62 f2=100.00 f_g=87.62 Zin.i=57.167336\nWarning:  User defined structure type may not be compatible with 2port command.\nPerforming Analysis at 93.81 GHz\nGenerating capacitance matrix (5x5).\nWarning:  Could not open data file at frequency = 93.81.\nTried using . as path.\n\n\nGenerating data at 93.81 GHz...\n\nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nWriting data.....\nGenerating inductance matrix (2x2)..\nInverting matrix.....\nSolving node equations...(2x2)\nf1=93.81 f2=100.00 f_g=93.81 Zin.i=61.946387\nWarning:  User defined structure type may not be compatible with 2port command.\nPerforming Analysis at 96.91 GHz\nGenerating capacitance matrix (5x5).\nWarning:  Could not open data file at frequency = 96.91.\nTried using . as path.\n\n\nGenerating data at 96.91 GHz...\n\nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nWriting data.....\nGenerating inductance matrix (2x2)..\nInverting matrix.....\nSolving node equations...(2x2)\nf1=96.91 f2=100.00 f_g=96.91 Zin.i=64.400260\nWarning:  User defined structure type may not be compatible with 2port command.\nPerforming Analysis at 98.45 GHz\nGenerating capacitance matrix (5x5).\nWarning:  Could not open data file at frequency = 98.45.\nTried using . as path.\n\n\nGenerating data at 98.45 GHz...\n\nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nWriting data.....\nGenerating inductance matrix (2x2)..\nInverting matrix.....\nSolving node equations...(2x2)\nf1=98.45 f2=100.00 f_g=98.45 Zin.i=65.644343\nWarning:  User defined structure type may not be compatible with 2port command.\nPerforming Analysis at 99.23 GHz\nGenerating capacitance matrix (5x5).\nWarning:  Could not open data file at frequency = 99.23.\nTried using . as path.\n\n\nGenerating data at 99.23 GHz...\n\nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nWriting data.....\nGenerating inductance matrix (2x2)..\nInverting matrix.....\nSolving node equations...(2x2)\nf1=99.23 f2=100.00 f_g=99.23 Zin.i=66.270810\nWarning:  User defined structure type may not be compatible with 2port command.\nPerforming Analysis at 99.61 GHz\nGenerating capacitance matrix (5x5).\nWarning:  Could not open data file at frequency = 99.61.\nTried using . as path.\n\n\nGenerating data at 99.61 GHz...\n\nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nWriting data.....\nGenerating inductance matrix (2x2)..\nInverting matrix.....\nSolving node equations...(2x2)\nf1=99.61 f2=100.00 f_g=99.61 Zin.i=66.585168\nWarning:  User defined structure type may not be compatible with 2port command.\nPerforming Analysis at 99.81 GHz\nGenerating capacitance matrix (5x5).\nWarning:  Could not open data file at frequency = 99.81.\nTried using . as path.\n\n\nGenerating data at 99.81 GHz...\n\nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nWriting data.....\nGenerating inductance matrix (2x2)..\nInverting matrix.....\nSolving node equations...(2x2)\nf1=99.81 f2=100.00 f_g=99.81 Zin.i=66.742630\nSelf Resonant Frequency Occurs at 99.90 (GHz).\nASITIC>  "
+    }
+  ]
+}

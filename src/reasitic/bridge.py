@@ -11,6 +11,7 @@ from .solver import solve_impedance
 from .devices import build_device, PAIRED_KINDS
 from .potential import solve_capacitance
 from .network import solve_pi2,solve_pi3,solve_pi4
+from .resonance import solve_self_resonance
 
 
 def _technology(request):
@@ -29,7 +30,7 @@ def _shapes(request,tech):
     return build_device(request.get("kind","square"),technology=tech,**request.get("parameters",{}))
 
 
-def handle(request):
+def handle(request,*,progress=None):
     """Execute one typed request; user input is never evaluated as Python."""
     tech = _technology(request)
     action = request.get("action","build")
@@ -44,6 +45,13 @@ def handle(request):
         mutual,k = coupling_estimate(a,b,tech)
         return dict(mutual_nh=mutual,k=k)
     shape = _shape(request,tech)
+    if action=="selfres":
+        mesh=request.get("mesh",{})
+        ground=_shape(request["ground"],tech) if request.get("ground") else None
+        return solve_self_resonance(shape,tech,float(request["first_hz"]),float(request["last_hz"]),float(request["step_hz"]),
+            ground=ground,differential=bool(request.get("differential",False)),fast=bool(request.get("fast",False)),eddy=request.get("eddy",False),
+            observer=(lambda point:progress(json.dumps(point,allow_nan=False))) if progress is not None else None,
+            **{key:float(mesh.get(key,1000)) for key in ("length_cell","width_cell","thickness_cell","capacitance_length_cell","capacitance_width_cell")})
     if action in ("pi","pi2","pi3","pi4"):
         if action=="pi":
             raise ValueError("The native fast Pi command faults on conductor coils before producing a model. Pi2, Pi3 and Pi4 use the working distributed solver.")
@@ -102,8 +110,8 @@ def handle(request):
     raise ValueError(f"Unknown action: {action}")
 
 
-def request_json(payload):
+def request_json(payload,progress=None):
     try:
-        return json.dumps(dict(result=handle(json.loads(payload))),allow_nan=False)
+        return json.dumps(dict(result=handle(json.loads(payload),progress=progress)),allow_nan=False)
     except (ValueError,KeyError,TypeError,OverflowError,ZeroDivisionError) as error:
         return json.dumps(dict(error=str(error)))

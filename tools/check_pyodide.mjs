@@ -1,6 +1,6 @@
 // Execute the exact Pages source archive in the pinned WebAssembly runtime.
 // Usage: node tools/check_pyodide.mjs /absolute/path/to/pyodide/pyodide.mjs
-// Optional final argument "dependencies" runs only quadrature/Green probes.
+// Optional "dependencies" skips creator/Pi baselines; "resonance" runs SELFRES only.
 import { readFileSync } from "node:fs";
 import { pathToFileURL } from "node:url";
 import assert from "node:assert/strict";
@@ -15,11 +15,13 @@ py.unpackArchive(new Uint8Array(readFileSync(new URL("../dist/reasitic.zip",impo
 py.runPython("from reasitic.bridge import request_json");
 const call=py.globals.get("request_json");
 const dependenciesOnly=process.argv[3]==="dependencies";
-function request(data) {
-  const result=JSON.parse(call(JSON.stringify(data)));
+const resonanceOnly=["resonance","resonance-rules"].includes(process.argv[3]);
+function request(data,onProgress) {
+  const result=JSON.parse(onProgress?call(JSON.stringify(data),onProgress):call(JSON.stringify(data)));
   if(result.error)throw new Error(result.error);
   return result.result;
 }
+if(!resonanceOnly){
 if(!dependenciesOnly){
 const init=request({action:"init"});
 assert.equal(init.technology.metals.length,5);
@@ -280,5 +282,55 @@ for(const fixture of eddyCases){
   }
 }
 console.log("16 complete native EDDY ON LMAT matrices passed in WebAssembly.");
+}
+py.runPython(`
+import json,math
+from reasitic.resonance import search_self_resonance
+def resonance_probe(payload):
+    case=json.loads(payload)
+    def analyze(frequency,fast):
+        imag=(frequency-case["target"])*case["scale"] if case["kind"]==0 else float(case["fixed"])
+        return dict(y11=1+.5j,y12=.01+.02j,y21=.01+.02j,y22=complex(0 if case["kind"]==2 else 1,imag))
+    result=search_self_resonance(analyze,case["first"],case["second"],case["step"],differential=case["differential"],fast=case["fast"],iteration_limit=case["iteration_limit"])
+    for point in result["trace"]:
+        if not math.isfinite(point["imaginary_impedance_ohm"]):point["imaginary_impedance_ohm"]=str(point["imaginary_impedance_ohm"])
+    return json.dumps(result,allow_nan=False)
+`);
+const resonanceProbe=py.globals.get("resonance_probe");
+const resonanceSearchCases=JSON.parse(readFileSync(new URL("../tests/fixtures/resonance_search.json",import.meta.url))).cases;
+for(const fixture of resonanceSearchCases){
+  const result=JSON.parse(resonanceProbe(JSON.stringify(fixture)));
+  assert.equal(result.native_result_hz,fixture.native_result_hz,"Native SELFRES stopping frequency");
+  assert.equal(result.evaluations,fixture.evaluations,"Native SELFRES solve count");
+  assert.deepEqual(result.analysis_frequencies_hz,fixture.analyses.map(row=>row[0]));
+  assert.equal(result.trace.length,fixture.progress.length);
+  result.trace.forEach((point,i)=>{
+    const actual=[point.lower_hz/1e9,point.upper_hz/1e9,point.frequency_hz/1e9,point.imaginary_impedance_ohm];
+    actual.forEach((value,j)=>{
+      const expected=fixture.progress[i][j];
+      if(expected==="nan")assert.equal(value,"nan");
+      else assert.ok(Math.abs(value-expected)<=Math.max(1e-12,Math.abs(expected)*1e-12),`SELFRES progress ${i}/${j}`);
+    });
+  });
+}
+resonanceProbe.destroy();
+console.log("184 native SELFRES search traces passed in WebAssembly, including strict tolerance, quantization and 101-solve exhaustion.");
+if(process.argv[3]!=="resonance-rules"){
+const resonancePhysicalCases=JSON.parse(readFileSync(new URL("../tests/fixtures/resonance_physical.json",import.meta.url))).cases;
+for(const fixture of resonancePhysicalCases){
+  const progress=[];
+  const result=request({action:"selfres",kind:fixture.kind,parameters:fixture.parameters,technology:fixture.technology,ground:fixture.ground,
+    eddy:fixture.eddy,mesh:fixture.mesh,first_hz:fixture.first_hz,last_hz:fixture.last_hz,step_hz:fixture.step_hz,differential:fixture.differential},point=>progress.push(JSON.parse(point)));
+  assert.deepEqual(progress,result.trace,"Live worker progress matches the result trace");
+  assert.equal(result.trace.length,fixture.progress.length);
+  assert.ok(Math.abs(result.frequency_hz/1e9-fixture.frequency_ghz)<1e-10,"Physical SELFRES stopping frequency");
+  assert.equal(result.model.frequency_hz,result.last_evaluated_frequency_hz);
+  result.trace.forEach((point,i)=>{
+    const actual=[point.lower_hz/1e9,point.upper_hz/1e9,point.frequency_hz/1e9,point.imaginary_impedance_ohm];
+    actual.forEach((value,j)=>assert.ok(Math.abs(value-fixture.progress[i][j])<=Math.max(1e-8,Math.abs(fixture.progress[i][j])*1e-8),`Physical SELFRES progress ${i}/${j}`));
+  });
+}
+console.log("12 complete native SELFRES SLOW sessions and live progress callbacks passed in WebAssembly.");
+}
 call.destroy();
 console.log("Pinned Pyodide archive smoke test passed.");

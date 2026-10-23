@@ -1,4 +1,4 @@
-"""Native PI2 node equations and narrowband two-port metrics, without eddy loss.
+"""Native PI2 node equations and narrowband two-port metrics.
 
 Ports combined_network.cpp, node_equations.cpp and network.cpp. Matrix solves
 use pivoted binary64 elimination; the native LAPACK/x87 result is not bitwise

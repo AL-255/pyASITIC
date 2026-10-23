@@ -38,6 +38,10 @@ Implemented so far:
 - Three-terminal Pi circuit diagrams with labeled series L/R and RC shunts,
   shared ground/pad settings, and circuit SVG download. The native fast `PI`
   conductor path faults before producing values; its view shows that limitation.
+- Original `SELFRES SLOW` search with repeated distributed network solves,
+  single-ended/differential input reactance, streamed sample progress, a trace
+  plot and JSON/CSV/SVG export. Reports the native stopping criterion and keeps
+  the last evaluated circuit separate from a possibly unevaluated result.
 - GDSII export with actual via cuts and metal landing pads. Default mapping:
   metal index + 1, via index + 100; datatype 0. Python callers can override it.
   Units are micrometres, with a 1 nm export grid.
@@ -79,6 +83,8 @@ python3 tools/capture_green_integration.py --reference ~/github/asitic-re
 python3 tools/capture_eddy.py --reference ~/github/asitic-re
 python3 tools/capture_network.py --reference ~/github/asitic-re --eddy
 python3 tools/capture_pi_models.py --reference ~/github/asitic-re --eddy
+python3 tools/capture_resonance.py --reference ~/github/asitic-re
+python3 tools/capture_resonance_physical.py --reference ~/github/asitic-re
 ```
 
 Install `gdstk==1.0.2` to enable the independent GDS reader tests. CI runs those
@@ -102,6 +108,11 @@ from reasitic import solve_pi2
 model = solve_pi2(coil, tech, 2e9, length_cell=50, width_cell=3,
                   thickness_cell=.5)
 print(model["pi"])  # SI units; eddy currents disabled
+
+from reasitic import solve_self_resonance
+ground = build("wire", technology=tech, length=160, width=10, metal="M1", y=150)
+search = solve_self_resonance(coil, tech, 1e9, 100e9, .1e9, ground=ground)
+print(search["frequency_hz"], search["reason"])
 ```
 
 `python -m reasitic request.json` runs the same JSON interface used by the worker;
@@ -111,12 +122,14 @@ add `--gds coil.gds` to export a layout request. See `src/reasitic/bridge.py`.
 
 The full objective includes geometry editing/session commands;
 broader substrate eddy-current validation; extended/transformer and multiport
-networks; self-resonance search and optimization. Work will be validated against the reference
+networks; optimization. Work will be validated against the reference
 one connected path at a time. No fitted spiral-inductance formula is substituted
 for the original electromagnetic solver.
 
-Pi2's resonance value is an estimate from the model at the chosen frequency;
-the native self-resonance search is pending. Native S conversion preserves an
+Pi2's resonance value is an estimate from the model at the chosen frequency.
+`SELFRES SLOW` instead repeats network solves, following the native search. It
+does not verify endpoint signs, so a resolution-based stop is not independent
+proof of resonance. Native S conversion preserves an
 ASITIC first-diagonal quirk for asymmetric devices; see the fidelity notes.
 
 See [PORTING.md](PORTING.md) for the source mapping and validation boundary.

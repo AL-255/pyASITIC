@@ -5,6 +5,7 @@ const NS = "http://www.w3.org/2000/svg";
 const COLORS = ["#e8bd65", "#81b4ef", "#b899eb", "#8fd1ae", "#e89971", "#e88fbd", "#64cbd1", "#cecf86"];
 let worker, ready = false, busy = false, nextId = 0, current = null, currentDefinition = null, technology = null, technologyText = "", sweepRows = null, matrixResult = null, capacitanceResult = null, pi2Result = null;
 let sweepContext=null,sweepModels=[];
+let selfresResult=null,selfresTrace=[];
 const MODEL_NAMES={pi:"Pi",pi2:"Pi2",pi3:"Pi3",pi4:"Pi4"};
 const eddyEnabled=()=>!!$("#eddy-mode")?.checked;
 const pending = new Map();
@@ -15,7 +16,8 @@ function status(message) { $("#analysis-status").textContent = message; }
 function controls() {
   for(const el of document.querySelectorAll(".analysis-panel input,.analysis-panel select"))el.disabled=busy;
   $("#generate").disabled = !ready || busy;
-  for (const id of ["simulate", "sweep", "lmat", "capacitance", "pi2", "download-gds", "download-project"]) $("#"+id).disabled = !ready || busy || !current;
+  for (const id of ["simulate", "sweep", "lmat", "capacitance", "pi2", "selfres", "download-gds", "download-project"]) $("#"+id).disabled = !ready || busy || !current;
+  for(const id of ["download-selfres","download-selfres-csv","download-selfres-plot"])$("#"+id).disabled=busy||!selfresResult;
   $("#download-csv").disabled = busy || !sweepRows?.length;
   $("#download-plot").disabled = busy || !sweepRows?.length;
   $("#download-model-svg").disabled = busy || !current;
@@ -26,9 +28,9 @@ function controls() {
   $("#active-winding").disabled = busy;
   $("#coupling").disabled = busy || !current || current.windings.length!==2;
 }
-function request(payload) {
+function request(payload,onProgress=null) {
   const id = ++nextId;
-  return new Promise((resolve, reject) => { pending.set(id, {resolve,reject}); worker.postMessage({id,request:payload}); });
+  return new Promise((resolve, reject) => { pending.set(id, {resolve,reject,onProgress}); worker.postMessage({id,request:payload}); });
 }
 async function task(callback) {
   if (busy || !ready) return;
@@ -107,6 +109,7 @@ function resetResults() {
   matrixResult=null; $("#matrix-table").replaceChildren(); $("#lmat-result").textContent="";
   capacitanceResult=null; $("#capacitance-table").replaceChildren(); $("#capacitance-result").textContent="";
   resetModel();
+  resetSelfres();
 }
 async function generate() {
   const next = definition();
@@ -149,6 +152,20 @@ function resetModel(){
   pi2Result=null;$("#pi2-metrics").replaceChildren();$("#pi2-ports").replaceChildren();$("#pi2-result").textContent="";
   if($("#model-diagnostics")){$("#model-diagnostics").hidden=true;$("#model-diagnostics").textContent="";}
   $("#model-circuit").innerHTML=circuitSVG({}, {model:MODEL_NAMES[$("#pi-model").value],note:$("#pi-model").value==="pi"?"Native fast Pi is unavailable for conductor coils":"Run the selected model to show component values"});
+}
+function renderSelfres(trace){
+  const rows=trace.map(point=>({frequency_hz:point.frequency_hz,reactance_ohm:point.imaginary_impedance_ohm})).sort((a,b)=>a.frequency_hz-b.frequency_hz);
+  const bounds=[numeric("#selfres-first")*1e9,numeric("#selfres-last")*1e9].sort((a,b)=>a-b);
+  const differential=selfresResult?selfresResult.differential:$("#selfres-mode").value==="differential",eddy=selfresResult?selfresResult.eddy:eddyEnabled();
+  $("#selfres-chart").innerHTML=sweepSVG(rows,"reactance_ohm",{model:`SELFRES SLOW · ${differential?"Differential":"Single"}${eddy?" · eddy on":""}`,label:"Input reactance · Ω",scale:"linear",firstHz:bounds[0],lastHz:bounds[1],interactive:false});
+  const table=document.createElement("table"),head=table.createTHead().insertRow();
+  for(const label of ["Sample","GHz","Input reactance Ω","Lower GHz","Upper GHz"]){const th=document.createElement("th");th.textContent=label;head.append(th);}
+  const body=table.createTBody();
+  for(const point of trace){const row=body.insertRow();for(const value of [point.iteration,point.frequency_hz/1e9,point.imaginary_impedance_ohm,point.lower_hz/1e9,point.upper_hz/1e9])row.insertCell().textContent=fmt(value,7);}
+  $("#selfres-table").replaceChildren(table);
+}
+function resetSelfres(){
+  selfresResult=null;selfresTrace=[];$("#selfres-result").textContent="";$("#selfres-diagnostics").hidden=true;$("#selfres-diagnostics").textContent="";$("#selfres-table").replaceChildren();$("#selfres-chart").replaceChildren();$("#selfres-circuit").replaceChildren();
 }
 function updateModelControls(clear=true){
   const model=$("#pi-model").value,ground=$("#model-ground-mode"),required=model==="pi3";
@@ -266,7 +283,31 @@ $("#pi-model").addEventListener("change",()=>{
 });
 $("#model-ground-mode").addEventListener("change",()=>updateModelControls());
 $("#eddy-mode")?.addEventListener("change",()=>{
-  updateModelControls();resetSweep();matrixResult=null;$("#matrix-table").replaceChildren();$("#lmat-result").textContent="";controls();
+  updateModelControls();resetSweep();resetSelfres();matrixResult=null;$("#matrix-table").replaceChildren();$("#lmat-result").textContent="";controls();
+});
+$("#selfres").addEventListener("click",()=>task(async()=>{
+  const first=numeric("#selfres-first")*1e9,last=numeric("#selfres-last")*1e9,step=numeric("#selfres-step")*1e9;
+  if(!(first>0&&last>0&&step>0))throw new Error("Enter positive SELFRES bounds and resolution.");
+  const base=modelPayload("pi2",first),useModel=$("#selfres-reference").value==="model";
+  if(useModel&&!base.ground)throw new Error("Choose a ground strip or the other winding in the model reference settings below.");
+  resetSelfres();status("Searching self-resonance with repeated distributed network solves…");
+  const result=await request({...base,action:"selfres",first_hz:first,last_hz:last,step_hz:step,ground:useModel?base.ground:null,differential:$("#selfres-mode").value==="differential"},point=>{
+    selfresTrace.push(point);renderSelfres(selfresTrace);
+    $("#selfres-result").textContent=`Sample ${point.iteration} · ${fmt(point.frequency_hz/1e9,7)} GHz · Input reactance ${fmt(point.imaginary_impedance_ohm,7)} Ω`;
+    status(`SELFRES sample ${point.iteration}: ${fmt(point.frequency_hz/1e9,6)} GHz…`);
+  });
+  selfresResult=result;selfresTrace=result.trace;renderSelfres(result.trace);
+  const reason={impedance_tolerance:"Input reactance tolerance reached",frequency_step:"Frequency resolution reached",iteration_limit:"Native iteration limit reached"}[result.reason];
+  $("#selfres-result").textContent=`${reason}${result.frequency_hz===null?"":` · Reported frequency ${fmt(result.frequency_hz/1e9,8)} GHz`} · ${result.evaluations} network solves · Last evaluated ${fmt(result.last_evaluated_frequency_hz/1e9,8)} GHz · ${result.differential?"Differential":"Single ended"} · Native eddy ${result.eddy?"on":"off"}`;
+  $("#selfres-diagnostics").hidden=!result.warnings.length;$("#selfres-diagnostics").textContent=result.warnings.join(" ");
+  $("#selfres-circuit").innerHTML=circuitSVG(result.model.pi,{model:"SELFRES · Pi2",frequencyHz:result.last_evaluated_frequency_hz,note:`Last evaluated sample · ${useModel?"Model reference":"Device reference"} · native eddy ${result.eddy?"on":"off"}`});
+  status("SELFRES complete. Its circuit shows the last evaluated sample; search JSON includes the reported frequency and full trace.");
+}));
+$("#download-selfres").addEventListener("click",()=>download(JSON.stringify(selfresResult,null,2),"application/json",filename("-selfres.json")));
+$("#download-selfres-plot").addEventListener("click",()=>download($("#selfres-chart").innerHTML,"image/svg+xml",filename("-selfres.svg")));
+$("#download-selfres-csv").addEventListener("click",()=>{
+  const keys=["iteration","frequency_hz","imaginary_impedance_ohm","lower_hz","upper_hz"];
+  download(keys.join(",")+"\n"+selfresResult.trace.map(point=>keys.map(key=>point[key]).join(",")).join("\n"),"text/csv",filename("-selfres.csv"));
 });
 function inspectSweepPoint(event,select=false){
   const point=event.target.closest?.("[data-index]");if(!point)return;
@@ -422,7 +463,9 @@ try {
       ready=true;$("#runtime").replaceChildren();const dot=document.createElement("i");dot.className="led";$("#runtime").append(dot,document.createTextNode("Python ready"));
       await task(async()=>{fillTechnology(await request({action:"init"}));await generate();});return;
     }
-    const promise=pending.get(data.id);if(!promise)return;pending.delete(data.id);
+    const promise=pending.get(data.id);if(!promise)return;
+    if(data.progress){promise.onProgress?.(data.progress);return;}
+    pending.delete(data.id);
     data.error ? promise.reject(new Error(data.error)) : promise.resolve(data.result);
   };
 } catch(e){fatal(e.message);}

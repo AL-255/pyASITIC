@@ -19,7 +19,8 @@ self.onmessage = ({ data: { id, request } }) => {
       const python = await ready;
       const call = python.globals.get("request_json");
       try {
-        const result = JSON.parse(call(JSON.stringify(request)));
+        const progress=point=>self.postMessage({id,progress:JSON.parse(point)});
+        const result = JSON.parse(request.action==="selfres"?call(JSON.stringify(request),progress):call(JSON.stringify(request)));
         self.postMessage({ id, ...result });
       } finally { call.destroy(); }
     } catch (error) { self.postMessage({ id, error: String(error) }); }
