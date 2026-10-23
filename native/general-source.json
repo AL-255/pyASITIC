@@ -1,0 +1,9 @@
+{
+  "reference_commit": "63885e808b522bdeba3f254d353afc72e643c761",
+  "sources": {
+    "general.cpp": "2d6a4afdbc5142887ee50988fa6e0607cf57e2da2f9ffd0678eef10a87a38e8e",
+    "blocked.cpp": "dc42caa45cbf6ff304bbba72217a8be9488ee90028dcbd90d3f67c9cd018a043",
+    "node_equations.cpp": "aba6432dfccf40e0e1dad7fdc65e0529023aaa8ff3ead6210a7a3b4e54ac02b7"
+  },
+  "adaptation": "Retained SoftReal 80-bit intermediates and binary64 stores; original 64-column panel and triangular blocks; n-entry inverse workspace; bounded transport."
+}

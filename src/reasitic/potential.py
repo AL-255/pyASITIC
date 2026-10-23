@@ -10,7 +10,7 @@ from functools import lru_cache
 from decimal import Decimal,localcontext
 import copy
 import math
-from .solver import inverse
+from .solver import inverse,_sum_complex
 from .fft import _fft,_transform_grid,_fft_extended,_fft_spill
 from .x87_math import tanh_argument,cosh_argument
 from .contact_kernel import contact_matrix
@@ -364,7 +364,7 @@ def solve_capacitance(shape,technology,frequency_hz,*,ground=None,length_cell=10
                 row.append(_contact_potential(a,b,nx,ny,width,height,records,coefficients,depths,get_table(*pair),zero_terms))
             full.append(row)
     admittance=inverse(full)
-    total=sum(sum(row[:len(contacts)-second_count]) for row in admittance[:len(contacts)-second_count])
+    total=_sum_complex(z for row in admittance[:len(contacts)-second_count] for z in row[:len(contacts)-second_count])
     impedance=1/total
     total_c=-1/(2*math.pi*frequency_hz*impedance.imag)
     indices=[]
@@ -372,11 +372,11 @@ def solve_capacitance(shape,technology,frequency_hz,*,ground=None,length_cell=10
     for group in groups:
         indices.append(list(range(offset,offset+len(group))))
         offset+=len(group)
-    reduced=[[sum(admittance[i][j] for i in rows for j in columns) for columns in indices] for rows in indices]
+    reduced=[[_sum_complex(admittance[i][j] for i in rows for j in columns) for columns in indices] for rows in indices]
     if unfolded:
         result=[row[:len(groups)-second_count] for row in reduced[:len(groups)-second_count]]
     else:
-        result=[[sum(reduced[i]) if i==j else -reduced[i][j] for j in range(len(groups))] for i in range(len(groups))]
+        result=[[_sum_complex(reduced[i]) if i==j else -reduced[i][j] for j in range(len(groups))] for i in range(len(groups))]
         if shape.name!=ground.name:
             for row in range(len(groups)-1):
                 for k in range(1,second_count+1):

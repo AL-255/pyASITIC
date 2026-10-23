@@ -13,9 +13,34 @@ export async function installNumericalKernels(python, bytes) {
   const pivots = new Int32Array(api.memory.buffer, api.pivots_buffer(), 256);
   const contactConfig = new Float64Array(api.memory.buffer, api.contact_config_buffer(), 4096);
   const contactTables = new Float64Array(api.memory.buffer, api.contact_table_buffer(), 2 * (66049 + 1024));
+  const generalMatrix = new Float64Array(api.memory.buffer, api.general_buffer(), 2 * 514 * 514);
+  const generalRhs = new Float64Array(api.memory.buffer, api.general_rhs_buffer(), 2 * 514);
+  const generalPivots = new Int32Array(api.memory.buffer, api.general_pivots_buffer(), 514);
   python.registerJsModule("_reasitic_numeric", {
     tanh_argument: (k,a,b) => api.tanh_argument(k,a,b),
     cosh_argument: (k,a,b,rounded) => api.cosh_argument(k,a,b,rounded),
+    general(buffer,n,operation) {
+      if(!Number.isInteger(n)||n<1||n>514||![0,1,2,3].includes(operation))throw new Error("General matrix dimensions or operation are invalid");
+      const view=buffer.getBuffer("f64");
+      try {
+        const count=2*n*n;
+        if(view.data.length!==count+3*n)throw new Error("General matrix buffer length is invalid");
+        generalMatrix.set(view.data.subarray(0,count));
+        if(operation===2){
+          for(let i=0;i<n;i++){
+            const p=view.data[count+i];
+            if(!Number.isInteger(p)||p<1||p>n)throw new Error("General matrix pivot is invalid");
+            generalPivots[i]=p;
+          }
+        }
+        if(operation>=2)generalRhs.set(view.data.subarray(count+n));
+        const status=api.general(n,operation);
+        view.data.set(generalMatrix.subarray(0,count));
+        for(let i=0;i<n;i++)view.data[count+i]=generalPivots[i];
+        if(operation>=2)view.data.set(generalRhs.subarray(0,2*n),count+n);
+        return status;
+      } finally { view.release(); }
+    },
     contact_pair(config, tables, output) {
       let c,t,o;
       try {

@@ -312,3 +312,16 @@ rectangular grids with sufficient backing, noncontiguous metals, and two complet
 against all eight existing native snapshots with unchanged tolerances. This
 establishes contact arithmetic at given coefficients/tables, not bitwise equality
 of the preceding spectral generation or the complete network solve.
+
+CAP general inversion and Pi2/Pi3/Pi4 node solves now use ZGETRF/ZGETRI/ZGETRS
+instead of the earlier binary64 elimination. PiX shares the same backend.
+Absolute-one pivot ranking, reciprocal scaling, 64-column factor panels,
+triangular blocks, exterior swaps and BLAS spill order follow the reference.
+The CAP driver's n-cell workspace selects the original unblocked final inverse
+step. A compiled 80-bit path supports up to 514 node unknowns and retains the
+network matrix-vector accumulation order. Direct original-machine-code
+fixtures check 33 cases / 2,571,696 components, including complete large-system
+digests, singular statuses, signed zeros and nonfinite classifications. The
+portable path retains Decimal guard precision and component-tolerance checks.
+Whole-simulator bitwise equivalence remains unproven: spectral generation,
+remaining stamping/reduction and process/geometry coverage still require work.

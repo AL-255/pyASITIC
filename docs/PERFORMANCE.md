@@ -2,8 +2,9 @@
 
 The browser runs Python in Pyodide 314.0.7. Numerical loops written in Python
 were the principal cost: retained FFT butterflies, spectral arithmetic, and
-matrix inversion. The FFT, retained exponential helpers, contact potentials and symmetric
-factor/inverse now run in a compiled
+matrix inversion. The FFT, retained exponential helpers, contact potentials,
+symmetric/general factors and inverses, triangular solves and network dot
+products now run in a compiled
 WebAssembly module. Per-table memoization reuses spectral values and interface
 ratios only at identical inputs. Filament mutual terms use bounded caching of
 ordered binary geometry records; frequency scaling and eddy terms are evaluated
@@ -57,6 +58,25 @@ generation and geometry costs. The dense cached case remains about 21× slower
 than the original executable. Complete samples and input settings are saved in
 `benchmarks/2026-10-23-contact.json`; these observations are not timing thresholds.
 
+The general-matrix step replaces CAP's earlier Gauss–Jordan inverse and the
+Pi2-family's magnitude-ranked elimination with the original absolute-one LU,
+inverse workspace and triangular solves. PiX shares that backend. Network dot
+products now use retained compiled arithmetic. CAP reduction and node stamping
+also preserve the native accumulation order rather than Python 3.14's
+compensated complex `sum`.
+
+| FFT grid | Contact release cached | General step cached | General step first request |
+| --- | ---: | ---: | ---: |
+| 64 × 64 | 0.451 s | 0.339 s | 5.90 s |
+| 128 × 128 | 0.452 s | 0.348 s | 2.96 s |
+
+This is another 1.3× cached improvement at 189 filaments / 63 contacts. The
+34-filament / 17-contact case takes 14/23 ms cached and 0.89/2.65 s on its first
+request at 64/128 grids. The dense cached case remains about 16× slower than the
+original. Full inputs, raw samples and current results are saved in
+`benchmarks/2026-10-23-general.json`; previous browser samples are from
+`27ccf16`, and native timing samples are retained from the original benchmark.
+
 Cold browser timing is the first request for each FFT grid in one interpreter,
 excluding interpreter loading. Geometry caches persist between the two grids;
 the first dense case pays their initial cost. The native cold estimate
@@ -68,6 +88,7 @@ the benchmark tools. The remaining native/browser gap is substantial.
 
 The last measured portable CPython fallback took about 4.3/19.7 s cold in these two cases and
 about 91 ms cached. Its retained precision correction increases cold work.
+That fallback measurement predates the general LU change.
 The webpage requires the compiled backend at initialization. Runtime and
 validation assertions check that the compiled backend is active.
 
@@ -103,3 +124,8 @@ matrices (264,844 output components), finite values bit for bit and nonfinite
 values by classification, plus all eight production raw potential and reduced
 CAP snapshots with unchanged tolerances. Spectral generation and the remaining
 network arithmetic still require further precision work.
+General-matrix gates check 33 original cases / 2,571,696 components, including
+complete dense 514-entry factor/inverse/solve/product digests. Finite outputs
+match bit for bit and nonfinite classifications match; caller inputs remain
+unchanged. These establish the tested matrix boundaries, not universal
+whole-simulator equality.

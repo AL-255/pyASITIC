@@ -1,14 +1,15 @@
 """Native PI2 node equations and narrowband two-port metrics.
 
 Ports combined_network.cpp, node_equations.cpp and network.cpp. Matrix solves
-use pivoted binary64 elimination; the native LAPACK/x87 result is not bitwise
-identical. Public Y matrices follow the native output port order (y22 first).
+use the native general LU path. Public Y matrices follow the native output port
+order (y22 first).
 """
 from decimal import Decimal,localcontext
 import copy
 import math
-from .solver import discretize,solve_impedance
+from .solver import discretize,solve_impedance,_sum_complex
 from .potential import solve_capacitance,_divide
+from .linear import factor_general,solve_general,matrix_vector
 
 
 def _complex_matrix(values):
@@ -20,47 +21,15 @@ def _pairs(matrix):
 
 
 def _matvec(matrix,vector):
-    # Each native dot-product term retains extended products before its
-    # binary64 accumulation spill. Decimal guard digits preserve that order.
-    with localcontext() as context:
-        context.prec=25
-        dec=Decimal.from_float
-        result=[]
-        for row in matrix:
-            real=imag=0.0
-            for a,b in zip(row,vector):
-                ar,ai,br,bi=map(dec,(a.real,a.imag,b.real,b.imag))
-                real=float((ar*br-ai*bi)+dec(real))
-                imag=float((br*ai+ar*bi)+dec(imag))
-            result.append(complex(real,imag))
-        return result
+    return matrix_vector(matrix,vector)
 
 
 def _factor(matrix):
-    a=[row.copy() for row in matrix]
-    pivots=[]
-    for col in range(len(a)):
-        pivot=max(range(col,len(a)),key=lambda row:abs(a[row][col]))
-        if abs(a[pivot][col])<1e-30:
-            raise ValueError("Singular Pi2 node equation matrix")
-        pivots.append(pivot)
-        a[col],a[pivot]=a[pivot],a[col]
-        for row in range(col+1,len(a)):
-            a[row][col]/=a[col][col]
-            for j in range(col+1,len(a)):
-                a[row][j]-=a[row][col]*a[col][j]
-    return a,pivots
+    return factor_general(matrix)
 
 
 def _solve(factor,pivots,rhs):
-    result=rhs.copy()
-    for i,pivot in enumerate(pivots):
-        result[i],result[pivot]=result[pivot],result[i]
-    for i,row in enumerate(factor):
-        result[i]-=sum(row[j]*result[j] for j in range(i))
-    for i in range(len(factor)-1,-1,-1):
-        result[i]=(result[i]-sum(factor[i][j]*result[j] for j in range(i+1,len(factor))))/factor[i][i]
-    return result
+    return solve_general(factor,pivots,rhs)
 
 
 def solve_node_equations(capacitance,inductance):
@@ -68,7 +37,7 @@ def solve_node_equations(capacitance,inductance):
     n=len(capacitance)
     if not n or len(inductance)!=n or any(len(row)!=n for row in capacitance+inductance):
         raise ValueError("Pi2 requires matching nonempty square CAP and inductance matrices")
-    cap=[[sum(row) if i==j else -value for j,value in enumerate(row)] for i,row in enumerate(capacitance)]
+    cap=[[_sum_complex(row) if i==j else -value for j,value in enumerate(row)] for i,row in enumerate(capacitance)]
     difference=[[inductance[i][j]-(inductance[i][j-1] if j else 0j) for j in range(n)] for i in range(n)]
     difference=[[difference[i][j]-(difference[i-1][j] if i else 0j) for j in range(n)] for i in range(n)]
     factor,pivots=_factor([[cap[i][j]+difference[i][j] for j in range(n)] for i in range(n)])

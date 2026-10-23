@@ -2,8 +2,7 @@
 
 Ports geometry.cpp discretization, filaments.cpp, impedance.cpp, vias.cpp and
 solver.cpp. LMAT uses the original upper symmetric factor/inverse and retained
-parallel kernels. The general inverse helper used by CAP remains binary64
-elimination; bitwise equality is not expected.
+parallel kernels. CAP uses the original general LU and inverse path.
 """
 import copy
 import math
@@ -12,6 +11,7 @@ from decimal import Decimal,localcontext
 from functools import lru_cache
 from .inductance import segment_mutual, SELF_CONSTANT
 from .symmetric import inverse_symmetric
+from .linear import inverse_general
 
 
 @lru_cache(maxsize=32768)
@@ -47,23 +47,8 @@ def _filament_self_impedance(wire,sheet_resistance,thickness_cells,omega_nh):
 
 
 def inverse(matrix):
-    """Invert a dense complex matrix using partial pivoting."""
-    n = len(matrix)
-    a = [list(row)+[complex(i==j) for j in range(n)] for i,row in enumerate(matrix)]
-    for col in range(n):
-        pivot = max(range(col,n),key=lambda row:abs(a[row][col]))
-        if abs(a[pivot][col])<1e-30:
-            raise ValueError("Singular filament impedance matrix")
-        a[col],a[pivot] = a[pivot],a[col]
-        scale = a[col][col]
-        a[col] = [value/scale for value in a[col]]
-        for row in range(n):
-            if row==col:
-                continue
-            factor = a[row][col]
-            if factor:
-                a[row] = [x-factor*y for x,y in zip(a[row],a[col])]
-    return [row[n:] for row in a]
+    """Invert a dense complex matrix through the native general LU path."""
+    return inverse_general(matrix)
 
 
 def discretize(shape,length_step,half_width):

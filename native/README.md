@@ -73,7 +73,29 @@ tolerances. These checks establish the contact-arithmetic boundary given the
 same coefficients and tables; spectral table generation still requires further
 precision work before whole-simulator equality can be claimed.
 
-Rebuild the checked-in, stripped `web/numeric.wasm` (71.7 KiB):
+`matrix_general.cpp` retains the general LU's absolute-one pivots, 64-column
+panels, exterior swaps and BLAS coefficient spills. The general inverse uses
+the CAP driver's `n`-entry workspace: ZTRTRI still has 64-column triangular
+blocks, while ZGETRI selects its unblocked lower-triangle step. Node solves
+retain forward row swaps and column-ordered lower/upper substitution.
+`general_wrapper.cpp` also follows the native network matrix-vector loop, with
+an accumulation spill after each term. Separate bounded storage supports
+514-entry PiX systems, corresponding to the application's 256-filament limit.
+CAP and Pi2/Pi3/Pi4/PiX all use this backend; the Python fallback follows the
+same algorithm sequence with its existing Decimal guard precision.
+
+`capture_original_general.py` executes the intact original ZGETRF, ZGETRI,
+ZGETRS and network matrix-vector routines. Thirty-three cases check 2,571,696
+output components, finite values bit for bit and nonfinite classifications,
+including singular statuses, signed zeros, tiny/large values, pivot ranking,
+the 64/65 and 128/129 block boundaries, 256-entry dense and 514-entry dense/diagonal
+systems. Every large factor, inverse, three-RHS solve and product is checked
+by its complete digest. The capture checks stride canaries; production API
+checks also require caller input immutability. The portable fallback has
+component-tolerance comparisons and a separate panel-boundary check, rather
+than a claim of universal bitwise equality.
+
+Rebuild the checked-in, stripped `web/numeric.wasm` (87.7 KiB):
 
 ```sh
 python tools/build_kernels.py --download-zig
