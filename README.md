@@ -4,7 +4,8 @@ Python reconstruction of ASITIC, with a static browser application for GitHub
 Pages. The reference is [`AL-255/asitic-re`](https://github.com/AL-255/asitic-re),
 specifically its `recomp_cpp` reconstruction. This repository implements the
 algorithms through a Python API; it does not invoke the reference executable at
-runtime. The browser accelerates retained FFT and spectral math with a small compiled
+runtime. The browser accelerates retained FFT, spectral math and symmetric matrix
+solves with a small compiled
 WebAssembly kernel; a portable Python implementation is also included.
 
 **[Open the workbench](https://al-255.github.io/pyASITIC/)**
@@ -30,6 +31,8 @@ Implemented so far:
   impedance assembly, inversion/reduction and via corrections. The web app
   displays L, R, series Q and the complex matrix, with full matrix CSV download.
   Uses the original symmetric factor/inverse and retained parallel mutual kernels.
+  The browser's compiled matrix path is checked bit for bit against original
+  factors/inverses, including 128- and 256-entry systems.
 - Optional native `EDDY ON` substrate correction, including square packing,
   segment folding, layered Green integration and convergence diagnostics.
   Preserves native negative-resistance results and reports nonfinite failures.

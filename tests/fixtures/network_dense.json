@@ -1,0 +1,286 @@
+{
+  "reference": "Unmodified original PI2 and precise 2PORT Y/S at 189 filaments, 63 contacts; no reconstructed executable.",
+  "original_sha256": "72bcb93444604b89a65cb64e5825bfcff0ac740a816120d0f171855206bd572f",
+  "cases": [
+    {
+      "kind": "square",
+      "parameters": {
+        "name": "A",
+        "length": 80,
+        "width": 5,
+        "spacing": 3,
+        "turns": 1,
+        "metal": "M1",
+        "exit_metal": "M2",
+        "x": 10,
+        "y": 20
+      },
+      "technology": "; Sample CMOS technology file\n\n<chip>\n\n\tchipx = 128\t; dimensions of the chip in x direction\n\tchipy = 128\t; dimensions of the chip in y direction\n\tfftx = 64\t; x-fft size (must be a power of 2)\n\tffty = 64\t; y-fft size\n\tTechFile = CMOS.tek\n\tTechPath = .\n\tfreq = 2 \t\t; frequency of operation\n\teddy = 0\n\n<layer> 0 \t\t\t; p(-) bulk layer\n\trho = 1e-3\t\t; ohm-cm\n\tt   = 700 \t\t; microns\n        eps = 11.9\n\n<layer>\t1\t   \t\t; Oxide Layer\n\trho = 1e10\n\tt = 50\n\teps = 3.9\n\n<metal> 0\n        layer = 1\t\t; in oxide layer\n        rsh = 65\t\t; sheet resistance3\n        t   = 0.5\t\t; thickness\n        d = 1.3\t\t\t; distance from bottom of layer\n        name = m1\t\n        color = yellow\n\n<metal> 1\n        layer = 1\n        rsh = 55 \n        t = 0.5\n        d = 2.4 \n        name = m2\n        color = LightSkyBlue1\n\n<metal> 2\n        layer = 1\n        rsh = 55 \n        t = 0.5\n        d =  3.5\n        name = m3\n        color = medium purple\n\n<metal> 3\n        layer = 1\n        rsh = 55 \n        t = 0.5\n        d =  4.5\n        name = m4\n        color = light green\n\n<metal> 4\n        layer = 1\n        rsh = 30\n        t = 1\n        d =  6\n        name = m5\n        color = grey\n\n<via> 0                        ; metal 1 to metal 2\n        top = 1\n        bottom = 0\n        r = 4\n        width = .5\n        space = 1.1\n        overplot1 = .2         ; to metal 1\n        overplot2 = .2         ; to metal 2\n        name = via1\n        color = purple\n<via> 1                        ; metal 2 to metal 3\n        top = 2\n        bottom = 1\n        r = 4\n        width = .4\n        space = 1.1\n        overplot1 = .2         ; to metal 1\n        overplot2 = .2         ; to metal 2\n        name = via2\n        color = cyan1\n<via> 2                        ; metal 3 to metal 4\n        top = 3\n        bottom = 2\n        r = 4\n        width = .4\n        space = 1.1\n        overplot1 = .2\n        overplot2 = .2\n        name = via3\n        color = red\n\n<via> 3                        ; metal 3 to metal 4\n        top = 4\n        bottom = 3\n        r = 4\n        width = .4\n        space = 1.2\n        overplot1 = .2\n        overplot2 = .2\n        name = via4\n        color = white\n\n",
+      "frequency_hz": 1000000000.0,
+      "fft": 64,
+      "mesh": {
+        "length_cell": 5,
+        "width_cell": 1.5,
+        "thickness_cell": 0.5,
+        "capacitance_length_cell": 50,
+        "capacitance_width_cell": 8
+      },
+      "admittance_matrix": [
+        [
+          [
+            0.2049259130982459,
+            -0.06006837808737596
+          ],
+          [
+            -0.2049236289461522,
+            0.06029622935103481
+          ]
+        ],
+        [
+          [
+            -0.2049236289461522,
+            0.06029622935103481
+          ],
+          [
+            0.204921472813289,
+            -0.0601391307042294
+          ]
+        ]
+      ],
+      "scattering_matrix": [
+        [
+          [
+            0.04290453079933655,
+            0.0007720201604488533
+          ],
+          [
+            0.9567607481428824,
+            -0.02170722653102477
+          ]
+        ],
+        [
+          [
+            0.9567607481428824,
+            -0.02170722653102477
+          ],
+          [
+            0.0430156836040153,
+            0.002617212915580593
+          ]
+        ]
+      ],
+      "stdout": "\nASITIC version 10.20.99.0.0.0\nAnalysis & Simulation of Inductors and Transformers for ICs\nReading technology file <process.tek>...\nRunning in console mode...\n\nExecuting script <input.asit>...\nCELL 5 1.5 0.5\n\nCCELL 50 8\n\nEDDY OFF\n\nTurning OFF eddy current calculation mode.\nSQUARE NAME=A:LEN=80:W=5:S=3:N=1:METAL=M1:EXIT=M2:XORG=10:YORG=20\n\nPI2 A 1\n\nPerforming Analysis at 1.00 GHz\nGenerating capacitance matrix (63x63).\nWarning:  Could not open data file at frequency = 1.00.\nTried using . as path.\n\n\nGenerating data at 1.00 GHz...\n\nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nWriting data.....\nGenerating inductance matrix (189x189)..\nInverting matrix......\nSolving node equations...(63x63)\nPi Model at f=1.00 GHz:  Q = 0.293,0.293,0.294\nL  =  0.21 nH\tR  =  4.49\nCs1=  36.3 fF\tRs1=    44\nCs2=    25 fF\tRs2= -87.3\tf_res = 70.48GHz\n2PORT A 1 1 1 Y RECT SLOW y.out\n\nPerforming Analysis at 1.00 GHz\nGenerating capacitance matrix (63x63)...\nGenerating inductance matrix (189x189)..\nInverting matrix......\nSolving node equations...(63x63)\n2PORT A 1 1 1 S RECT SLOW s.out\n\nPerforming Analysis at 1.00 GHz\nGenerating capacitance matrix (63x63)...\nGenerating inductance matrix (189x189)..\nInverting matrix......\nSolving node equations...(63x63)\nASITIC>  ",
+      "script": "CELL 5 1.5 0.5\nCCELL 50 8\nEDDY OFF\nSQUARE NAME=A:LEN=80:W=5:S=3:N=1:METAL=M1:EXIT=M2:XORG=10:YORG=20\nPI2 A 1\n2PORT A 1 1 1 Y RECT SLOW y.out\n2PORT A 1 1 1 S RECT SLOW s.out\n"
+    },
+    {
+      "kind": "square",
+      "parameters": {
+        "name": "A",
+        "length": 80,
+        "width": 5,
+        "spacing": 3,
+        "turns": 1,
+        "metal": "M1",
+        "exit_metal": "M2",
+        "x": 10,
+        "y": 20
+      },
+      "technology": "; Sample CMOS technology file\n\n<chip>\n\n\tchipx = 512\t; dimensions of the chip in x direction\n\tchipy = 512\t; dimensions of the chip in y direction\n\tfftx = 128\t; x-fft size (must be a power of 2)\n\tffty = 128\t; y-fft size\n\tTechFile = CMOS.tek\n\tTechPath = .\n\tfreq = 2 \t\t; frequency of operation\n\teddy = 0\n\n<layer> 0 \t\t\t; p(-) bulk layer\n\trho = 1e-3\t\t; ohm-cm\n\tt   = 700 \t\t; microns\n        eps = 11.9\n\n<layer>\t1\t   \t\t; Oxide Layer\n\trho = 1e10\n\tt = 50\n\teps = 3.9\n\n<metal> 0\n        layer = 1\t\t; in oxide layer\n        rsh = 65\t\t; sheet resistance3\n        t   = 0.5\t\t; thickness\n        d = 1.3\t\t\t; distance from bottom of layer\n        name = m1\t\n        color = yellow\n\n<metal> 1\n        layer = 1\n        rsh = 55 \n        t = 0.5\n        d = 2.4 \n        name = m2\n        color = LightSkyBlue1\n\n<metal> 2\n        layer = 1\n        rsh = 55 \n        t = 0.5\n        d =  3.5\n        name = m3\n        color = medium purple\n\n<metal> 3\n        layer = 1\n        rsh = 55 \n        t = 0.5\n        d =  4.5\n        name = m4\n        color = light green\n\n<metal> 4\n        layer = 1\n        rsh = 30\n        t = 1\n        d =  6\n        name = m5\n        color = grey\n\n<via> 0                        ; metal 1 to metal 2\n        top = 1\n        bottom = 0\n        r = 4\n        width = .5\n        space = 1.1\n        overplot1 = .2         ; to metal 1\n        overplot2 = .2         ; to metal 2\n        name = via1\n        color = purple\n<via> 1                        ; metal 2 to metal 3\n        top = 2\n        bottom = 1\n        r = 4\n        width = .4\n        space = 1.1\n        overplot1 = .2         ; to metal 1\n        overplot2 = .2         ; to metal 2\n        name = via2\n        color = cyan1\n<via> 2                        ; metal 3 to metal 4\n        top = 3\n        bottom = 2\n        r = 4\n        width = .4\n        space = 1.1\n        overplot1 = .2\n        overplot2 = .2\n        name = via3\n        color = red\n\n<via> 3                        ; metal 3 to metal 4\n        top = 4\n        bottom = 3\n        r = 4\n        width = .4\n        space = 1.2\n        overplot1 = .2\n        overplot2 = .2\n        name = via4\n        color = white\n\n",
+      "frequency_hz": 1000000000.0,
+      "fft": 128,
+      "mesh": {
+        "length_cell": 5,
+        "width_cell": 1.5,
+        "thickness_cell": 0.5,
+        "capacitance_length_cell": 50,
+        "capacitance_width_cell": 8
+      },
+      "admittance_matrix": [
+        [
+          [
+            0.2049260521695901,
+            -0.06003847654445365
+          ],
+          [
+            -0.2049236804047159,
+            0.06028959563037377
+          ]
+        ],
+        [
+          [
+            -0.2049236804047159,
+            0.06028959563037377
+          ],
+          [
+            0.2049213915561125,
+            -0.0601278235878382
+          ]
+        ]
+      ],
+      "scattering_matrix": [
+        [
+          [
+            0.0428768311217984,
+            -0.0003730458428610598
+          ],
+          [
+            0.9567464534990632,
+            -0.02240324028013242
+          ]
+        ],
+        [
+          [
+            0.9567464534990632,
+            -0.02240324028013242
+          ],
+          [
+            0.04299398485253182,
+            0.001956892885535202
+          ]
+        ]
+      ],
+      "stdout": "\nASITIC version 10.20.99.0.0.0\nAnalysis & Simulation of Inductors and Transformers for ICs\nReading technology file <process.tek>...\nRunning in console mode...\n\nExecuting script <input.asit>...\nCELL 5 1.5 0.5\n\nCCELL 50 8\n\nEDDY OFF\n\nTurning OFF eddy current calculation mode.\nSQUARE NAME=A:LEN=80:W=5:S=3:N=1:METAL=M1:EXIT=M2:XORG=10:YORG=20\n\nPI2 A 1\n\nPerforming Analysis at 1.00 GHz\nGenerating capacitance matrix (63x63).\nWarning:  Could not open data file at frequency = 1.00.\nTried using . as path.\n\n\nGenerating data at 1.00 GHz...\n\nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nWriting data.....\nGenerating inductance matrix (189x189)..\nInverting matrix......\nSolving node equations...(63x63)\nPi Model at f=1.00 GHz:  Q = 0.293,0.293,0.294\nL  =  0.21 nH\tR  =  4.49\nCs1=    40 fF\tRs1=  37.6\nCs2=  25.8 fF\tRs2= -87.4\tf_res = 64.08GHz\n2PORT A 1 1 1 Y RECT SLOW y.out\n\nPerforming Analysis at 1.00 GHz\nGenerating capacitance matrix (63x63)...\nGenerating inductance matrix (189x189)..\nInverting matrix......\nSolving node equations...(63x63)\n2PORT A 1 1 1 S RECT SLOW s.out\n\nPerforming Analysis at 1.00 GHz\nGenerating capacitance matrix (63x63)...\nGenerating inductance matrix (189x189)..\nInverting matrix......\nSolving node equations...(63x63)\nASITIC>  ",
+      "script": "CELL 5 1.5 0.5\nCCELL 50 8\nEDDY OFF\nSQUARE NAME=A:LEN=80:W=5:S=3:N=1:METAL=M1:EXIT=M2:XORG=10:YORG=20\nPI2 A 1\n2PORT A 1 1 1 Y RECT SLOW y.out\n2PORT A 1 1 1 S RECT SLOW s.out\n"
+    },
+    {
+      "kind": "square",
+      "parameters": {
+        "name": "A",
+        "length": 80,
+        "width": 5,
+        "spacing": 3,
+        "turns": 1,
+        "metal": "M1",
+        "exit_metal": "M2",
+        "x": 10,
+        "y": 20
+      },
+      "technology": "; Sample CMOS technology file\n\n<chip>\n\n\tchipx = 512\t; dimensions of the chip in x direction\n\tchipy = 512\t; dimensions of the chip in y direction\n\tfftx = 128\t; x-fft size (must be a power of 2)\n\tffty = 128\t; y-fft size\n\tTechFile = CMOS.tek\n\tTechPath = .\n\tfreq = 2 \t\t; frequency of operation\n\teddy = 0\n\n<layer> 0 \t\t\t; p(-) bulk layer\n\trho = 1e-3\t\t; ohm-cm\n\tt   = 700 \t\t; microns\n        eps = 11.9\n\n<layer>\t1\t   \t\t; Oxide Layer\n\trho = 1e10\n\tt = 50\n\teps = 3.9\n\n<metal> 0\n        layer = 1\t\t; in oxide layer\n        rsh = 65\t\t; sheet resistance3\n        t   = 0.5\t\t; thickness\n        d = 1.3\t\t\t; distance from bottom of layer\n        name = m1\t\n        color = yellow\n\n<metal> 1\n        layer = 1\n        rsh = 55 \n        t = 0.5\n        d = 2.4 \n        name = m2\n        color = LightSkyBlue1\n\n<metal> 2\n        layer = 1\n        rsh = 55 \n        t = 0.5\n        d =  3.5\n        name = m3\n        color = medium purple\n\n<metal> 3\n        layer = 1\n        rsh = 55 \n        t = 0.5\n        d =  4.5\n        name = m4\n        color = light green\n\n<metal> 4\n        layer = 1\n        rsh = 30\n        t = 1\n        d =  6\n        name = m5\n        color = grey\n\n<via> 0                        ; metal 1 to metal 2\n        top = 1\n        bottom = 0\n        r = 4\n        width = .5\n        space = 1.1\n        overplot1 = .2         ; to metal 1\n        overplot2 = .2         ; to metal 2\n        name = via1\n        color = purple\n<via> 1                        ; metal 2 to metal 3\n        top = 2\n        bottom = 1\n        r = 4\n        width = .4\n        space = 1.1\n        overplot1 = .2         ; to metal 1\n        overplot2 = .2         ; to metal 2\n        name = via2\n        color = cyan1\n<via> 2                        ; metal 3 to metal 4\n        top = 3\n        bottom = 2\n        r = 4\n        width = .4\n        space = 1.1\n        overplot1 = .2\n        overplot2 = .2\n        name = via3\n        color = red\n\n<via> 3                        ; metal 3 to metal 4\n        top = 4\n        bottom = 3\n        r = 4\n        width = .4\n        space = 1.2\n        overplot1 = .2\n        overplot2 = .2\n        name = via4\n        color = white\n\n",
+      "frequency_hz": 5000000000.0,
+      "fft": 128,
+      "mesh": {
+        "length_cell": 5,
+        "width_cell": 1.5,
+        "thickness_cell": 0.5,
+        "capacitance_length_cell": 50,
+        "capacitance_width_cell": 8
+      },
+      "admittance_matrix": [
+        [
+          [
+            0.07075774890977475,
+            -0.1020768151660618
+          ],
+          [
+            -0.07073709747211675,
+            0.1033077971282476
+          ]
+        ],
+        [
+          [
+            -0.07073709747211675,
+            0.1033077971282476
+          ],
+          [
+            0.07071853624452133,
+            -0.102471612350454
+          ]
+        ]
+      ],
+      "scattering_matrix": [
+        [
+          [
+            0.04257122208073764,
+            -0.0005793240319478356
+          ],
+          [
+            0.9500206999693909,
+            -0.1117058741084601
+          ]
+        ],
+        [
+          [
+            0.9500206999693909,
+            -0.1117058741084601
+          ],
+          [
+            0.04349815151673615,
+            0.009729467230019212
+          ]
+        ]
+      ],
+      "stdout": "\nASITIC version 10.20.99.0.0.0\nAnalysis & Simulation of Inductors and Transformers for ICs\nReading technology file <process.tek>...\nRunning in console mode...\n\nExecuting script <input.asit>...\nCELL 5 1.5 0.5\n\nCCELL 50 8\n\nEDDY OFF\n\nTurning OFF eddy current calculation mode.\nSQUARE NAME=A:LEN=80:W=5:S=3:N=1:METAL=M1:EXIT=M2:XORG=10:YORG=20\n\nPI2 A 5\n\nPerforming Analysis at 5.00 GHz\nGenerating capacitance matrix (63x63).\nWarning:  Could not open data file at frequency = 5.00.\nTried using . as path.\n\n\nGenerating data at 5.00 GHz...\n\nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nWriting data.....\nGenerating inductance matrix (189x189)..\nInverting matrix......\nSolving node equations...(63x63)\nPi Model at f=5.00 GHz:  Q = 1.443,1.449,1.453\nL  =  0.21 nH\tR  =  4.51\nCs1=  39.2 fF\tRs1=  13.6\nCs2=  26.6 fF\tRs2= -26.5\tf_res = 56.39GHz\n2PORT A 5 5 1 Y RECT SLOW y.out\n\nPerforming Analysis at 5.00 GHz\nGenerating capacitance matrix (63x63)...\nGenerating inductance matrix (189x189)..\nInverting matrix......\nSolving node equations...(63x63)\n2PORT A 5 5 1 S RECT SLOW s.out\n\nPerforming Analysis at 5.00 GHz\nGenerating capacitance matrix (63x63)...\nGenerating inductance matrix (189x189)..\nInverting matrix......\nSolving node equations...(63x63)\nASITIC>  ",
+      "script": "CELL 5 1.5 0.5\nCCELL 50 8\nEDDY OFF\nSQUARE NAME=A:LEN=80:W=5:S=3:N=1:METAL=M1:EXIT=M2:XORG=10:YORG=20\nPI2 A 5\n2PORT A 5 5 1 Y RECT SLOW y.out\n2PORT A 5 5 1 S RECT SLOW s.out\n"
+    },
+    {
+      "kind": "square",
+      "parameters": {
+        "name": "A",
+        "length": 80,
+        "width": 5,
+        "spacing": 3,
+        "turns": 1,
+        "metal": "M1",
+        "exit_metal": "M2",
+        "x": 10,
+        "y": 20
+      },
+      "technology": "; Sample CMOS technology file\n\n<chip>\n\n\tchipx = 512\t; dimensions of the chip in x direction\n\tchipy = 512\t; dimensions of the chip in y direction\n\tfftx = 128\t; x-fft size (must be a power of 2)\n\tffty = 128\t; y-fft size\n\tTechFile = CMOS.tek\n\tTechPath = .\n\tfreq = 2 \t\t; frequency of operation\n\teddy = 0\n\n<layer> 0 \t\t\t; p(-) bulk layer\n\trho = 1e-3\t\t; ohm-cm\n\tt   = 700 \t\t; microns\n        eps = 11.9\n\n<layer>\t1\t   \t\t; Oxide Layer\n\trho = 1e10\n\tt = 50\n\teps = 3.9\n\n<metal> 0\n        layer = 1\t\t; in oxide layer\n        rsh = 65\t\t; sheet resistance3\n        t   = 0.5\t\t; thickness\n        d = 1.3\t\t\t; distance from bottom of layer\n        name = m1\t\n        color = yellow\n\n<metal> 1\n        layer = 1\n        rsh = 55 \n        t = 0.5\n        d = 2.4 \n        name = m2\n        color = LightSkyBlue1\n\n<metal> 2\n        layer = 1\n        rsh = 55 \n        t = 0.5\n        d =  3.5\n        name = m3\n        color = medium purple\n\n<metal> 3\n        layer = 1\n        rsh = 55 \n        t = 0.5\n        d =  4.5\n        name = m4\n        color = light green\n\n<metal> 4\n        layer = 1\n        rsh = 30\n        t = 1\n        d =  6\n        name = m5\n        color = grey\n\n<via> 0                        ; metal 1 to metal 2\n        top = 1\n        bottom = 0\n        r = 4\n        width = .5\n        space = 1.1\n        overplot1 = .2         ; to metal 1\n        overplot2 = .2         ; to metal 2\n        name = via1\n        color = purple\n<via> 1                        ; metal 2 to metal 3\n        top = 2\n        bottom = 1\n        r = 4\n        width = .4\n        space = 1.1\n        overplot1 = .2         ; to metal 1\n        overplot2 = .2         ; to metal 2\n        name = via2\n        color = cyan1\n<via> 2                        ; metal 3 to metal 4\n        top = 3\n        bottom = 2\n        r = 4\n        width = .4\n        space = 1.1\n        overplot1 = .2\n        overplot2 = .2\n        name = via3\n        color = red\n\n<via> 3                        ; metal 3 to metal 4\n        top = 4\n        bottom = 3\n        r = 4\n        width = .4\n        space = 1.2\n        overplot1 = .2\n        overplot2 = .2\n        name = via4\n        color = white\n\n",
+      "frequency_hz": 20000000000.0,
+      "fft": 128,
+      "mesh": {
+        "length_cell": 5,
+        "width_cell": 1.5,
+        "thickness_cell": 0.5,
+        "capacitance_length_cell": 50,
+        "capacitance_width_cell": 8
+      },
+      "admittance_matrix": [
+        [
+          [
+            0.006983226479477806,
+            -0.03303138664865157
+          ],
+          [
+            -0.006942808580389843,
+            0.03800531585286223
+          ]
+        ],
+        [
+          [
+            -0.006942808580389843,
+            0.03800531585286223
+          ],
+          [
+            0.006938604286035672,
+            -0.0345374980898965
+          ]
+        ]
+      ],
+      "scattering_matrix": [
+        [
+          [
+            0.04971144136840496,
+            -0.002105422534626999
+          ],
+          [
+            0.8486849137200376,
+            -0.4296096523798282
+          ]
+        ],
+        [
+          [
+            0.8486849137200376,
+            -0.4296096523798282
+          ],
+          [
+            0.04947201648422574,
+            0.03745190239854429
+          ]
+        ]
+      ],
+      "stdout": "\nASITIC version 10.20.99.0.0.0\nAnalysis & Simulation of Inductors and Transformers for ICs\nReading technology file <process.tek>...\nRunning in console mode...\n\nExecuting script <input.asit>...\nCELL 5 1.5 0.5\n\nCCELL 50 8\n\nEDDY OFF\n\nTurning OFF eddy current calculation mode.\nSQUARE NAME=A:LEN=80:W=5:S=3:N=1:METAL=M1:EXIT=M2:XORG=10:YORG=20\n\nPI2 A 20\n\nPerforming Analysis at 20.00 GHz\nGenerating capacitance matrix (63x63).\nWarning:  Could not open data file at frequency = 20.00.\nTried using . as path.\n\n\nGenerating data at 20.00 GHz...\n\nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nWriting data.....\nGenerating inductance matrix (189x189)..\nInverting matrix......\nSolving node equations...(63x63)\nPi Model at f=20.00 GHz:  Q = 4.730,4.978,5.176\nL  = 0.203 nH\tR  =  4.65\nCs1=  39.6 fF\tRs1=  1.63\nCs2=  27.6 fF\tRs2= -0.35\tf_res = 56.09GHz\n2PORT A 20 20 1 Y RECT SLOW y.out\n\nPerforming Analysis at 20.00 GHz\nGenerating capacitance matrix (63x63)...\nGenerating inductance matrix (189x189)..\nInverting matrix......\nSolving node equations...(63x63)\n2PORT A 20 20 1 S RECT SLOW s.out\n\nPerforming Analysis at 20.00 GHz\nGenerating capacitance matrix (63x63)...\nGenerating inductance matrix (189x189)..\nInverting matrix......\nSolving node equations...(63x63)\nASITIC>  ",
+      "script": "CELL 5 1.5 0.5\nCCELL 50 8\nEDDY OFF\nSQUARE NAME=A:LEN=80:W=5:S=3:N=1:METAL=M1:EXIT=M2:XORG=10:YORG=20\nPI2 A 20\n2PORT A 20 20 1 Y RECT SLOW y.out\n2PORT A 20 20 1 S RECT SLOW s.out\n"
+    }
+  ]
+}

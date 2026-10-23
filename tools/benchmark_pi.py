@@ -24,6 +24,8 @@ def main():
     parser.add_argument("--native-library-path",required=True)
     parser.add_argument("--output",type=Path,required=True)
     parser.add_argument("--samples",type=int,default=3)
+    parser.add_argument("--dense",action="store_true",help="Use a 5/1.5/0.5-um inductive mesh to measure matrix scaling")
+    parser.add_argument("--skip-python",action="store_true",help="Capture native inputs/timing without running the portable fallback")
     args=parser.parse_args()
     if args.samples<1:parser.error("--samples must be positive")
     binary=args.reference.resolve()/"run/asitic.linux.2.2"
@@ -36,6 +38,8 @@ def main():
     cases=[]
     for fft in (64,128):
         case=dict(fixture)
+        case["mesh"]=dict(fixture["mesh"])
+        if args.dense:case["mesh"].update(length_cell=5,width_cell=1.5,thickness_cell=.5)
         if fft==128:case["technology"]=(args.reference/"run/tek/CMOS.tek").read_text()
         samples={}
         for count in (0,1,21):
@@ -45,6 +49,7 @@ def main():
                     work=Path(directory)
                     (work/"process.tek").write_text(case["technology"])
                     prefix=case["script"].split("SAVEMAT")[0]+construction+"\n"
+                    if args.dense:prefix=prefix.replace("CELL 20 3 0.5\n","CELL 5 1.5 0.5\n")
                     (work/"input.asit").write_text(prefix+"PI2 A 1\n"*count)
                     start=time.perf_counter()
                     result=subprocess.run([str(binary),"-g","-t","process.tek","-x","input.asit"],
@@ -58,14 +63,16 @@ def main():
         payload={key:case[key] for key in ("kind","parameters","technology","frequency_hz","mesh","ground")}
         payload["action"]="pi2"
         python_times=[]
-        for _ in range(3):
+        portable_result=None
+        for _ in range(0 if args.skip_python else 3):
             start=time.perf_counter()
             result=json.loads(request_json(json.dumps(payload)))
             python_times.append(time.perf_counter()-start)
             if "error" in result:raise RuntimeError(result["error"])
+            portable_result=result["result"]
         report=dict(fft=fft,native_process_samples=samples,native_process_medians=medians,
                     native_cold_seconds=medians[1]-medians[0],native_warm_seconds=(medians[21]-medians[1])/20,
-                    python_seconds=python_times,request=payload,python_result=result["result"])
+                    python_seconds=python_times,request=payload,python_result=portable_result)
         cases.append(report)
         print(json.dumps({k:v for k,v in report.items() if k not in ("request","python_result","native_process_samples")}),flush=True)
     args.output.write_text(json.dumps(dict(original_sha256=ORIGINAL_SHA256,cases=cases),indent=2)+"\n")

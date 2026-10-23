@@ -1,4 +1,4 @@
-"""Rebuild the browser's retained-precision FFT with pinned Zig 0.13.0."""
+"""Rebuild the browser's retained-precision kernels with pinned Zig 0.13.0."""
 import argparse
 import hashlib
 from pathlib import Path
@@ -42,10 +42,11 @@ def main():
     if subprocess.check_output([zig,"version"],text=True).strip()!="0.13.0":
         parser.error("The reproducible kernel build requires Zig 0.13.0")
     vendor=ROOT/"native/softfloat"
-    command=[zig,"cc","-target","wasm32-freestanding","-O3","-g0","-s","-fno-builtin",
+    command=[zig,"cc","-target","wasm32-freestanding","-O3","-g0","-s","-fno-builtin","-fno-exceptions","-fno-rtti",
              "-DSOFTFLOAT_FAST_INT64","-DINLINE_LEVEL=5","-DSOFTFLOAT_ROUND_ODD",
              "-I"+str(ROOT/"native"),"-I"+str(vendor/"include"),"-I"+str(vendor/"8086"),
-             str(ROOT/"native/fft.c"),*[str(p) for p in sorted(vendor.rglob("*.c"))],
+             str(ROOT/"native/fft.c"),*[str(p) for p in sorted((ROOT/"native").glob("*.cpp"))],
+             *[str(p) for p in sorted(vendor.rglob("*.c"))],
              "-nostdlib","-Wl,--no-entry","-Wl,--export-memory"]
     with tempfile.TemporaryDirectory(prefix="pyasitic-kernel-build-") as directory:
         output=Path(directory)/"numeric.wasm"

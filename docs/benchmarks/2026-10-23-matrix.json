@@ -1,0 +1,178 @@
+{
+  "date": "2026-10-23",
+  "runtime": "Pyodide 314.0.7",
+  "baseline_commit": "56173c9905add175fe934ac9b10e950647ebaee9",
+  "original_sha256": "72bcb93444604b89a65cb64e5825bfcff0ac740a816120d0f171855206bd572f",
+  "updated_kernel_sha256": "c7edaceeeebb33486383d2a13f8409af246f80cb64cdec856dfc42df43d8e9a7",
+  "method": "tools/benchmark_pi.py and tools/benchmark_pi.mjs; first request then two identical cached requests; shared interpreter across FFT cases, fresh native process per sample. Timings are observations on the development host, not test thresholds.",
+  "cases": [
+    {
+      "label": "34-filament",
+      "fft": 64,
+      "mesh": {
+        "length_cell": 20,
+        "width_cell": 3,
+        "thickness_cell": 0.5,
+        "capacitance_length_cell": 50,
+        "capacitance_width_cell": 8
+      },
+      "filaments": 34,
+      "contacts": 17,
+      "native_cold_seconds": 0.039000048011075705,
+      "native_cached_seconds": 0.0006067491485737264,
+      "native_process_samples": {
+        "0": [
+          0.0025483050267212093,
+          0.002284330956172198,
+          0.0022993210004642606
+        ],
+        "1": [
+          0.04188893502578139,
+          0.041169125004671514,
+          0.041299369011539966
+        ],
+        "21": [
+          0.05457708501489833,
+          0.053434351983014494,
+          0.0532637819997035
+        ]
+      },
+      "baseline_wasm_seconds": [
+        1.112347158,
+        0.17933542000000033,
+        0.17745202800000015
+      ],
+      "updated_wasm_seconds": [
+        0.9315461439999999,
+        0.03324518099999978,
+        0.03333981500000027
+      ]
+    },
+    {
+      "label": "34-filament",
+      "fft": 128,
+      "mesh": {
+        "length_cell": 20,
+        "width_cell": 3,
+        "thickness_cell": 0.5,
+        "capacitance_length_cell": 50,
+        "capacitance_width_cell": 8
+      },
+      "filaments": 34,
+      "contacts": 17,
+      "native_cold_seconds": 0.15979329799301922,
+      "native_cached_seconds": 0.0005093227489851415,
+      "native_process_samples": {
+        "0": [
+          0.003958446031901985,
+          0.0031577490153722465,
+          0.003981291025411338
+        ],
+        "1": [
+          0.16356525104492903,
+          0.1659094089991413,
+          0.1637517440249212
+        ],
+        "21": [
+          0.17526834597811103,
+          0.1737340330146253,
+          0.17393819900462404
+        ]
+      },
+      "baseline_wasm_seconds": [
+        2.9508079330000005,
+        0.17902428500000042,
+        0.17319596300000012
+      ],
+      "updated_wasm_seconds": [
+        2.671776071,
+        0.03239204900000004,
+        0.03217120900000009
+      ]
+    },
+    {
+      "label": "189-filament",
+      "fft": 64,
+      "mesh": {
+        "length_cell": 5,
+        "width_cell": 1.5,
+        "thickness_cell": 0.5,
+        "capacitance_length_cell": 50,
+        "capacitance_width_cell": 8
+      },
+      "filaments": 189,
+      "contacts": 63,
+      "native_cold_seconds": 0.05963619000976905,
+      "native_cached_seconds": 0.02123784624855034,
+      "native_process_samples": {
+        "0": [
+          0.0024998339940793812,
+          0.0025326370378024876,
+          0.0025144219980575144
+        ],
+        "1": [
+          0.06215061200782657,
+          0.06185700005153194,
+          0.06395154300844297
+        ],
+        "21": [
+          0.48949088400695473,
+          0.4869075369788334,
+          0.4839269229560159
+        ]
+      },
+      "baseline_wasm_seconds": [
+        23.861337276999997,
+        18.105783371999998,
+        18.121893235999995
+      ],
+      "updated_wasm_seconds": [
+        6.259847271000001,
+        0.671613945,
+        0.6857174000000005
+      ]
+    },
+    {
+      "label": "189-filament",
+      "fft": 128,
+      "mesh": {
+        "length_cell": 5,
+        "width_cell": 1.5,
+        "thickness_cell": 0.5,
+        "capacitance_length_cell": 50,
+        "capacitance_width_cell": 8
+      },
+      "filaments": 189,
+      "contacts": 63,
+      "native_cold_seconds": 0.17948420997709036,
+      "native_cached_seconds": 0.021140933450078593,
+      "native_process_samples": {
+        "0": [
+          0.0036876790109090507,
+          0.003453983983490616,
+          0.004208996018860489
+        ],
+        "1": [
+          0.1831718889879994,
+          0.18379791895858943,
+          0.1828867130097933
+        ],
+        "21": [
+          0.6059905579895712,
+          0.6056260349578224,
+          0.6129605009919032
+        ]
+      },
+      "baseline_wasm_seconds": [
+        20.721096567000007,
+        18.110523201000003,
+        18.153955994999997
+      ],
+      "updated_wasm_seconds": [
+        3.299079170000001,
+        0.6713536169999988,
+        0.6681679139999996
+      ]
+    }
+  ]
+}

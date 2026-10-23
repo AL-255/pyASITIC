@@ -17,7 +17,7 @@ for(const c of report.cases){
     if(result.error)throw Error(result.error);
     c.wasm_result=result.result;
   }
-  console.log(JSON.stringify({fft:c.fft,native_cold_seconds:c.native_cold_seconds,native_warm_seconds:c.native_warm_seconds,python_seconds:c.python_seconds,wasm_seconds:c.wasm_seconds}));
+  console.log(JSON.stringify({fft:c.fft,filaments:c.wasm_result.filaments,contacts:c.wasm_result.contacts,native_cold_seconds:c.native_cold_seconds,native_warm_seconds:c.native_warm_seconds,python_seconds:c.python_seconds,wasm_seconds:c.wasm_seconds}));
 }
 call.destroy();
 writeFileSync(process.argv[4],JSON.stringify(report,null,2)+"\n");

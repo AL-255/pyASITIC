@@ -15,7 +15,7 @@ Both the portable Python FFT and compiled browser FFT must match every output
 component bit for bit. This establishes the tested FFT boundary, not universal
 electrical parity for the whole simulator.
 
-The browser calls the compiled kernel once per complete vector or grid, with a
+The browser calls the compiled kernel once per complete vector, grid or matrix, with a
 Python-owned buffer copied into and out of separate bounded WebAssembly memory.
 The solver retains a portable Python implementation for environments without
 the compiled module.
@@ -31,7 +31,25 @@ DSO. Both implementations match every scalar output bit. These finite fixtures
 establish the tested boundary; arbitrary x87 inputs remain subject to further
 validation.
 
-Rebuild the checked-in, stripped `web/numeric.wasm` (18.6 KiB):
+`matrix_symmetric.cpp` and `matrix_complex.cpp` follow the reference's unblocked
+upper symmetric factor/inverse, BLAS operations, eigen rotations and spill order.
+`soft_real.hpp` replaces each retained `long double` operation with SoftFloat's
+80-bit operation, including square root. Source revision and hashes are recorded
+in `matrix-source.json`. A fixed 256-entry matrix limit matches the browser's
+filament limit. Calls copy column-major Python records into separate bounded
+storage and return the original pivots. The inverse reconstructs its defined
+upper triangle into the full symmetric result, as the Python API requires.
+
+`capture_original_symmetric.py` runs the intact original factor/inverse routines
+with the original legacy-complex DSO. It independently verifies 44 saved cases
+and captures complete upper-triangle digests at 128 and 256 entries, including
+two-entry pivots. CI checks every compiled output bit, lower-triangle preservation,
+full inverse reconstruction and input immutability. Four dense Pi2 sessions also
+compare full native Y/S outputs at 1, 5 and 20 GHz. The portable Python matrix
+fallback retains its existing component-tolerance checks; this is not a claim of
+universal bitwise parity of that fallback or of the complete simulator.
+
+Rebuild the checked-in, stripped `web/numeric.wasm` (55.8 KiB):
 
 ```sh
 python tools/build_kernels.py --download-zig

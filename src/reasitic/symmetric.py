@@ -5,9 +5,32 @@ for every size. This ports its one/two-pivot paths, eigen rotations and ZSYTRI.
 Binary64 records use Decimal guard precision for retained intermediate values.
 """
 from decimal import Decimal
+from array import array
 import math
 from .green import _guard,legacy_divide
 from .linear import _product,_scale,_update
+
+try:
+    from _reasitic_numeric import symmetric as _compiled_symmetric
+except ImportError:
+    _compiled_symmetric=None
+
+
+def _validate(matrix):
+    n=len(matrix)
+    if not n or any(len(row)!=n for row in matrix):raise ValueError("Symmetric factor requires a nonempty square matrix")
+    if any(not math.isfinite(z.real) or not math.isfinite(z.imag) for row in matrix for z in row):raise ValueError("Symmetric matrix must be finite")
+    return n
+
+
+def _compiled(matrix,n,invert):
+    # Columns match the original BLAS layout. The final n cells carry pivots.
+    values=array("d",(v for j in range(n) for i in range(n) for v in (matrix[i][j].real,matrix[i][j].imag)))
+    values.extend([0.0]*n)
+    status=_compiled_symmetric(values,n,int(invert))
+    if status:raise ValueError("Singular symmetric matrix" if status>0 else "Invalid symmetric matrix dimension")
+    result=[[complex(values[2*(j*n+i)],values[2*(j*n+i)+1]) for j in range(n)] for i in range(n)]
+    return result,[int(v) for v in values[2*n*n:]]
 
 
 def _d(value):return Decimal.from_float(value)
@@ -96,9 +119,8 @@ def _rotate(x,y,c,s):
 
 @_guard
 def factor_symmetric_upper(matrix):
-    n=len(matrix)
-    if not n or any(len(row)!=n for row in matrix):raise ValueError("Symmetric factor requires a nonempty square matrix")
-    if any(not math.isfinite(z.real) or not math.isfinite(z.imag) for row in matrix for z in row):raise ValueError("Symmetric matrix must be finite")
+    n=_validate(matrix)
+    if _compiled_symmetric is not None and n<=256:return _compiled(matrix,n,False)
     a=[row.copy() for row in matrix];pivots=[0]*n;k=n-1
     alpha=_d(float.fromhex("0x1.47e0f66afed07p-1"))
     while k>=0:
@@ -162,6 +184,8 @@ def _multiply_upper(a,n,x):
 @_guard
 def inverse_symmetric(matrix):
     """Native ZSYTRF(n-cell workspace) + ZSYTRI, with full symmetric output."""
+    n=_validate(matrix)
+    if _compiled_symmetric is not None and n<=256:return _compiled(matrix,n,True)[0]
     a,pivots=factor_symmetric_upper(matrix);n=len(a);k=0
     while k<n:
         step=1

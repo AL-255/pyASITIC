@@ -6,6 +6,7 @@ import math
 from pathlib import Path
 import random
 import subprocess
+import sys
 import tempfile
 
 ROOT=Path(__file__).resolve().parents[1]
@@ -60,6 +61,14 @@ def main():
             for stride in (n,n+2):configs.append((a,stride))
     n=65;a=[[complex(3+i*.01,2) if i==j else complex(.01/(i+j+1),.02/(abs(i-j)+1)) for j in range(n)] for i in range(n)]
     configs.append((a,n+2));configs.append(([[0j,0j],[0j,0j]],2))
+    configs.extend([
+        ([[complex(1e-300,2e-300)]],1),
+        ([[complex(1e300,2e300)]],1),
+        ([[complex(2,-0.),complex(-0.,-0.)],[complex(-0.,-0.),complex(3,0.)]],2),
+        ([[1+2j,.2+.1j],[13+17j,3+4j]],4),
+        ([[1+0j,1j],[1j,-1+1e-4j]],2),
+        ([[1+0j,0j],[0j,0j]],2),
+    ])
     eigen=[(1+0j,0j,2+0j),(1+1j,2+3j,4-2j),(1+0j,1j,-1+1e-4j),(1+0j,1j,-1+0j),
            (1e-200+2e-200j,3e-200+1e-200j,-1e-200+0j),(1e100+1e100j,3e100-1e100j,-2e100+4e100j)]
     cases=[];eigen_cases=[]
@@ -84,6 +93,7 @@ def main():
     output=ROOT/"tests/fixtures/symmetric.json"
     output.write_text(json.dumps(dict(reference="Direct unmodified native n-workspace symmetric factor/inverse and complex eigen2",reference_commit=subprocess.check_output(["git","-C",str(reference),"rev-parse","HEAD"],text=True).strip(),archive_sha256=hashlib.sha256(archive.read_bytes()).hexdigest(),probe=SOURCE,cases=cases,eigen=eigen_cases),indent=2,allow_nan=False)+"\n")
     print(output,len(cases),len(eigen_cases))
+    subprocess.run([sys.executable,str(ROOT/"tools/capture_original_symmetric.py"),"--reference",str(reference)],check=True)
 
 
 if __name__=="__main__":main()

@@ -87,7 +87,7 @@ for(const c of symmetric.cases){
   }
 }
 for(const c of symmetric.eigen)near(JSON.parse(probe(nativeJSON({group:"eigen",case:c}))),c.result,"Native eigen2");
-console.log("38 native symmetric factors/inverses and six eigen rotations passed in WebAssembly.");
+console.log(`${symmetric.cases.length} native symmetric factors/inverses and ${symmetric.eigen.length} eigen rotations passed in WebAssembly.`);
 for(const c of fixture("parallel").cases){
   const result=JSON.parse(probe(nativeJSON({group:"parallel",case:c})));
   assert.equal(result.status,c.status,"Native parallel status");
