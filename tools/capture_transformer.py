@@ -20,9 +20,18 @@ extern "C" int vsprintf(char*,const char*,__builtin_va_list);
 extern "C" void* fopen(const char*,const char*);
 extern "C" int fprintf(void*,const char*,...);
 extern "C" int fclose(void*);
+extern "C" unsigned fwrite(const void*,unsigned,unsigned,void*);
 extern "C" int sprintf(char* output,const char* format,...) {
  __builtin_va_list args;__builtin_va_start(args,format);
  if(!strncmp(format,"L1=",3)) {
+  // Capture the original SI records before formatting changes their units.
+  // This observes data only; no numerical instructions or records are changed.
+  void* raw=fopen("transformer-raw.out","ab");
+  const unsigned addresses[]={0x80d8da8,0x80d8db0,0x80d8db8,0x80d8dc0,0x80d8dd8,0x80d8de0,0x80d8de8,0x80d8df0,
+    0x80d8cc8,0x80d8cd0,0x80d8cb8,0x80d8cc0,0x80d8c98,0x80d8ca0,0x80d8c88,0x80d8c90,
+    0x80d8828,0x80d8830,0x80d8848,0x80d8850,0x80d8840,0x80d8868,0x80d8838};
+  for(unsigned address:addresses)fwrite(reinterpret_cast<const void*>(address),8,1,raw);
+  fclose(raw);
   __builtin_va_list copy;__builtin_va_copy(copy,args);void* file=fopen("transformer-values.out","a");
   for(int i=0;i<7;++i)fprintf(file,"%.17g ",__builtin_va_arg(copy,double));
   fprintf(file,"\n");fclose(file);__builtin_va_end(copy);
@@ -112,7 +121,10 @@ def sessions(reference,root,library_path):
         # The command parser stores numeric arguments in binary32 before the
         # backend receives them as doubles. Record its actual SI input.
         native_termination=struct.unpack("<f",struct.pack("<f",termination))[0]
+        raw=(path/"transformer-raw.out").read_bytes()
+        if len(raw)<23*8:raise RuntimeError("Missing original raw transformer records")
         cases.append(dict(first=first,second=second,ground=ground,reference_mode=reference_mode,command_termination_ohm=termination,termination_ohm=native_termination,eddy=eddy,mesh=mesh,frequency_hz=1e9,technology=tech,metrics=metrics,nonfinite_model=all(isinstance(v,str) for v in metrics),
+                          raw_output_bits=[raw[j:j+8].hex() for j in range(0,23*8,8)],
                           nodal_capacitance_matrix=matrix(read_matrix(path/"Ycap.out")),admittance_matrix=matrix(port_matrix(path/"y.out")),scattering_matrix=matrix(port_matrix(path/"s.out")),script=script,stdin=answers,stdout=result.stdout))
     return cases
 

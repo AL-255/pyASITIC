@@ -135,6 +135,8 @@ and folded node driver using the checksum-pinned original and legacy DSO.
 Sixty-seven cases check 1,541 output components, finite values bit for bit
 and nonfinite values by classification,
 including nonreciprocal inputs, extreme scales and folded-node results.
+Twenty-one raw Y records from complete original sessions independently check
+the compiled Z/model outputs at their SI binary64 boundaries as well.
 The full Python pipeline also checks 15 finite original CALCTRANS/2PORTTRANS
 sessions and diagnoses six original nonfinite histories. Those complete
 electrical comparisons retain component tolerances; they do not establish

@@ -41,6 +41,17 @@ for(const c of fixture.rules){
  for(const key of["I","M","Z"]){exact(actual[key],c[key],`Original transformer ${key}`);components+=c[key].length;}
 }
 probe.destroy();console.log(`${fixture.rules.length} original transformer extractions passed (${components} finite-bit/nonfinite-classification components).`);
+// Real coupled-session Y records independently exercise the extractor with
+// full binary precision, before the original text export rounds its digits.
+const capturedProbe=py.globals.get("transformer_probe");
+function decoded(hex){const value=Buffer.from(hex,"hex").readDoubleLE();return Number.isNaN(value)?"nan":value===Infinity?"inf":value===-Infinity?"-inf":value;}
+for(const [i,c]of fixture.cases.entries()){
+ const values=c.raw_output_bits.map(decoded),input=Array.from({length:4},(_,j)=>values.slice(j*2,j*2+2));
+ const actual=JSON.parse(capturedProbe(nativeJSON({input,frequency_hz:c.frequency_hz})));
+ exact(actual.Z,values.slice(8,16),`Original session ${i} Z extraction`);
+ exact(actual.M,values.slice(16,23),`Original session ${i} SI model extraction`);
+}
+capturedProbe.destroy();console.log(`${fixture.cases.length} actual original-session Y→Z/model extractions also passed at raw SI output boundaries.`);
 py.runPython("from reasitic.bridge import request_json");const call=py.globals.get("request_json");
 function near(a,b,floor,relative=1e-8){
  if(Array.isArray(b)){assert.equal(a.length,b.length);a.forEach((v,i)=>near(v,b[i],floor,relative));}

@@ -371,3 +371,19 @@ unchanged component tolerances. Six original all-nonfinite histories, including
 collapsed 3D contacts and explicit-reference invalid inductive meshes, receive
 bounded diagnostics rather than fabricated finite models. They do not establish
 equivalence for arbitrary original invalid-memory or allocator histories.
+
+Each coupled session also records the original Y, Z and SI model doubles as
+little-endian hexadecimal words before text formatting. The compiled extractor
+reproduces Z/model outputs from all 21 original Y records exactly at finite
+boundaries, with nonfinite values compared by classification. This isolates the
+extractor from differences in the preceding electromagnetic solve.
+
+Run the separate strict end-to-end audit after `tools/build_site.py` with
+`node tools/audit_transformer_parity.mjs /path/to/pyodide.mjs`. It exits nonzero
+for any differing finite output bit; it is deliberately separate from the
+component-tolerance regression suite. At this revision, only 2 of the 15 finite
+coupled sessions are exact; 263 of their 345 Y/Z/model components differ.
+Original debugger snapshots locate differences in inductive-admittance inputs
+while CAP inputs match exactly in four sampled sessions. Filament construction,
+impedance assembly and eddy arithmetic remain precision work; the strict audit
+is not a passing parity gate yet.
