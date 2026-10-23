@@ -126,7 +126,21 @@ subnormals, extreme frequencies and nonfinite classifications. Inputs to that
 oracle are already stored ohm-µm resistivities; the production reader conversion
 retains the original multiply-by-10000 store separately.
 
-Rebuild the checked-in, stripped `web/numeric.wasm` (110.4 KiB):
+`transformer.cpp` follows the original reciprocal Y-to-Z conversion and
+seven-value CALCTRANS extraction. It preserves native diagonal labels, ignores
+the unused y12 input, and retains live inductances until the coupling output
+spill. Source provenance is recorded in `transformer-source.json`.
+`capture_transformer.py` executes the intact original inverse/model routines
+and folded node driver using the checksum-pinned original and legacy DSO.
+Sixty-seven cases check 1,541 output components, finite values bit for bit
+and nonfinite values by classification,
+including nonreciprocal inputs, extreme scales and folded-node results.
+The full Python pipeline also checks 15 finite original CALCTRANS/2PORTTRANS
+sessions and diagnoses six original nonfinite histories. Those complete
+electrical comparisons retain component tolerances; they do not establish
+whole-simulator bitwise equality.
+
+Rebuild the checked-in, stripped `web/numeric.wasm` (113.4 KiB):
 
 ```sh
 python tools/build_kernels.py --download-zig

@@ -8,3 +8,5 @@
 .eddy-toggle{display:flex;align-items:center;gap:9px;margin:14px 0;font-size:12px}.eddy-toggle input{width:auto;height:auto;margin:0;flex:0 0 auto}#sweep-chart text{font-size:12px}
 #selfres-chart{overflow:auto;border:1px solid var(--line);border-radius:7px;margin:12px 0}#selfres-chart svg{display:block;width:100%;min-width:600px;height:auto}#selfres-chart .plot-point{cursor:default}#selfres-result{font:12px/1.9 var(--mono);color:var(--accent)}#selfres-table{max-height:300px;overflow:auto}.sweep-controls .selfres-reference{flex-basis:230px;width:230px}
 #selfres-circuit:empty{display:none}#selfres-circuit{overflow:auto;border:1px solid var(--line);border-radius:7px;margin:12px 0}#selfres-circuit svg{display:block;width:100%;min-width:580px;height:auto}
+
+#transformer-circuit svg,#transformer-chart svg{display:block;width:100%;height:auto;margin:12px 0}#transformer-metrics table{margin:12px 0}

@@ -11,6 +11,7 @@ from .network import solve_pi2
 from .network import solve_pi3,solve_pi4
 from .resonance import solve_self_resonance
 from .extended import solve_pix
+from .transformer import solve_transformer
 
 __all__ = ["build", "Technology", "resistance_dc", "resistance_hf", "write_gds",
-           "inductance_estimate", "coupling_estimate", "solve_impedance", "solve_capacitance", "solve_pi2", "solve_pi3", "solve_pi4", "solve_pix", "solve_self_resonance", "build_device"]
+           "inductance_estimate", "coupling_estimate", "solve_impedance", "solve_capacitance", "solve_pi2", "solve_pi3", "solve_pi4", "solve_pix", "solve_transformer", "solve_self_resonance", "build_device"]

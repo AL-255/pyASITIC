@@ -19,6 +19,7 @@ export async function installNumericalKernels(python, bytes) {
   const spectralConfig = new Float64Array(api.memory.buffer, api.spectral_config_buffer(), 2048);
   const spectralTables = new Float64Array(api.memory.buffer, api.spectral_table_buffer(), 2 * (66049 + 1024));
   const spectralDepths = new Float64Array(api.memory.buffer, api.spectral_depth_buffer(), 257);
+  const transformerData = new Float64Array(api.memory.buffer, api.transformer_buffer(), 24);
   function spectralCall(config,output,probe) {
     let c,o;
     try {
@@ -37,6 +38,14 @@ export async function installNumericalKernels(python, bytes) {
     } finally {o?.release();c?.release();}
   }
   python.registerJsModule("_reasitic_numeric", {
+    transformer_model(buffer,operation) {
+      if(![0,1].includes(operation))throw new Error("Transformer operation is invalid");
+      const view=buffer.getBuffer("f64");
+      try {
+        if(view.data.length!==24)throw new Error("Transformer buffer length is invalid");
+        transformerData.set(view.data);const status=api.transformer_model(operation);view.data.set(transformerData);return status;
+      } finally {view.release();}
+    },
     layer_coefficients(buffer) {
       const view=buffer.getBuffer("f64");
       try {

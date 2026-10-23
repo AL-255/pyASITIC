@@ -1,0 +1,5 @@
+{
+  "reference_commit": "63885e808b522bdeba3f254d353afc72e643c761",
+  "source_sha256": "fef5354bd19a6ca809b64afa51579843b64f44c11a35aba0dd6199f9b71ea9a6",
+  "adaptation": "Retained SoftReal operations, live inductances and original scalar fields; binary64 dead-copy stores retained; bounded Python transport; no algebraic port permutation."
+}

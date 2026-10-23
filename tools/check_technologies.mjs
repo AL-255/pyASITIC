@@ -4,7 +4,7 @@ import {readFileSync} from "node:fs";
 import {pathToFileURL} from "node:url";
 import assert from "node:assert/strict";
 import {installNumericalKernels} from "../web/numeric-kernels.mjs";
-import {circuitSVG,sweepSVG} from "../web/analysis-views.mjs";
+import {circuitSVG,sweepSVG,transformerSVG} from "../web/analysis-views.mjs";
 const {loadPyodide}=await import(pathToFileURL(process.argv[2]).href),py=await loadPyodide();
 py.unpackArchive(new Uint8Array(readFileSync(new URL("../dist/reasitic.zip",import.meta.url))),"zip");
 await installNumericalKernels(py,readFileSync(new URL("../dist/numeric.wasm",import.meta.url)));
@@ -37,7 +37,7 @@ console.log("Three native GF180 distributed network sessions passed in WebAssemb
 if(process.argv[3]){
   const {JSDOM}=await import(pathToFileURL(process.argv[3]).href);
   const dom=new JSDOM(readFileSync(new URL("../dist/index.html",import.meta.url),"utf8"),{url:"https://example.test/",runScripts:"outside-only"});
-  const {window:w}=dom,downloads=[];w.circuitSVG=circuitSVG;w.sweepSVG=sweepSVG;w.Blob=Blob;
+  const {window:w}=dom,downloads=[];w.circuitSVG=circuitSVG;w.sweepSVG=sweepSVG;w.transformerSVG=transformerSVG;w.Blob=Blob;
   w.URL.createObjectURL=blob=>{downloads.push(blob);return "blob:test";};w.URL.revokeObjectURL=()=>{};w.HTMLAnchorElement.prototype.click=()=>{};
   // Only transport is replaced. The actual app event handlers, DOM, Python
   // bridge, geometry and process files run together from this release.

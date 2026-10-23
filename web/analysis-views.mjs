@@ -30,7 +30,26 @@ export function circuitSVG(pi={},options={}){
   </g><g font-family="monospace" font-size="10" fill="#9cabb9">${text(380,355,options.note||"Frequency-specific series L/R and series RC shunts",'text-anchor="middle"')}</g></svg>`;
 }
 
+export function transformerSVG(model={},options={}){
+  const short=value=>String(value).length>23?String(value).slice(0,22)+"…":String(value);
+  const f=options.frequencyHz,title=`CALCTRANS coupled equivalent${Number.isFinite(f)?` at ${number(f/1e9)} GHz`:""}`;
+  return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 760 440" role="img" aria-label="${escape(title)}"><title>${escape(title)}</title><rect width="760" height="440" fill="#101820" rx="7"/>
+  <g fill="none" stroke="#a5bdcc" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M200 60V90 M200 160V185 M200 260V280H560V260 M560 185V160 M560 90V60 M380 280V300 M380 370V390 M362 390H398 M368 398H392 M375 406H385"/>
+  <path stroke="#f0b567" d="M200 90l-9 8 18 12 -18 12 18 12 -18 12 18 12 -9 2 M560 90l-9 8 18 12 -18 12 18 12 -18 12 18 12 -9 2 M200 185c-25 0 -25 25 0 25c-25 0 -25 25 0 25c-25 0 -25 25 0 25 M560 185c25 0 25 25 0 25c25 0 25 25 0 25c25 0 25 25 0 25 M380 300l-9 8 18 12 -18 12 18 12 -18 12 18 12 -9 2"/>
+  <path d="M330 220H430 M336 214l-6 6 6 6 M424 214l6 6 -6 6"/><g fill="#101820" stroke="#f0b567"><circle cx="200" cy="60" r="6"/><circle cx="560" cy="60" r="6"/></g><g fill="#f0b567" stroke="none"><circle cx="218" cy="187" r="4"/><circle cx="542" cy="258" r="4"/></g></g>
+  <g font-family="monospace" font-size="12" fill="#9cabb9">${text(24,22,"CALCTRANS"+(Number.isFinite(f)?` · ${number(f/1e9)} GHz`:""))}${text(200,40,"1 · "+short(options.first||"First winding"),'text-anchor="middle"')}${text(560,40,"2 · "+short(options.second||"Second winding"),'text-anchor="middle"')}${text(150,104,"R1",'text-anchor="end"')}${text(610,104,"R2")}${text(150,196,"L1",'text-anchor="end"')}${text(610,196,"L2")}${text(440,327,"Rg")}${text(415,403,"3 / Ground")}</g>
+  <g font-family="monospace" font-size="14" fill="#f1ca94">${text(150,126,unit(model.first_resistance_ohm,1,"Ω"),'text-anchor="end"')}${text(610,126,unit(model.second_resistance_ohm,1,"Ω"))}${text(150,218,unit(model.first_inductance_h,1e9,"nH"),'text-anchor="end"')}${text(610,218,unit(model.second_inductance_h,1e9,"nH"))}${text(380,198,"M = "+unit(model.mutual_h,1e9,"nH"),'text-anchor="middle"')}${text(380,244,"k = "+(Number.isFinite(model.coupling)?number(model.coupling):"Undefined"),'text-anchor="middle"')}${text(440,349,unit(model.ground_resistance_ohm,1,"Ω"))}</g>
+  <g font-family="monospace" font-size="10" fill="#9cabb9">${text(380,430,"Frequency-specific equivalent · native port and mutual-sign convention",'text-anchor="middle"')}</g></svg>`;
+}
+
 export const SWEEP_METRICS={
+  coupling:{title:"Coupling k",unit:"",color:"#8fd1ae"},
+  first_inductance_nh:{title:"First inductance",unit:"nH",color:"#81b4ef"},
+  second_inductance_nh:{title:"Second inductance",unit:"nH",color:"#b899eb"},
+  mutual_nh:{title:"Mutual inductance",unit:"nH",color:"#f0b567"},
+  first_resistance_ohm:{title:"First resistance",unit:"Ω",color:"#81b4ef"},
+  second_resistance_ohm:{title:"Second resistance",unit:"Ω",color:"#b899eb"},
+  ground_resistance_ohm:{title:"Ground resistance",unit:"Ω",color:"#f0b567"},
   inductance_nh:{title:"Inductance",unit:"nH",color:"#81b4ef"},
   resistance_ohm:{title:"Resistance",unit:"Ω",color:"#f0b567"},
   q:{title:"Quality factor",unit:"",color:"#8fd1ae"},

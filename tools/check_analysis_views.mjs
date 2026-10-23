@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import { mkdirSync,writeFileSync,readFileSync } from "node:fs";
-import { circuitSVG,sweepSVG } from "../web/analysis-views.mjs";
+import { circuitSVG,sweepSVG,transformerSVG } from "../web/analysis-views.mjs";
 
 const model={inductance_h:1.02175e-9,resistance_ohm:5.0983,capacitance_first_f:24.33e-15,
   capacitance_second_f:21.8e-15,resistance_first_ohm:-2.97,resistance_second_ohm:5.55};
@@ -12,6 +12,11 @@ assert.ok(circuit.includes("3 / Ground"));
 assert.ok(!circuit.includes("NaN"));
 assert.ok(circuitSVG({}, {model:"Pi <unsafe>",note:"A & B"}).includes("Pi &lt;unsafe&gt;"));
 assert.ok(circuitSVG({}, {note:"A & B"}).includes("A &amp; B"));
+const coupled=transformerSVG({first_inductance_h:.3e-9,second_inductance_h:-.4e-9,mutual_h:.2e-9,coupling:1.5,first_resistance_ohm:2,second_resistance_ohm:3,ground_resistance_ohm:-.1},{frequencyHz:2e9,first:"A <unsafe>",second:"B & C"});
+assert.ok(coupled.includes("-0.4 nH")&&coupled.includes("k = 1.5")&&coupled.includes("-0.1 Ω"));
+assert.ok(coupled.includes("A &lt;unsafe&gt;")&&coupled.includes("B &amp; C"));
+assert.ok(coupled.includes("3 / Ground"));
+assert.ok(!/NaN|Infinity/.test(transformerSVG()));
 
 const rows=[{frequency_hz:1e8,inductance_nh:1.2,resistance_ohm:2,q:4},
   {frequency_hz:1e9,inductance_nh:1.2,resistance_ohm:3,q:6},
@@ -43,5 +48,6 @@ if(process.argv[2]){
   writeFileSync(process.argv[2]+"/circuit.svg",circuit);
   writeFileSync(process.argv[2]+"/plot.svg",plot);
   writeFileSync(process.argv[2]+"/resonance.svg",resonance);
+  writeFileSync(process.argv[2]+"/transformer.svg",coupled);
 }
 console.log("Circuit units, SVG escaping, plot gaps, negative values and finite axes passed.");

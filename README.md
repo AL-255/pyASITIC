@@ -65,6 +65,12 @@ Implemented so far:
   single-ended/differential input reactance, streamed sample progress, a trace
   plot and JSON/CSV/SVG export. Reports the native stopping criterion and keeps
   the last evaluated circuit separate from a possibly unevaluated result.
+- `CALCTRANS` coupled-winding analysis with native junction termination,
+  optional reference strip and eddy correction. Displays the seven-value
+  equivalent circuit, Y/Z/S exports, and selectable coupling, L/M/R sweep plots.
+  The compiled extractor matches 67 direct original-executable cases exactly
+  at finite output boundaries. Complete-session checks cover 15 finite cases
+  and explicit diagnostics for six original nonfinite histories.
 - GDSII export with actual via cuts and metal landing pads. Default mapping:
   metal index + 1, via index + 100; datatype 0. GF180 presets supply their drawn
   layer numbers. Python/JSON callers can override the mapping.
@@ -120,7 +126,7 @@ tests and the same source archive inside the pinned WebAssembly runtime before
 deploying to Pages. No external simulation service is required.
 
 The Pages workflow runs Python core checks, every native potential-reference
-process/frequency group, and ten WebAssembly groups in parallel. FFT/CAP and
+process/frequency group, and eleven WebAssembly groups in parallel. FFT/CAP and
 SELFRES checks print case progress. Fixture-derived grouping keeps all native
 cases covered; deployment waits for every group and publishes only the current
 main commit. Active validation is retained when another commit is pushed.
@@ -147,6 +153,16 @@ from reasitic import solve_self_resonance
 ground = build("wire", technology=tech, length=160, width=10, metal="M1", y=150)
 search = solve_self_resonance(coil, tech, 1e9, 100e9, .1e9, ground=ground)
 print(search["frequency_hz"], search["reason"])
+
+from reasitic import build_device, solve_transformer
+# Resolve the 3 µm contacts on a 2 µm FFT grid.
+tech.chip.update(chipx=128, chipy=128, fftx=64, ffty=64)
+primary, secondary = build_device(
+    "transformer", technology=tech, length=80, height=70, width=3,
+    spacing=2, turns=1.25, secondary_turns=1, metal="M4",
+    exit_metal="M3", x=10, y=10)
+coupled = solve_transformer(primary, secondary, tech, 1e9)
+print(coupled["model"])  # SI units; native CALCTRANS port/sign convention
 ```
 
 `python -m reasitic request.json` runs the same JSON interface used by the worker;
@@ -155,7 +171,7 @@ add `--gds coil.gds` to export a layout request. See `src/reasitic/bridge.py`.
 ## Remaining scope
 
 The full objective includes geometry editing/session commands;
-broader substrate eddy-current validation; transformer and multiport
+broader substrate eddy-current and coupled-device validation; multiport
 networks; optimization. Work will be validated against the reference
 one connected path at a time. No fitted spiral-inductance formula is substituted
 for the original electromagnetic solver.

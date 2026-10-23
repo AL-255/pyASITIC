@@ -17,6 +17,7 @@ Reference checkout: `~/github/asitic-re`, revision recorded in each fixture.
 | `x87_math.py`, `native/fft.c` | Original clipped cosh at `0x0809123c`, tanh through transfer-up at `0x0808f004`; `potential_tables.cpp` | 20,014 direct original-binary scalar cases match bit for bit in Python and compiled WebAssembly; retained argument formation and exponent reduction fix the grounded-wire raw-potential reference without widening tolerance |
 | `network.py` | `combined_network.cpp`, `node_equations.cpp`, `network.cpp`, `two_port_output.cpp` | Eight no-eddy PI2 sessions: CAP/inductive/nodal snapshots, 15-digit Y/S output, printed L/R/C/Q/shunt-R/resonance reports; isolated node/S checks and JSON/WebAssembly interfaces |
 | `network.py` Pi3/Pi4 | `analysis_dispatch.cpp`, `extended_analysis.cpp`, `composite_geometry.cpp` | Eight more wire/square PI3/PI4 sessions at 1/5 GHz, including precise native 2PORT/2PORTPAD Y/S records, printed Q, explicit ground, pad mesh sentinels, and distinct-origin wire/spiral joins |
+| `transformer.py`, `native/transformer.cpp` | `later_analysis.cpp`, `console_analysis.cpp`; original inverse `0x0808800c`, model `0x08089cb0`, folded nodes `0x08053e00` | 67 direct original-executable extraction cases / 1,541 exact finite output components or nonfinite classifications; 15 finite original CALCTRANS/2PORTTRANS sessions plus six original nonfinite histories; omitted/explicit references, termination boundary, swapped windings, eddy correction, and actual coupled-model/sweep/export DOM handlers |
 | `web/analysis-views.mjs`, `web/app.js` | New static plotting/circuit interface | Selectable L/R/Q plots, log/linear sampling, curve gaps for undefined values, point-to-circuit inspection, Pi-family diagrams, ground/pad controls, SVG/CSV/JSON exports; pure-view checks and rendered SVG visual inspection |
 | `quadrature.py` | `quadrature.cpp` | DQK15I transformed rule, DQPSRT ranking, DQELG epsilon extrapolation and DQAGIE adaptive infinite integration; direct 32-bit C++ probe covers 60 integrations and 36 rules, including convergence/failure statuses and exact evaluation/subdivision counts |
 | `green.py` | `green.cpp`, `legacy_complex.cpp` | 186 direct 32-bit C++ object probes: propagation constants, complex tanh, reflection, layered/limiting integrands, oscillating/reflection kernels; realistic and extreme conductivities, zero frequency/wave number, decay cutoff and native nonfinite classifications |
@@ -75,7 +76,7 @@ does not change with frequency in estimate mode. LMAT's separate series Q is
 Im(sum Z)/Re(sum Z). CAP now computes layered-substrate capacitance and substrate
 loss independently. Pi2 combines those two distributed solvers and reports the
 original frequency-dependent network metrics. Native eddy correction is optional
-for LMAT and Pi2/Pi3/Pi4/PiX. The fast Pi path and transformer/multiport networks
+for LMAT, Pi2/Pi3/Pi4/PiX and CALCTRANS. The fast Pi path and multiport networks
 remain pending. SELFRES SLOW now repeats the distributed solver through the
 original midpoint search.
 
@@ -97,14 +98,14 @@ shunt-segment groups and caps the browser matrix at 256 filaments.
 
 Paired devices keep separate electrical shapes. The layout shows both windings,
 the winding picker selects the shape used by estimates/LMAT, and GDS contains
-both. The coupling button uses the original estimate path; the full transformer
-network analysis remains pending.
+both. The coupling button uses the original estimate path; the CALCTRANS panel
+solves both windings together and displays the native coupled equivalent.
 
 Pi2 clones the geometry once using the original inductive/capacitive length
 thresholds, requests the filament solver's admittance mode, converts folded CAP
 to nodal admittance, and solves the two native drive/bias experiments. Its
-general node factorization uses partial pivoting in binary64 rather than the
-original LAPACK implementation. End-to-end Y/S comparisons use max(1e-10,
+general node factorization follows the original general LU sequence, with the
+retained compiled backend described below. End-to-end Y/S comparisons use max(1e-10,
 1e-8 relative) per component; separate snapshot/node checks guard the stage
 boundaries. Eight independent fixtures cover wires, square/polygon coils,
 capacitor plates, multi-metal coils, via corrections, unequal cells, an explicit
@@ -344,3 +345,29 @@ checks in both Python and WebAssembly. The portable coefficient implementation
 also preserves negative zero on unary negation. Source hashes and boundary
 adaptations are recorded in `native/spectral-source.json`. The portable table
 fallback and complete electrical snapshots retain their existing tolerances.
+
+CALCTRANS discretizes both windings, reverses the secondary segment order,
+joins them, stamps the junction termination into folded CAP, and solves the
+original inductive-admittance/node equations. Terminations below 1e-10 ohm
+select 1e15 S. The original command parser rounds numerical input to binary32;
+the browser reproduces that boundary for frequency in GHz, termination and
+mesh values. Direct Python/JSON callers supply SI binary64 inputs.
+
+Omitting the reference differs from explicitly naming the first winding: the
+original parser marks the named winding's mesh counts before CALCTRANS copies
+it. The Python path applies that convention to private copies and preserves
+caller shapes. Both reference histories are captured independently. The native
+Y/Z diagonal ordering and mutual sign are preserved, including negative model
+values, coupling greater than one, and undefined coupling. The displayed dots
+correspond to Z12 = Rg - jωM. JSON represents nonfinite metrics as null.
+
+The coupled fixture executes the actual original binary (SHA256
+`72bcb93444604b89a65cb64e5825bfcff0ac740a816120d0f171855206bd572f`)
+and original legacy-complex DSO. A nonnumerical sprintf tap captures full model
+precision. Regenerate with `tools/capture_transformer.py --reference
+~/github/asitic-re --native-library-path PATH_TO_32_BIT_LIBRARIES`.
+The 15 finite sessions compare model values, Y/S outputs and nodal CAP with
+unchanged component tolerances. Six original all-nonfinite histories, including
+collapsed 3D contacts and explicit-reference invalid inductive meshes, receive
+bounded diagnostics rather than fabricated finite models. They do not establish
+equivalence for arbitrary original invalid-memory or allocator histories.

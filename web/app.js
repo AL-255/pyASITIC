@@ -1,4 +1,4 @@
-import { circuitSVG,sweepSVG } from "./analysis-views.mjs";
+import { circuitSVG,sweepSVG,transformerSVG } from "./analysis-views.mjs";
 const $ = selector => document.querySelector(selector);
 const form = $("#geometry-form");
 const NS = "http://www.w3.org/2000/svg";
@@ -6,6 +6,7 @@ const COLORS = ["#e8bd65", "#81b4ef", "#b899eb", "#8fd1ae", "#e89971", "#e88fbd"
 let worker, ready = false, busy = false, nextId = 0, current = null, currentDefinition = null, technology = null, technologyText = "", sweepRows = null, matrixResult = null, capacitanceResult = null, pi2Result = null;
 let sweepContext=null,sweepModels=[];
 let selfresResult=null,selfresTrace=[];
+let transformerResult=null,transformerRequest=null,transformerRows=[],transformerSamples=[],transformerRange=null;
 let technologyPreset=null,technologyPresets=[];
 const MODEL_NAMES={pi:"Pi",pi2:"Pi2",pi3:"Pi3",pi4:"Pi4",pix:"PiX"};
 const eddyEnabled=()=>!!$("#eddy-mode")?.checked;
@@ -29,6 +30,9 @@ function controls() {
   for(const id of ["download-pi2","download-ports"]) $("#"+id).disabled = busy || !pi2Result;
   $("#active-winding").disabled = busy;
   $("#coupling").disabled = busy || !current || current.windings.length!==2;
+  for(const id of ["transformer-run","transformer-sweep"])$("#"+id).disabled=!ready||busy||current?.windings.length!==2;
+  for(const id of ["download-transformer","download-transformer-svg","download-transformer-ports"])$("#"+id).disabled=busy||!transformerResult;
+  for(const id of ["download-transformer-sweep","download-transformer-plot"])$("#"+id).disabled=busy||!transformerRows.length;
 }
 function request(payload,onProgress=null) {
   const id = ++nextId;
@@ -95,6 +99,7 @@ function render(shape) {
   $("#winding-control").hidden=shape.windings.length<2;
   $("#cap-ground-control").hidden=shape.windings.length<2;
   updateModelControls(false);
+  updateTransformerControls();
   $("#active-winding").replaceChildren(...shape.windings.map((name,index)=>new Option(name,String(index),false,index===(currentDefinition.winding||0))));
   $("#canvas-caption").textContent=`${fmt(x1-x0)} × ${fmt(y1-y0)} µm · ${shape.windings.length>1?"both windings · ":""}origin (${fmt(shape.origin[0])}, ${fmt(shape.origin[1])})`;
   $("#scale").textContent="Scroll to zoom · drag to pan";
@@ -112,6 +117,7 @@ function resetResults() {
   capacitanceResult=null; $("#capacitance-table").replaceChildren(); $("#capacitance-result").textContent="";
   resetModel();
   resetSelfres();
+  resetTransformer();
 }
 async function generate() {
   const next = definition();
@@ -151,6 +157,7 @@ function fillTechnology(data) {
   fill("#secondary-metal",metalOptions,lower);
   fill("#via",technology.vias.map((v,i)=>[String(i),v.name]),0);
   fill("#model-ground-metal",metalOptions,0);
+  fill("#transformer-ground-metal",metalOptions,0);
   for(const id of ["model-pad1-metal","model-pad2-metal"])fill("#"+id,metalOptions,technology.metals.length-1);
   const table=document.createElement("table");
   const head=table.createTHead().insertRow();
@@ -306,7 +313,7 @@ $("#pi-model").addEventListener("change",()=>{
 });
 $("#model-ground-mode").addEventListener("change",()=>updateModelControls());
 $("#eddy-mode")?.addEventListener("change",()=>{
-  updateModelControls();resetSweep();resetSelfres();matrixResult=null;$("#matrix-table").replaceChildren();$("#lmat-result").textContent="";controls();
+  updateModelControls();resetSweep();resetSelfres();resetTransformer();matrixResult=null;$("#matrix-table").replaceChildren();$("#lmat-result").textContent="";controls();
 });
 $("#selfres").addEventListener("click",()=>task(async()=>{
   const first=numeric("#selfres-first")*1e9,last=numeric("#selfres-last")*1e9,step=numeric("#selfres-step")*1e9;
@@ -389,6 +396,84 @@ $("#download-capacitance").addEventListener("click",()=>{
   capacitanceResult.matrix.forEach((row,i)=>row.forEach(([real,imag],j)=>rows.push([i,j,real,imag].join(","))));
   download(rows.join("\n"),"text/csv",filename("-capacitance-admittance.csv"));
 });
+function updateTransformerControls(){
+  const paired=current?.windings.length===2,first=currentDefinition?.winding||0;
+  $("#transformer-ground-fields").hidden=$("#transformer-ground-mode").value!=="strip";
+  $("#transformer-circuit").hidden=!paired;
+  $("#transformer-note").textContent=paired?`Port 1: ${current.windings[first]} · Port 2: ${current.windings[1-first]}. Uses the selected frequency, CAP/LMAT mesh and native eddy setting.`:"Choose a transformer, balun or 3D transformer to analyze both windings.";
+}
+function resetTransformer(){
+  transformerResult=null;transformerRequest=null;transformerRows=[];transformerSamples=[];transformerRange=null;
+  $("#transformer-result").textContent="";$("#transformer-diagnostics").hidden=true;$("#transformer-metrics").replaceChildren();
+  $("#transformer-circuit").innerHTML=transformerSVG();updateTransformerControls();renderTransformerSweep();
+}
+function transformerPayload(frequency){
+  if(current?.windings.length!==2)throw Error("Choose a layout with two windings for CALCTRANS.");
+  const first=currentDefinition.winding||0,mode=$("#transformer-ground-mode").value;
+  const ground=mode==="first"?{...currentDefinition,winding:first}:mode==="strip"?stripDefinition("transformer-ground","_ground"):null;
+  const termination_ohm=Math.fround(numeric("#transformer-termination")),f=Math.fround(frequency/1e9)*1e9;
+  if(!Number.isFinite(termination_ohm)||!Number.isFinite(f)||f<=0)throw Error("Frequency or termination exceeds the native command range.");
+  const mesh=Object.fromEntries(Object.entries({length_cell:numeric("#mesh-length"),width_cell:numeric("#mesh-width"),thickness_cell:numeric("#mesh-thickness"),capacitance_length_cell:numeric("#cap-length"),capacitance_width_cell:numeric("#cap-width")}).map(([k,v])=>[k,Math.fround(v)]));
+  return {action:"calctrans",...currentDefinition,first_winding:first,second_winding:1-first,technology:technologyText,ground,frequency_hz:f,termination_ohm,eddy:eddyEnabled(),mesh};
+}
+const transformerMetrics=[
+  ["First inductance","first_inductance_h",1e9,"nH"],["Second inductance","second_inductance_h",1e9,"nH"],
+  ["Mutual inductance","mutual_h",1e9,"nH"],["Coupling k","coupling",1,""],
+  ["First resistance","first_resistance_ohm",1,"Ω"],["Second resistance","second_resistance_ohm",1,"Ω"],["Ground resistance","ground_resistance_ohm",1,"Ω"]
+];
+function renderTransformerResult(result,payload){
+  transformerResult=result;transformerRequest=payload;
+  $("#transformer-result").textContent=`${fmt(result.frequency_hz/1e9)} GHz · ${result.first_winding} / ${result.second_winding} · ${result.filaments} filaments / ${result.contacts} contacts · Termination ${fmt(result.termination_ohm,7)} Ω · Eddy ${result.eddy?"on":"off"}`;
+  $("#transformer-circuit").innerHTML=transformerSVG(result.model,{frequencyHz:result.frequency_hz,first:result.first_winding,second:result.second_winding});
+  $("#transformer-diagnostics").textContent=result.warnings.join(" ");$("#transformer-diagnostics").hidden=!result.warnings.length;
+  const table=document.createElement("table"),head=table.createTHead().insertRow(),body=table.createTBody();
+  for(const title of["CALCTRANS metric","Value"]){const th=document.createElement("th");th.textContent=title;head.append(th);}
+  for(const [label,key,scale,unit]of transformerMetrics){const row=body.insertRow(),v=result.model[key];row.insertCell().textContent=label;row.insertCell().textContent=v===null?"Undefined":`${fmt(v*scale,7)} ${unit}`;}
+  $("#transformer-metrics").replaceChildren(table);
+}
+function renderTransformerSweep(){
+  $("#transformer-chart").innerHTML=sweepSVG(transformerRows,$("#transformer-sweep-metric").value,{model:"CALCTRANS",scale:$("#sweep-scale").value,...(transformerRange||{})});
+}
+$("#transformer-run").addEventListener("click",()=>task(async()=>{
+  const payload=transformerPayload(numeric("#frequency")*1e9);resetTransformer();status("Solving both windings with CALCTRANS…");
+  renderTransformerResult(await request(payload),payload);status("Coupled model complete. Values are specific to the displayed frequency.");
+}));
+$("#transformer-sweep").addEventListener("click",()=>task(async()=>{
+  const first=numeric("#sweep-first")*1e9,last=numeric("#sweep-last")*1e9,count=numeric("#sweep-count"),log=$("#sweep-scale").value==="log";
+  if(!(first>0&&last>first&&Number.isInteger(count)&&count>=2&&count<=101))throw Error("Sweep needs 0 < start < stop and 2–101 points.");
+  resetTransformer();
+  transformerRange={firstHz:Math.fround(first/1e9)*1e9,lastHz:Math.fround(last/1e9)*1e9};
+  for(let i=0;i<count;i++){
+    const frequency=log?first*(last/first)**(i/(count-1)):first+(last-first)*i/(count-1),payload=transformerPayload(frequency);
+    status(`CALCTRANS sweep: ${i+1} / ${count} · ${fmt(payload.frequency_hz/1e9)} GHz…`);
+    const result=await request(payload),m=result.model,scaled=(key)=>m[key]===null?null:m[key]*1e9;
+    transformerSamples.push({result,payload});transformerRows.push({frequency_hz:result.frequency_hz,first_inductance_nh:scaled("first_inductance_h"),second_inductance_nh:scaled("second_inductance_h"),mutual_nh:scaled("mutual_h"),coupling:m.coupling,first_resistance_ohm:m.first_resistance_ohm,second_resistance_ohm:m.second_resistance_ohm,ground_resistance_ohm:m.ground_resistance_ohm});renderTransformerSweep();
+  }
+  const firstSample=transformerSamples[0];$("#frequency").value=String(firstSample.result.frequency_hz/1e9);renderTransformerResult(firstSample.result,firstSample.payload);status(`${count}-point CALCTRANS sweep plotted. Select a sample to inspect its coupled model.`);
+}));
+$("#transformer-sweep-metric").addEventListener("change",renderTransformerSweep);
+$("#sweep-scale").addEventListener("change",renderTransformerSweep);
+for(const el of document.querySelectorAll("#transformer-termination,#transformer-ground-mode,#transformer-ground-fields input,#transformer-ground-fields select"))el.addEventListener("change",()=>{resetTransformer();controls();});
+function inspectTransformerPoint(event){
+  const point=event.target.closest?.("[data-index]");if(!point||busy)return;
+  const sample=transformerSamples[Number(point.dataset.index)];if(!sample)return;
+  $("#frequency").value=String(sample.result.frequency_hz/1e9);renderTransformerResult(sample.result,sample.payload);controls();
+}
+$("#transformer-chart").addEventListener("click",inspectTransformerPoint);
+$("#transformer-chart").addEventListener("keydown",event=>{if(event.key==="Enter"||event.key===" "){event.preventDefault();inspectTransformerPoint(event);}});
+$("#download-transformer").addEventListener("click",()=>download(JSON.stringify({...transformerResult,inputs:transformerRequest},null,2),"application/json",filename("-calctrans.json")));
+$("#download-transformer-svg").addEventListener("click",()=>download($("#transformer-circuit").innerHTML,"image/svg+xml",filename("-calctrans.svg")));
+$("#download-transformer-ports").addEventListener("click",()=>{
+  const rows=["parameter,row,column,real,imaginary"];
+  for(const [name,m]of[["Y",transformerResult.admittance_matrix],["Z",transformerResult.impedance_matrix],["S",transformerResult.scattering_matrix]])m.forEach((row,i)=>row.forEach((z,j)=>rows.push([name,i+1,j+1,...z.map(v=>v??"")].join(","))));
+  download(rows.join("\n"),"text/csv",filename("-calctrans-ports.csv"));
+});
+$("#download-transformer-sweep").addEventListener("click",()=>{
+  const keys=["frequency_hz","first_inductance_nh","second_inductance_nh","mutual_nh","coupling","first_resistance_ohm","second_resistance_ohm","ground_resistance_ohm"];
+  download("model,eddy,termination_ohm,"+keys.join(",")+"\n"+transformerRows.map((row,i)=>["CALCTRANS",transformerSamples[i].result.eddy,transformerSamples[i].result.termination_ohm,...keys.map(k=>row[k]??"")].join(",")).join("\n"),"text/csv",filename("-calctrans-sweep.csv"));
+});
+$("#download-transformer-plot").addEventListener("click",()=>download($("#transformer-chart").innerHTML,"image/svg+xml",filename("-calctrans-plot.svg")));
+
 $("#pi2").addEventListener("click",()=>task(async()=>{
   const model=$("#pi-model").value;
   status(`Running ${MODEL_NAMES[model]} with the selected reference, pads and mesh…`);

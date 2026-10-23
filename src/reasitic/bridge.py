@@ -13,6 +13,7 @@ from .potential import solve_capacitance
 from .network import solve_pi2,solve_pi3,solve_pi4
 from .resonance import solve_self_resonance
 from .extended import solve_pix
+from .transformer import solve_transformer
 from .presets import list_presets,load_preset,identify
 
 
@@ -51,6 +52,20 @@ def handle(request,*,progress=None):
         a,b = (_shape(request[key],tech) for key in ("first","second"))
         mutual,k = coupling_estimate(a,b,tech)
         return dict(mutual_nh=mutual,k=k)
+    if action == "calctrans":
+        if "first" in request and "second" in request:
+            first,second=(_shape(request[key],tech) for key in ("first","second"))
+        else:
+            windings=_shapes(request,tech)
+            i=int(request.get("first_winding",request.get("winding",0)));j=int(request.get("second_winding",1-i))
+            if len(windings)<2 or i==j or not 0<=i<len(windings) or not 0<=j<len(windings):
+                raise ValueError("CALCTRANS requires two windings or explicit first and second definitions")
+            first,second=windings[i],windings[j]
+        ground=_shape(request["ground"],tech) if request.get("ground") else None
+        mesh=request.get("mesh",{})
+        return solve_transformer(first,second,tech,float(request.get("frequency_hz",1e9)),ground=ground,
+            termination_ohm=float(request.get("termination_ohm",0)),eddy=request.get("eddy",False),include_matrices=bool(request.get("include_matrices",False)),
+            **{key:float(mesh.get(key,1000)) for key in ("length_cell","width_cell","thickness_cell","capacitance_length_cell","capacitance_width_cell")})
     shape = _shape(request,tech)
     if action=="selfres":
         mesh=request.get("mesh",{})
