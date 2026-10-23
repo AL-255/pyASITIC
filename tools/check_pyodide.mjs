@@ -96,5 +96,30 @@ for(const fixture of networkCases){
   if(fixture.kind==="wire" && !fixture.ground)assert.equal(result.pi.shunt_differential_ohm,null);
 }
 console.log("Eight native distributed Pi2 Y/S matrices passed in WebAssembly.");
+py.runPython(`
+from dataclasses import asdict
+import json,math
+from reasitic.quadrature import integrate_infinite,infinite_rule
+def quadrature_probe(payload):
+    case=json.loads(payload)
+    kind,scale=case.pop("kind"),case.pop("scale")
+    case.pop("result")
+    callback=[lambda x:1/((1+x)*(1+x)),lambda x:1/(1+x*x),lambda x:math.exp(-scale*x),
+              lambda x:math.exp(-x*x),lambda x:math.sin(x)/(1+x*x),lambda x:1.,
+              lambda x:math.exp(-x)/math.sqrt(x)][kind]
+    solver=infinite_rule if "a" in case else integrate_infinite
+    return json.dumps(asdict(solver(callback,**case)),allow_nan=False)
+`);
+const quadratureProbe=py.globals.get("quadrature_probe");
+const quadratureFixture=JSON.parse(readFileSync(new URL("../tests/fixtures/quadrature.json",import.meta.url)));
+for(const fixture of [...quadratureFixture.cases,...quadratureFixture.rules]){
+  const result=JSON.parse(quadratureProbe(JSON.stringify(fixture)));
+  for(const [key,expected] of Object.entries(fixture.result)){
+    if(["status","evaluations","intervals"].includes(key))assert.equal(result[key],expected,`QUADPACK ${key}`);
+    else assert.ok(Math.abs(result[key]-expected)<=Math.max(1e-13,Math.abs(expected)*1e-12),`QUADPACK ${key} kind=${fixture.kind}`);
+  }
+}
+quadratureProbe.destroy();
+console.log("60 native infinite integrations and 36 transformed rules passed in WebAssembly.");
 call.destroy();
 console.log("Pinned Pyodide archive smoke test passed.");

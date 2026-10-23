@@ -14,6 +14,7 @@ Reference checkout: `~/github/asitic-re`, revision recorded in each fixture.
 | `solver.py` | `geometry.cpp`, `filament_setup.cpp`, `filaments.cpp`, `impedance.cpp`, `vias.cpp`, `solver.cpp` | 36 complete C++ LMAT matrices: coarse 1 GHz, refined 2 GHz, and unequal inductive/capacitive length cells; within 1e-8 Ω per component in CPython and WebAssembly |
 | `potential.py` | `potential_tables.cpp`, `potential.cpp`, `contacts.cpp`, `potential_solver.cpp` | Eight CAP sessions across CMOS/BiCMOS: full potential snapshots, folded admittance matrices, and actual cache FFT samples for every metal pair; browser runtime checks cover all eight reduced matrices |
 | `network.py` | `combined_network.cpp`, `node_equations.cpp`, `network.cpp`, `two_port_output.cpp` | Eight no-eddy PI2 sessions: CAP/inductive/nodal snapshots, 15-digit Y/S output, printed L/R/C/Q/shunt-R/resonance reports; isolated node/S checks and JSON/WebAssembly interfaces |
+| `quadrature.py` | `quadrature.cpp` | DQK15I transformed rule, DQPSRT ranking, DQELG epsilon extrapolation and DQAGIE adaptive infinite integration; direct 32-bit C++ probe covers 60 integrations and 36 rules, including convergence/failure statuses and exact evaluation/subdivision counts |
 | `gds.py` | Native ribbon and `layout_export.cpp` via pitch conventions | Independent gdstk round-trip for nine generators, units, coordinates, layer mapping, via counts and cut area |
 | `bridge.py`, `web/worker.js` | New browser interface | Generation, estimates, sweeps and exports exercised in pinned Pyodide WebAssembly runtime |
 
@@ -93,6 +94,17 @@ wire with a zero RC branch) are JSON null and appear as Undefined in the app.
 Native printed Pi metrics have only three significant digits; full Y/S records
 provide the stronger numerical comparisons. More devices, grounds with vias,
 near-singular networks and process stacks remain to validate.
+
+The eddy-current dependency port has started with the native infinite-interval
+integrator. Its rule coefficients, adaptive subdivision, error ranking,
+extrapolation and nonconvergence status handling follow `quadrature.cpp`.
+Decimal guard precision preserves the original explicit binary64 stores and
+unspilled arithmetic; it does not reproduce every x87 instruction rounding.
+Direct object probes compare values/errors with max(1e-13 absolute, 1e-12
+relative) and require exact statuses, subdivision counts and evaluation counts.
+These are quadrature dependency tests, not an enabled eddy-current solver.
+Green kernels, Fourier/oscillatory quadrature and eddy matrix stamping still
+need porting and connected reference validation.
 
 `3DTrans`, `3DMIRRORTRANS`, `Trans3D` and `TransMIM` are aliases of creator ID 10,
 not separate generator algorithms. The 3D builder is generated into standalone
