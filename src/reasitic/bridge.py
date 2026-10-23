@@ -8,6 +8,7 @@ from .resistance import resistance_dc, resistance_hf
 from .inductance import inductance_estimate, coupling_estimate
 from .gds import write_gds, layout_polygons
 from .solver import solve_impedance
+from .devices import build_device, PAIRED_KINDS
 
 
 def _technology(request):
@@ -15,7 +16,15 @@ def _technology(request):
 
 
 def _shape(request,tech):
-    return build(request.get("kind","square"),technology=tech,**request.get("parameters",{}))
+    shapes = _shapes(request,tech)
+    index = int(request.get("winding",0))
+    if not 0<=index<len(shapes):
+        raise ValueError("Invalid winding selection")
+    return shapes[index]
+
+
+def _shapes(request,tech):
+    return build_device(request.get("kind","square"),technology=tech,**request.get("parameters",{}))
 
 
 def handle(request):
@@ -23,10 +32,10 @@ def handle(request):
     tech = _technology(request)
     action = request.get("action","build")
     if action == "init":
-        return dict(technology=tech.to_dict(),generators=list(KINDS))
+        return dict(technology=tech.to_dict(),generators=list(KINDS)+list(PAIRED_KINDS))
     if action == "gds":
         definitions = request.get("shapes") or [request]
-        shapes = [_shape(definition,tech) for definition in definitions]
+        shapes = [shape for definition in definitions for shape in _shapes(definition,tech)]
         return dict(base64=base64.b64encode(write_gds(shapes,tech,request.get("layer_map"))).decode())
     if action == "coupling":
         a,b = (_shape(request[key],tech) for key in ("first","second"))
@@ -41,10 +50,13 @@ def handle(request):
                                thickness_cell=float(mesh.get("thickness_cell",1000)))
     if action == "build":
         data = shape.to_dict()
+        windings = _shapes(request,tech)
+        data["windings"] = [w.name for w in windings]
         # Render exactly the polygons exported to GDS, including individual cuts.
-        if sum(s.nx*s.ny for s in shape.segments) > 100000:
+        if sum(s.nx*s.ny for w in windings for s in w.segments) > 100000:
             raise ValueError("Preview supports at most 100,000 via cuts")
-        data["polygons"] = [dict(metal=metal,points=points) for metal,points in layout_polygons(shape,tech)]
+        data["polygons"] = [dict(metal=metal,points=[[point[0]+w.origin[0]-shape.origin[0],point[1]+w.origin[1]-shape.origin[1]] for point in points])
+                            for w in windings for metal,points in layout_polygons(w,tech)]
         data["dc_ohm"] = resistance_dc(shape,tech)
         return data
     if action == "simulate":

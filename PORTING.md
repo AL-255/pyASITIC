@@ -5,6 +5,7 @@ Reference checkout: `~/github/asitic-re`, revision recorded in each fixture.
 | Python | C++ source under `recomp_cpp/src/` | Current evidence |
 | --- | --- | --- |
 | `geometry.py`, `model.py`, `symmetric_geometry.py` | `shape_construction.cpp`, `spiral_construction.cpp`, `winding_construction.cpp`, `composite_geometry.cpp`, `symmetric_construction.cpp` | Original SAVE records for nine creator families, coordinates/layer/width and DC reports |
+| `devices.py` | `winding_construction.cpp`, `shape_prompt_transformer.cpp`, `console_geometry.cpp` | Original SAVE records and DC reports for both planar transformer and balun windings; independent combined GDS round-trip |
 | `technology.py` | `technology_text.cpp`, `technology_records.cpp` | Sample CMOS technology; additional technology variants remain to validate |
 | `resistance.py` | `resistance.cpp` | Original DC reports for nine families; twelve live C++ cases at five frequencies (1 MHz–100 GHz) |
 | `inductance.py` | `analysis_commands.cpp`, `segment.cpp`, `canonicalize.cpp`, `intersection.cpp`, `parallel.cpp`, `separation.cpp`, `planar.cpp`, `spatial.cpp` | Twelve live C++ INDUCTANCE command reports, including symmetric, nonparallel, stacked and via geometry |
@@ -49,3 +50,9 @@ The adaptive edge mesh branch is ported but still needs native fixtures. Its
 original sqrt(dot) normalization can be invalid for some coordinates; Python
 reports that failure explicitly. Current LMAT supports one series shape without
 shunt-segment groups and caps the browser matrix at 256 filaments.
+
+Paired devices keep separate electrical shapes. The layout shows both windings,
+the winding picker selects the shape used by estimates/LMAT, and GDS contains
+both. The coupling button uses the original estimate path; the full transformer
+network analysis remains pending. Remaining creators are the 3D transformer
+and mirrored 3D transformer families in `transformer3d.cpp`.

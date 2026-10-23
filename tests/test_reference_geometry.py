@@ -3,7 +3,7 @@ from pathlib import Path
 import unittest
 import math
 import struct
-from reasitic import build, Technology, resistance_dc
+from reasitic import build, build_device, Technology, resistance_dc
 
 FIXTURES = json.loads((Path(__file__).parent/"fixtures/creators.json").read_text())["fixtures"]
 
@@ -41,7 +41,17 @@ class ReferenceGeometryTests(unittest.TestCase):
                 if family in ("symmetric_square","symmetric_polygon"):
                     p.update(inner_gap=float(f["WID"]),secondary_metal=f["EXIT"])
                 with self.subTest(family=family,name=f["NAME"]):
-                    shape = build(family,technology=tech,**p)
+                    if family in ("transformer","balun"):
+                        line=next(line for line in fixture["script"].splitlines() if line.startswith("TRANS ") or line.startswith("BALUN "))
+                        fields=dict(part.split("=",1) for part in line.split(" ",1)[1].split(":"))
+                        params=dict(name=fields.get("NAME","T"),primary_name=fields.get("PNAME","B-P"),secondary_name=fields.get("SNAME","B-S"),
+                                    length=float(fields["LEN"]),height=float(fields.get("WID",fields["LEN"])),width=float(fields.get("W",fields.get("W1",3))),
+                                    spacing=float(fields["S"]),turns=float(fields.get("NP",fields.get("N",1))),metal=fields["METAL"],
+                                    exit_metal=fields.get("EXIT",-1),secondary_metal=fields.get("METAL2","M3"),secondary_width=float(fields.get("W2",3)),
+                                    secondary_turns=float(fields.get("NS",1)),x=float(fields["XORG"]),y=float(fields["YORG"]))
+                        shape=next(s for s in build_device(family,technology=tech,**params) if s.name==f["NAME"])
+                    else:
+                        shape = build(family,technology=tech,**p)
                     self.assertEqual(len(shape.segments),len(expected["segments"]))
                     names = [m.name for m in tech.metals]+[v.name for v in tech.vias]
                     for i,(s,e) in enumerate(zip(shape.segments,expected["segments"])):

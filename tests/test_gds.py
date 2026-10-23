@@ -3,7 +3,7 @@ import importlib.util
 from pathlib import Path
 import tempfile
 import unittest
-from reasitic import Technology,build,write_gds
+from reasitic import Technology,build,build_device,write_gds
 from reasitic.gds import layout_polygons
 
 
@@ -42,6 +42,23 @@ class GdsTests(unittest.TestCase):
             self.assertEqual(len(cuts),12)
             self.assertTrue(all(p.datatype==7 for p in cuts))
             self.assertAlmostEqual(sum(p.area() for p in cuts),12*.5**2)
+
+    def test_paired_windings_export_together(self):
+        import gdstk
+        tech=Technology.default()
+        for kind in ("transformer","balun"):
+            shapes=build_device(kind,technology=tech,turns=3 if kind=="balun" else 1.5,
+                                metal="M4",exit_metal="M3",x=123,y=47)
+            expected=[(shape,index,points) for shape in shapes for index,points in layout_polygons(shape,tech)]
+            with self.subTest(kind=kind),tempfile.TemporaryDirectory() as directory:
+                destination=Path(directory)/"pair.gds"
+                destination.write_bytes(write_gds(shapes,tech))
+                polygons=gdstk.read_gds(destination).cells[0].polygons
+                self.assertEqual(len(polygons),len(expected))
+                for polygon,(shape,index,points) in zip(polygons,expected):
+                    for actual,local in zip(polygon.points,points):
+                        for axis in range(2):
+                            self.assertAlmostEqual(actual[axis],local[axis]+shape.origin[axis],delta=.000501)
 
 
 class GdsRangeTests(unittest.TestCase):

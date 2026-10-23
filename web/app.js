@@ -13,6 +13,8 @@ function controls() {
   for (const id of ["simulate", "sweep", "lmat", "download-gds", "download-project"]) $("#"+id).disabled = !ready || busy || !current;
   $("#download-csv").disabled = busy || !sweepRows;
   $("#download-matrix").disabled = busy || !matrixResult;
+  $("#active-winding").disabled = busy;
+  $("#coupling").disabled = busy || !current || current.windings.length!==2;
 }
 function request(payload) {
   const id = ++nextId;
@@ -28,7 +30,7 @@ function definition() {
   const values = Object.fromEntries(new FormData(form));
   const kind = values.kind; delete values.kind;
   for (const key of Object.keys(values)) if (!["name", "metal", "exit_metal", "bottom_metal", "via"].includes(key)) values[key] = Number(values[key]);
-  return {kind,parameters:values};
+  return {kind,parameters:values,winding:0};
 }
 function showFields() {
   const kind = $("#kind").value;
@@ -75,7 +77,9 @@ function render(shape) {
   }
   $("#layout-title").replaceChildren(document.createTextNode(shape.name+" "));
   const subtitle = document.createElement("span"); subtitle.textContent = $("#kind").selectedOptions[0].textContent; $("#layout-title").append(subtitle);
-  $("#canvas-caption").textContent=`${fmt(x1-x0)} × ${fmt(y1-y0)} µm · origin (${fmt(shape.origin[0])}, ${fmt(shape.origin[1])})`;
+  $("#winding-control").hidden=shape.windings.length<2;
+  $("#active-winding").replaceChildren(...shape.windings.map((name,index)=>new Option(name,String(index),false,index===(currentDefinition.winding||0))));
+  $("#canvas-caption").textContent=`${fmt(x1-x0)} × ${fmt(y1-y0)} µm · ${shape.windings.length>1?"both windings · ":""}origin (${fmt(shape.origin[0])}, ${fmt(shape.origin[1])})`;
   $("#scale").textContent="Scroll to zoom · drag to pan";
   $("#stat-segments").textContent=shape.segments.length;
   $("#stat-length").textContent=fmt(shape.length)+" µm";
@@ -139,7 +143,16 @@ function renderSweep(rows) {
   $("#sweep-table").replaceChildren(table);
 }
 form.addEventListener("submit",event=>{event.preventDefault();task(generate);});
-$("#kind").addEventListener("change",showFields);
+$("#kind").addEventListener("change",()=>{if($("#kind").value==="balun" && Number(form.elements.turns.value)<3)form.elements.turns.value="3";showFields();});
+$("#active-winding").addEventListener("change",()=>task(async()=>{
+  const next={...currentDefinition,winding:Number($("#active-winding").value)};
+  const shape=await request({action:"build",...next,technology:technologyText});
+  current=shape;currentDefinition=next;render(shape);resetResults();status(`Selected ${shape.name}. Analysis applies to this winding; GDS exports both windings.`);
+}));
+$("#coupling").addEventListener("click",()=>task(async()=>{
+  const result=await request({action:"coupling",technology:technologyText,first:{...currentDefinition,winding:0},second:{...currentDefinition,winding:1}});
+  status(`ASITIC coupling estimate: k = ${fmt(result.k,6)}, M = ${fmt(result.mutual_nh,6)} nH.`);
+}));
 form.addEventListener("input",()=>{if(current)status("Parameters changed. Generate layout to apply them.");});
 $("#fit").addEventListener("click",fit);
 $("#simulate").addEventListener("click",()=>task(async()=>{
@@ -198,7 +211,12 @@ $("#project-file").addEventListener("change",event=>task(async()=>{
   technologyText=text;fillTechnology(init);$("#tech-name").textContent=text?"Custom":"CMOS";
   $("#kind").value=data.shape.kind;showFields();
   for(const [key,value] of Object.entries(data.shape.parameters)) if(form.elements.namedItem(key))form.elements.namedItem(key).value=String(value);
-  await generate();event.target.value="";
+  await generate();
+  if(data.shape.winding){
+    currentDefinition.winding=data.shape.winding;
+    current=await request({action:"build",...currentDefinition,technology:technologyText});render(current);
+  }
+  event.target.value="";
 }));
 $("#technology-file").addEventListener("change",event=>task(async()=>{
   const file=event.target.files[0];if(!file)return;

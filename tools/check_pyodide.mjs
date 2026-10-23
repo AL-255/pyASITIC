@@ -27,6 +27,9 @@ for(const kind of init.generators) {
 }
 const sweep=request({action:"sweep",first_hz:1e8,last_hz:2e10,count:31});
 assert.equal(sweep.rows.length,31);
+const pair=request({action:"build",kind:"transformer",parameters:{length:100,width:3,spacing:2,turns:1.5,secondary_turns:1.25,metal:"M4",exit_metal:"M3"}});
+assert.equal(pair.windings.length,2);
+assert.ok(pair.polygons.length>pair.segments.length);
 const cases=JSON.parse(readFileSync(new URL("../tests/fixtures/analysis.json",import.meta.url))).cases;
 for (const fixture of cases) {
   // Keyword angles cross a native binary32 boundary before entering geometry.
