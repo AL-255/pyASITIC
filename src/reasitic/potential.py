@@ -13,6 +13,7 @@ import math
 from .solver import inverse
 from .fft import _fft,_transform_grid,_fft_extended,_fft_spill
 from .x87_math import tanh_argument,cosh_argument
+from .contact_kernel import contact_matrix
 
 EPSILON0=float.fromhex("0x1.8ebfab864ade4p-44")
 FACTOR=float.fromhex("0x1.3bd3cc9be45dep+4")
@@ -277,14 +278,18 @@ def _axis_sum(table,index):
     return (table[d00]-table[s00])+(table[d11]-table[s11])+(table[s10]-table[d10])+(table[s01]-table[d01])
 
 
-def _contact_potential(a,b,nx,ny,width,height,metal_records,coefficients,depths,tables):
+def _contact_potential(a,b,nx,ny,width,height,metal_records,coefficients,depths,tables,zero_terms=None):
     x=_indices(a.x0,a.x1,b.x0,b.x1,nx)
     y=_indices(a.y0,a.y1,b.y0,b.y1,ny)
     sl,sh,st=metal_records[a.metal]
     tl,th,tt=metal_records[b.metal]
     source_half,target_half=(0,0) if a.metal==b.metal else (st/2,tt/2)
-    term=_zero_potential(sl,tl,sh+source_half if sh<th else sh-source_half,th-target_half,coefficients,depths,sh<th)
-    total=term/width/height
+    ordered_pair=a.metal,b.metal
+    if zero_terms is not None and ordered_pair in zero_terms:total=zero_terms[ordered_pair]
+    else:
+        term=_zero_potential(sl,tl,sh+source_half if sh<th else sh-source_half,th-target_half,coefficients,depths,sh<th)
+        total=term/width/height
+        if zero_terms is not None:zero_terms[ordered_pair]=total
     area_x,area_y=(b.x1-b.x0)*(a.x1-a.x0),(b.y1-b.y0)*(a.y1-a.y0)
     tx,ty,txy=tables
     total+=_axis_sum(tx,x)*(nx*nx)/width/height/FACTOR/area_x
@@ -345,15 +350,19 @@ def solve_capacitance(shape,technology,frequency_hz,*,ground=None,length_cell=10
     coefficients=tuple(coefficients)
     records=tuple((m.layer,depths[m.layer]-m.height,m.thickness) for m in technology.metals)
     packed={}
-    full=[]
-    for a in contacts:
-        row=[]
-        for b in contacts:
-            pair=min(a.metal,b.metal),max(a.metal,b.metal)
-            if pair not in packed:
-                packed[pair]=_tables(*pair,nx,ny,width,height,records,coefficients,tuple(depths))
-            row.append(_contact_potential(a,b,nx,ny,width,height,records,coefficients,depths,packed[pair]))
-        full.append(row)
+    def get_table(low,high):
+        pair=low,high
+        if pair not in packed:packed[pair]=_tables(*pair,nx,ny,width,height,records,coefficients,tuple(depths))
+        return packed[pair]
+    full=contact_matrix(contacts,nx,ny,width,height,records,coefficients,depths,get_table)
+    if full is None:
+        full=[];zero_terms={}
+        for a in contacts:
+            row=[]
+            for b in contacts:
+                pair=min(a.metal,b.metal),max(a.metal,b.metal)
+                row.append(_contact_potential(a,b,nx,ny,width,height,records,coefficients,depths,get_table(*pair),zero_terms))
+            full.append(row)
     admittance=inverse(full)
     total=sum(sum(row[:len(contacts)-second_count]) for row in admittance[:len(contacts)-second_count])
     impedance=1/total

@@ -4,7 +4,7 @@ Python reconstruction of ASITIC, with a static browser application for GitHub
 Pages. The reference is [`AL-255/asitic-re`](https://github.com/AL-255/asitic-re),
 specifically its `recomp_cpp` reconstruction. This repository implements the
 algorithms through a Python API; it does not invoke the reference executable at
-runtime. The browser accelerates retained FFT, spectral math and symmetric matrix
+runtime. The browser accelerates retained FFT, spectral math, contact potentials and symmetric matrix
 solves with a small compiled
 WebAssembly kernel; a portable Python implementation is also included.
 
@@ -40,6 +40,8 @@ Implemented so far:
   spectral Green functions, reflected FFT tables, potential-matrix inversion,
   and admittance reduction. Includes explicit ground winding selection, total
   capacitance, substrate equivalent resistance and admittance CSV download.
+  Compiled contact arithmetic matches 41 original-binary matrices exactly at
+  finite output boundaries, including complete 256-contact systems.
 - Distributed `PI2` / `PI3` two-port models with optional native eddy correction: combines CAP
   and filament admittance through the original node equations. Reports series
   L/R, two RC shunts, port/differential Q, input impedances, shunt resistance,

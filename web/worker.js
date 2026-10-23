@@ -11,7 +11,8 @@ const ready = (async () => {
 from reasitic.fft import _compiled_transform
 from reasitic.x87_math import _native_tanh,_native_cosh
 from reasitic.symmetric import _compiled_symmetric
-assert all(x is not None for x in (_compiled_transform,_native_tanh,_native_cosh,_compiled_symmetric)), "Could not initialize numerical kernels"
+from reasitic.contact_kernel import _compiled_contact_pair
+assert all(x is not None for x in (_compiled_transform,_native_tanh,_native_cosh,_compiled_symmetric,_compiled_contact_pair)), "Could not initialize numerical kernels"
 from reasitic.bridge import request_json
 `);
   self.postMessage({ ready: true });

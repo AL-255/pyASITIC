@@ -2,7 +2,7 @@
 
 The browser runs Python in Pyodide 314.0.7. Numerical loops written in Python
 were the principal cost: retained FFT butterflies, spectral arithmetic, and
-matrix inversion. The FFT, retained exponential helpers and symmetric
+matrix inversion. The FFT, retained exponential helpers, contact potentials and symmetric
 factor/inverse now run in a compiled
 WebAssembly module. Per-table memoization reuses spectral values and interface
 ratios only at identical inputs. Filament mutual terms use bounded caching of
@@ -37,16 +37,32 @@ still 50/8 µm) produces 189 filaments and 63 contacts:
 
 This is about a 27× cached improvement on the dense case. The previous release
 is commit `56173c9`. Complete per-request samples are saved in
-`benchmarks/2026-10-23-matrix.json`. There remains about a 32× native/browser gap
+`benchmarks/2026-10-23-matrix.json`. That release left about a 32× native/browser gap
 on the dense cached case. The reported >10,000× user configuration has not yet
 been reproduced.
+
+The contact step batches each metal pair into the compiled retained-arithmetic
+kernel and reuses its position-independent term within that call. Compared with
+the matrix release (`05e556a`), the measured cached 189-filament / 63-contact
+case improves another 1.5×:
+
+| FFT grid | Matrix release cached | Contact step cached | Original cached | Contact step first request |
+| --- | ---: | ---: | ---: | ---: |
+| 64 × 64 | 0.686 s | 0.451 s | 21.2 ms | 6.04 s |
+| 128 × 128 | 0.668 s | 0.452 s | 21.1 ms | 3.07 s |
+
+The 34-filament / 17-contact case takes 20/28 ms cached and 0.95/2.69 s on its
+first request at 64/128 grids. The contact step leaves the large cold spectral
+generation and geometry costs. The dense cached case remains about 21× slower
+than the original executable. Complete samples and input settings are saved in
+`benchmarks/2026-10-23-contact.json`; these observations are not timing thresholds.
 
 Cold browser timing is the first request for each FFT grid in one interpreter,
 excluding interpreter loading. Geometry caches persist between the two grids;
 the first dense case pays their initial cost. The native cold estimate
 subtracts the median empty-session process time from a one-analysis session;
 cached native timing subtracts one-analysis from 21-analysis sessions and divides
-by 20. Native cached values were approximately 0.5–0.6 ms. Browser cached values
+by 20. The 34-filament native cached values were approximately 0.5–0.6 ms. Browser cached values
 are the third identical request in one interpreter. Raw samples are retained by
 the benchmark tools. The remaining native/browser gap is substantial.
 
@@ -82,5 +98,8 @@ Matrix gates cover 44 original cases plus complete 128/256-entry factor/inverse
 digests, and four complete original dense Pi2 sessions.
 Full CAP, Pi2/Pi3/Pi4/PiX, eddy and resonance fixtures retain their existing
 tolerances. Exact agreement of these kernels does not establish universal
-bitwise agreement of the whole simulator; remaining spectral/contact
-arithmetic still require further precision work.
+bitwise agreement of the whole simulator. Contact gates now compare 41 original
+matrices (264,844 output components), finite values bit for bit and nonfinite
+values by classification, plus all eight production raw potential and reduced
+CAP snapshots with unchanged tolerances. Spectral generation and the remaining
+network arithmetic still require further precision work.

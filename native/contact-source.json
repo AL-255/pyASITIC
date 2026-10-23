@@ -1,0 +1,5 @@
+{
+  "reference_commit": "63885e808b522bdeba3f254d353afc72e643c761",
+  "source_sha256": "b93972e367a913790887512cb66f2ce235c1a65330e136b261577903738b62c8",
+  "adaptation": "SoftReal 80-bit arithmetic; typed metal records replace native byte offsets; pure zero term factored for per-pair reuse; Python preserves contact order and packed-table selection."
+}

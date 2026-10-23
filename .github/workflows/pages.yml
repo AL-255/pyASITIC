@@ -75,7 +75,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        suite: [baseline, dependencies, resonance, extended, technologies, fft, matrix]
+        suite: [baseline, dependencies, resonance, extended, technologies, fft, matrix, contacts]
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
@@ -101,6 +101,8 @@ jobs:
               node tools/check_potential_fft.mjs /tmp/reasitic-pyodide/node_modules/pyodide/pyodide.mjs ;;
             matrix)
               node tools/check_matrix_kernels.mjs /tmp/reasitic-pyodide/node_modules/pyodide/pyodide.mjs ;;
+            contacts)
+              node tools/check_contact_kernels.mjs /tmp/reasitic-pyodide/node_modules/pyodide/pyodide.mjs ;;
             *) exit 1 ;;
           esac
   deploy:

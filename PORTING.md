@@ -298,3 +298,17 @@ matrices are limited to 256 contacts. Green tables are generated on demand and
 kept in a bounded in-memory cache instead of native cache files. Unfolded
 geometries, non-square FFT storage quirks, unusual process stacks, and native
 invalid-contact histories still need broader independent validation.
+
+The browser contact-potential kernel now retains each original 80-bit operation
+and explicit binary64 spill, including the asymmetric first subtraction in the
+axis and two-dimensional sums. Its zero-frequency term is evaluated once for
+each ordered metal pair per call. The fallback's equivalent reuse is scoped to
+one solve and has byte-identical complete-result checks across frequency and
+substrate edits. An isolated loader executes the intact original contact routine
+and legacy-complex DSO with checksum-pinned inputs. Forty-one matrices check
+264,844 components, including signed zeros, subnormals, nonfinite classifications,
+rectangular grids with sufficient backing, noncontiguous metals, and two complete
+256-contact output digests. Production raw potential matrices remain checked
+against all eight existing native snapshots with unchanged tolerances. This
+establishes contact arithmetic at given coefficients/tables, not bitwise equality
+of the preceding spectral generation or the complete network solve.

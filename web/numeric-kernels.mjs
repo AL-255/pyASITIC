@@ -11,9 +11,27 @@ export async function installNumericalKernels(python, bytes) {
   const storage = new Float64Array(api.memory.buffer, api.buffer(), 2 * 66049);
   const matrix = new Float64Array(api.memory.buffer, api.matrix_buffer(), 2 * 256 * 256);
   const pivots = new Int32Array(api.memory.buffer, api.pivots_buffer(), 256);
+  const contactConfig = new Float64Array(api.memory.buffer, api.contact_config_buffer(), 4096);
+  const contactTables = new Float64Array(api.memory.buffer, api.contact_table_buffer(), 2 * (66049 + 1024));
   python.registerJsModule("_reasitic_numeric", {
     tanh_argument: (k,a,b) => api.tanh_argument(k,a,b),
     cosh_argument: (k,a,b,rounded) => api.cosh_argument(k,a,b,rounded),
+    contact_pair(config, tables, output) {
+      let c,t,o;
+      try {
+        c=config.getBuffer("f64");t=tables.getBuffer("f64");o=output.getBuffer("f64");
+        const [version,n,nx,ny,nm,nl]=c.data;
+        if(version!==1 || ![n,nm,nl].every(v=>Number.isInteger(v)&&v>=1&&v<=256) ||
+           ![nx,ny].every(v=>Number.isInteger(v)&&v>=2&&v<=256&&!(v&(v-1)))) throw new Error("Contact dimensions are invalid");
+        const cells=Math.max((nx+1)*(ny+1),nx*(nx+1)+ny+1);
+        if(c.data.length!==17+5*n+3*nm+3*nl || t.data.length!==4*nx+4*ny+2*cells || o.data.length!==2*n*n)
+          throw new Error("Contact buffer length is invalid");
+        contactConfig.set(c.data);contactTables.set(t.data);matrix.set(o.data);
+        const status=api.contact_pair();
+        o.data.set(matrix.subarray(0,o.data.length));
+        return status;
+      } finally { o?.release();t?.release();c?.release(); }
+    },
     symmetric(buffer, n, invert) {
       if (!Number.isInteger(n) || n < 1 || n > 256) throw new Error("Symmetric matrix dimension is out of range");
       const view = buffer.getBuffer("f64");

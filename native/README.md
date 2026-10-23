@@ -49,7 +49,31 @@ compare full native Y/S outputs at 1, 5 and 20 GHz. The portable Python matrix
 fallback retains its existing component-tolerance checks; this is not a claim of
 universal bitwise parity of that fallback or of the complete simulator.
 
-Rebuild the checked-in, stripped `web/numeric.wasm` (55.8 KiB):
+`contact.cpp` follows the original contact-potential routine's subtraction
+order, extended intermediates and binary64 stores. Its complex division uses
+the legacy DSO's ratio/denominator arithmetic, including its IEEE behavior at a
+zero denominator. Typed metal records replace native byte offsets. Python
+preserves contact order and table selection; one compiled call processes both
+ordered directions of a metal pair. The position-independent term is reused
+only within that call. The portable Python fallback also reuses this term within
+one solve, keyed by ordered metal indices; it does not share values across
+frequencies or process edits.
+
+`capture_contact_potential.py` executes the intact original routine at
+`0x080901c0` with the checksum-pinned executable and legacy-complex DSO.
+The 41 cases cover square and rectangular grids, boundaries, noncontiguous metal
+indices, layer transfers, subnormals, signed zeros, large values and nonfinite
+classifications. All 264,844 output components are checked: finite values bit for
+bit, nonfinite values by classification, and two complete 256-contact matrices
+by output digest. Input table digests check the deterministic recipe. Rectangular
+cases provide sufficient backing for the original `nx+1` table stride; they do
+not validate the original allocator's behavior. Eight complete production raw
+potential and reduced CAP matrices also retain their existing snapshot
+tolerances. These checks establish the contact-arithmetic boundary given the
+same coefficients and tables; spectral table generation still requires further
+precision work before whole-simulator equality can be claimed.
+
+Rebuild the checked-in, stripped `web/numeric.wasm` (71.7 KiB):
 
 ```sh
 python tools/build_kernels.py --download-zig
