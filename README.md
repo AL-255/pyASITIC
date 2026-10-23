@@ -22,6 +22,7 @@ Implemented so far:
 - `LMAT` filament solver with longitudinal and cross-section meshing,
   impedance assembly, inversion/reduction and via corrections. The web app
   displays L, R, series Q and the complex matrix, with full matrix CSV download.
+  Uses the original symmetric factor/inverse and retained parallel mutual kernels.
 - Optional native `EDDY ON` substrate correction, including square packing,
   segment folding, layered Green integration and convergence diagnostics.
   Preserves native negative-resistance results and reports nonfinite failures.
@@ -35,6 +36,10 @@ Implemented so far:
   narrowband resonance estimate and native 50 Ω Y/S output, with JSON/CSV export.
   `PI3` requires an explicit reference; `PI4` solves with two pad strips and
   subtracts their capacitive contribution using the original de-embedding path.
+- Extended `PIX` two-port model with unfolded capacitance, segment impedance
+  and the original extended node equations. Includes circuit display, PiX
+  sweeps and Y/S/model exports. Python/JSON callers can request matrix and
+  voltage/current diagnostics with `include_matrices=True` / `true`.
 - Three-terminal Pi circuit diagrams with labeled series L/R and RC shunts,
   shared ground/pad settings, and circuit SVG download. The native fast `PI`
   conductor path faults before producing values; its view shows that limitation.
@@ -85,6 +90,10 @@ python3 tools/capture_network.py --reference ~/github/asitic-re --eddy
 python3 tools/capture_pi_models.py --reference ~/github/asitic-re --eddy
 python3 tools/capture_resonance.py --reference ~/github/asitic-re
 python3 tools/capture_resonance_physical.py --reference ~/github/asitic-re
+python3 tools/capture_extended_nodes.py --reference ~/github/asitic-re
+python3 tools/capture_symmetric.py --reference ~/github/asitic-re
+python3 tools/capture_parallel.py --reference ~/github/asitic-re
+python3 tools/capture_pix.py --reference ~/github/asitic-re
 ```
 
 Install `gdstk==1.0.2` to enable the independent GDS reader tests. CI runs those
@@ -121,7 +130,7 @@ add `--gds coil.gds` to export a layout request. See `src/reasitic/bridge.py`.
 ## Remaining scope
 
 The full objective includes geometry editing/session commands;
-broader substrate eddy-current validation; extended/transformer and multiport
+broader substrate eddy-current validation; transformer and multiport
 networks; optimization. Work will be validated against the reference
 one connected path at a time. No fitted spiral-inductance formula is substituted
 for the original electromagnetic solver.

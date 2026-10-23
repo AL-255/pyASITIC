@@ -12,6 +12,7 @@ from .devices import build_device, PAIRED_KINDS
 from .potential import solve_capacitance
 from .network import solve_pi2,solve_pi3,solve_pi4
 from .resonance import solve_self_resonance
+from .extended import solve_pix
 
 
 def _technology(request):
@@ -52,14 +53,15 @@ def handle(request,*,progress=None):
             ground=ground,differential=bool(request.get("differential",False)),fast=bool(request.get("fast",False)),eddy=request.get("eddy",False),
             observer=(lambda point:progress(json.dumps(point,allow_nan=False))) if progress is not None else None,
             **{key:float(mesh.get(key,1000)) for key in ("length_cell","width_cell","thickness_cell","capacitance_length_cell","capacitance_width_cell")})
-    if action in ("pi","pi2","pi3","pi4"):
+    if action in ("pi","pi2","pi3","pi4","pix"):
         if action=="pi":
             raise ValueError("The native fast Pi command faults on conductor coils before producing a model. Pi2, Pi3 and Pi4 use the working distributed solver.")
         mesh=request.get("mesh",{})
         ground=_shape(request["ground"],tech) if request.get("ground") else None
         pads={"first_pad":_shape(request["first_pad"],tech),"second_pad":_shape(request["second_pad"],tech)} if action=="pi4" else {}
-        solver={"pi2":solve_pi2,"pi3":solve_pi3,"pi4":solve_pi4}[action]
-        return solver(shape,tech,float(request.get("frequency_hz",1e9)),ground=ground,eddy=request.get("eddy",False),**pads,
+        solver={"pi2":solve_pi2,"pi3":solve_pi3,"pi4":solve_pi4,"pix":solve_pix}[action]
+        diagnostics={"include_matrices":bool(request.get("include_matrices",False))} if action=="pix" else {}
+        return solver(shape,tech,float(request.get("frequency_hz",1e9)),ground=ground,eddy=request.get("eddy",False),**pads,**diagnostics,
                          **{key:float(mesh.get(key,1000)) for key in ("length_cell","width_cell","thickness_cell","capacitance_length_cell","capacitance_width_cell")})
     if action == "capacitance":
         mesh=request.get("mesh",{})

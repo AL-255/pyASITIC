@@ -23,6 +23,10 @@ Reference checkout: `~/github/asitic-re`, revision recorded in each fixture.
 | `eddy.py`, `solver.py` | `eddy.cpp`, `solver.cpp` | 16 EDDY ON LMAT matrices across CMOS/BiCMOS wire, square, polygon and via-exit cases; coarse/refined meshes and square Eddy.out snapshots |
 | `network.py` eddy integration | `combined_network.cpp`, `extended_analysis.cpp` | Eight additional PI2 and eight PI3/PI4 sessions with EDDY ON, compared using native precise Y/S outputs and printed metrics |
 | `resonance.py` | `analysis_commands.cpp`, `network.cpp` | 184 direct native search traces and 12 complete SELFRES SLOW sessions: reversed bounds, differential excitation, native device reference, refined unequal meshes, CMOS/BiCMOS, joined capacitor geometry and layered eddy correction; streamed JSON/WebAssembly progress |
+| `extended.py`, `linear.py` | `extended_node.cpp`, `extended_twoport.cpp`, `general.cpp`, `node_equations.cpp` | 68 native extended-node cases, including noncontiguous native strides, exact finite column stamps and systems beyond the 64-column LU panel boundary |
+| `symmetric.py` | `symmetric.cpp`, `complex.cpp`, `blocked.cpp` | 38 native factor/inverse cases with exact one/two-pivot choices, n-cell workspace dispatch at size 65, singular classification, and six complex eigen-rotation cases |
+| `parallel.py`, `solver.py` | `parallel.cpp`, `separation.cpp`, `numerics.cpp`, `impedance.cpp` | 175 native self-integral/cross-section/separation/parallel/full-segment probes; retained filament self-impedance diagonals in complete PiX sessions |
+| `extended.py` PiX pipeline | `potential_solver.cpp`, `extended_twoport.cpp`, `extended_node.cpp`, `console_analysis.cpp` | Ten complete PIX sessions across CMOS/BiCMOS, wires, square/polygon coils, vias, joined capacitors and multimetal windings; unfolded CAP, final LMAT, node vectors, full-precision Pi/ZIN reports, direct port Y for all ten and six native 2PORTX Y/S exports |
 | `gds.py` | Native ribbon and `layout_export.cpp` via pitch conventions | Independent gdstk round-trip for nine generators, units, coordinates, layer mapping, via counts and cut area |
 | `bridge.py`, `web/worker.js` | New browser interface | Generation, estimates, sweeps and exports exercised in pinned Pyodide WebAssembly runtime |
 
@@ -45,8 +49,13 @@ Symmetric coils quantize to whole turns; symmetric polygon side counts are even.
 
 The original INDUCTANCE estimate is distinct from the frequency-dependent
 filament solver behind LMAT and PI2. The LMAT path now assembles and reduces the
-full no-eddy filament impedance matrix. Its dense complex inverse uses partial
-pivoting in binary64 rather than the original i386 LAPACK symmetric factorization.
+full filament impedance matrix. Its inverse now follows the original upper
+complex-symmetric factorization and inverse, including the n-cell workspace
+that selects unblocked factorization, one/two-pivot paths and eigen rotations.
+Full symmetric output is reconstructed from the native inverse's defined upper
+triangle. Filament self terms retain length/log arithmetic until native stores,
+and reduction accumulators spill each real/imaginary addition explicitly.
+Python 3.14's compensated complex sum is deliberately avoided at that boundary.
 The case selector's extended-precision 5000-unit translation is reproduced with
 exact rational rounding to a 64-bit binary significand. Rounding both translated
 endpoints to binary64 caused large errors in some refined meshes; the matrix
@@ -63,7 +72,7 @@ does not change with frequency in estimate mode. LMAT's separate series Q is
 Im(sum Z)/Re(sum Z). CAP now computes layered-substrate capacitance and substrate
 loss independently. Pi2 combines those two distributed solvers and reports the
 original frequency-dependent network metrics. Native eddy correction is optional
-for LMAT and Pi2/Pi3/Pi4. The fast Pi path and extended/transformer/multiport networks
+for LMAT and Pi2/Pi3/Pi4/PiX. The fast Pi path and transformer/multiport networks
 remain pending. SELFRES SLOW now repeats the distributed solver through the
 original midpoint search.
 
@@ -121,6 +130,37 @@ therefore shows the topology and this explicit limitation; it does not label
 Pi2 values as fast PI output. Pi2/Pi3/Pi4 diagrams and sweeps use their respective
 validated native paths. UI interactions still require a connected browser for
 full verification; SVG plots/circuits are separately rendered and inspected.
+
+PIX uses the original device-reference default, clone thresholds, unfolded CAP
+principal reduction, impedance-mode LMAT and a (2n+2)-unknown system for segment
+voltages/currents. Its LU follows native abs-one pivot ranking, 64-column panels,
+rounded reciprocal/scaling and BLAS update order. Both off-diagonal ports are
+retained separately. General CAP inversion and Pi2's node solve still use their
+previous binary64 elimination helpers; those are separate validation boundaries.
+
+The direct node probes require exact finite half-column stamps, including
+signed zero, and compare Y/current/voltage results at max(1e-12 absolute, 1e-10
+relative). Symmetric factor/inverse and eigen probes use the same finite
+tolerance and exact pivots. Parallel/separation elementary probes use 1e-12
+relative down to 1e-300 absolute, with exact zero and rejection classifications.
+Retained arithmetic uses Decimal guard precision and selected exact rational
+rounding; full x87 exception flags and universal bitwise equality are not claimed.
+
+Ten complete PIX sessions compare unfolded admittance at max(1e-16 S, 1e-8
+relative), final segment impedance at max(1e-8 ohm, 1e-8 relative), current/voltage
+vectors at max(1e-10 absolute, 1e-8 relative), and every Pi metric from full-precision
+native formatter arguments. A cancellation-sensitive fine wire's RC shunt
+required the original parallel/separation stores and symmetric inverse; its
+comparison was retained while replacing the approximate arithmetic.
+
+The CLI's snapshot dumper loops rows by rows even for one-column current/voltage
+slices. Its underlying RHS allocation contains two solution columns. The output
+tap retains those two allocated columns and derives the four native port values;
+the undefined third and later columns are excluded. This supplies independent
+Y comparisons for every PIX case. Native 2PORTX uses extended analysis only for
+types 0,1,16,17,18. Wires and joined capacitor/multimetal structures use its Pi2
+fallback, while PIX itself calls the extended backend for every type. The UI's
+PiX sweep repeats PIX directly and does not substitute that 2PORTX fallback.
 
 SELFRES retains the native ignored iteration-limit argument, hard 100 observed
 samples / up to 101 analyses, strict 0.01-ohm reactance test, frequency-step
@@ -246,5 +286,5 @@ numerical conformance evidence, not bitwise equality or validation for all
 process stacks. FFT grids are limited to powers of two from 2 to 256; contact
 matrices are limited to 256 contacts. Green tables are generated on demand and
 kept in a bounded in-memory cache instead of native cache files. Unfolded
-reduction, non-square FFT storage quirks, unusual process stacks, and native
+geometries, non-square FFT storage quirks, unusual process stacks, and native
 invalid-contact histories still need broader independent validation.

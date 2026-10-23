@@ -6,7 +6,7 @@ const COLORS = ["#e8bd65", "#81b4ef", "#b899eb", "#8fd1ae", "#e89971", "#e88fbd"
 let worker, ready = false, busy = false, nextId = 0, current = null, currentDefinition = null, technology = null, technologyText = "", sweepRows = null, matrixResult = null, capacitanceResult = null, pi2Result = null;
 let sweepContext=null,sweepModels=[];
 let selfresResult=null,selfresTrace=[];
-const MODEL_NAMES={pi:"Pi",pi2:"Pi2",pi3:"Pi3",pi4:"Pi4"};
+const MODEL_NAMES={pi:"Pi",pi2:"Pi2",pi3:"Pi3",pi4:"Pi4",pix:"PiX"};
 const eddyEnabled=()=>!!$("#eddy-mode")?.checked;
 const pending = new Map();
 const fmt = (value, digits=4) => Number(value).toLocaleString(undefined, { maximumSignificantDigits: digits });
@@ -170,7 +170,7 @@ function resetSelfres(){
 function updateModelControls(clear=true){
   const model=$("#pi-model").value,ground=$("#model-ground-mode"),required=model==="pi3";
   ground.options[0].disabled=required;
-  ground.options[0].textContent=model==="pi4"?"Device reference (native default)":"Substrate only";
+  ground.options[0].textContent=["pi4","pix"].includes(model)?"Device reference (native default)":"Substrate only";
   ground.options[1].disabled=!current||current.windings.length!==2;
   if(required && ground.value==="none")ground.value="strip";
   if(ground.value==="other" && ground.options[1].disabled)ground.value=required?"strip":"none";
@@ -181,7 +181,8 @@ function updateModelControls(clear=true){
     pi:"The supplied ASITIC fast Pi command faults on conductor coils before it produces circuit values. The topology is shown here; numerical fast-Pi results are unavailable in this reference.",
     pi2:"Distributed filament and layered-substrate model. The diagram shows series L/R and two series RC shunts. Uses the frequency above and CAP/LMAT mesh settings below.",
     pi3:"Original Pi3: the distributed model with an explicit ground structure. Choose the other winding or define a ground strip.",
-    pi4:"Original Pi4: solve the device with its pads, subtract the pads’ capacitive contribution, and extract the three-terminal circuit. Define two pad strips and a reference."
+    pi4:"Original Pi4: solve the device with its pads, subtract the pads’ capacitive contribution, and extract the three-terminal circuit. Define two pad strips and a reference.",
+    pix:"Original PiX extended two-port model. Solves coupled segment voltages and currents, then extracts the three-terminal circuit. Uses the frequency, reference and CAP/LMAT mesh settings below."
   }[model]+(model==="pi"?"":eddyEnabled()?" Native eddy correction is enabled; convergence diagnostics appear with results.":" Eddy currents are disabled.");
   if(clear)resetModel();controls();
 }

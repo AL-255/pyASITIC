@@ -25,6 +25,7 @@ jobs:
       - run: node --check web/app.js && node --check web/worker.js && node --check web/analysis-views.mjs && node tools/check_analysis_views.mjs
       - run: npm install --prefix /tmp/reasitic-pyodide pyodide@314.0.7
       - run: node tools/check_pyodide.mjs /tmp/reasitic-pyodide/node_modules/pyodide/pyodide.mjs
+      - run: node tools/check_extended.mjs /tmp/reasitic-pyodide/node_modules/pyodide/pyodide.mjs
       - uses: actions/configure-pages@v5
       - uses: actions/upload-pages-artifact@v3
         with:

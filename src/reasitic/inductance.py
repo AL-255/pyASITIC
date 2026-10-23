@@ -67,85 +67,6 @@ def _unit(a):
     return [x/n for x in a] if n > EPS else [0,0,0]
 
 
-def _self(length,radius):
-    if length < EPS:
-        return 0
-    a = length/radius
-    inv = 1/a
-    return 2*length*((math.log(math.sqrt(a*a+1)+a)-math.sqrt(inv*inv+1))+inv)
-
-
-def _log_integral(x,y):
-    x2,y2 = x*x,y*y
-    if abs(x)>EPS and abs(y)>EPS:
-        logarithmic = math.log(x2+y2)*(x2*x2-6*x2*y2+y2*y2)/24
-        angular = -x*y*(x2*math.atan(y/x)+y2*math.atan(x/y))/3
-        return logarithmic+angular
-    square = x2 if abs(x)>EPS else y2
-    return math.log(square)*square*square/24 if abs(x)>EPS or abs(y)>EPS else 0
-
-
-def _separation(w1,w2,t1,t2,dx,dy):
-    r = math.hypot(dx,dy)
-    if (t1+t2)*1.5 < r and (w1+w2)*1.5 < r:
-        return r
-    ws,wd,ts,td = w1+w2,w1-w2,t1+t2,t1-t2
-    xs = [wd/2-dx,-ws/2-dx,ws/2-dx,-wd/2-dx]
-    ys = [td/2-dy,ts/2-dy,-ts/2-dy,-td/2-dy]
-    rows = []
-    for x in xs:
-        v0,v1,v2,v3 = (_log_integral(x,y) for y in ys)
-        rows.append(v0-v1-v2+v3)
-    total = rows[0]-rows[1]-rows[2]+rows[3]
-    return math.exp(total*-0.5/(w1*w2*t1*t2)-float.fromhex("0x1.0aaaaaaaaaaabp+1"))
-
-
-def _parallel(a,b,sep):
-    alo,ahi = sorted((a[0],a[3]))
-    blo,bhi = sorted((b[0],b[3]))
-    alen,blen = ahi-alo,bhi-blo
-    if min(alen,blen) < EPS:
-        return 0
-    kind = (2 if blo<=ahi<=bhi else 1 if ahi>bhi else 0)+3*(2 if blo<=alo<=bhi else 1 if alo>bhi else 0)
-    ysep = abs(a[1]-b[1])
-    if sep > EPS:
-        ysep = 0 if abs(ysep-sep)<EPS else math.hypot(sep,ysep)
-    radius = _separation(a[6],b[6],a[7],b[7],ysep,sep)
-    def sl(length):
-        return _self(length,radius)
-    def adjacent():
-        total = alen+blen
-        return math.log(total/blen)*blen+alen*math.log(total/alen)
-    if kind in (0,4):
-        gap = blo-ahi if kind==0 else alo-bhi
-        if ysep < EPS:
-            if gap < EPS:
-                return adjacent()
-            total,p,q = alen+blen+gap,gap+alen,blen+gap
-            return math.log(gap)*gap+math.log(total)*total-p*math.log(p)-q*math.log(q)
-        if gap >= EPS:
-            return (sl(alen+blen+gap)+sl(gap)-sl(alen+gap)-sl(blen+gap))/2
-        return (sl(alen+blen)-sl(alen)-sl(blen))/2
-    if kind in (2,7):
-        overlap = ahi-blo if kind==2 else bhi-alo
-        if overlap < EPS and ysep < EPS:
-            return adjacent()
-        if overlap >= EPS:
-            if ysep < EPS and (kind==2 or sep < EPS):
-                return 0
-            return (sl(alen+blen-overlap)+sl(overlap)-sl(alen-overlap)-sl(blen-overlap))/2
-        return (sl(alen+blen)-sl(alen)-sl(blen))/2
-    if kind in (1,8):
-        left,right = (blo-alo,ahi-bhi) if kind==1 else (alo-blo,bhi-ahi)
-        if left < EPS and right < EPS:
-            return sl(alen if kind==1 else blen)
-        if left >= EPS and right >= EPS:
-            inside = blen if kind==1 else alen
-            return (sl(inside+left)+sl(inside+right)-sl(left)-sl(right))/2
-        return (sl(alen)+sl(blen)-sl(left if left>=EPS else right))/2
-    return 0
-
-
 def _intersects(p,u,q,v,la,lb):
     xy = v[0]*u[1]-u[0]*v[1]
     xz = v[0]*u[2]-u[0]*v[2]
@@ -254,7 +175,9 @@ def segment_mutual(a,b,warnings=None):
     a,b = [x*SCALE for x in a],[x*SCALE for x in b]
     case = _canonical(a,b)
     if case == 0:
-        value = _parallel(a,b,sep)
+        from .parallel import parallel_segment_mutual
+        status,value=parallel_segment_mutual(a,b,sep)
+        if status:value=0.0
     elif case in (1,2):
         value = _nonparallel(a,b,case==2)
     else:
