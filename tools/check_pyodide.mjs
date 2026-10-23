@@ -1,5 +1,6 @@
 // Execute the exact Pages source archive in the pinned WebAssembly runtime.
 // Usage: node tools/check_pyodide.mjs /absolute/path/to/pyodide/pyodide.mjs
+// Optional final argument "dependencies" runs only quadrature/Green probes.
 import { readFileSync } from "node:fs";
 import { pathToFileURL } from "node:url";
 import assert from "node:assert/strict";
@@ -8,11 +9,13 @@ const py = await loadPyodide();
 py.unpackArchive(new Uint8Array(readFileSync(new URL("../dist/reasitic.zip",import.meta.url))),"zip");
 py.runPython("from reasitic.bridge import request_json");
 const call=py.globals.get("request_json");
+const dependenciesOnly=process.argv[3]==="dependencies";
 function request(data) {
   const result=JSON.parse(call(JSON.stringify(data)));
   if(result.error)throw new Error(result.error);
   return result.result;
 }
+if(!dependenciesOnly){
 const init=request({action:"init"});
 assert.equal(init.technology.metals.length,5);
 for(const kind of init.generators) {
@@ -96,6 +99,7 @@ for(const fixture of networkCases){
   if(fixture.kind==="wire" && !fixture.ground)assert.equal(result.pi.shunt_differential_ohm,null);
 }
 console.log("Eight native distributed Pi2 Y/S matrices passed in WebAssembly.");
+}
 py.runPython(`
 from dataclasses import asdict
 import json,math
@@ -121,5 +125,43 @@ for(const fixture of [...quadratureFixture.cases,...quadratureFixture.rules]){
 }
 quadratureProbe.destroy();
 console.log("60 native infinite integrations and 36 transformed rules passed in WebAssembly.");
+py.runPython(`
+from reasitic.green import (GreenLayers,propagation_constant,complex_tanh,reflection_imag,
+                            oscillating_integrand,propagation_integrand,oscillating_kernel,reflection_kernel)
+def green_probe(payload):
+    case=json.loads(payload)
+    k,f=case["k"],case["frequency"]
+    layers=GreenLayers(case["layer1"],case["layer2"],case["depth"])
+    a,b=propagation_constant(k,f,layers.layer1),propagation_constant(k,f,layers.layer2)
+    t=complex_tanh(complex(layers.depth*a.real,layers.depth*a.imag))
+    result=dict(gamma_first=[a.real,a.imag],gamma_second=[b.real,b.imag],tanh=[t.real,t.imag],
+                reflection_imag=reflection_imag(k,f,layers.layer1),oscillating_integrand=oscillating_integrand(k,f,layers),
+                propagation_integrand=propagation_integrand(f,layers),
+                oscillating_kernel=oscillating_kernel(k,f,layers,case["height"],case["separation"]),
+                reflection_kernel=reflection_kernel(k,case["height"]))
+    def finite(value):
+        if isinstance(value,list):return [finite(v) for v in value]
+        return value if math.isfinite(value) else "nan" if math.isnan(value) else "inf" if value>0 else "-inf"
+    return json.dumps({key:finite(value) for key,value in result.items()},allow_nan=False)
+`);
+const greenProbe=py.globals.get("green_probe");
+const greenCases=JSON.parse(readFileSync(new URL("../tests/fixtures/green.json",import.meta.url))).cases;
+for(const fixture of greenCases){
+  const result=JSON.parse(greenProbe(JSON.stringify(fixture)));
+  for(const [key,value] of Object.entries(result)){
+    const actual=Array.isArray(value)?value:[value],expected=Array.isArray(fixture[key])?fixture[key]:[fixture[key]];
+    actual.forEach((v,i)=>{
+      const reference=expected[i];
+      if(typeof reference==="string")assert.equal(v,reference,`Green ${key}`);
+      else if(reference===0)assert.ok(v===0,`Green ${key} exact zero`);
+      else {
+        const floor=key==="reflection_kernel" || fixture.height===1?1e-300:1e-14;
+        assert.ok(Math.abs(v-reference)<=Math.max(floor,Math.abs(reference)*1e-12),`Green ${key} k=${fixture.k}`);
+      }
+    });
+  }
+}
+greenProbe.destroy();
+console.log("186 native Green-kernel cases passed in WebAssembly, including cutoff and nonfinite classifications.");
 call.destroy();
 console.log("Pinned Pyodide archive smoke test passed.");

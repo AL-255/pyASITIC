@@ -62,6 +62,7 @@ python3 tools/capture_transformer3d.py --reference ~/github/asitic-re
 python3 tools/capture_potential.py --reference ~/github/asitic-re
 python3 tools/capture_network.py --reference ~/github/asitic-re
 python3 tools/capture_quadrature.py --reference ~/github/asitic-re
+python3 tools/capture_green.py --reference ~/github/asitic-re
 ```
 
 Install `gdstk==1.0.2` to enable the independent GDS reader tests. CI runs those

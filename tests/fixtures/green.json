@@ -1,0 +1,4847 @@
+{
+  "reference": "Direct probes of unmodified C++ Green and legacy complex objects",
+  "reference_commit": "63885e808b522bdeba3f254d353afc72e643c761",
+  "object_sha256": {
+    "green.o": "5bcb8866814ff6b3f289cd6c78d8f07da6aff414f31abd86b74f33807e5eadaa",
+    "legacy_complex.o": "bdaae91b358b71834cc61a091eaa3e6867db8c2c9a34b8dd5a017c7fffa0bfc3"
+  },
+  "probe": "\n#include \"asitic/green.hpp\"\nextern \"C\" int printf(const char*,...);\nextern \"C\" double atof(const char*);\nextern \"C\" int probe_main(int,char** argv) {\n    const double k=atof(argv[1]),f=atof(argv[2]),height=atof(argv[6]),separation=atof(argv[7]);\n    const asitic::GreenLayers layers{atof(argv[3]),atof(argv[4]),atof(argv[5])};\n    const auto a=asitic::green_propagation_constant(k,f,layers.layer1),\n               b=asitic::green_propagation_constant(k,f,layers.layer2),\n               t=asitic::green_complex_tanh({double(layers.depth*a.real),double(layers.depth*a.imag)});\n    printf(\"%.17g %.17g %.17g %.17g %.17g %.17g %.17g %.17g %.17g %.17g %.17g\\n\",\n        a.real,a.imag,b.real,b.imag,t.real,t.imag,\n        double(asitic::green_reflection_imag(k,f,layers.layer1)),\n        double(asitic::green_oscillating_integrand(k,f,layers)),\n        double(asitic::green_propagation_integrand(f,layers)),\n        double(asitic::green_oscillating_kernel(k,f,layers,height,separation)),\n        double(asitic::green_reflection_kernel(k,height)));\n    return 0;\n}\nasm(\".text\\n.global _start\\n_start:\\n\"\n    \"xorl %ebp,%ebp\\npopl %esi\\nmovl %esp,%ecx\\nandl $-16,%esp\\n\"\n    \"pushl %eax\\npushl %esp\\npushl %edx\\npushl $0\\npushl $0\\npushl %ecx\\npushl %esi\\npushl $probe_main\\n\"\n    \"call __libc_start_main\\nhlt\\n\");\n",
+  "cases": [
+    {
+      "k": 0,
+      "frequency": 1000000.0,
+      "layer1": 100,
+      "layer2": 100,
+      "depth": 0.0001,
+      "height": 2.6e-06,
+      "separation": 0,
+      "gamma_first": [
+        19.869176531592203,
+        19.869176531592203
+      ],
+      "gamma_second": [
+        19.869176531592203,
+        19.869176531592203
+      ],
+      "tanh": [
+        0.0019869228825003618,
+        0.0019869124237850474
+      ],
+      "reflection_imag": 0.0,
+      "oscillating_integrand": 0.0,
+      "propagation_integrand": -0.050326848764334665,
+      "oscillating_kernel": "nan",
+      "reflection_kernel": 1.0
+    },
+    {
+      "k": 0,
+      "frequency": 1000000.0,
+      "layer1": 100,
+      "layer2": 100,
+      "depth": 0.0001,
+      "height": 2.6e-06,
+      "separation": 5e-06,
+      "gamma_first": [
+        19.869176531592203,
+        19.869176531592203
+      ],
+      "gamma_second": [
+        19.869176531592203,
+        19.869176531592203
+      ],
+      "tanh": [
+        0.0019869228825003618,
+        0.0019869124237850474
+      ],
+      "reflection_imag": 0.0,
+      "oscillating_integrand": 0.0,
+      "propagation_integrand": -0.050326848764334665,
+      "oscillating_kernel": "nan",
+      "reflection_kernel": 1.0
+    },
+    {
+      "k": 0,
+      "frequency": 1000000.0,
+      "layer1": 100,
+      "layer2": 1,
+      "depth": 5e-05,
+      "height": 2.6e-06,
+      "separation": 0,
+      "gamma_first": [
+        19.869176531592203,
+        19.869176531592203
+      ],
+      "gamma_second": [
+        1.9869176531592203,
+        1.9869176531592203
+      ],
+      "tanh": [
+        0.000993459480248801,
+        0.000993458172909387
+      ],
+      "reflection_imag": 0.0,
+      "oscillating_integrand": 0.0,
+      "propagation_integrand": -0.5031918213323193,
+      "oscillating_kernel": "nan",
+      "reflection_kernel": 1.0
+    },
+    {
+      "k": 0,
+      "frequency": 1000000.0,
+      "layer1": 100,
+      "layer2": 1,
+      "depth": 5e-05,
+      "height": 2.6e-06,
+      "separation": 5e-06,
+      "gamma_first": [
+        19.869176531592203,
+        19.869176531592203
+      ],
+      "gamma_second": [
+        1.9869176531592203,
+        1.9869176531592203
+      ],
+      "tanh": [
+        0.000993459480248801,
+        0.000993458172909387
+      ],
+      "reflection_imag": 0.0,
+      "oscillating_integrand": 0.0,
+      "propagation_integrand": -0.5031918213323193,
+      "oscillating_kernel": "nan",
+      "reflection_kernel": 1.0
+    },
+    {
+      "k": 0,
+      "frequency": 1000000.0,
+      "layer1": 1e-08,
+      "layer2": 100,
+      "depth": 1e-05,
+      "height": 2.6e-06,
+      "separation": 0,
+      "gamma_first": [
+        0.00019869176531592204,
+        0.00019869176531592204
+      ],
+      "gamma_second": [
+        19.869176531592203,
+        19.869176531592203
+      ],
+      "tanh": [
+        1.986917653159221e-09,
+        1.986917653159221e-09
+      ],
+      "reflection_imag": 0.0,
+      "oscillating_integrand": 0.0,
+      "propagation_integrand": -0.05032920415880732,
+      "oscillating_kernel": "nan",
+      "reflection_kernel": 1.0
+    },
+    {
+      "k": 0,
+      "frequency": 1000000.0,
+      "layer1": 1e-08,
+      "layer2": 100,
+      "depth": 1e-05,
+      "height": 2.6e-06,
+      "separation": 5e-06,
+      "gamma_first": [
+        0.00019869176531592204,
+        0.00019869176531592204
+      ],
+      "gamma_second": [
+        19.869176531592203,
+        19.869176531592203
+      ],
+      "tanh": [
+        1.986917653159221e-09,
+        1.986917653159221e-09
+      ],
+      "reflection_imag": 0.0,
+      "oscillating_integrand": 0.0,
+      "propagation_integrand": -0.05032920415880732,
+      "oscillating_kernel": "nan",
+      "reflection_kernel": 1.0
+    },
+    {
+      "k": 0,
+      "frequency": 1000000.0,
+      "layer1": 100000.0,
+      "layer2": 100000.0,
+      "depth": 0.0007,
+      "height": 2.6e-06,
+      "separation": 0,
+      "gamma_first": [
+        628.3185307179587,
+        628.3185307179587
+      ],
+      "gamma_second": [
+        628.3185307179587,
+        628.3185307179587
+      ],
+      "tanh": [
+        0.4866346579313739,
+        0.37587625034130406
+      ],
+      "reflection_imag": 0.0,
+      "oscillating_integrand": 0.0,
+      "propagation_integrand": -0.0008376729092711997,
+      "oscillating_kernel": "nan",
+      "reflection_kernel": 1.0
+    },
+    {
+      "k": 0,
+      "frequency": 1000000.0,
+      "layer1": 100000.0,
+      "layer2": 100000.0,
+      "depth": 0.0007,
+      "height": 2.6e-06,
+      "separation": 5e-06,
+      "gamma_first": [
+        628.3185307179587,
+        628.3185307179587
+      ],
+      "gamma_second": [
+        628.3185307179587,
+        628.3185307179587
+      ],
+      "tanh": [
+        0.4866346579313739,
+        0.37587625034130406
+      ],
+      "reflection_imag": 0.0,
+      "oscillating_integrand": 0.0,
+      "propagation_integrand": -0.0008376729092711997,
+      "oscillating_kernel": "nan",
+      "reflection_kernel": 1.0
+    },
+    {
+      "k": 0,
+      "frequency": 1000000.0,
+      "layer1": 10000.0,
+      "layer2": 100000.0,
+      "depth": 5e-05,
+      "height": 2.6e-06,
+      "separation": 0,
+      "gamma_first": [
+        198.69176531592203,
+        198.69176531592203
+      ],
+      "gamma_second": [
+        628.3185307179587,
+        628.3185307179587
+      ],
+      "tanh": [
+        0.009935241883887426,
+        0.009933934544481394
+      ],
+      "reflection_imag": 0.0,
+      "oscillating_integrand": 0.0,
+      "propagation_integrand": -0.0015846796056476114,
+      "oscillating_kernel": "nan",
+      "reflection_kernel": 1.0
+    },
+    {
+      "k": 0,
+      "frequency": 1000000.0,
+      "layer1": 10000.0,
+      "layer2": 100000.0,
+      "depth": 5e-05,
+      "height": 2.6e-06,
+      "separation": 5e-06,
+      "gamma_first": [
+        198.69176531592203,
+        198.69176531592203
+      ],
+      "gamma_second": [
+        628.3185307179587,
+        628.3185307179587
+      ],
+      "tanh": [
+        0.009935241883887426,
+        0.009933934544481394
+      ],
+      "reflection_imag": 0.0,
+      "oscillating_integrand": 0.0,
+      "propagation_integrand": -0.0015846796056476114,
+      "oscillating_kernel": "nan",
+      "reflection_kernel": 1.0
+    },
+    {
+      "k": 0,
+      "frequency": 1000000000.0,
+      "layer1": 100,
+      "layer2": 100,
+      "depth": 0.0001,
+      "height": 2.6e-06,
+      "separation": 0,
+      "gamma_first": [
+        628.3185307179587,
+        628.3185307179587
+      ],
+      "gamma_second": [
+        628.3185307179587,
+        628.3185307179587
+      ],
+      "tanh": [
+        0.06299669594340007,
+        0.06266596566368171
+      ],
+      "reflection_imag": 0.0,
+      "oscillating_integrand": 0.0,
+      "propagation_integrand": -0.0015343213164590002,
+      "oscillating_kernel": "nan",
+      "reflection_kernel": 1.0
+    },
+    {
+      "k": 0,
+      "frequency": 1000000000.0,
+      "layer1": 100,
+      "layer2": 100,
+      "depth": 0.0001,
+      "height": 2.6e-06,
+      "separation": 5e-06,
+      "gamma_first": [
+        628.3185307179587,
+        628.3185307179587
+      ],
+      "gamma_second": [
+        628.3185307179587,
+        628.3185307179587
+      ],
+      "tanh": [
+        0.06299669594340007,
+        0.06266596566368171
+      ],
+      "reflection_imag": 0.0,
+      "oscillating_integrand": 0.0,
+      "propagation_integrand": -0.0015343213164590002,
+      "oscillating_kernel": "nan",
+      "reflection_kernel": 1.0
+    },
+    {
+      "k": 0,
+      "frequency": 1000000000.0,
+      "layer1": 100,
+      "layer2": 1,
+      "depth": 5e-05,
+      "height": 2.6e-06,
+      "separation": 0,
+      "gamma_first": [
+        628.3185307179587,
+        628.3185307179587
+      ],
+      "gamma_second": [
+        62.83185307179587,
+        62.83185307179587
+      ],
+      "tanh": [
+        0.03143658105293873,
+        0.031395239376778294
+      ],
+      "reflection_imag": 0.0,
+      "oscillating_integrand": 0.0,
+      "propagation_integrand": -0.01415917275416908,
+      "oscillating_kernel": "nan",
+      "reflection_kernel": 1.0
+    },
+    {
+      "k": 0,
+      "frequency": 1000000000.0,
+      "layer1": 100,
+      "layer2": 1,
+      "depth": 5e-05,
+      "height": 2.6e-06,
+      "separation": 5e-06,
+      "gamma_first": [
+        628.3185307179587,
+        628.3185307179587
+      ],
+      "gamma_second": [
+        62.83185307179587,
+        62.83185307179587
+      ],
+      "tanh": [
+        0.03143658105293873,
+        0.031395239376778294
+      ],
+      "reflection_imag": 0.0,
+      "oscillating_integrand": 0.0,
+      "propagation_integrand": -0.01415917275416908,
+      "oscillating_kernel": "nan",
+      "reflection_kernel": 1.0
+    },
+    {
+      "k": 0,
+      "frequency": 1000000000.0,
+      "layer1": 1e-08,
+      "layer2": 100,
+      "depth": 1e-05,
+      "height": 2.6e-06,
+      "separation": 0,
+      "gamma_first": [
+        0.006283185307179587,
+        0.006283185307179587
+      ],
+      "gamma_second": [
+        628.3185307179587,
+        628.3185307179587
+      ],
+      "tanh": [
+        6.283185307179605e-08,
+        6.28318530717957e-08
+      ],
+      "reflection_imag": 0.0,
+      "oscillating_integrand": 0.0,
+      "propagation_integrand": -0.0015913002024047647,
+      "oscillating_kernel": "nan",
+      "reflection_kernel": 1.0
+    },
+    {
+      "k": 0,
+      "frequency": 1000000000.0,
+      "layer1": 1e-08,
+      "layer2": 100,
+      "depth": 1e-05,
+      "height": 2.6e-06,
+      "separation": 5e-06,
+      "gamma_first": [
+        0.006283185307179587,
+        0.006283185307179587
+      ],
+      "gamma_second": [
+        628.3185307179587,
+        628.3185307179587
+      ],
+      "tanh": [
+        6.283185307179605e-08,
+        6.28318530717957e-08
+      ],
+      "reflection_imag": 0.0,
+      "oscillating_integrand": 0.0,
+      "propagation_integrand": -0.0015913002024047647,
+      "oscillating_kernel": "nan",
+      "reflection_kernel": 1.0
+    },
+    {
+      "k": 0,
+      "frequency": 1000000000.0,
+      "layer1": 100000.0,
+      "layer2": 100000.0,
+      "depth": 0.0007,
+      "height": 2.6e-06,
+      "separation": 0,
+      "gamma_first": [
+        19869.176531592202,
+        19869.176531592202
+      ],
+      "gamma_second": [
+        19869.176531592202,
+        19869.176531592202
+      ],
+      "tanh": [
+        1.0000000000014901,
+        7.335931025351793e-13
+      ],
+      "reflection_imag": 0.0,
+      "oscillating_integrand": 0.0,
+      "propagation_integrand": -5.0329212104525104e-05,
+      "oscillating_kernel": "nan",
+      "reflection_kernel": 1.0
+    },
+    {
+      "k": 0,
+      "frequency": 1000000000.0,
+      "layer1": 100000.0,
+      "layer2": 100000.0,
+      "depth": 0.0007,
+      "height": 2.6e-06,
+      "separation": 5e-06,
+      "gamma_first": [
+        19869.176531592202,
+        19869.176531592202
+      ],
+      "gamma_second": [
+        19869.176531592202,
+        19869.176531592202
+      ],
+      "tanh": [
+        1.0000000000014901,
+        7.335931025351793e-13
+      ],
+      "reflection_imag": 0.0,
+      "oscillating_integrand": 0.0,
+      "propagation_integrand": -5.0329212104525104e-05,
+      "oscillating_kernel": "nan",
+      "reflection_kernel": 1.0
+    },
+    {
+      "k": 0,
+      "frequency": 1000000000.0,
+      "layer1": 10000.0,
+      "layer2": 100000.0,
+      "depth": 5e-05,
+      "height": 2.6e-06,
+      "separation": 0,
+      "gamma_first": [
+        6283.185307179587,
+        6283.185307179587
+      ],
+      "gamma_second": [
+        19869.176531592202,
+        19869.176531592202
+      ],
+      "tanh": [
+        0.3330788048837006,
+        0.29199624431556376
+      ],
+      "reflection_imag": 0.0,
+      "oscillating_integrand": 0.0,
+      "propagation_integrand": -8.36323469361833e-06,
+      "oscillating_kernel": "nan",
+      "reflection_kernel": 1.0
+    },
+    {
+      "k": 0,
+      "frequency": 1000000000.0,
+      "layer1": 10000.0,
+      "layer2": 100000.0,
+      "depth": 5e-05,
+      "height": 2.6e-06,
+      "separation": 5e-06,
+      "gamma_first": [
+        6283.185307179587,
+        6283.185307179587
+      ],
+      "gamma_second": [
+        19869.176531592202,
+        19869.176531592202
+      ],
+      "tanh": [
+        0.3330788048837006,
+        0.29199624431556376
+      ],
+      "reflection_imag": 0.0,
+      "oscillating_integrand": 0.0,
+      "propagation_integrand": -8.36323469361833e-06,
+      "oscillating_kernel": "nan",
+      "reflection_kernel": 1.0
+    },
+    {
+      "k": 0,
+      "frequency": 20000000000.0,
+      "layer1": 100,
+      "layer2": 100,
+      "depth": 0.0001,
+      "height": 2.6e-06,
+      "separation": 0,
+      "gamma_first": [
+        2809.9258924162905,
+        2809.9258924162905
+      ],
+      "gamma_second": [
+        2809.9258924162905,
+        2809.9258924162905
+      ],
+      "tanh": [
+        0.2947935079252181,
+        0.2653307391850875
+      ],
+      "reflection_imag": 0.0,
+      "oscillating_integrand": 0.0,
+      "propagation_integrand": -0.00024389769567234961,
+      "oscillating_kernel": "nan",
+      "reflection_kernel": 1.0
+    },
+    {
+      "k": 0,
+      "frequency": 20000000000.0,
+      "layer1": 100,
+      "layer2": 100,
+      "depth": 0.0001,
+      "height": 2.6e-06,
+      "separation": 5e-06,
+      "gamma_first": [
+        2809.9258924162905,
+        2809.9258924162905
+      ],
+      "gamma_second": [
+        2809.9258924162905,
+        2809.9258924162905
+      ],
+      "tanh": [
+        0.2947935079252181,
+        0.2653307391850875
+      ],
+      "reflection_imag": 0.0,
+      "oscillating_integrand": 0.0,
+      "propagation_integrand": -0.00024389769567234961,
+      "oscillating_kernel": "nan",
+      "reflection_kernel": 1.0
+    },
+    {
+      "k": 0,
+      "frequency": 20000000000.0,
+      "layer1": 100,
+      "layer2": 1,
+      "depth": 5e-05,
+      "height": 2.6e-06,
+      "separation": 0,
+      "gamma_first": [
+        2809.9258924162905,
+        2809.9258924162905
+      ],
+      "gamma_second": [
+        280.9925892416291,
+        280.9925892416291
+      ],
+      "tanh": [
+        0.14231549681745045,
+        0.13861871538425044
+      ],
+      "reflection_imag": 0.0,
+      "oscillating_integrand": 0.0,
+      "propagation_integrand": -0.001735259220879902,
+      "oscillating_kernel": "nan",
+      "reflection_kernel": 1.0
+    },
+    {
+      "k": 0,
+      "frequency": 20000000000.0,
+      "layer1": 100,
+      "layer2": 1,
+      "depth": 5e-05,
+      "height": 2.6e-06,
+      "separation": 5e-06,
+      "gamma_first": [
+        2809.9258924162905,
+        2809.9258924162905
+      ],
+      "gamma_second": [
+        280.9925892416291,
+        280.9925892416291
+      ],
+      "tanh": [
+        0.14231549681745045,
+        0.13861871538425044
+      ],
+      "reflection_imag": 0.0,
+      "oscillating_integrand": 0.0,
+      "propagation_integrand": -0.001735259220879902,
+      "oscillating_kernel": "nan",
+      "reflection_kernel": 1.0
+    },
+    {
+      "k": 0,
+      "frequency": 20000000000.0,
+      "layer1": 1e-08,
+      "layer2": 100,
+      "depth": 1e-05,
+      "height": 2.6e-06,
+      "separation": 0,
+      "gamma_first": [
+        0.028099258924162908,
+        0.028099258924162908
+      ],
+      "gamma_second": [
+        2809.9258924162905,
+        2809.9258924162905
+      ],
+      "tanh": [
+        2.809925892416439e-07,
+        2.8099258924161435e-07
+      ],
+      "reflection_imag": 0.0,
+      "oscillating_integrand": -1.598566412918687e-31,
+      "propagation_integrand": -0.00035479882015423785,
+      "oscillating_kernel": "-inf",
+      "reflection_kernel": 1.0
+    },
+    {
+      "k": 0,
+      "frequency": 20000000000.0,
+      "layer1": 1e-08,
+      "layer2": 100,
+      "depth": 1e-05,
+      "height": 2.6e-06,
+      "separation": 5e-06,
+      "gamma_first": [
+        0.028099258924162908,
+        0.028099258924162908
+      ],
+      "gamma_second": [
+        2809.9258924162905,
+        2809.9258924162905
+      ],
+      "tanh": [
+        2.809925892416439e-07,
+        2.8099258924161435e-07
+      ],
+      "reflection_imag": 0.0,
+      "oscillating_integrand": -1.598566412918687e-31,
+      "propagation_integrand": -0.00035479882015423785,
+      "oscillating_kernel": "-inf",
+      "reflection_kernel": 1.0
+    },
+    {
+      "k": 0,
+      "frequency": 20000000000.0,
+      "layer1": 100000.0,
+      "layer2": 100000.0,
+      "depth": 0.0007,
+      "height": 2.6e-06,
+      "separation": 0,
+      "gamma_first": [
+        88857.65876316733,
+        88857.65876316733
+      ],
+      "gamma_second": [
+        88857.65876316733,
+        88857.65876316733
+      ],
+      "tanh": [
+        1.0,
+        0.0
+      ],
+      "reflection_imag": 0.0,
+      "oscillating_integrand": -0.0,
+      "propagation_integrand": -1.1253953951963827e-05,
+      "oscillating_kernel": "nan",
+      "reflection_kernel": 1.0
+    },
+    {
+      "k": 0,
+      "frequency": 20000000000.0,
+      "layer1": 100000.0,
+      "layer2": 100000.0,
+      "depth": 0.0007,
+      "height": 2.6e-06,
+      "separation": 5e-06,
+      "gamma_first": [
+        88857.65876316733,
+        88857.65876316733
+      ],
+      "gamma_second": [
+        88857.65876316733,
+        88857.65876316733
+      ],
+      "tanh": [
+        1.0,
+        0.0
+      ],
+      "reflection_imag": 0.0,
+      "oscillating_integrand": -0.0,
+      "propagation_integrand": -1.1253953951963827e-05,
+      "oscillating_kernel": "nan",
+      "reflection_kernel": 1.0
+    },
+    {
+      "k": 0,
+      "frequency": 20000000000.0,
+      "layer1": 10000.0,
+      "layer2": 100000.0,
+      "depth": 5e-05,
+      "height": 2.6e-06,
+      "separation": 0,
+      "gamma_first": [
+        28099.258924162907,
+        28099.258924162907
+      ],
+      "gamma_second": [
+        88857.65876316733,
+        88857.65876316733
+      ],
+      "tanh": [
+        1.1198129336490443,
+        0.04406844215046009
+      ],
+      "reflection_imag": 0.0,
+      "oscillating_integrand": 0.0,
+      "propagation_integrand": -3.828365634954313e-05,
+      "oscillating_kernel": "nan",
+      "reflection_kernel": 1.0
+    },
+    {
+      "k": 0,
+      "frequency": 20000000000.0,
+      "layer1": 10000.0,
+      "layer2": 100000.0,
+      "depth": 5e-05,
+      "height": 2.6e-06,
+      "separation": 5e-06,
+      "gamma_first": [
+        28099.258924162907,
+        28099.258924162907
+      ],
+      "gamma_second": [
+        88857.65876316733,
+        88857.65876316733
+      ],
+      "tanh": [
+        1.1198129336490443,
+        0.04406844215046009
+      ],
+      "reflection_imag": 0.0,
+      "oscillating_integrand": 0.0,
+      "propagation_integrand": -3.828365634954313e-05,
+      "oscillating_kernel": "nan",
+      "reflection_kernel": 1.0
+    },
+    {
+      "k": 1e-06,
+      "frequency": 1000000.0,
+      "layer1": 100,
+      "layer2": 100,
+      "depth": 0.0001,
+      "height": 2.6e-06,
+      "separation": 0,
+      "gamma_first": [
+        19.869176531592217,
+        19.869176531592192
+      ],
+      "gamma_second": [
+        19.869176531592217,
+        19.869176531592192
+      ],
+      "tanh": [
+        0.0019869228825003635,
+        0.0019869124237850465
+      ],
+      "reflection_imag": -5.0329209623221184e-08,
+      "oscillating_integrand": -5.032920957121618e-08,
+      "propagation_integrand": -0.050326848764334665,
+      "oscillating_kernel": -0.050329209571085325,
+      "reflection_kernel": 0.9999999999974
+    },
+    {
+      "k": 1e-06,
+      "frequency": 1000000.0,
+      "layer1": 100,
+      "layer2": 100,
+      "depth": 0.0001,
+      "height": 2.6e-06,
+      "separation": 5e-06,
+      "gamma_first": [
+        19.869176531592217,
+        19.869176531592192
+      ],
+      "gamma_second": [
+        19.869176531592217,
+        19.869176531592192
+      ],
+      "tanh": [
+        0.0019869228825003635,
+        0.0019869124237850465
+      ],
+      "reflection_imag": -5.0329209623221184e-08,
+      "oscillating_integrand": -5.032920957121618e-08,
+      "propagation_integrand": -0.050326848764334665,
+      "oscillating_kernel": -0.050329209571085325,
+      "reflection_kernel": 0.9999999999974
+    },
+    {
+      "k": 1e-06,
+      "frequency": 1000000.0,
+      "layer1": 100,
+      "layer2": 1,
+      "depth": 5e-05,
+      "height": 2.6e-06,
+      "separation": 0,
+      "gamma_first": [
+        19.869176531592217,
+        19.869176531592192
+      ],
+      "gamma_second": [
+        1.9869176531593462,
+        1.9869176531590944
+      ],
+      "tanh": [
+        0.0009934594802488018,
+        0.0009934581729093865
+      ],
+      "reflection_imag": -5.0329209623221184e-08,
+      "oscillating_integrand": -5.03195448685334e-07,
+      "propagation_integrand": -0.5031918213323193,
+      "oscillating_kernel": -0.5031954486840258,
+      "reflection_kernel": 0.9999999999974
+    },
+    {
+      "k": 1e-06,
+      "frequency": 1000000.0,
+      "layer1": 100,
+      "layer2": 1,
+      "depth": 5e-05,
+      "height": 2.6e-06,
+      "separation": 5e-06,
+      "gamma_first": [
+        19.869176531592217,
+        19.869176531592192
+      ],
+      "gamma_second": [
+        1.9869176531593462,
+        1.9869176531590944
+      ],
+      "tanh": [
+        0.0009934594802488018,
+        0.0009934581729093865
+      ],
+      "reflection_imag": -5.0329209623221184e-08,
+      "oscillating_integrand": -5.03195448685334e-07,
+      "propagation_integrand": -0.5031918213323193,
+      "oscillating_kernel": -0.5031954486840258,
+      "reflection_kernel": 0.9999999999974
+    },
+    {
+      "k": 1e-06,
+      "frequency": 1000000.0,
+      "layer1": 1e-08,
+      "layer2": 100,
+      "depth": 1e-05,
+      "height": 2.6e-06,
+      "separation": 0,
+      "gamma_first": [
+        0.00019869302355020855,
+        0.00019869050708960336
+      ],
+      "gamma_second": [
+        19.869176531592217,
+        19.869176531592192
+      ],
+      "tanh": [
+        1.9869302355020856e-09,
+        1.9869050708960338e-09
+      ],
+      "reflection_imag": -0.005007622785984906,
+      "oscillating_integrand": -5.032920957042166e-08,
+      "propagation_integrand": -0.05032920415880732,
+      "oscillating_kernel": -0.05032920957029081,
+      "reflection_kernel": 0.9999999999974
+    },
+    {
+      "k": 1e-06,
+      "frequency": 1000000.0,
+      "layer1": 1e-08,
+      "layer2": 100,
+      "depth": 1e-05,
+      "height": 2.6e-06,
+      "separation": 5e-06,
+      "gamma_first": [
+        0.00019869302355020855,
+        0.00019869050708960336
+      ],
+      "gamma_second": [
+        19.869176531592217,
+        19.869176531592192
+      ],
+      "tanh": [
+        1.9869302355020856e-09,
+        1.9869050708960338e-09
+      ],
+      "reflection_imag": -0.005007622785984906,
+      "oscillating_integrand": -5.032920957042166e-08,
+      "propagation_integrand": -0.05032920415880732,
+      "oscillating_kernel": -0.05032920957029081,
+      "reflection_kernel": 0.9999999999974
+    },
+    {
+      "k": 1e-06,
+      "frequency": 1000000.0,
+      "layer1": 100000.0,
+      "layer2": 100000.0,
+      "depth": 0.0007,
+      "height": 2.6e-06,
+      "separation": 0,
+      "gamma_first": [
+        628.3185307179587,
+        628.3185307179587
+      ],
+      "gamma_second": [
+        628.3185307179587,
+        628.3185307179587
+      ],
+      "tanh": [
+        0.4866346579313739,
+        0.37587625034130406
+      ],
+      "reflection_imag": -1.5915494243827382e-09,
+      "oscillating_integrand": -1.5915494245373188e-09,
+      "propagation_integrand": -0.0008376729092711997,
+      "oscillating_kernel": -0.0015915494245331808,
+      "reflection_kernel": 0.9999999999974
+    },
+    {
+      "k": 1e-06,
+      "frequency": 1000000.0,
+      "layer1": 100000.0,
+      "layer2": 100000.0,
+      "depth": 0.0007,
+      "height": 2.6e-06,
+      "separation": 5e-06,
+      "gamma_first": [
+        628.3185307179587,
+        628.3185307179587
+      ],
+      "gamma_second": [
+        628.3185307179587,
+        628.3185307179587
+      ],
+      "tanh": [
+        0.4866346579313739,
+        0.37587625034130406
+      ],
+      "reflection_imag": -1.5915494243827382e-09,
+      "oscillating_integrand": -1.5915494245373188e-09,
+      "propagation_integrand": -0.0008376729092711997,
+      "oscillating_kernel": -0.0015915494245331808,
+      "reflection_kernel": 0.9999999999974
+    },
+    {
+      "k": 1e-06,
+      "frequency": 1000000.0,
+      "layer1": 10000.0,
+      "layer2": 100000.0,
+      "depth": 5e-05,
+      "height": 2.6e-06,
+      "separation": 0,
+      "gamma_first": [
+        198.69176531592205,
+        198.69176531592203
+      ],
+      "gamma_second": [
+        628.3185307179587,
+        628.3185307179587
+      ],
+      "tanh": [
+        0.009935241883887428,
+        0.009933934544481394
+      ],
+      "reflection_imag": -5.032921172387769e-09,
+      "oscillating_integrand": -1.591836285041275e-09,
+      "propagation_integrand": -0.0015846796056476114,
+      "oscillating_kernel": -0.0015918362850371362,
+      "reflection_kernel": 0.9999999999974
+    },
+    {
+      "k": 1e-06,
+      "frequency": 1000000.0,
+      "layer1": 10000.0,
+      "layer2": 100000.0,
+      "depth": 5e-05,
+      "height": 2.6e-06,
+      "separation": 5e-06,
+      "gamma_first": [
+        198.69176531592205,
+        198.69176531592203
+      ],
+      "gamma_second": [
+        628.3185307179587,
+        628.3185307179587
+      ],
+      "tanh": [
+        0.009935241883887428,
+        0.009933934544481394
+      ],
+      "reflection_imag": -5.032921172387769e-09,
+      "oscillating_integrand": -1.591836285041275e-09,
+      "propagation_integrand": -0.0015846796056476114,
+      "oscillating_kernel": -0.0015918362850371362,
+      "reflection_kernel": 0.9999999999974
+    },
+    {
+      "k": 1e-06,
+      "frequency": 1000000000.0,
+      "layer1": 100,
+      "layer2": 100,
+      "depth": 0.0001,
+      "height": 2.6e-06,
+      "separation": 0,
+      "gamma_first": [
+        628.3185307179587,
+        628.3185307179587
+      ],
+      "gamma_second": [
+        628.3185307179587,
+        628.3185307179587
+      ],
+      "tanh": [
+        0.06299669594340007,
+        0.06266596566368171
+      ],
+      "reflection_imag": -1.5915494243827382e-09,
+      "oscillating_integrand": -1.591549425572121e-09,
+      "propagation_integrand": -0.0015343213164590002,
+      "oscillating_kernel": -0.001591549425567983,
+      "reflection_kernel": 0.9999999999974
+    },
+    {
+      "k": 1e-06,
+      "frequency": 1000000000.0,
+      "layer1": 100,
+      "layer2": 100,
+      "depth": 0.0001,
+      "height": 2.6e-06,
+      "separation": 5e-06,
+      "gamma_first": [
+        628.3185307179587,
+        628.3185307179587
+      ],
+      "gamma_second": [
+        628.3185307179587,
+        628.3185307179587
+      ],
+      "tanh": [
+        0.06299669594340007,
+        0.06266596566368171
+      ],
+      "reflection_imag": -1.5915494243827382e-09,
+      "oscillating_integrand": -1.591549425572121e-09,
+      "propagation_integrand": -0.0015343213164590002,
+      "oscillating_kernel": -0.001591549425567983,
+      "reflection_kernel": 0.9999999999974
+    },
+    {
+      "k": 1e-06,
+      "frequency": 1000000000.0,
+      "layer1": 100,
+      "layer2": 1,
+      "depth": 5e-05,
+      "height": 2.6e-06,
+      "separation": 0,
+      "gamma_first": [
+        628.3185307179587,
+        628.3185307179587
+      ],
+      "gamma_second": [
+        62.83185307179587,
+        62.83185307179586
+      ],
+      "tanh": [
+        0.03143658105293873,
+        0.031395239376778294
+      ],
+      "reflection_imag": -1.5915494243827382e-09,
+      "oscillating_integrand": -1.420877026568702e-08,
+      "propagation_integrand": -0.01415917275416908,
+      "oscillating_kernel": -0.014208770265650077,
+      "reflection_kernel": 0.9999999999974
+    },
+    {
+      "k": 1e-06,
+      "frequency": 1000000000.0,
+      "layer1": 100,
+      "layer2": 1,
+      "depth": 5e-05,
+      "height": 2.6e-06,
+      "separation": 5e-06,
+      "gamma_first": [
+        628.3185307179587,
+        628.3185307179587
+      ],
+      "gamma_second": [
+        62.83185307179587,
+        62.83185307179586
+      ],
+      "tanh": [
+        0.03143658105293873,
+        0.031395239376778294
+      ],
+      "reflection_imag": -1.5915494243827382e-09,
+      "oscillating_integrand": -1.420877026568702e-08,
+      "propagation_integrand": -0.01415917275416908,
+      "oscillating_kernel": -0.014208770265650077,
+      "reflection_kernel": 0.9999999999974
+    },
+    {
+      "k": 1e-06,
+      "frequency": 1000000000.0,
+      "layer1": 1e-08,
+      "layer2": 100,
+      "depth": 1e-05,
+      "height": 2.6e-06,
+      "separation": 0,
+      "gamma_first": [
+        0.006283185346968322,
+        0.006283185267390851
+      ],
+      "gamma_second": [
+        628.3185307179587,
+        628.3185307179587
+      ],
+      "tanh": [
+        6.28318534696834e-08,
+        6.283185267390834e-08
+      ],
+      "reflection_imag": -0.00015912961380386634,
+      "oscillating_integrand": -1.5915494283100734e-09,
+      "propagation_integrand": -0.0015913002024047647,
+      "oscillating_kernel": -0.0015915494283059355,
+      "reflection_kernel": 0.9999999999974
+    },
+    {
+      "k": 1e-06,
+      "frequency": 1000000000.0,
+      "layer1": 1e-08,
+      "layer2": 100,
+      "depth": 1e-05,
+      "height": 2.6e-06,
+      "separation": 5e-06,
+      "gamma_first": [
+        0.006283185346968322,
+        0.006283185267390851
+      ],
+      "gamma_second": [
+        628.3185307179587,
+        628.3185307179587
+      ],
+      "tanh": [
+        6.28318534696834e-08,
+        6.283185267390834e-08
+      ],
+      "reflection_imag": -0.00015912961380386634,
+      "oscillating_integrand": -1.5915494283100734e-09,
+      "propagation_integrand": -0.0015913002024047647,
+      "oscillating_kernel": -0.0015915494283059355,
+      "reflection_kernel": 0.9999999999974
+    },
+    {
+      "k": 1e-06,
+      "frequency": 1000000000.0,
+      "layer1": 100000.0,
+      "layer2": 100000.0,
+      "depth": 0.0007,
+      "height": 2.6e-06,
+      "separation": 0,
+      "gamma_first": [
+        19869.176531592202,
+        19869.176531592202
+      ],
+      "gamma_second": [
+        19869.176531592202,
+        19869.176531592202
+      ],
+      "tanh": [
+        1.0000000000014901,
+        7.335931025351793e-13
+      ],
+      "reflection_imag": -5.03292291427249e-11,
+      "oscillating_integrand": -5.032921207566832e-11,
+      "propagation_integrand": -5.0329212104525104e-05,
+      "oscillating_kernel": -5.032921207553746e-05,
+      "reflection_kernel": 0.9999999999974
+    },
+    {
+      "k": 1e-06,
+      "frequency": 1000000000.0,
+      "layer1": 100000.0,
+      "layer2": 100000.0,
+      "depth": 0.0007,
+      "height": 2.6e-06,
+      "separation": 5e-06,
+      "gamma_first": [
+        19869.176531592202,
+        19869.176531592202
+      ],
+      "gamma_second": [
+        19869.176531592202,
+        19869.176531592202
+      ],
+      "tanh": [
+        1.0000000000014901,
+        7.335931025351793e-13
+      ],
+      "reflection_imag": -5.03292291427249e-11,
+      "oscillating_integrand": -5.032921207566832e-11,
+      "propagation_integrand": -5.0329212104525104e-05,
+      "oscillating_kernel": -5.032921207553746e-05,
+      "reflection_kernel": 0.9999999999974
+    },
+    {
+      "k": 1e-06,
+      "frequency": 1000000000.0,
+      "layer1": 10000.0,
+      "layer2": 100000.0,
+      "depth": 5e-05,
+      "height": 2.6e-06,
+      "separation": 0,
+      "gamma_first": [
+        6283.185307179587,
+        6283.185307179587
+      ],
+      "gamma_second": [
+        19869.176531592202,
+        19869.176531592202
+      ],
+      "tanh": [
+        0.3330788048837006,
+        0.29199624431556376
+      ],
+      "reflection_imag": -1.591549969361948e-10,
+      "oscillating_integrand": -6.233619398657101e-11,
+      "propagation_integrand": -8.36323469361833e-06,
+      "oscillating_kernel": -6.233619398640893e-05,
+      "reflection_kernel": 0.9999999999974
+    },
+    {
+      "k": 1e-06,
+      "frequency": 1000000000.0,
+      "layer1": 10000.0,
+      "layer2": 100000.0,
+      "depth": 5e-05,
+      "height": 2.6e-06,
+      "separation": 5e-06,
+      "gamma_first": [
+        6283.185307179587,
+        6283.185307179587
+      ],
+      "gamma_second": [
+        19869.176531592202,
+        19869.176531592202
+      ],
+      "tanh": [
+        0.3330788048837006,
+        0.29199624431556376
+      ],
+      "reflection_imag": -1.591549969361948e-10,
+      "oscillating_integrand": -6.233619398657101e-11,
+      "propagation_integrand": -8.36323469361833e-06,
+      "oscillating_kernel": -6.233619398640893e-05,
+      "reflection_kernel": 0.9999999999974
+    },
+    {
+      "k": 1e-06,
+      "frequency": 20000000000.0,
+      "layer1": 100,
+      "layer2": 100,
+      "depth": 0.0001,
+      "height": 2.6e-06,
+      "separation": 0,
+      "gamma_first": [
+        2809.9258924162905,
+        2809.9258924162905
+      ],
+      "gamma_second": [
+        2809.9258924162905,
+        2809.9258924162905
+      ],
+      "tanh": [
+        0.2947935079252181,
+        0.2653307391850875
+      ],
+      "reflection_imag": -3.5588123023252607e-10,
+      "oscillating_integrand": -3.5588123759850066e-10,
+      "propagation_integrand": -0.00024389769567234961,
+      "oscillating_kernel": -0.00035588123759757535,
+      "reflection_kernel": 0.9999999999974
+    },
+    {
+      "k": 1e-06,
+      "frequency": 20000000000.0,
+      "layer1": 100,
+      "layer2": 100,
+      "depth": 0.0001,
+      "height": 2.6e-06,
+      "separation": 5e-06,
+      "gamma_first": [
+        2809.9258924162905,
+        2809.9258924162905
+      ],
+      "gamma_second": [
+        2809.9258924162905,
+        2809.9258924162905
+      ],
+      "tanh": [
+        0.2947935079252181,
+        0.2653307391850875
+      ],
+      "reflection_imag": -3.5588123023252607e-10,
+      "oscillating_integrand": -3.5588123759850066e-10,
+      "propagation_integrand": -0.00024389769567234961,
+      "oscillating_kernel": -0.00035588123759757535,
+      "reflection_kernel": 0.9999999999974
+    },
+    {
+      "k": 1e-06,
+      "frequency": 20000000000.0,
+      "layer1": 100,
+      "layer2": 1,
+      "depth": 5e-05,
+      "height": 2.6e-06,
+      "separation": 0,
+      "gamma_first": [
+        2809.9258924162905,
+        2809.9258924162905
+      ],
+      "gamma_second": [
+        280.9925892416291,
+        280.9925892416291
+      ],
+      "tanh": [
+        0.14231549681745045,
+        0.13861871538425044
+      ],
+      "reflection_imag": -3.5588123023252607e-10,
+      "oscillating_integrand": -1.757753139986117e-09,
+      "propagation_integrand": -0.001735259220879902,
+      "oscillating_kernel": -0.0017577531399815469,
+      "reflection_kernel": 0.9999999999974
+    },
+    {
+      "k": 1e-06,
+      "frequency": 20000000000.0,
+      "layer1": 100,
+      "layer2": 1,
+      "depth": 5e-05,
+      "height": 2.6e-06,
+      "separation": 5e-06,
+      "gamma_first": [
+        2809.9258924162905,
+        2809.9258924162905
+      ],
+      "gamma_second": [
+        280.9925892416291,
+        280.9925892416291
+      ],
+      "tanh": [
+        0.14231549681745045,
+        0.13861871538425044
+      ],
+      "reflection_imag": -3.5588123023252607e-10,
+      "oscillating_integrand": -1.757753139986117e-09,
+      "propagation_integrand": -0.001735259220879902,
+      "oscillating_kernel": -0.0017577531399815469,
+      "reflection_kernel": 0.9999999999974
+    },
+    {
+      "k": 1e-06,
+      "frequency": 20000000000.0,
+      "layer1": 1e-08,
+      "layer2": 100,
+      "depth": 1e-05,
+      "height": 2.6e-06,
+      "separation": 0,
+      "gamma_first": [
+        0.028099258933059937,
+        0.028099258915265875
+      ],
+      "gamma_second": [
+        2809.9258924162905,
+        2809.9258924162905
+      ],
+      "tanh": [
+        2.8099258933061416e-07,
+        2.80992589152644e-07
+      ],
+      "reflection_imag": -3.558686066736713e-05,
+      "oscillating_integrand": -3.558812715370781e-10,
+      "propagation_integrand": -0.00035479882015423785,
+      "oscillating_kernel": -0.00035588127153615283,
+      "reflection_kernel": 0.9999999999974
+    },
+    {
+      "k": 1e-06,
+      "frequency": 20000000000.0,
+      "layer1": 1e-08,
+      "layer2": 100,
+      "depth": 1e-05,
+      "height": 2.6e-06,
+      "separation": 5e-06,
+      "gamma_first": [
+        0.028099258933059937,
+        0.028099258915265875
+      ],
+      "gamma_second": [
+        2809.9258924162905,
+        2809.9258924162905
+      ],
+      "tanh": [
+        2.8099258933061416e-07,
+        2.80992589152644e-07
+      ],
+      "reflection_imag": -3.558686066736713e-05,
+      "oscillating_integrand": -3.558812715370781e-10,
+      "propagation_integrand": -0.00035479882015423785,
+      "oscillating_kernel": -0.00035588127153615283,
+      "reflection_kernel": 0.9999999999974
+    },
+    {
+      "k": 1e-06,
+      "frequency": 20000000000.0,
+      "layer1": 100000.0,
+      "layer2": 100000.0,
+      "depth": 0.0007,
+      "height": 2.6e-06,
+      "separation": 0,
+      "gamma_first": [
+        88857.65876316733,
+        88857.65876316733
+      ],
+      "gamma_second": [
+        88857.65876316733,
+        88857.65876316733
+      ],
+      "tanh": [
+        1.0,
+        0.0
+      ],
+      "reflection_imag": -1.1253875878537686e-11,
+      "oscillating_integrand": -1.1253953946132187e-11,
+      "propagation_integrand": -1.1253953951963827e-05,
+      "oscillating_kernel": -1.1253953946102926e-05,
+      "reflection_kernel": 0.9999999999974
+    },
+    {
+      "k": 1e-06,
+      "frequency": 20000000000.0,
+      "layer1": 100000.0,
+      "layer2": 100000.0,
+      "depth": 0.0007,
+      "height": 2.6e-06,
+      "separation": 5e-06,
+      "gamma_first": [
+        88857.65876316733,
+        88857.65876316733
+      ],
+      "gamma_second": [
+        88857.65876316733,
+        88857.65876316733
+      ],
+      "tanh": [
+        1.0,
+        0.0
+      ],
+      "reflection_imag": -1.1253875878537686e-11,
+      "oscillating_integrand": -1.1253953946132187e-11,
+      "propagation_integrand": -1.1253953951963827e-05,
+      "oscillating_kernel": -1.1253953946102926e-05,
+      "reflection_kernel": 0.9999999999974
+    },
+    {
+      "k": 1e-06,
+      "frequency": 20000000000.0,
+      "layer1": 10000.0,
+      "layer2": 100000.0,
+      "depth": 5e-05,
+      "height": 2.6e-06,
+      "separation": 0,
+      "gamma_first": [
+        28099.258924162907,
+        28099.258924162907
+      ],
+      "gamma_second": [
+        88857.65876316733,
+        88857.65876316733
+      ],
+      "tanh": [
+        1.1198129336490443,
+        0.04406844215046009
+      ],
+      "reflection_imag": -3.5588139218712385e-11,
+      "oscillating_integrand": -3.6979458873464937e-11,
+      "propagation_integrand": -3.828365634954313e-05,
+      "oscillating_kernel": -3.697945887336879e-05,
+      "reflection_kernel": 0.9999999999974
+    },
+    {
+      "k": 1e-06,
+      "frequency": 20000000000.0,
+      "layer1": 10000.0,
+      "layer2": 100000.0,
+      "depth": 5e-05,
+      "height": 2.6e-06,
+      "separation": 5e-06,
+      "gamma_first": [
+        28099.258924162907,
+        28099.258924162907
+      ],
+      "gamma_second": [
+        88857.65876316733,
+        88857.65876316733
+      ],
+      "tanh": [
+        1.1198129336490443,
+        0.04406844215046009
+      ],
+      "reflection_imag": -3.5588139218712385e-11,
+      "oscillating_integrand": -3.6979458873464937e-11,
+      "propagation_integrand": -3.828365634954313e-05,
+      "oscillating_kernel": -3.697945887336879e-05,
+      "reflection_kernel": 0.9999999999974
+    },
+    {
+      "k": 1,
+      "frequency": 1000000.0,
+      "layer1": 100,
+      "layer2": 100,
+      "depth": 0.0001,
+      "height": 2.6e-06,
+      "separation": 0,
+      "gamma_first": [
+        19.881762816011722,
+        19.856598215005164
+      ],
+      "gamma_second": [
+        19.881762816011722,
+        19.856598215005164
+      ],
+      "tanh": [
+        0.001988181501004527,
+        0.0019856545821949527
+      ],
+      "reflection_imag": -0.0478280639443047,
+      "oscillating_integrand": -0.0478280639443047,
+      "propagation_integrand": -0.050326848764334665,
+      "oscillating_kernel": -0.047827939591500106,
+      "reflection_kernel": 0.99999740000338
+    },
+    {
+      "k": 1,
+      "frequency": 1000000.0,
+      "layer1": 100,
+      "layer2": 100,
+      "depth": 0.0001,
+      "height": 2.6e-06,
+      "separation": 5e-06,
+      "gamma_first": [
+        19.881762816011722,
+        19.856598215005164
+      ],
+      "gamma_second": [
+        19.881762816011722,
+        19.856598215005164
+      ],
+      "tanh": [
+        0.001988181501004527,
+        0.0019856545821949527
+      ],
+      "reflection_imag": -0.0478280639443047,
+      "oscillating_integrand": -0.0478280639443047,
+      "propagation_integrand": -0.050326848764334665,
+      "oscillating_kernel": -0.04782793959090226,
+      "reflection_kernel": 0.99999740000338
+    },
+    {
+      "k": 1,
+      "frequency": 1000000.0,
+      "layer1": 100,
+      "layer2": 1,
+      "depth": 5e-05,
+      "height": 2.6e-06,
+      "separation": 0,
+      "gamma_first": [
+        19.881762816011722,
+        19.856598215005164
+      ],
+      "gamma_second": [
+        2.1164542673423816,
+        1.865309268124666
+      ],
+      "tanh": [
+        0.0009940887932275587,
+        0.000992829255838606
+      ],
+      "reflection_imag": -0.0478280639443047,
+      "oscillating_integrand": -0.2855368193638741,
+      "propagation_integrand": -0.5031918213323193,
+      "oscillating_kernel": -0.2855360769691089,
+      "reflection_kernel": 0.99999740000338
+    },
+    {
+      "k": 1,
+      "frequency": 1000000.0,
+      "layer1": 100,
+      "layer2": 1,
+      "depth": 5e-05,
+      "height": 2.6e-06,
+      "separation": 5e-06,
+      "gamma_first": [
+        19.881762816011722,
+        19.856598215005164
+      ],
+      "gamma_second": [
+        2.1164542673423816,
+        1.865309268124666
+      ],
+      "tanh": [
+        0.0009940887932275587,
+        0.000992829255838606
+      ],
+      "reflection_imag": -0.0478280639443047,
+      "oscillating_integrand": -0.2855368193638741,
+      "propagation_integrand": -0.5031918213323193,
+      "oscillating_kernel": -0.2855360769655397,
+      "reflection_kernel": 0.99999740000338
+    },
+    {
+      "k": 1,
+      "frequency": 1000000.0,
+      "layer1": 1e-08,
+      "layer2": 100,
+      "depth": 1e-05,
+      "height": 2.6e-06,
+      "separation": 0,
+      "gamma_first": [
+        1.0000000000000009,
+        3.947841760435741e-08
+      ],
+      "gamma_second": [
+        19.881762816011722,
+        19.856598215005164
+      ],
+      "tanh": [
+        9.999999999666676e-06,
+        3.947841760040957e-13
+      ],
+      "reflection_imag": -1.9739208802178677e-08,
+      "oscillating_integrand": -0.04782710739259144,
+      "propagation_integrand": -0.05032920415880732,
+      "oscillating_kernel": -0.047826983042273875,
+      "reflection_kernel": 0.99999740000338
+    },
+    {
+      "k": 1,
+      "frequency": 1000000.0,
+      "layer1": 1e-08,
+      "layer2": 100,
+      "depth": 1e-05,
+      "height": 2.6e-06,
+      "separation": 5e-06,
+      "gamma_first": [
+        1.0000000000000009,
+        3.947841760435741e-08
+      ],
+      "gamma_second": [
+        19.881762816011722,
+        19.856598215005164
+      ],
+      "tanh": [
+        9.999999999666676e-06,
+        3.947841760040957e-13
+      ],
+      "reflection_imag": -1.9739208802178677e-08,
+      "oscillating_integrand": -0.04782710739259144,
+      "propagation_integrand": -0.05032920415880732,
+      "oscillating_kernel": -0.047826983041676034,
+      "reflection_kernel": 0.99999740000338
+    },
+    {
+      "k": 1,
+      "frequency": 1000000.0,
+      "layer1": 100000.0,
+      "layer2": 100000.0,
+      "depth": 0.0007,
+      "height": 2.6e-06,
+      "separation": 0,
+      "gamma_first": [
+        628.3189286054425,
+        628.3181328307269
+      ],
+      "gamma_second": [
+        628.3189286054425,
+        628.3181328307269
+      ],
+      "tanh": [
+        0.48663480795432845,
+        0.37587589653644543
+      ],
+      "reflection_imag": -0.0015890174091886648,
+      "oscillating_integrand": -0.0015890174091886618,
+      "propagation_integrand": -0.0008376729092711997,
+      "oscillating_kernel": -0.0015890132777487687,
+      "reflection_kernel": 0.99999740000338
+    },
+    {
+      "k": 1,
+      "frequency": 1000000.0,
+      "layer1": 100000.0,
+      "layer2": 100000.0,
+      "depth": 0.0007,
+      "height": 2.6e-06,
+      "separation": 5e-06,
+      "gamma_first": [
+        628.3189286054425,
+        628.3181328307269
+      ],
+      "gamma_second": [
+        628.3189286054425,
+        628.3181328307269
+      ],
+      "tanh": [
+        0.48663480795432845,
+        0.37587589653644543
+      ],
+      "reflection_imag": -0.0015890174091886648,
+      "oscillating_integrand": -0.0015890174091886618,
+      "propagation_integrand": -0.0008376729092711997,
+      "oscillating_kernel": -0.001589013277728906,
+      "reflection_kernel": 0.99999740000338
+    },
+    {
+      "k": 1,
+      "frequency": 1000000.0,
+      "layer1": 10000.0,
+      "layer2": 100000.0,
+      "depth": 5e-05,
+      "height": 2.6e-06,
+      "separation": 0,
+      "gamma_first": [
+        198.69302355020855,
+        198.6905070896034
+      ],
+      "gamma_second": [
+        628.3189286054425,
+        628.3181328307269
+      ],
+      "tanh": [
+        0.009935304783181845,
+        0.0099338716207489
+      ],
+      "reflection_imag": -0.00500762278598492,
+      "oscillating_integrand": -0.0015891612278758028,
+      "propagation_integrand": -0.0015846796056476114,
+      "oscillating_kernel": -0.0015891570960619816,
+      "reflection_kernel": 0.99999740000338
+    },
+    {
+      "k": 1,
+      "frequency": 1000000.0,
+      "layer1": 10000.0,
+      "layer2": 100000.0,
+      "depth": 5e-05,
+      "height": 2.6e-06,
+      "separation": 5e-06,
+      "gamma_first": [
+        198.69302355020855,
+        198.6905070896034
+      ],
+      "gamma_second": [
+        628.3189286054425,
+        628.3181328307269
+      ],
+      "tanh": [
+        0.009935304783181845,
+        0.0099338716207489
+      ],
+      "reflection_imag": -0.00500762278598492,
+      "oscillating_integrand": -0.0015891612278758028,
+      "propagation_integrand": -0.0015846796056476114,
+      "oscillating_kernel": -0.0015891570960421173,
+      "reflection_kernel": 0.99999740000338
+    },
+    {
+      "k": 1,
+      "frequency": 1000000000.0,
+      "layer1": 100,
+      "layer2": 100,
+      "depth": 0.0001,
+      "height": 2.6e-06,
+      "separation": 0,
+      "gamma_first": [
+        628.3189286054425,
+        628.3181328307269
+      ],
+      "gamma_second": [
+        628.3189286054425,
+        628.3181328307269
+      ],
+      "tanh": [
+        0.06299673541634285,
+        0.06266592556246041
+      ],
+      "reflection_imag": -0.0015890174091886648,
+      "oscillating_integrand": -0.0015890174091886611,
+      "propagation_integrand": -0.0015343213164590002,
+      "oscillating_kernel": -0.001589013277748768,
+      "reflection_kernel": 0.99999740000338
+    },
+    {
+      "k": 1,
+      "frequency": 1000000000.0,
+      "layer1": 100,
+      "layer2": 100,
+      "depth": 0.0001,
+      "height": 2.6e-06,
+      "separation": 5e-06,
+      "gamma_first": [
+        628.3189286054425,
+        628.3181328307269
+      ],
+      "gamma_second": [
+        628.3189286054425,
+        628.3181328307269
+      ],
+      "tanh": [
+        0.06299673541634285,
+        0.06266592556246041
+      ],
+      "reflection_imag": -0.0015890174091886648,
+      "oscillating_integrand": -0.0015890174091886611,
+      "propagation_integrand": -0.0015343213164590002,
+      "oscillating_kernel": -0.0015890132777289054,
+      "reflection_kernel": 0.99999740000338
+    },
+    {
+      "k": 1,
+      "frequency": 1000000000.0,
+      "layer1": 100,
+      "layer2": 1,
+      "depth": 5e-05,
+      "height": 2.6e-06,
+      "separation": 0,
+      "gamma_first": [
+        628.3189286054425,
+        628.3181328307269
+      ],
+      "gamma_second": [
+        62.835832071347745,
+        62.827874324209105
+      ],
+      "tanh": [
+        0.03143660090799137,
+        0.03139521944319855
+      ],
+      "reflection_imag": -0.0015890174091886648,
+      "oscillating_integrand": -0.014083718975114602,
+      "propagation_integrand": -0.01415917275416908,
+      "oscillating_kernel": -0.01408368235749287,
+      "reflection_kernel": 0.99999740000338
+    },
+    {
+      "k": 1,
+      "frequency": 1000000000.0,
+      "layer1": 100,
+      "layer2": 1,
+      "depth": 5e-05,
+      "height": 2.6e-06,
+      "separation": 5e-06,
+      "gamma_first": [
+        628.3189286054425,
+        628.3181328307269
+      ],
+      "gamma_second": [
+        62.835832071347745,
+        62.827874324209105
+      ],
+      "tanh": [
+        0.03143660090799137,
+        0.03139521944319855
+      ],
+      "reflection_imag": -0.0015890174091886648,
+      "oscillating_integrand": -0.014083718975114602,
+      "propagation_integrand": -0.01415917275416908,
+      "oscillating_kernel": -0.014083682357316824,
+      "reflection_kernel": 0.99999740000338
+    },
+    {
+      "k": 1,
+      "frequency": 1000000000.0,
+      "layer1": 1e-08,
+      "layer2": 100,
+      "depth": 1e-05,
+      "height": 2.6e-06,
+      "separation": 0,
+      "gamma_first": [
+        1.0000000007792726,
+        3.947841757359298e-05
+      ],
+      "gamma_second": [
+        628.3189286054425,
+        628.3181328307269
+      ],
+      "tanh": [
+        1.0000000007459395e-05,
+        3.9478417569645143e-10
+      ],
+      "reflection_imag": -1.973920876372315e-05,
+      "oscillating_integrand": -0.0015889856291582453,
+      "propagation_integrand": -0.0015913002024047647,
+      "oscillating_kernel": -0.0015889814978009803,
+      "reflection_kernel": 0.99999740000338
+    },
+    {
+      "k": 1,
+      "frequency": 1000000000.0,
+      "layer1": 1e-08,
+      "layer2": 100,
+      "depth": 1e-05,
+      "height": 2.6e-06,
+      "separation": 5e-06,
+      "gamma_first": [
+        1.0000000007792726,
+        3.947841757359298e-05
+      ],
+      "gamma_second": [
+        628.3189286054425,
+        628.3181328307269
+      ],
+      "tanh": [
+        1.0000000007459395e-05,
+        3.9478417569645143e-10
+      ],
+      "reflection_imag": -1.973920876372315e-05,
+      "oscillating_integrand": -0.0015889856291582453,
+      "propagation_integrand": -0.0015913002024047647,
+      "oscillating_kernel": -0.001588981497781118,
+      "reflection_kernel": 0.99999740000338
+    },
+    {
+      "k": 1,
+      "frequency": 1000000000.0,
+      "layer1": 100000.0,
+      "layer2": 100000.0,
+      "depth": 0.0007,
+      "height": 2.6e-06,
+      "separation": 0,
+      "gamma_first": [
+        19869.17654417451,
+        19869.1765190099
+      ],
+      "gamma_second": [
+        19869.17654417451,
+        19869.1765190099
+      ],
+      "tanh": [
+        1.0000000000014901,
+        7.335931071823338e-13
+      ],
+      "reflection_imag": -5.032667910676732e-05,
+      "oscillating_integrand": -5.0326679106767313e-05,
+      "propagation_integrand": -5.0329212104525104e-05,
+      "oscillating_kernel": -5.032654825757174e-05,
+      "reflection_kernel": 0.99999740000338
+    },
+    {
+      "k": 1,
+      "frequency": 1000000000.0,
+      "layer1": 100000.0,
+      "layer2": 100000.0,
+      "depth": 0.0007,
+      "height": 2.6e-06,
+      "separation": 5e-06,
+      "gamma_first": [
+        19869.17654417451,
+        19869.1765190099
+      ],
+      "gamma_second": [
+        19869.17654417451,
+        19869.1765190099
+      ],
+      "tanh": [
+        1.0000000000014901,
+        7.335931071823338e-13
+      ],
+      "reflection_imag": -5.032667910676732e-05,
+      "oscillating_integrand": -5.0326679106767313e-05,
+      "propagation_integrand": -5.0329212104525104e-05,
+      "oscillating_kernel": -5.032654825694266e-05,
+      "reflection_kernel": 0.99999740000338
+    },
+    {
+      "k": 1,
+      "frequency": 1000000000.0,
+      "layer1": 10000.0,
+      "layer2": 100000.0,
+      "depth": 5e-05,
+      "height": 2.6e-06,
+      "separation": 0,
+      "gamma_first": [
+        6283.185346968322,
+        6283.185267390852
+      ],
+      "gamma_second": [
+        19869.17654417451,
+        19869.1765190099
+      ],
+      "tanh": [
+        0.33307880643507287,
+        0.2919962419902388
+      ],
+      "reflection_imag": -0.00015912961380384522,
+      "oscillating_integrand": -6.232807097219952e-05,
+      "propagation_integrand": -8.36323469361833e-06,
+      "oscillating_kernel": -6.232790891942566e-05,
+      "reflection_kernel": 0.99999740000338
+    },
+    {
+      "k": 1,
+      "frequency": 1000000000.0,
+      "layer1": 10000.0,
+      "layer2": 100000.0,
+      "depth": 5e-05,
+      "height": 2.6e-06,
+      "separation": 5e-06,
+      "gamma_first": [
+        6283.185346968322,
+        6283.185267390852
+      ],
+      "gamma_second": [
+        19869.17654417451,
+        19869.1765190099
+      ],
+      "tanh": [
+        0.33307880643507287,
+        0.2919962419902388
+      ],
+      "reflection_imag": -0.00015912961380384522,
+      "oscillating_integrand": -6.232807097219952e-05,
+      "propagation_integrand": -8.36323469361833e-06,
+      "oscillating_kernel": -6.232790891864655e-05,
+      "reflection_kernel": 0.99999740000338
+    },
+    {
+      "k": 1,
+      "frequency": 20000000000.0,
+      "layer1": 100,
+      "layer2": 100,
+      "depth": 0.0001,
+      "height": 2.6e-06,
+      "separation": 0,
+      "gamma_first": [
+        2809.92598138661,
+        2809.925803445974
+      ],
+      "gamma_second": [
+        2809.92598138661,
+        2809.925803445974
+      ],
+      "tanh": [
+        0.2947935152836118,
+        0.26533072904306976
+      ],
+      "reflection_imag": -0.00035575463149725814,
+      "oscillating_integrand": -0.0003557546314972674,
+      "propagation_integrand": -0.00024389769567234961,
+      "oscillating_kernel": -0.000355753706536428,
+      "reflection_kernel": 0.99999740000338
+    },
+    {
+      "k": 1,
+      "frequency": 20000000000.0,
+      "layer1": 100,
+      "layer2": 100,
+      "depth": 0.0001,
+      "height": 2.6e-06,
+      "separation": 5e-06,
+      "gamma_first": [
+        2809.92598138661,
+        2809.925803445974
+      ],
+      "gamma_second": [
+        2809.92598138661,
+        2809.925803445974
+      ],
+      "tanh": [
+        0.2947935152836118,
+        0.26533072904306976
+      ],
+      "reflection_imag": -0.00035575463149725814,
+      "oscillating_integrand": -0.0003557546314972674,
+      "propagation_integrand": -0.00024389769567234961,
+      "oscillating_kernel": -0.000355753706531981,
+      "reflection_kernel": 0.99999740000338
+    },
+    {
+      "k": 1,
+      "frequency": 20000000000.0,
+      "layer1": 100,
+      "layer2": 1,
+      "depth": 5e-05,
+      "height": 2.6e-06,
+      "separation": 0,
+      "gamma_first": [
+        2809.92598138661,
+        2809.925803445974
+      ],
+      "gamma_second": [
+        280.9934789462169,
+        280.99169953985836
+      ],
+      "tanh": [
+        0.14231550108582944,
+        0.13861871076483762
+      ],
+      "reflection_imag": -0.00035575463149725814,
+      "oscillating_integrand": -0.0017568661181457793,
+      "propagation_integrand": -0.001735259220879902,
+      "oscillating_kernel": -0.0017568615502998105,
+      "reflection_kernel": 0.99999740000338
+    },
+    {
+      "k": 1,
+      "frequency": 20000000000.0,
+      "layer1": 100,
+      "layer2": 1,
+      "depth": 5e-05,
+      "height": 2.6e-06,
+      "separation": 5e-06,
+      "gamma_first": [
+        2809.92598138661,
+        2809.925803445974
+      ],
+      "gamma_second": [
+        280.9934789462169,
+        280.99169953985836
+      ],
+      "tanh": [
+        0.14231550108582944,
+        0.13861871076483762
+      ],
+      "reflection_imag": -0.00035575463149725814,
+      "oscillating_integrand": -0.0017568661181457793,
+      "propagation_integrand": -0.001735259220879902,
+      "oscillating_kernel": -0.0017568615502778495,
+      "reflection_kernel": 0.99999740000338
+    },
+    {
+      "k": 1,
+      "frequency": 20000000000.0,
+      "layer1": 1e-08,
+      "layer2": 100,
+      "depth": 1e-05,
+      "height": 2.6e-06,
+      "separation": 0,
+      "gamma_first": [
+        1.0000003117088483,
+        0.0007895681059717837
+      ],
+      "gamma_second": [
+        2809.92598138661,
+        2809.925803445974
+      ],
+      "tanh": [
+        1.0000003116755151e-05,
+        7.895681058928268e-09
+      ],
+      "reflection_imag": -0.00039478386839943526,
+      "oscillating_integrand": -0.00035574751647580473,
+      "propagation_integrand": -0.00035479882015423785,
+      "oscillating_kernel": -0.00035574659153346435,
+      "reflection_kernel": 0.99999740000338
+    },
+    {
+      "k": 1,
+      "frequency": 20000000000.0,
+      "layer1": 1e-08,
+      "layer2": 100,
+      "depth": 1e-05,
+      "height": 2.6e-06,
+      "separation": 5e-06,
+      "gamma_first": [
+        1.0000003117088483,
+        0.0007895681059717837
+      ],
+      "gamma_second": [
+        2809.92598138661,
+        2809.925803445974
+      ],
+      "tanh": [
+        1.0000003116755151e-05,
+        7.895681058928268e-09
+      ],
+      "reflection_imag": -0.00039478386839943526,
+      "oscillating_integrand": -0.00035574751647580473,
+      "propagation_integrand": -0.00035479882015423785,
+      "oscillating_kernel": -0.0003557465915290175,
+      "reflection_kernel": 0.99999740000338
+    },
+    {
+      "k": 1,
+      "frequency": 20000000000.0,
+      "layer1": 100000.0,
+      "layer2": 100000.0,
+      "depth": 0.0007,
+      "height": 2.6e-06,
+      "separation": 0,
+      "gamma_first": [
+        88857.65876598081,
+        88857.65876035384
+      ],
+      "gamma_second": [
+        88857.65876598081,
+        88857.65876035384
+      ],
+      "tanh": [
+        1.0,
+        0.0
+      ],
+      "reflection_imag": -1.1253827300840607e-05,
+      "oscillating_integrand": -1.12538273008406e-05,
+      "propagation_integrand": -1.1253953951963827e-05,
+      "oscillating_kernel": -1.1253798040927656e-05,
+      "reflection_kernel": 0.99999740000338
+    },
+    {
+      "k": 1,
+      "frequency": 20000000000.0,
+      "layer1": 100000.0,
+      "layer2": 100000.0,
+      "depth": 0.0007,
+      "height": 2.6e-06,
+      "separation": 5e-06,
+      "gamma_first": [
+        88857.65876598081,
+        88857.65876035384
+      ],
+      "gamma_second": [
+        88857.65876598081,
+        88857.65876035384
+      ],
+      "tanh": [
+        1.0,
+        0.0
+      ],
+      "reflection_imag": -1.1253827300840607e-05,
+      "oscillating_integrand": -1.12538273008406e-05,
+      "propagation_integrand": -1.1253953951963827e-05,
+      "oscillating_kernel": -1.1253798040786983e-05,
+      "reflection_kernel": 0.99999740000338
+    },
+    {
+      "k": 1,
+      "frequency": 20000000000.0,
+      "layer1": 10000.0,
+      "layer2": 100000.0,
+      "depth": 5e-05,
+      "height": 2.6e-06,
+      "separation": 0,
+      "gamma_first": [
+        28099.25893305994,
+        28099.258915265877
+      ],
+      "gamma_second": [
+        88857.65876598081,
+        88857.65876035384
+      ],
+      "tanh": [
+        1.1198129334930191,
+        0.0440684422186746
+      ],
+      "reflection_imag": -3.558686066733153e-05,
+      "oscillating_integrand": -3.6978031973995145e-05,
+      "propagation_integrand": -3.828365634954313e-05,
+      "oscillating_kernel": -3.6977935831236995e-05,
+      "reflection_kernel": 0.99999740000338
+    },
+    {
+      "k": 1,
+      "frequency": 20000000000.0,
+      "layer1": 10000.0,
+      "layer2": 100000.0,
+      "depth": 5e-05,
+      "height": 2.6e-06,
+      "separation": 5e-06,
+      "gamma_first": [
+        28099.25893305994,
+        28099.258915265877
+      ],
+      "gamma_second": [
+        88857.65876598081,
+        88857.65876035384
+      ],
+      "tanh": [
+        1.1198129334930191,
+        0.0440684422186746
+      ],
+      "reflection_imag": -3.558686066733153e-05,
+      "oscillating_integrand": -3.6978031973995145e-05,
+      "propagation_integrand": -3.828365634954313e-05,
+      "oscillating_kernel": -3.697793583077477e-05,
+      "reflection_kernel": 0.99999740000338
+    },
+    {
+      "k": 1000.0,
+      "frequency": 1000000.0,
+      "layer1": 100,
+      "layer2": 100,
+      "depth": 0.0001,
+      "height": 2.6e-06,
+      "separation": 0,
+      "gamma_first": [
+        1000.0000779272576,
+        0.3947841452791286
+      ],
+      "gamma_second": [
+        1000.0000779272576,
+        0.3947841452791286
+      ],
+      "tanh": [
+        0.09966800249406492,
+        3.908624739917369e-05
+      ],
+      "reflection_imag": -0.00019739204956623204,
+      "oscillating_integrand": -0.00019739204956623204,
+      "propagation_integrand": -0.050326848764334665,
+      "oscillating_kernel": -1.9687949684463592e-07,
+      "reflection_kernel": 0.9974033770725698
+    },
+    {
+      "k": 1000.0,
+      "frequency": 1000000.0,
+      "layer1": 100,
+      "layer2": 100,
+      "depth": 0.0001,
+      "height": 2.6e-06,
+      "separation": 5e-06,
+      "gamma_first": [
+        1000.0000779272576,
+        0.3947841452791286
+      ],
+      "gamma_second": [
+        1000.0000779272576,
+        0.3947841452791286
+      ],
+      "tanh": [
+        0.09966800249406492,
+        3.908624739917369e-05
+      ],
+      "reflection_imag": -0.00019739204956623204,
+      "oscillating_integrand": -0.00019739204956623204,
+      "propagation_integrand": -0.050326848764334665,
+      "oscillating_kernel": -1.9687703585605244e-07,
+      "reflection_kernel": 0.9974033770725698
+    },
+    {
+      "k": 1000.0,
+      "frequency": 1000000.0,
+      "layer1": 100,
+      "layer2": 1,
+      "depth": 5e-05,
+      "height": 2.6e-06,
+      "separation": 0,
+      "gamma_first": [
+        1000.0000779272576,
+        0.3947841452791286
+      ],
+      "gamma_second": [
+        1000.0000000077928,
+        0.003947841760404979
+      ],
+      "tanh": [
+        0.04995837886393518,
+        1.9689941371001523e-05
+      ],
+      "reflection_imag": -0.00019739204956623204,
+      "oscillating_integrand": -2.0570418218566777e-05,
+      "propagation_integrand": -0.5031918213323193,
+      "oscillating_kernel": -2.0517004598993618e-08,
+      "reflection_kernel": 0.9974033770725698
+    },
+    {
+      "k": 1000.0,
+      "frequency": 1000000.0,
+      "layer1": 100,
+      "layer2": 1,
+      "depth": 5e-05,
+      "height": 2.6e-06,
+      "separation": 5e-06,
+      "gamma_first": [
+        1000.0000779272576,
+        0.3947841452791286
+      ],
+      "gamma_second": [
+        1000.0000000077928,
+        0.003947841760404979
+      ],
+      "tanh": [
+        0.04995837886393518,
+        1.9689941371001523e-05
+      ],
+      "reflection_imag": -0.00019739204956623204,
+      "oscillating_integrand": -2.0570418218566777e-05,
+      "propagation_integrand": -0.5031918213323193,
+      "oscillating_kernel": -2.0516748136970426e-08,
+      "reflection_kernel": 0.9974033770725698
+    },
+    {
+      "k": 1000.0,
+      "frequency": 1000000.0,
+      "layer1": 1e-08,
+      "layer2": 100,
+      "depth": 1e-05,
+      "height": 2.6e-06,
+      "separation": 0,
+      "gamma_first": [
+        1000.0,
+        3.947841760435744e-11
+      ],
+      "gamma_second": [
+        1000.0000779272576,
+        0.3947841452791286
+      ],
+      "tanh": [
+        0.00999966667999946,
+        3.9474470025771546e-16
+      ],
+      "reflection_imag": -1.973920880217872e-14,
+      "oscillating_integrand": -0.00019348342510651278,
+      "propagation_integrand": -0.05032920415880732,
+      "oscillating_kernel": -1.9298102160880347e-07,
+      "reflection_kernel": 0.9974033770725698
+    },
+    {
+      "k": 1000.0,
+      "frequency": 1000000.0,
+      "layer1": 1e-08,
+      "layer2": 100,
+      "depth": 1e-05,
+      "height": 2.6e-06,
+      "separation": 5e-06,
+      "gamma_first": [
+        1000.0,
+        3.947841760435744e-11
+      ],
+      "gamma_second": [
+        1000.0000779272576,
+        0.3947841452791286
+      ],
+      "tanh": [
+        0.00999966667999946,
+        3.9474470025771546e-16
+      ],
+      "reflection_imag": -1.973920880217872e-14,
+      "oscillating_integrand": -0.00019348342510651278,
+      "propagation_integrand": -0.05032920415880732,
+      "oscillating_kernel": -1.929786093510589e-07,
+      "reflection_kernel": 0.9974033770725698
+    },
+    {
+      "k": 1000.0,
+      "frequency": 1000000.0,
+      "layer1": 100000.0,
+      "layer2": 100000.0,
+      "depth": 0.0007,
+      "height": 2.6e-06,
+      "separation": 0,
+      "gamma_first": [
+        1066.333504939597,
+        370.2258010414266
+      ],
+      "gamma_second": [
+        1066.333504939597,
+        370.2258010414266
+      ],
+      "tanh": [
+        0.6589507017673027,
+        0.15453152864449243
+      ],
+      "reflection_imag": -0.1680247308906212,
+      "oscillating_integrand": -0.16802473089062125,
+      "propagation_integrand": -0.0008376729092711997,
+      "oscillating_kernel": -0.00016758843402201539,
+      "reflection_kernel": 0.9974033770725698
+    },
+    {
+      "k": 1000.0,
+      "frequency": 1000000.0,
+      "layer1": 100000.0,
+      "layer2": 100000.0,
+      "depth": 0.0007,
+      "height": 2.6e-06,
+      "separation": 5e-06,
+      "gamma_first": [
+        1066.333504939597,
+        370.2258010414266
+      ],
+      "gamma_second": [
+        1066.333504939597,
+        370.2258010414266
+      ],
+      "tanh": [
+        0.6589507017673027,
+        0.15453152864449243
+      ],
+      "reflection_imag": -0.1680247308906212,
+      "oscillating_integrand": -0.16802473089062125,
+      "propagation_integrand": -0.0008376729092711997,
+      "oscillating_kernel": -0.00016758633917095437,
+      "reflection_kernel": 0.9974033770725698
+    },
+    {
+      "k": 1000.0,
+      "frequency": 1000000.0,
+      "layer1": 10000.0,
+      "layer2": 100000.0,
+      "depth": 5e-05,
+      "height": 2.6e-06,
+      "separation": 0,
+      "gamma_first": [
+        1000.7777595124921,
+        39.4477367518524
+      ],
+      "gamma_second": [
+        1066.333504939597,
+        370.2258010414266
+      ],
+      "tanh": [
+        0.049997359818749074,
+        0.00196745896170607
+      ],
+      "reflection_imag": -0.01970087859869647,
+      "oscillating_integrand": -0.15364833154425622,
+      "propagation_integrand": -0.0015846796056476114,
+      "oscillating_kernel": -0.000153249364763807,
+      "reflection_kernel": 0.9974033770725698
+    },
+    {
+      "k": 1000.0,
+      "frequency": 1000000.0,
+      "layer1": 10000.0,
+      "layer2": 100000.0,
+      "depth": 5e-05,
+      "height": 2.6e-06,
+      "separation": 5e-06,
+      "gamma_first": [
+        1000.7777595124921,
+        39.4477367518524
+      ],
+      "gamma_second": [
+        1066.333504939597,
+        370.2258010414266
+      ],
+      "tanh": [
+        0.049997359818749074,
+        0.00196745896170607
+      ],
+      "reflection_imag": -0.01970087859869647,
+      "oscillating_integrand": -0.15364833154425622,
+      "propagation_integrand": -0.0015846796056476114,
+      "oscillating_kernel": -0.00015324744915073832,
+      "reflection_kernel": 0.9974033770725698
+    },
+    {
+      "k": 1000.0,
+      "frequency": 1000000000.0,
+      "layer1": 100,
+      "layer2": 100,
+      "depth": 0.0001,
+      "height": 2.6e-06,
+      "separation": 0,
+      "gamma_first": [
+        1066.333504939597,
+        370.2258010414266
+      ],
+      "gamma_second": [
+        1066.333504939597,
+        370.2258010414266
+      ],
+      "tanh": [
+        0.10637511011031141,
+        0.036620945798856504
+      ],
+      "reflection_imag": -0.1680247308906212,
+      "oscillating_integrand": -0.16802473089062123,
+      "propagation_integrand": -0.0015343213164590002,
+      "oscillating_kernel": -0.00016758843402201533,
+      "reflection_kernel": 0.9974033770725698
+    },
+    {
+      "k": 1000.0,
+      "frequency": 1000000000.0,
+      "layer1": 100,
+      "layer2": 100,
+      "depth": 0.0001,
+      "height": 2.6e-06,
+      "separation": 5e-06,
+      "gamma_first": [
+        1066.333504939597,
+        370.2258010414266
+      ],
+      "gamma_second": [
+        1066.333504939597,
+        370.2258010414266
+      ],
+      "tanh": [
+        0.10637511011031141,
+        0.036620945798856504
+      ],
+      "reflection_imag": -0.1680247308906212,
+      "oscillating_integrand": -0.16802473089062123,
+      "propagation_integrand": -0.0015343213164590002,
+      "oscillating_kernel": -0.00016758633917095435,
+      "reflection_kernel": 0.9974033770725698
+    },
+    {
+      "k": 1000.0,
+      "frequency": 1000000000.0,
+      "layer1": 100,
+      "layer2": 1,
+      "depth": 5e-05,
+      "height": 2.6e-06,
+      "separation": 0,
+      "gamma_first": [
+        1066.333504939597,
+        370.2258010414266
+      ],
+      "gamma_second": [
+        1000.0077925754712,
+        3.947810996820605
+      ],
+      "tanh": [
+        0.05328441706507762,
+        0.018460858911197905
+      ],
+      "reflection_imag": -0.1680247308906212,
+      "oscillating_integrand": -0.020560899410627664,
+      "propagation_integrand": -0.01415917275416908,
+      "oscillating_kernel": -2.0507510507809442e-05,
+      "reflection_kernel": 0.9974033770725698
+    },
+    {
+      "k": 1000.0,
+      "frequency": 1000000000.0,
+      "layer1": 100,
+      "layer2": 1,
+      "depth": 5e-05,
+      "height": 2.6e-06,
+      "separation": 5e-06,
+      "gamma_first": [
+        1066.333504939597,
+        370.2258010414266
+      ],
+      "gamma_second": [
+        1000.0077925754712,
+        3.947810996820605
+      ],
+      "tanh": [
+        0.05328441706507762,
+        0.018460858911197905
+      ],
+      "reflection_imag": -0.1680247308906212,
+      "oscillating_integrand": -0.020560899410627664,
+      "propagation_integrand": -0.01415917275416908,
+      "oscillating_kernel": -2.0507254164462143e-05,
+      "reflection_kernel": 0.9974033770725698
+    },
+    {
+      "k": 1000.0,
+      "frequency": 1000000000.0,
+      "layer1": 1e-08,
+      "layer2": 100,
+      "depth": 1e-05,
+      "height": 2.6e-06,
+      "separation": 0,
+      "gamma_first": [
+        1000.0,
+        3.9478417604357434e-08
+      ],
+      "gamma_second": [
+        1066.333504939597,
+        370.2258010414266
+      ],
+      "tanh": [
+        0.00999966667999946,
+        3.947447002577154e-13
+      ],
+      "reflection_imag": -1.9739208802178716e-11,
+      "oscillating_integrand": -0.16469761830204488,
+      "propagation_integrand": -0.0015913002024047647,
+      "oscillating_kernel": -0.00016426996069026864,
+      "reflection_kernel": 0.9974033770725698
+    },
+    {
+      "k": 1000.0,
+      "frequency": 1000000000.0,
+      "layer1": 1e-08,
+      "layer2": 100,
+      "depth": 1e-05,
+      "height": 2.6e-06,
+      "separation": 5e-06,
+      "gamma_first": [
+        1000.0,
+        3.9478417604357434e-08
+      ],
+      "gamma_second": [
+        1066.333504939597,
+        370.2258010414266
+      ],
+      "tanh": [
+        0.00999966667999946,
+        3.947447002577154e-13
+      ],
+      "reflection_imag": -1.9739208802178716e-11,
+      "oscillating_integrand": -0.16469761830204488,
+      "propagation_integrand": -0.0015913002024047647,
+      "oscillating_kernel": -0.00016426790732003787,
+      "reflection_kernel": 0.9974033770725698
+    },
+    {
+      "k": 1000.0,
+      "frequency": 1000000000.0,
+      "layer1": 100000.0,
+      "layer2": 100000.0,
+      "depth": 0.0007,
+      "height": 2.6e-06,
+      "separation": 0,
+      "gamma_first": [
+        19881.76281601172,
+        19856.598215005164
+      ],
+      "gamma_second": [
+        19881.76281601172,
+        19856.598215005164
+      ],
+      "tanh": [
+        1.000000000001451,
+        7.464260017610203e-13
+      ],
+      "reflection_imag": -0.0478280639443047,
+      "oscillating_integrand": -0.047828063944304694,
+      "propagation_integrand": -5.0329212104525104e-05,
+      "oscillating_kernel": -4.7703872496892315e-05,
+      "reflection_kernel": 0.9974033770725698
+    },
+    {
+      "k": 1000.0,
+      "frequency": 1000000000.0,
+      "layer1": 100000.0,
+      "layer2": 100000.0,
+      "depth": 0.0007,
+      "height": 2.6e-06,
+      "separation": 5e-06,
+      "gamma_first": [
+        19881.76281601172,
+        19856.598215005164
+      ],
+      "gamma_second": [
+        19881.76281601172,
+        19856.598215005164
+      ],
+      "tanh": [
+        1.000000000001451,
+        7.464260017610203e-13
+      ],
+      "reflection_imag": -0.0478280639443047,
+      "oscillating_integrand": -0.047828063944304694,
+      "propagation_integrand": -5.0329212104525104e-05,
+      "oscillating_kernel": -4.770327619972839e-05,
+      "reflection_kernel": 0.9974033770725698
+    },
+    {
+      "k": 1000.0,
+      "frequency": 1000000000.0,
+      "layer1": 10000.0,
+      "layer2": 100000.0,
+      "depth": 5e-05,
+      "height": 2.6e-06,
+      "separation": 0,
+      "gamma_first": [
+        6323.099221456485,
+        6243.523345386289
+      ],
+      "gamma_second": [
+        19881.76281601172,
+        19856.598215005164
+      ],
+      "tanh": [
+        0.3346357582582652,
+        0.289678885320461
+      ],
+      "reflection_imag": -0.13483567844089442,
+      "oscillating_integrand": -0.05466968257003737,
+      "propagation_integrand": -8.36323469361833e-06,
+      "oscillating_kernel": -5.452772601884068e-05,
+      "reflection_kernel": 0.9974033770725698
+    },
+    {
+      "k": 1000.0,
+      "frequency": 1000000000.0,
+      "layer1": 10000.0,
+      "layer2": 100000.0,
+      "depth": 5e-05,
+      "height": 2.6e-06,
+      "separation": 5e-06,
+      "gamma_first": [
+        6323.099221456485,
+        6243.523345386289
+      ],
+      "gamma_second": [
+        19881.76281601172,
+        19856.598215005164
+      ],
+      "tanh": [
+        0.3346357582582652,
+        0.289678885320461
+      ],
+      "reflection_imag": -0.13483567844089442,
+      "oscillating_integrand": -0.05466968257003737,
+      "propagation_integrand": -8.36323469361833e-06,
+      "oscillating_kernel": -5.4527044423685435e-05,
+      "reflection_kernel": 0.9974033770725698
+    },
+    {
+      "k": 1000.0,
+      "frequency": 20000000000.0,
+      "layer1": 100,
+      "layer2": 100,
+      "depth": 0.0001,
+      "height": 2.6e-06,
+      "separation": 0,
+      "gamma_first": [
+        2900.258456750933,
+        2722.4068608412126
+      ],
+      "gamma_second": [
+        2900.258456750933,
+        2722.4068608412126
+      ],
+      "tanh": [
+        0.3022736315755391,
+        0.25536162276323837
+      ],
+      "reflection_imag": -0.24067054508045835,
+      "oscillating_integrand": -0.24067054508045835,
+      "propagation_integrand": -0.00024389769567234961,
+      "oscillating_kernel": -0.0002400456144251453,
+      "reflection_kernel": 0.9974033770725698
+    },
+    {
+      "k": 1000.0,
+      "frequency": 20000000000.0,
+      "layer1": 100,
+      "layer2": 100,
+      "depth": 0.0001,
+      "height": 2.6e-06,
+      "separation": 5e-06,
+      "gamma_first": [
+        2900.258456750933,
+        2722.4068608412126
+      ],
+      "gamma_second": [
+        2900.258456750933,
+        2722.4068608412126
+      ],
+      "tanh": [
+        0.3022736315755391,
+        0.25536162276323837
+      ],
+      "reflection_imag": -0.24067054508045835,
+      "oscillating_integrand": -0.24067054508045835,
+      "propagation_integrand": -0.00024389769567234961,
+      "oscillating_kernel": -0.00024004261386121616,
+      "reflection_kernel": 0.9974033770725698
+    },
+    {
+      "k": 1000.0,
+      "frequency": 20000000000.0,
+      "layer1": 100,
+      "layer2": 1,
+      "depth": 5e-05,
+      "height": 2.6e-06,
+      "separation": 0,
+      "gamma_first": [
+        2900.258456750933,
+        2722.4068608412126
+      ],
+      "gamma_second": [
+        1003.093113306706,
+        78.71336584939051
+      ],
+      "tanh": [
+        0.14664940859233208,
+        0.13407482568749177
+      ],
+      "reflection_imag": -0.24067054508045835,
+      "oscillating_integrand": -0.34715404945614714,
+      "propagation_integrand": -0.001735259220879902,
+      "oscillating_kernel": -0.00034625262129197904,
+      "reflection_kernel": 0.9974033770725698
+    },
+    {
+      "k": 1000.0,
+      "frequency": 20000000000.0,
+      "layer1": 100,
+      "layer2": 1,
+      "depth": 5e-05,
+      "height": 2.6e-06,
+      "separation": 5e-06,
+      "gamma_first": [
+        2900.258456750933,
+        2722.4068608412126
+      ],
+      "gamma_second": [
+        1003.093113306706,
+        78.71336584939051
+      ],
+      "tanh": [
+        0.14664940859233208,
+        0.13407482568749177
+      ],
+      "reflection_imag": -0.24067054508045835,
+      "oscillating_integrand": -0.34715404945614714,
+      "propagation_integrand": -0.001735259220879902,
+      "oscillating_kernel": -0.0003462482931432299,
+      "reflection_kernel": 0.9974033770725698
+    },
+    {
+      "k": 1000.0,
+      "frequency": 20000000000.0,
+      "layer1": 1e-08,
+      "layer2": 100,
+      "depth": 1e-05,
+      "height": 2.6e-06,
+      "separation": 0,
+      "gamma_first": [
+        1000.0,
+        7.895683520871488e-07
+      ],
+      "gamma_second": [
+        2900.258456750933,
+        2722.4068608412126
+      ],
+      "tanh": [
+        0.00999966667999946,
+        7.894894005154309e-12
+      ],
+      "reflection_imag": -3.947841760435744e-10,
+      "oscillating_integrand": -0.23590494899240014,
+      "propagation_integrand": -0.00035479882015423785,
+      "oscillating_kernel": -0.0002352923927931522,
+      "reflection_kernel": 0.9974033770725698
+    },
+    {
+      "k": 1000.0,
+      "frequency": 20000000000.0,
+      "layer1": 1e-08,
+      "layer2": 100,
+      "depth": 1e-05,
+      "height": 2.6e-06,
+      "separation": 5e-06,
+      "gamma_first": [
+        1000.0,
+        7.895683520871488e-07
+      ],
+      "gamma_second": [
+        2900.258456750933,
+        2722.4068608412126
+      ],
+      "tanh": [
+        0.00999966667999946,
+        7.894894005154309e-12
+      ],
+      "reflection_imag": -3.947841760435744e-10,
+      "oscillating_integrand": -0.23590494899240014,
+      "propagation_integrand": -0.00035479882015423785,
+      "oscillating_kernel": -0.0002352894516443697,
+      "reflection_kernel": 0.9974033770725698
+    },
+    {
+      "k": 1000.0,
+      "frequency": 20000000000.0,
+      "layer1": 100000.0,
+      "layer2": 100000.0,
+      "depth": 0.0007,
+      "height": 2.6e-06,
+      "separation": 0,
+      "gamma_first": [
+        88860.47229619547,
+        88854.84531922231
+      ],
+      "gamma_second": [
+        88860.47229619547,
+        88854.84531922231
+      ],
+      "tanh": [
+        1.0,
+        0.0
+      ],
+      "reflection_imag": -0.011127658810531689,
+      "oscillating_integrand": -0.011127658810531689,
+      "propagation_integrand": -1.1253953951963827e-05,
+      "oscillating_kernel": -1.1098764476535641e-05,
+      "reflection_kernel": 0.9974033770725698
+    },
+    {
+      "k": 1000.0,
+      "frequency": 20000000000.0,
+      "layer1": 100000.0,
+      "layer2": 100000.0,
+      "depth": 0.0007,
+      "height": 2.6e-06,
+      "separation": 5e-06,
+      "gamma_first": [
+        88860.47229619547,
+        88854.84531922231
+      ],
+      "gamma_second": [
+        88860.47229619547,
+        88854.84531922231
+      ],
+      "tanh": [
+        1.0,
+        0.0
+      ],
+      "reflection_imag": -0.011127658810531689,
+      "oscillating_integrand": -0.011127658810531689,
+      "propagation_integrand": -1.1253953951963827e-05,
+      "oscillating_kernel": -1.1098625742268715e-05,
+      "reflection_kernel": 0.9974033770725698
+    },
+    {
+      "k": 1000.0,
+      "frequency": 20000000000.0,
+      "layer1": 10000.0,
+      "layer2": 100000.0,
+      "depth": 5e-05,
+      "height": 2.6e-06,
+      "separation": 0,
+      "gamma_first": [
+        28108.157364037266,
+        28090.363301343798
+      ],
+      "gamma_second": [
+        88860.47229619547,
+        88854.84531922231
+      ],
+      "tanh": [
+        1.1196569456710763,
+        0.04413652203861501
+      ],
+      "reflection_imag": -0.03433288238108763,
+      "oscillating_integrand": -0.035566981519214655,
+      "propagation_integrand": -3.828365634954313e-05,
+      "oscillating_kernel": -3.547462747954237e-05,
+      "reflection_kernel": 0.9974033770725698
+    },
+    {
+      "k": 1000.0,
+      "frequency": 20000000000.0,
+      "layer1": 10000.0,
+      "layer2": 100000.0,
+      "depth": 5e-05,
+      "height": 2.6e-06,
+      "separation": 5e-06,
+      "gamma_first": [
+        28108.157364037266,
+        28090.363301343798
+      ],
+      "gamma_second": [
+        88860.47229619547,
+        88854.84531922231
+      ],
+      "tanh": [
+        1.1196569456710763,
+        0.04413652203861501
+      ],
+      "reflection_imag": -0.03433288238108763,
+      "oscillating_integrand": -0.035566981519214655,
+      "propagation_integrand": -3.828365634954313e-05,
+      "oscillating_kernel": -3.5474184047622696e-05,
+      "reflection_kernel": 0.9974033770725698
+    },
+    {
+      "k": 100000.0,
+      "frequency": 1000000.0,
+      "layer1": 100,
+      "layer2": 100,
+      "depth": 0.0001,
+      "height": 2.6e-06,
+      "separation": 0,
+      "gamma_first": [
+        100000.00000000007,
+        0.003947841760435741
+      ],
+      "gamma_second": [
+        100000.00000000007,
+        0.003947841760435741
+      ],
+      "tanh": [
+        0.9999999958776928,
+        3.254843335975916e-15
+      ],
+      "reflection_imag": -1.9739208802178684e-08,
+      "oscillating_integrand": -1.9739208802178684e-08,
+      "propagation_integrand": -0.050326848764334665,
+      "oscillating_kernel": -1.5219948249427589e-13,
+      "reflection_kernel": 0.7710515858035663
+    },
+    {
+      "k": 100000.0,
+      "frequency": 1000000.0,
+      "layer1": 100,
+      "layer2": 100,
+      "depth": 0.0001,
+      "height": 2.6e-06,
+      "separation": 5e-06,
+      "gamma_first": [
+        100000.00000000007,
+        0.003947841760435741
+      ],
+      "gamma_second": [
+        100000.00000000007,
+        0.003947841760435741
+      ],
+      "tanh": [
+        0.9999999958776928,
+        3.254843335975916e-15
+      ],
+      "reflection_imag": -1.9739208802178684e-08,
+      "oscillating_integrand": -1.9739208802178684e-08,
+      "propagation_integrand": -0.050326848764334665,
+      "oscillating_kernel": -1.3356761176571556e-13,
+      "reflection_kernel": 0.7710515858035663
+    },
+    {
+      "k": 100000.0,
+      "frequency": 1000000.0,
+      "layer1": 100,
+      "layer2": 1,
+      "depth": 5e-05,
+      "height": 2.6e-06,
+      "separation": 0,
+      "gamma_first": [
+        100000.00000000007,
+        0.003947841760435741
+      ],
+      "gamma_second": [
+        100000.0,
+        3.9478417604357436e-05
+      ],
+      "tanh": [
+        0.9999092042625952,
+        3.584309310571285e-11
+      ],
+      "reflection_imag": -1.9739208802178684e-08,
+      "oscillating_integrand": -1.9738321605072435e-08,
+      "propagation_integrand": -0.5031918213323193,
+      "oscillating_kernel": -1.5219264174691893e-13,
+      "reflection_kernel": 0.7710515858035663
+    },
+    {
+      "k": 100000.0,
+      "frequency": 1000000.0,
+      "layer1": 100,
+      "layer2": 1,
+      "depth": 5e-05,
+      "height": 2.6e-06,
+      "separation": 5e-06,
+      "gamma_first": [
+        100000.00000000007,
+        0.003947841760435741
+      ],
+      "gamma_second": [
+        100000.0,
+        3.9478417604357436e-05
+      ],
+      "tanh": [
+        0.9999092042625952,
+        3.584309310571285e-11
+      ],
+      "reflection_imag": -1.9739208802178684e-08,
+      "oscillating_integrand": -1.9738321605072435e-08,
+      "propagation_integrand": -0.5031918213323193,
+      "oscillating_kernel": -1.335616084451248e-13,
+      "reflection_kernel": 0.7710515858035663
+    },
+    {
+      "k": 100000.0,
+      "frequency": 1000000.0,
+      "layer1": 1e-08,
+      "layer2": 100,
+      "depth": 1e-05,
+      "height": 2.6e-06,
+      "separation": 0,
+      "gamma_first": [
+        100000.0,
+        3.947841760435744e-13
+      ],
+      "gamma_second": [
+        100000.00000000007,
+        0.003947841760435741
+      ],
+      "tanh": [
+        0.7615941559557649,
+        1.6579922441353593e-18
+      ],
+      "reflection_imag": -1.9739208802178723e-18,
+      "oscillating_integrand": -2.6714114158162703e-09,
+      "propagation_integrand": -0.05032920415880732,
+      "oscillating_kernel": -2.0597960084988854e-14,
+      "reflection_kernel": 0.7710515858035663
+    },
+    {
+      "k": 100000.0,
+      "frequency": 1000000.0,
+      "layer1": 1e-08,
+      "layer2": 100,
+      "depth": 1e-05,
+      "height": 2.6e-06,
+      "separation": 5e-06,
+      "gamma_first": [
+        100000.0,
+        3.947841760435744e-13
+      ],
+      "gamma_second": [
+        100000.00000000007,
+        0.003947841760435741
+      ],
+      "tanh": [
+        0.7615941559557649,
+        1.6579922441353593e-18
+      ],
+      "reflection_imag": -1.9739208802178723e-18,
+      "oscillating_integrand": -2.6714114158162703e-09,
+      "propagation_integrand": -0.05032920415880732,
+      "oscillating_kernel": -1.8076410581100158e-14,
+      "reflection_kernel": 0.7710515858035663
+    },
+    {
+      "k": 100000.0,
+      "frequency": 1000000.0,
+      "layer1": 100000.0,
+      "layer2": 100000.0,
+      "depth": 0.0007,
+      "height": 2.6e-06,
+      "separation": 0,
+      "gamma_first": [
+        100000.00007792728,
+        3.9478417573592988
+      ],
+      "gamma_second": [
+        100000.00007792728,
+        3.9478417573592988
+      ],
+      "tanh": [
+        1.0,
+        0.0
+      ],
+      "reflection_imag": -1.973920876372315e-05,
+      "oscillating_integrand": -1.9739208763723155e-05,
+      "propagation_integrand": -0.0008376729092711997,
+      "oscillating_kernel": -1.5219948219776392e-10,
+      "reflection_kernel": 0.7710515858035663
+    },
+    {
+      "k": 100000.0,
+      "frequency": 1000000.0,
+      "layer1": 100000.0,
+      "layer2": 100000.0,
+      "depth": 0.0007,
+      "height": 2.6e-06,
+      "separation": 5e-06,
+      "gamma_first": [
+        100000.00007792728,
+        3.9478417573592988
+      ],
+      "gamma_second": [
+        100000.00007792728,
+        3.9478417573592988
+      ],
+      "tanh": [
+        1.0,
+        0.0
+      ],
+      "reflection_imag": -1.973920876372315e-05,
+      "oscillating_integrand": -1.9739208763723155e-05,
+      "propagation_integrand": -0.0008376729092711997,
+      "oscillating_kernel": -1.3356761150550182e-10,
+      "reflection_kernel": 0.7710515858035663
+    },
+    {
+      "k": 100000.0,
+      "frequency": 1000000.0,
+      "layer1": 10000.0,
+      "layer2": 100000.0,
+      "depth": 5e-05,
+      "height": 2.6e-06,
+      "separation": 0,
+      "gamma_first": [
+        100000.00000077927,
+        0.394784176040498
+      ],
+      "gamma_second": [
+        100000.00007792728,
+        3.9478417573592988
+      ],
+      "tanh": [
+        0.9999092042626728,
+        3.584309309337098e-09
+      ],
+      "reflection_imag": -1.9739208801794166e-06,
+      "oscillating_integrand": -1.9747274229994384e-06,
+      "propagation_integrand": -0.0015846796056476114,
+      "oscillating_kernel": -1.522616711033507e-11,
+      "reflection_kernel": 0.7710515858035663
+    },
+    {
+      "k": 100000.0,
+      "frequency": 1000000.0,
+      "layer1": 10000.0,
+      "layer2": 100000.0,
+      "depth": 5e-05,
+      "height": 2.6e-06,
+      "separation": 5e-06,
+      "gamma_first": [
+        100000.00000077927,
+        0.394784176040498
+      ],
+      "gamma_second": [
+        100000.00007792728,
+        3.9478417573592988
+      ],
+      "tanh": [
+        0.9999092042626728,
+        3.584309309337098e-09
+      ],
+      "reflection_imag": -1.9739208801794166e-06,
+      "oscillating_integrand": -1.9747274229994384e-06,
+      "propagation_integrand": -0.0015846796056476114,
+      "oscillating_kernel": -1.3362218740458781e-11,
+      "reflection_kernel": 0.7710515858035663
+    },
+    {
+      "k": 100000.0,
+      "frequency": 1000000000.0,
+      "layer1": 100,
+      "layer2": 100,
+      "depth": 0.0001,
+      "height": 2.6e-06,
+      "separation": 0,
+      "gamma_first": [
+        100000.00007792728,
+        3.9478417573592988
+      ],
+      "gamma_second": [
+        100000.00007792728,
+        3.9478417573592988
+      ],
+      "tanh": [
+        0.999999995877694,
+        3.254843059266344e-12
+      ],
+      "reflection_imag": -1.973920876372315e-05,
+      "oscillating_integrand": -1.973920876372315e-05,
+      "propagation_integrand": -0.0015343213164590002,
+      "oscillating_kernel": -1.521994821977639e-10,
+      "reflection_kernel": 0.7710515858035663
+    },
+    {
+      "k": 100000.0,
+      "frequency": 1000000000.0,
+      "layer1": 100,
+      "layer2": 100,
+      "depth": 0.0001,
+      "height": 2.6e-06,
+      "separation": 5e-06,
+      "gamma_first": [
+        100000.00007792728,
+        3.9478417573592988
+      ],
+      "gamma_second": [
+        100000.00007792728,
+        3.9478417573592988
+      ],
+      "tanh": [
+        0.999999995877694,
+        3.254843059266344e-12
+      ],
+      "reflection_imag": -1.973920876372315e-05,
+      "oscillating_integrand": -1.973920876372315e-05,
+      "propagation_integrand": -0.0015343213164590002,
+      "oscillating_kernel": -1.335676115055018e-10,
+      "reflection_kernel": 0.7710515858035663
+    },
+    {
+      "k": 100000.0,
+      "frequency": 1000000000.0,
+      "layer1": 100,
+      "layer2": 1,
+      "depth": 5e-05,
+      "height": 2.6e-06,
+      "separation": 0,
+      "gamma_first": [
+        100000.00007792728,
+        3.9478417573592988
+      ],
+      "gamma_second": [
+        100000.00000000779,
+        0.03947841760435436
+      ],
+      "tanh": [
+        0.9999092042703771,
+        3.584309186772889e-08
+      ],
+      "reflection_imag": -1.973920876372315e-05,
+      "oscillating_integrand": -1.973832156670832e-05,
+      "propagation_integrand": -0.01415917275416908,
+      "oscillating_kernel": -1.5219264145111183e-10,
+      "reflection_kernel": 0.7710515858035663
+    },
+    {
+      "k": 100000.0,
+      "frequency": 1000000000.0,
+      "layer1": 100,
+      "layer2": 1,
+      "depth": 5e-05,
+      "height": 2.6e-06,
+      "separation": 5e-06,
+      "gamma_first": [
+        100000.00007792728,
+        3.9478417573592988
+      ],
+      "gamma_second": [
+        100000.00000000779,
+        0.03947841760435436
+      ],
+      "tanh": [
+        0.9999092042703771,
+        3.584309186772889e-08
+      ],
+      "reflection_imag": -1.973920876372315e-05,
+      "oscillating_integrand": -1.973832156670832e-05,
+      "propagation_integrand": -0.01415917275416908,
+      "oscillating_kernel": -1.3356160818552963e-10,
+      "reflection_kernel": 0.7710515858035663
+    },
+    {
+      "k": 100000.0,
+      "frequency": 1000000000.0,
+      "layer1": 1e-08,
+      "layer2": 100,
+      "depth": 1e-05,
+      "height": 2.6e-06,
+      "separation": 0,
+      "gamma_first": [
+        100000.0,
+        3.9478417604357436e-10
+      ],
+      "gamma_second": [
+        100000.00007792728,
+        3.9478417573592988
+      ],
+      "tanh": [
+        0.7615941559557649,
+        1.6579922441353595e-15
+      ],
+      "reflection_imag": -1.9739208802178717e-15,
+      "oscillating_integrand": -2.671411410611881e-06,
+      "propagation_integrand": -0.0015913002024047647,
+      "oscillating_kernel": -2.0597960044860328e-11,
+      "reflection_kernel": 0.7710515858035663
+    },
+    {
+      "k": 100000.0,
+      "frequency": 1000000000.0,
+      "layer1": 1e-08,
+      "layer2": 100,
+      "depth": 1e-05,
+      "height": 2.6e-06,
+      "separation": 5e-06,
+      "gamma_first": [
+        100000.0,
+        3.9478417604357436e-10
+      ],
+      "gamma_second": [
+        100000.00007792728,
+        3.9478417573592988
+      ],
+      "tanh": [
+        0.7615941559557649,
+        1.6579922441353595e-15
+      ],
+      "reflection_imag": -1.9739208802178717e-15,
+      "oscillating_integrand": -2.671411410611881e-06,
+      "propagation_integrand": -0.0015913002024047647,
+      "oscillating_kernel": -1.807641054588406e-11,
+      "reflection_kernel": 0.7710515858035663
+    },
+    {
+      "k": 100000.0,
+      "frequency": 1000000000.0,
+      "layer1": 100000.0,
+      "layer2": 100000.0,
+      "depth": 0.0007,
+      "height": 2.6e-06,
+      "separation": 0,
+      "gamma_first": [
+        100077.7759512492,
+        3944.7736751852403
+      ],
+      "gamma_second": [
+        100077.7759512492,
+        3944.7736751852403
+      ],
+      "tanh": [
+        1.0,
+        -0.0
+      ],
+      "reflection_imag": -0.01970087859869647,
+      "oscillating_integrand": -0.01970087859869647,
+      "propagation_integrand": -5.0329212104525104e-05,
+      "oscillating_kernel": -1.5190393685248452e-07,
+      "reflection_kernel": 0.7710515858035663
+    },
+    {
+      "k": 100000.0,
+      "frequency": 1000000000.0,
+      "layer1": 100000.0,
+      "layer2": 100000.0,
+      "depth": 0.0007,
+      "height": 2.6e-06,
+      "separation": 5e-06,
+      "gamma_first": [
+        100077.7759512492,
+        3944.7736751852403
+      ],
+      "gamma_second": [
+        100077.7759512492,
+        3944.7736751852403
+      ],
+      "tanh": [
+        1.0,
+        -0.0
+      ],
+      "reflection_imag": -0.01970087859869647,
+      "oscillating_integrand": -0.01970087859869647,
+      "propagation_integrand": -5.0329212104525104e-05,
+      "oscillating_kernel": -1.3330824606423677e-07,
+      "reflection_kernel": 0.7710515858035663
+    },
+    {
+      "k": 100000.0,
+      "frequency": 1000000000.0,
+      "layer1": 10000.0,
+      "layer2": 100000.0,
+      "depth": 5e-05,
+      "height": 2.6e-06,
+      "separation": 0,
+      "gamma_first": [
+        100000.77925754711,
+        394.78109968206047
+      ],
+      "gamma_second": [
+        100077.7759512492,
+        3944.7736751852403
+      ],
+      "tanh": [
+        0.9999092820665347,
+        3.5830714770015736e-06
+      ],
+      "reflection_imag": -0.0019738824259087086,
+      "oscillating_integrand": -0.00197468513411877,
+      "propagation_integrand": -8.36323469361833e-06,
+      "oscillating_kernel": -1.5225841041250054e-08,
+      "reflection_kernel": 0.7710515858035663
+    },
+    {
+      "k": 100000.0,
+      "frequency": 1000000000.0,
+      "layer1": 10000.0,
+      "layer2": 100000.0,
+      "depth": 5e-05,
+      "height": 2.6e-06,
+      "separation": 5e-06,
+      "gamma_first": [
+        100000.77925754711,
+        394.78109968206047
+      ],
+      "gamma_second": [
+        100077.7759512492,
+        3944.7736751852403
+      ],
+      "tanh": [
+        0.9999092820665347,
+        3.5830714770015736e-06
+      ],
+      "reflection_imag": -0.0019738824259087086,
+      "oscillating_integrand": -0.00197468513411877,
+      "propagation_integrand": -8.36323469361833e-06,
+      "oscillating_kernel": -1.3361932587915802e-08,
+      "reflection_kernel": 0.7710515858035663
+    },
+    {
+      "k": 100000.0,
+      "frequency": 20000000000.0,
+      "layer1": 100,
+      "layer2": 100,
+      "depth": 0.0001,
+      "height": 2.6e-06,
+      "separation": 0,
+      "gamma_first": [
+        100000.03117088485,
+        78.95681059717838
+      ],
+      "gamma_second": [
+        100000.03117088485,
+        78.95681059717838
+      ],
+      "tanh": [
+        0.9999999958782325,
+        6.509373401183498e-11
+      ],
+      "reflection_imag": -0.0003947838683994352,
+      "oscillating_integrand": -0.00039478386839943516,
+      "propagation_integrand": -0.00024389769567234961,
+      "oscillating_kernel": -3.043987277790509e-09,
+      "reflection_kernel": 0.7710515858035663
+    },
+    {
+      "k": 100000.0,
+      "frequency": 20000000000.0,
+      "layer1": 100,
+      "layer2": 100,
+      "depth": 0.0001,
+      "height": 2.6e-06,
+      "separation": 5e-06,
+      "gamma_first": [
+        100000.03117088485,
+        78.95681059717838
+      ],
+      "gamma_second": [
+        100000.03117088485,
+        78.95681059717838
+      ],
+      "tanh": [
+        0.9999999958782325,
+        6.509373401183498e-11
+      ],
+      "reflection_imag": -0.0003947838683994352,
+      "oscillating_integrand": -0.00039478386839943516,
+      "propagation_integrand": -0.00024389769567234961,
+      "oscillating_kernel": -2.6713501536050962e-09,
+      "reflection_kernel": 0.7710515858035663
+    },
+    {
+      "k": 100000.0,
+      "frequency": 20000000000.0,
+      "layer1": 100,
+      "layer2": 1,
+      "depth": 5e-05,
+      "height": 2.6e-06,
+      "separation": 0,
+      "gamma_first": [
+        100000.03117088485,
+        78.95681059717838
+      ],
+      "gamma_second": [
+        100000.0000031171,
+        0.7895683520625373
+      ],
+      "tanh": [
+        0.9999092073753753,
+        7.168519580169994e-07
+      ],
+      "reflection_imag": -0.0003947838683994352,
+      "oscillating_integrand": -0.0003947661251886618,
+      "propagation_integrand": -0.001735259220879902,
+      "oscillating_kernel": -3.0438504684824683e-09,
+      "reflection_kernel": 0.7710515858035663
+    },
+    {
+      "k": 100000.0,
+      "frequency": 20000000000.0,
+      "layer1": 100,
+      "layer2": 1,
+      "depth": 5e-05,
+      "height": 2.6e-06,
+      "separation": 5e-06,
+      "gamma_first": [
+        100000.03117088485,
+        78.95681059717838
+      ],
+      "gamma_second": [
+        100000.0000031171,
+        0.7895683520625373
+      ],
+      "tanh": [
+        0.9999092073753753,
+        7.168519580169994e-07
+      ],
+      "reflection_imag": -0.0003947838683994352,
+      "oscillating_integrand": -0.0003947661251886618,
+      "propagation_integrand": -0.001735259220879902,
+      "oscillating_kernel": -2.6712300921420556e-09,
+      "reflection_kernel": 0.7710515858035663
+    },
+    {
+      "k": 100000.0,
+      "frequency": 20000000000.0,
+      "layer1": 1e-08,
+      "layer2": 100,
+      "depth": 1e-05,
+      "height": 2.6e-06,
+      "separation": 0,
+      "gamma_first": [
+        100000.0,
+        7.895683520871487e-09
+      ],
+      "gamma_second": [
+        100000.03117088485,
+        78.95681059717838
+      ],
+      "tanh": [
+        0.7615941559557649,
+        3.315984488270719e-14
+      ],
+      "reflection_imag": -3.9478417604357434e-14,
+      "oscillating_integrand": -5.342818668121877e-05,
+      "propagation_integrand": -0.00035479882015423785,
+      "oscillating_kernel": -4.1195888067162714e-10,
+      "reflection_kernel": 0.7710515858035663
+    },
+    {
+      "k": 100000.0,
+      "frequency": 20000000000.0,
+      "layer1": 1e-08,
+      "layer2": 100,
+      "depth": 1e-05,
+      "height": 2.6e-06,
+      "separation": 5e-06,
+      "gamma_first": [
+        100000.0,
+        7.895683520871487e-09
+      ],
+      "gamma_second": [
+        100000.03117088485,
+        78.95681059717838
+      ],
+      "tanh": [
+        0.7615941559557649,
+        3.315984488270719e-14
+      ],
+      "reflection_imag": -3.9478417604357434e-14,
+      "oscillating_integrand": -5.342818668121877e-05,
+      "propagation_integrand": -0.00035479882015423785,
+      "oscillating_kernel": -3.615279298932969e-10,
+      "reflection_kernel": 0.7710515858035663
+    },
+    {
+      "k": 100000.0,
+      "frequency": 20000000000.0,
+      "layer1": 100000.0,
+      "layer2": 100000.0,
+      "depth": 0.0007,
+      "height": 2.6e-06,
+      "separation": 0,
+      "gamma_first": [
+        119773.47148938917,
+        65921.80574452977
+      ],
+      "gamma_second": [
+        119773.47148938917,
+        65921.80574452977
+      ],
+      "tanh": [
+        1.0,
+        0.0
+      ],
+      "reflection_imag": -0.25043394200286617,
+      "oscillating_integrand": -0.2504339420028662,
+      "propagation_integrand": -1.1253953951963827e-05,
+      "oscillating_kernel": -1.9309748812034836e-06,
+      "reflection_kernel": 0.7710515858035663
+    },
+    {
+      "k": 100000.0,
+      "frequency": 20000000000.0,
+      "layer1": 100000.0,
+      "layer2": 100000.0,
+      "depth": 0.0007,
+      "height": 2.6e-06,
+      "separation": 5e-06,
+      "gamma_first": [
+        119773.47148938917,
+        65921.80574452977
+      ],
+      "gamma_second": [
+        119773.47148938917,
+        65921.80574452977
+      ],
+      "tanh": [
+        1.0,
+        0.0
+      ],
+      "reflection_imag": -0.25043394200286617,
+      "oscillating_integrand": -0.2504339420028662,
+      "propagation_integrand": -1.1253953951963827e-05,
+      "oscillating_kernel": -1.694589883192511e-06,
+      "reflection_kernel": 0.7710515858035663
+    },
+    {
+      "k": 100000.0,
+      "frequency": 20000000000.0,
+      "layer1": 10000.0,
+      "layer2": 100000.0,
+      "depth": 5e-05,
+      "height": 2.6e-06,
+      "separation": 0,
+      "gamma_first": [
+        100309.3113306706,
+        7871.336584939052
+      ],
+      "gamma_second": [
+        119773.47148938917,
+        65921.80574452977
+      ],
+      "tanh": [
+        0.9999378584579658,
+        6.235372166712918e-05
+      ],
+      "reflection_imag": -0.039174737671913866,
+      "oscillating_integrand": -0.0391763186621916,
+      "propagation_integrand": -3.828365634954313e-05,
+      "oscillating_kernel": -3.020696263042868e-07,
+      "reflection_kernel": 0.7710515858035663
+    },
+    {
+      "k": 100000.0,
+      "frequency": 20000000000.0,
+      "layer1": 10000.0,
+      "layer2": 100000.0,
+      "depth": 5e-05,
+      "height": 2.6e-06,
+      "separation": 5e-06,
+      "gamma_first": [
+        100309.3113306706,
+        7871.336584939052
+      ],
+      "gamma_second": [
+        119773.47148938917,
+        65921.80574452977
+      ],
+      "tanh": [
+        0.9999378584579658,
+        6.235372166712918e-05
+      ],
+      "reflection_imag": -0.039174737671913866,
+      "oscillating_integrand": -0.0391763186621916,
+      "propagation_integrand": -3.828365634954313e-05,
+      "oscillating_kernel": -2.6509103652138356e-07,
+      "reflection_kernel": 0.7710515858035663
+    },
+    {
+      "k": 10000000.0,
+      "frequency": 1000000.0,
+      "layer1": 100,
+      "layer2": 100,
+      "depth": 0.0001,
+      "height": 2.6e-06,
+      "separation": 0,
+      "gamma_first": [
+        10000000.0,
+        3.947841760435744e-05
+      ],
+      "gamma_second": [
+        10000000.0,
+        3.947841760435744e-05
+      ],
+      "tanh": [
+        "nan",
+        "nan"
+      ],
+      "reflection_imag": -1.973920880217872e-12,
+      "oscillating_integrand": "nan",
+      "propagation_integrand": -0.050326848764334665,
+      "oscillating_kernel": "nan",
+      "reflection_kernel": 5.10908902806332e-12
+    },
+    {
+      "k": 10000000.0,
+      "frequency": 1000000.0,
+      "layer1": 100,
+      "layer2": 100,
+      "depth": 0.0001,
+      "height": 2.6e-06,
+      "separation": 5e-06,
+      "gamma_first": [
+        10000000.0,
+        3.947841760435744e-05
+      ],
+      "gamma_second": [
+        10000000.0,
+        3.947841760435744e-05
+      ],
+      "tanh": [
+        "nan",
+        "nan"
+      ],
+      "reflection_imag": -1.973920880217872e-12,
+      "oscillating_integrand": "nan",
+      "propagation_integrand": -0.050326848764334665,
+      "oscillating_kernel": "nan",
+      "reflection_kernel": 5.10908902806332e-12
+    },
+    {
+      "k": 10000000.0,
+      "frequency": 1000000.0,
+      "layer1": 100,
+      "layer2": 1,
+      "depth": 5e-05,
+      "height": 2.6e-06,
+      "separation": 0,
+      "gamma_first": [
+        10000000.0,
+        3.947841760435744e-05
+      ],
+      "gamma_second": [
+        10000000.0,
+        3.9478417604357434e-07
+      ],
+      "tanh": [
+        1.0,
+        0.0
+      ],
+      "reflection_imag": -1.973920880217872e-12,
+      "oscillating_integrand": -1.973920880217872e-12,
+      "propagation_integrand": -0.5031918213323193,
+      "oscillating_kernel": -1.0084937511386222e-30,
+      "reflection_kernel": 5.10908902806332e-12
+    },
+    {
+      "k": 10000000.0,
+      "frequency": 1000000.0,
+      "layer1": 100,
+      "layer2": 1,
+      "depth": 5e-05,
+      "height": 2.6e-06,
+      "separation": 5e-06,
+      "gamma_first": [
+        10000000.0,
+        3.947841760435744e-05
+      ],
+      "gamma_second": [
+        10000000.0,
+        3.9478417604357434e-07
+      ],
+      "tanh": [
+        1.0,
+        0.0
+      ],
+      "reflection_imag": -1.973920880217872e-12,
+      "oscillating_integrand": -1.973920880217872e-12,
+      "propagation_integrand": -0.5031918213323193,
+      "oscillating_kernel": -9.73162209795351e-31,
+      "reflection_kernel": 5.10908902806332e-12
+    },
+    {
+      "k": 10000000.0,
+      "frequency": 1000000.0,
+      "layer1": 1e-08,
+      "layer2": 100,
+      "depth": 1e-05,
+      "height": 2.6e-06,
+      "separation": 0,
+      "gamma_first": [
+        10000000.0,
+        3.947841760435744e-15
+      ],
+      "gamma_second": [
+        10000000.0,
+        3.947841760435744e-05
+      ],
+      "tanh": [
+        1.0,
+        0.0
+      ],
+      "reflection_imag": -1.973920880217872e-22,
+      "oscillating_integrand": -1.973921565090464e-22,
+      "propagation_integrand": -0.05032920415880732,
+      "oscillating_kernel": -1.0084941010461266e-40,
+      "reflection_kernel": 5.10908902806332e-12
+    },
+    {
+      "k": 10000000.0,
+      "frequency": 1000000.0,
+      "layer1": 1e-08,
+      "layer2": 100,
+      "depth": 1e-05,
+      "height": 2.6e-06,
+      "separation": 5e-06,
+      "gamma_first": [
+        10000000.0,
+        3.947841760435744e-15
+      ],
+      "gamma_second": [
+        10000000.0,
+        3.947841760435744e-05
+      ],
+      "tanh": [
+        1.0,
+        0.0
+      ],
+      "reflection_imag": -1.973920880217872e-22,
+      "oscillating_integrand": -1.973921565090464e-22,
+      "propagation_integrand": -0.05032920415880732,
+      "oscillating_kernel": -9.73162547444206e-41,
+      "reflection_kernel": 5.10908902806332e-12
+    },
+    {
+      "k": 10000000.0,
+      "frequency": 1000000.0,
+      "layer1": 100000.0,
+      "layer2": 100000.0,
+      "depth": 0.0007,
+      "height": 2.6e-06,
+      "separation": 0,
+      "gamma_first": [
+        10000000.0,
+        0.03947841760435744
+      ],
+      "gamma_second": [
+        10000000.0,
+        0.03947841760435744
+      ],
+      "tanh": [
+        "nan",
+        "nan"
+      ],
+      "reflection_imag": -1.973920880217872e-09,
+      "oscillating_integrand": "nan",
+      "propagation_integrand": -0.0008376729092711997,
+      "oscillating_kernel": "nan",
+      "reflection_kernel": 5.10908902806332e-12
+    },
+    {
+      "k": 10000000.0,
+      "frequency": 1000000.0,
+      "layer1": 100000.0,
+      "layer2": 100000.0,
+      "depth": 0.0007,
+      "height": 2.6e-06,
+      "separation": 5e-06,
+      "gamma_first": [
+        10000000.0,
+        0.03947841760435744
+      ],
+      "gamma_second": [
+        10000000.0,
+        0.03947841760435744
+      ],
+      "tanh": [
+        "nan",
+        "nan"
+      ],
+      "reflection_imag": -1.973920880217872e-09,
+      "oscillating_integrand": "nan",
+      "propagation_integrand": -0.0008376729092711997,
+      "oscillating_kernel": "nan",
+      "reflection_kernel": 5.10908902806332e-12
+    },
+    {
+      "k": 10000000.0,
+      "frequency": 1000000.0,
+      "layer1": 10000.0,
+      "layer2": 100000.0,
+      "depth": 5e-05,
+      "height": 2.6e-06,
+      "separation": 0,
+      "gamma_first": [
+        10000000.0,
+        0.003947841760435744
+      ],
+      "gamma_second": [
+        10000000.0,
+        0.03947841760435744
+      ],
+      "tanh": [
+        1.0,
+        0.0
+      ],
+      "reflection_imag": -1.9739208802178723e-10,
+      "oscillating_integrand": -1.973920880217872e-10,
+      "propagation_integrand": -0.0015846796056476114,
+      "oscillating_kernel": -1.0084937511386221e-28,
+      "reflection_kernel": 5.10908902806332e-12
+    },
+    {
+      "k": 10000000.0,
+      "frequency": 1000000.0,
+      "layer1": 10000.0,
+      "layer2": 100000.0,
+      "depth": 5e-05,
+      "height": 2.6e-06,
+      "separation": 5e-06,
+      "gamma_first": [
+        10000000.0,
+        0.003947841760435744
+      ],
+      "gamma_second": [
+        10000000.0,
+        0.03947841760435744
+      ],
+      "tanh": [
+        1.0,
+        0.0
+      ],
+      "reflection_imag": -1.9739208802178723e-10,
+      "oscillating_integrand": -1.973920880217872e-10,
+      "propagation_integrand": -0.0015846796056476114,
+      "oscillating_kernel": -9.731622097953509e-29,
+      "reflection_kernel": 5.10908902806332e-12
+    },
+    {
+      "k": 10000000.0,
+      "frequency": 1000000000.0,
+      "layer1": 100,
+      "layer2": 100,
+      "depth": 0.0001,
+      "height": 2.6e-06,
+      "separation": 0,
+      "gamma_first": [
+        10000000.0,
+        0.03947841760435744
+      ],
+      "gamma_second": [
+        10000000.0,
+        0.03947841760435744
+      ],
+      "tanh": [
+        "nan",
+        "nan"
+      ],
+      "reflection_imag": -1.973920880217872e-09,
+      "oscillating_integrand": "nan",
+      "propagation_integrand": -0.0015343213164590002,
+      "oscillating_kernel": "nan",
+      "reflection_kernel": 5.10908902806332e-12
+    },
+    {
+      "k": 10000000.0,
+      "frequency": 1000000000.0,
+      "layer1": 100,
+      "layer2": 100,
+      "depth": 0.0001,
+      "height": 2.6e-06,
+      "separation": 5e-06,
+      "gamma_first": [
+        10000000.0,
+        0.03947841760435744
+      ],
+      "gamma_second": [
+        10000000.0,
+        0.03947841760435744
+      ],
+      "tanh": [
+        "nan",
+        "nan"
+      ],
+      "reflection_imag": -1.973920880217872e-09,
+      "oscillating_integrand": "nan",
+      "propagation_integrand": -0.0015343213164590002,
+      "oscillating_kernel": "nan",
+      "reflection_kernel": 5.10908902806332e-12
+    },
+    {
+      "k": 10000000.0,
+      "frequency": 1000000000.0,
+      "layer1": 100,
+      "layer2": 1,
+      "depth": 5e-05,
+      "height": 2.6e-06,
+      "separation": 0,
+      "gamma_first": [
+        10000000.0,
+        0.03947841760435744
+      ],
+      "gamma_second": [
+        10000000.0,
+        0.0003947841760435744
+      ],
+      "tanh": [
+        1.0,
+        0.0
+      ],
+      "reflection_imag": -1.973920880217872e-09,
+      "oscillating_integrand": -1.973920880217872e-09,
+      "propagation_integrand": -0.01415917275416908,
+      "oscillating_kernel": -1.0084937511386221e-27,
+      "reflection_kernel": 5.10908902806332e-12
+    },
+    {
+      "k": 10000000.0,
+      "frequency": 1000000000.0,
+      "layer1": 100,
+      "layer2": 1,
+      "depth": 5e-05,
+      "height": 2.6e-06,
+      "separation": 5e-06,
+      "gamma_first": [
+        10000000.0,
+        0.03947841760435744
+      ],
+      "gamma_second": [
+        10000000.0,
+        0.0003947841760435744
+      ],
+      "tanh": [
+        1.0,
+        0.0
+      ],
+      "reflection_imag": -1.973920880217872e-09,
+      "oscillating_integrand": -1.973920880217872e-09,
+      "propagation_integrand": -0.01415917275416908,
+      "oscillating_kernel": -9.731622097953508e-28,
+      "reflection_kernel": 5.10908902806332e-12
+    },
+    {
+      "k": 10000000.0,
+      "frequency": 1000000000.0,
+      "layer1": 1e-08,
+      "layer2": 100,
+      "depth": 1e-05,
+      "height": 2.6e-06,
+      "separation": 0,
+      "gamma_first": [
+        10000000.0,
+        3.947841760435743e-12
+      ],
+      "gamma_second": [
+        10000000.0,
+        0.03947841760435744
+      ],
+      "tanh": [
+        1.0,
+        0.0
+      ],
+      "reflection_imag": -1.9739208802178718e-19,
+      "oscillating_integrand": -1.9739209122349166e-19,
+      "propagation_integrand": -0.0015913002024047647,
+      "oscillating_kernel": -1.0084937674964153e-37,
+      "reflection_kernel": 5.10908902806332e-12
+    },
+    {
+      "k": 10000000.0,
+      "frequency": 1000000000.0,
+      "layer1": 1e-08,
+      "layer2": 100,
+      "depth": 1e-05,
+      "height": 2.6e-06,
+      "separation": 5e-06,
+      "gamma_first": [
+        10000000.0,
+        3.947841760435743e-12
+      ],
+      "gamma_second": [
+        10000000.0,
+        0.03947841760435744
+      ],
+      "tanh": [
+        1.0,
+        0.0
+      ],
+      "reflection_imag": -1.9739208802178718e-19,
+      "oscillating_integrand": -1.9739209122349166e-19,
+      "propagation_integrand": -0.0015913002024047647,
+      "oscillating_kernel": -9.731622255800656e-38,
+      "reflection_kernel": 5.10908902806332e-12
+    },
+    {
+      "k": 10000000.0,
+      "frequency": 1000000000.0,
+      "layer1": 100000.0,
+      "layer2": 100000.0,
+      "depth": 0.0007,
+      "height": 2.6e-06,
+      "separation": 0,
+      "gamma_first": [
+        10000000.000077927,
+        39.478417604049795
+      ],
+      "gamma_second": [
+        10000000.000077927,
+        39.478417604049795
+      ],
+      "tanh": [
+        "nan",
+        "nan"
+      ],
+      "reflection_imag": -1.9739208801794166e-06,
+      "oscillating_integrand": "nan",
+      "propagation_integrand": -5.0329212104525104e-05,
+      "oscillating_kernel": "nan",
+      "reflection_kernel": 5.10908902806332e-12
+    },
+    {
+      "k": 10000000.0,
+      "frequency": 1000000000.0,
+      "layer1": 100000.0,
+      "layer2": 100000.0,
+      "depth": 0.0007,
+      "height": 2.6e-06,
+      "separation": 5e-06,
+      "gamma_first": [
+        10000000.000077927,
+        39.478417604049795
+      ],
+      "gamma_second": [
+        10000000.000077927,
+        39.478417604049795
+      ],
+      "tanh": [
+        "nan",
+        "nan"
+      ],
+      "reflection_imag": -1.9739208801794166e-06,
+      "oscillating_integrand": "nan",
+      "propagation_integrand": -5.0329212104525104e-05,
+      "oscillating_kernel": "nan",
+      "reflection_kernel": 5.10908902806332e-12
+    },
+    {
+      "k": 10000000.0,
+      "frequency": 1000000000.0,
+      "layer1": 10000.0,
+      "layer2": 100000.0,
+      "depth": 5e-05,
+      "height": 2.6e-06,
+      "separation": 0,
+      "gamma_first": [
+        10000000.000000779,
+        3.947841760435436
+      ],
+      "gamma_second": [
+        10000000.000077927,
+        39.478417604049795
+      ],
+      "tanh": [
+        1.0,
+        0.0
+      ],
+      "reflection_imag": -1.9739208802174874e-07,
+      "oscillating_integrand": -1.973920880217488e-07,
+      "propagation_integrand": -8.36323469361833e-06,
+      "oscillating_kernel": -1.0084937511384259e-25,
+      "reflection_kernel": 5.10908902806332e-12
+    },
+    {
+      "k": 10000000.0,
+      "frequency": 1000000000.0,
+      "layer1": 10000.0,
+      "layer2": 100000.0,
+      "depth": 5e-05,
+      "height": 2.6e-06,
+      "separation": 5e-06,
+      "gamma_first": [
+        10000000.000000779,
+        3.947841760435436
+      ],
+      "gamma_second": [
+        10000000.000077927,
+        39.478417604049795
+      ],
+      "tanh": [
+        1.0,
+        0.0
+      ],
+      "reflection_imag": -1.9739208802174874e-07,
+      "oscillating_integrand": -1.973920880217488e-07,
+      "propagation_integrand": -8.36323469361833e-06,
+      "oscillating_kernel": -9.731622097951615e-26,
+      "reflection_kernel": 5.10908902806332e-12
+    },
+    {
+      "k": 10000000.0,
+      "frequency": 20000000000.0,
+      "layer1": 100,
+      "layer2": 100,
+      "depth": 0.0001,
+      "height": 2.6e-06,
+      "separation": 0,
+      "gamma_first": [
+        10000000.000000032,
+        0.7895683520871463
+      ],
+      "gamma_second": [
+        10000000.000000032,
+        0.7895683520871463
+      ],
+      "tanh": [
+        "nan",
+        "nan"
+      ],
+      "reflection_imag": -3.947841760435713e-08,
+      "oscillating_integrand": "nan",
+      "propagation_integrand": -0.00024389769567234961,
+      "oscillating_kernel": "nan",
+      "reflection_kernel": 5.10908902806332e-12
+    },
+    {
+      "k": 10000000.0,
+      "frequency": 20000000000.0,
+      "layer1": 100,
+      "layer2": 100,
+      "depth": 0.0001,
+      "height": 2.6e-06,
+      "separation": 5e-06,
+      "gamma_first": [
+        10000000.000000032,
+        0.7895683520871463
+      ],
+      "gamma_second": [
+        10000000.000000032,
+        0.7895683520871463
+      ],
+      "tanh": [
+        "nan",
+        "nan"
+      ],
+      "reflection_imag": -3.947841760435713e-08,
+      "oscillating_integrand": "nan",
+      "propagation_integrand": -0.00024389769567234961,
+      "oscillating_kernel": "nan",
+      "reflection_kernel": 5.10908902806332e-12
+    },
+    {
+      "k": 10000000.0,
+      "frequency": 20000000000.0,
+      "layer1": 100,
+      "layer2": 1,
+      "depth": 5e-05,
+      "height": 2.6e-06,
+      "separation": 0,
+      "gamma_first": [
+        10000000.000000032,
+        0.7895683520871463
+      ],
+      "gamma_second": [
+        10000000.0,
+        0.007895683520871489
+      ],
+      "tanh": [
+        1.0,
+        0.0
+      ],
+      "reflection_imag": -3.947841760435713e-08,
+      "oscillating_integrand": -3.947841760435712e-08,
+      "propagation_integrand": -0.001735259220879902,
+      "oscillating_kernel": -2.016987502277228e-26,
+      "reflection_kernel": 5.10908902806332e-12
+    },
+    {
+      "k": 10000000.0,
+      "frequency": 20000000000.0,
+      "layer1": 100,
+      "layer2": 1,
+      "depth": 5e-05,
+      "height": 2.6e-06,
+      "separation": 5e-06,
+      "gamma_first": [
+        10000000.000000032,
+        0.7895683520871463
+      ],
+      "gamma_second": [
+        10000000.0,
+        0.007895683520871489
+      ],
+      "tanh": [
+        1.0,
+        0.0
+      ],
+      "reflection_imag": -3.947841760435713e-08,
+      "oscillating_integrand": -3.947841760435712e-08,
+      "propagation_integrand": -0.001735259220879902,
+      "oscillating_kernel": -1.946324419590686e-26,
+      "reflection_kernel": 5.10908902806332e-12
+    },
+    {
+      "k": 10000000.0,
+      "frequency": 20000000000.0,
+      "layer1": 1e-08,
+      "layer2": 100,
+      "depth": 1e-05,
+      "height": 2.6e-06,
+      "separation": 0,
+      "gamma_first": [
+        10000000.0,
+        7.895683520871488e-11
+      ],
+      "gamma_second": [
+        10000000.000000032,
+        0.7895683520871463
+      ],
+      "tanh": [
+        1.0,
+        0.0
+      ],
+      "reflection_imag": -3.947841760435744e-18,
+      "oscillating_integrand": -3.947842187415346e-18,
+      "propagation_integrand": -0.00035479882015423785,
+      "oscillating_kernel": -2.0169877204249244e-36,
+      "reflection_kernel": 5.10908902806332e-12
+    },
+    {
+      "k": 10000000.0,
+      "frequency": 20000000000.0,
+      "layer1": 1e-08,
+      "layer2": 100,
+      "depth": 1e-05,
+      "height": 2.6e-06,
+      "separation": 5e-06,
+      "gamma_first": [
+        10000000.0,
+        7.895683520871488e-11
+      ],
+      "gamma_second": [
+        10000000.000000032,
+        0.7895683520871463
+      ],
+      "tanh": [
+        1.0,
+        0.0
+      ],
+      "reflection_imag": -3.947841760435744e-18,
+      "oscillating_integrand": -3.947842187415346e-18,
+      "propagation_integrand": -0.00035479882015423785,
+      "oscillating_kernel": -1.9463246300958023e-36,
+      "reflection_kernel": 5.10908902806332e-12
+    },
+    {
+      "k": 10000000.0,
+      "frequency": 20000000000.0,
+      "layer1": 100000.0,
+      "layer2": 100000.0,
+      "depth": 0.0007,
+      "height": 2.6e-06,
+      "separation": 0,
+      "gamma_first": [
+        10000000.031170908,
+        789.5683496259925
+      ],
+      "gamma_second": [
+        10000000.031170908,
+        789.5683496259925
+      ],
+      "tanh": [
+        "nan",
+        "nan"
+      ],
+      "reflection_imag": -3.94784172967129e-05,
+      "oscillating_integrand": "nan",
+      "propagation_integrand": -1.1253953951963827e-05,
+      "oscillating_kernel": "nan",
+      "reflection_kernel": 5.10908902806332e-12
+    },
+    {
+      "k": 10000000.0,
+      "frequency": 20000000000.0,
+      "layer1": 100000.0,
+      "layer2": 100000.0,
+      "depth": 0.0007,
+      "height": 2.6e-06,
+      "separation": 5e-06,
+      "gamma_first": [
+        10000000.031170908,
+        789.5683496259925
+      ],
+      "gamma_second": [
+        10000000.031170908,
+        789.5683496259925
+      ],
+      "tanh": [
+        "nan",
+        "nan"
+      ],
+      "reflection_imag": -3.94784172967129e-05,
+      "oscillating_integrand": "nan",
+      "propagation_integrand": -1.1253953951963827e-05,
+      "oscillating_kernel": "nan",
+      "reflection_kernel": 5.10908902806332e-12
+    },
+    {
+      "k": 10000000.0,
+      "frequency": 20000000000.0,
+      "layer1": 10000.0,
+      "layer2": 100000.0,
+      "depth": 5e-05,
+      "height": 2.6e-06,
+      "separation": 0,
+      "gamma_first": [
+        10000000.000311708,
+        78.95683520625373
+      ],
+      "gamma_second": [
+        10000000.031170908,
+        789.5683496259925
+      ],
+      "tanh": [
+        1.0,
+        3.3285327840287102e-22
+      ],
+      "reflection_imag": -3.9478417601281e-06,
+      "oscillating_integrand": -3.947841760128099e-06,
+      "propagation_integrand": -3.828365634954313e-05,
+      "oscillating_kernel": -2.0169875021200658e-24,
+      "reflection_kernel": 5.10908902806332e-12
+    },
+    {
+      "k": 10000000.0,
+      "frequency": 20000000000.0,
+      "layer1": 10000.0,
+      "layer2": 100000.0,
+      "depth": 5e-05,
+      "height": 2.6e-06,
+      "separation": 5e-06,
+      "gamma_first": [
+        10000000.000311708,
+        78.95683520625373
+      ],
+      "gamma_second": [
+        10000000.031170908,
+        789.5683496259925
+      ],
+      "tanh": [
+        1.0,
+        3.3285327840287102e-22
+      ],
+      "reflection_imag": -3.9478417601281e-06,
+      "oscillating_integrand": -3.947841760128099e-06,
+      "propagation_integrand": -3.828365634954313e-05,
+      "oscillating_kernel": -1.94632441943903e-24,
+      "reflection_kernel": 5.10908902806332e-12
+    },
+    {
+      "k": 88.72283905206834,
+      "frequency": 1000000.0,
+      "layer1": 1,
+      "layer2": 100,
+      "depth": 0.0001,
+      "height": 1,
+      "separation": 0.0001,
+      "gamma_first": [
+        88.72285020998336,
+        0.04449633607455411
+      ],
+      "gamma_second": [
+        88.83406926946591,
+        4.444062726047717
+      ],
+      "tanh": [
+        0.008872052227311602,
+        4.4492833620920305e-06
+      ],
+      "reflection_imag": -0.0002507602786163931,
+      "oscillating_integrand": -0.024562346797919164,
+      "propagation_integrand": -0.05032840758007972,
+      "oscillating_kernel": -8.135381357435959e-43,
+      "reflection_kernel": 2.938736052218082e-39
+    },
+    {
+      "k": 88.72283905206835,
+      "frequency": 1000000.0,
+      "layer1": 1,
+      "layer2": 100,
+      "depth": 0.0001,
+      "height": 1,
+      "separation": 0.0001,
+      "gamma_first": [
+        88.72285020998339,
+        0.0444963360745541
+      ],
+      "gamma_second": [
+        88.83406926946593,
+        4.444062726047716
+      ],
+      "tanh": [
+        0.008872052227311604,
+        4.4492833620920305e-06
+      ],
+      "reflection_imag": -0.00025076027861639297,
+      "oscillating_integrand": -0.024562346797919157,
+      "propagation_integrand": -0.05032840758007972,
+      "oscillating_kernel": -8.13538135743584e-43,
+      "reflection_kernel": 2.9387360522180405e-39
+    },
+    {
+      "k": 88.72283905206837,
+      "frequency": 1000000.0,
+      "layer1": 1,
+      "layer2": 100,
+      "depth": 0.0001,
+      "height": 1,
+      "separation": 0.0001,
+      "gamma_first": [
+        88.7228502099834,
+        0.044496336074554096
+      ],
+      "gamma_second": [
+        88.83406926946594,
+        4.444062726047715
+      ],
+      "tanh": [
+        0.008872052227311605,
+        4.44928336209203e-06
+      ],
+      "reflection_imag": -0.0002507602786163929,
+      "oscillating_integrand": -0.024562346797919146,
+      "propagation_integrand": -0.05032840758007972,
+      "oscillating_kernel": 0.0,
+      "reflection_kernel": 0.0
+    },
+    {
+      "k": 0,
+      "frequency": 0,
+      "layer1": 100,
+      "layer2": 1,
+      "depth": 5e-05,
+      "height": 2.6e-06,
+      "separation": 5e-06,
+      "gamma_first": [
+        0.0,
+        0.0
+      ],
+      "gamma_second": [
+        0.0,
+        0.0
+      ],
+      "tanh": [
+        0.0,
+        0.0
+      ],
+      "reflection_imag": "nan",
+      "oscillating_integrand": "nan",
+      "propagation_integrand": "nan",
+      "oscillating_kernel": "nan",
+      "reflection_kernel": 1.0
+    },
+    {
+      "k": 1,
+      "frequency": 0,
+      "layer1": 100,
+      "layer2": 1,
+      "depth": 5e-05,
+      "height": 2.6e-06,
+      "separation": 5e-06,
+      "gamma_first": [
+        1.0,
+        0.0
+      ],
+      "gamma_second": [
+        1.0,
+        0.0
+      ],
+      "tanh": [
+        4.999999995833333e-05,
+        0.0
+      ],
+      "reflection_imag": -0.0,
+      "oscillating_integrand": 0.0,
+      "propagation_integrand": "nan",
+      "oscillating_kernel": 0.0,
+      "reflection_kernel": 0.99999740000338
+    },
+    {
+      "k": 100000.0,
+      "frequency": 0,
+      "layer1": 100,
+      "layer2": 1,
+      "depth": 5e-05,
+      "height": 2.6e-06,
+      "separation": 5e-06,
+      "gamma_first": [
+        100000.0,
+        0.0
+      ],
+      "gamma_second": [
+        100000.0,
+        0.0
+      ],
+      "tanh": [
+        0.999909204262595,
+        0.0
+      ],
+      "reflection_imag": -0.0,
+      "oscillating_integrand": 0.0,
+      "propagation_integrand": "nan",
+      "oscillating_kernel": 0.0,
+      "reflection_kernel": 0.7710515858035663
+    }
+  ]
+}

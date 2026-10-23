@@ -15,6 +15,7 @@ Reference checkout: `~/github/asitic-re`, revision recorded in each fixture.
 | `potential.py` | `potential_tables.cpp`, `potential.cpp`, `contacts.cpp`, `potential_solver.cpp` | Eight CAP sessions across CMOS/BiCMOS: full potential snapshots, folded admittance matrices, and actual cache FFT samples for every metal pair; browser runtime checks cover all eight reduced matrices |
 | `network.py` | `combined_network.cpp`, `node_equations.cpp`, `network.cpp`, `two_port_output.cpp` | Eight no-eddy PI2 sessions: CAP/inductive/nodal snapshots, 15-digit Y/S output, printed L/R/C/Q/shunt-R/resonance reports; isolated node/S checks and JSON/WebAssembly interfaces |
 | `quadrature.py` | `quadrature.cpp` | DQK15I transformed rule, DQPSRT ranking, DQELG epsilon extrapolation and DQAGIE adaptive infinite integration; direct 32-bit C++ probe covers 60 integrations and 36 rules, including convergence/failure statuses and exact evaluation/subdivision counts |
+| `green.py` | `green.cpp`, `legacy_complex.cpp` | 186 direct 32-bit C++ object probes: propagation constants, complex tanh, reflection, layered/limiting integrands, oscillating/reflection kernels; realistic and extreme conductivities, zero frequency/wave number, decay cutoff and native nonfinite classifications |
 | `gds.py` | Native ribbon and `layout_export.cpp` via pitch conventions | Independent gdstk round-trip for nine generators, units, coordinates, layer mapping, via counts and cut area |
 | `bridge.py`, `web/worker.js` | New browser interface | Generation, estimates, sweeps and exports exercised in pinned Pyodide WebAssembly runtime |
 
@@ -103,8 +104,21 @@ unspilled arithmetic; it does not reproduce every x87 instruction rounding.
 Direct object probes compare values/errors with max(1e-13 absolute, 1e-12
 relative) and require exact statuses, subdivision counts and evaluation counts.
 These are quadrature dependency tests, not an enabled eddy-current solver.
-Green kernels, Fourier/oscillatory quadrature and eddy matrix stamping still
-need porting and connected reference validation.
+Fourier/oscillatory quadrature and eddy matrix stamping still need porting and
+connected reference validation.
+
+The eddy Green kernels now preserve the original complex record spills, with
+64-bit-significand arithmetic for the layered integrand and legacy division.
+Decimal guard precision alone left small imaginary residues in native -z/z
+cases; after division by zero wave number, those changed native NaNs to
+infinities. The fixtures retain those classifications and exact zero results.
+The native reflection callback returns only exponential decay, discarding the
+reflection/cosine values; that behavior is preserved. Finite comparisons use
+max(1e-14 absolute, 1e-12 relative), with relative checks down to 1e-300 absolute
+for reflection decay and the before/after ln(FLT_MAX) cutoff cases. These tests
+validate kernel dependencies, not a connected eddy-loss simulation. Full x87
+exception flags, signed NaN payloads, arbitrary extreme inputs and process
+stacks remain outside the current evidence.
 
 `3DTrans`, `3DMIRRORTRANS`, `Trans3D` and `TransMIM` are aliases of creator ID 10,
 not separate generator algorithms. The 3D builder is generated into standalone
