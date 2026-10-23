@@ -5,13 +5,14 @@ import unittest
 from reasitic.bridge import handle,request_json
 
 CASES=json.loads((Path(__file__).parent/"fixtures/pi_models.json").read_text())["cases"]
+CASES+=json.loads((Path(__file__).parent/"fixtures/pi_models_eddy.json").read_text())["cases"]
 
 
 class PiModelTests(unittest.TestCase):
     def test_native_pi3_pi4_ports_and_printed_quality(self):
         for case in sorted(CASES,key=lambda c:c["frequency_hz"]):
             with self.subTest(model=case["model"],kind=case["kind"],frequency=case["frequency_hz"]):
-                args={k:v for k,v in case.items() if k in ("kind","parameters","technology","ground","first_pad","second_pad","frequency_hz")}
+                args={k:v for k,v in case.items() if k in ("kind","parameters","technology","ground","first_pad","second_pad","frequency_hz","eddy")}
                 result=handle(dict(action=case["model"],**args))
                 for key in ("admittance_matrix","scattering_matrix"):
                     for i,row in enumerate(result[key]):

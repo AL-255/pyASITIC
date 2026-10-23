@@ -1,4 +1,4 @@
-"""ASITIC filament impedance assembly and reduction, with eddy currents disabled.
+"""ASITIC filament impedance assembly, reduction and native eddy correction.
 
 Ports geometry.cpp discretization, filaments.cpp, impedance.cpp, vias.cpp and
 solver.cpp. Complex linear systems use pivoted binary64 elimination rather than
@@ -86,12 +86,12 @@ def filament(segment,origin,yi,zi,ny,nz,edge_cell,max_width_cells,technology):
 
 def solve_impedance(shape,technology,frequency_hz,*,length_cell=1000,width_cell=1000,
                     thickness_cell=1000,max_width_cells=9,capacitance_length_cell=None,max_filaments=256,
-                    admittance=False,discretized=False):
+                    admittance=False,discretized=False,eddy=False):
     """Return the reduced segment impedance matrix, total L/R/Q and mesh size.
 
     Cells are in micrometres; frequency is in Hz. Returns ohms and henries.
-    Includes the reference's via correction. Substrate eddy stamping is separate
-    work and is deliberately absent from this explicitly no-eddy API.
+    Includes the reference's via correction. Eddy mode 1 follows native EDDY ON:
+    packed square stamping or segment folding for other shape types.
     `admittance=True` returns the branch matrix in siemens instead of ohms;
     scalar L/R/Q still describe total series impedance. `discretized=True`
     accepts the already cloned geometry used by the combined PI2 driver.
@@ -101,6 +101,8 @@ def solve_impedance(shape,technology,frequency_hz,*,length_cell=1000,width_cell=
         raise ValueError("Frequency and mesh cell sizes must be finite and positive")
     if not isinstance(max_width_cells,int) or not 1<=max_width_cells<=99:
         raise ValueError("Maximum width cells must be an integer from 1 to 99")
+    if not isinstance(eddy,(bool,int)) or not 0<=eddy<=255:
+        raise ValueError("Eddy mode must be 0 (off), 1 (native on), or an enabled segment-folding mode")
     if capacitance_length_cell is None:
         capacitance_length_cell = length_cell
     if not math.isfinite(capacitance_length_cell) or capacitance_length_cell<=0:
@@ -145,6 +147,10 @@ def solve_impedance(shape,technology,frequency_hz,*,length_cell=1000,width_cell=
     reduced_y = [[sum(full_y[r][c] for r in rows for c in columns)
                   for columns in groups] for rows in groups]
     reduced_z = inverse(reduced_y)
+    eddy_details=None
+    if eddy:
+        from .eddy import add_eddy
+        eddy_details=add_eddy(reduced_z,meshed,technology,frequency_hz,int(eddy),warnings)
     group = 0
     for s in meshed.segments:
         if s.metal<metal_count:
@@ -160,14 +166,19 @@ def solve_impedance(shape,technology,frequency_hz,*,length_cell=1000,width_cell=
         inductance = height*2e-4*(math.log(2*height/perimeter)+SELF_CONSTANT+perimeter/(height*3))
         reduced_z[group][group] += complex(via.resistance/(s.nx*s.ny),omega*1e-9*inductance)
     total = sum(sum(row) for row in reduced_z)
+    if eddy and total.real<0:
+        warnings.append("The native eddy calculation produced negative total conductor resistance for this geometry/process")
     # PI2 requests admittance directly. The native driver only reinverts the
-    # reduced matrix when via corrections have required an impedance stamp.
+    # reduced matrix when eddy or via corrections require an impedance stamp.
     if admittance:
-        result = inverse(reduced_z) if any(s.metal>=metal_count for s in meshed.segments) else reduced_y
+        result = inverse(reduced_z) if eddy or any(s.metal>=metal_count for s in meshed.segments) else reduced_y
     else:
         result = reduced_z
-    return dict(matrix=[[[z.real,z.imag] for z in row] for row in result],
+    data = dict(matrix=[[[z.real,z.imag] for z in row] for row in result],
                 resistance_ohm=total.real,inductance_h=total.imag/omega,
                 series_q=total.imag/total.real if total.real else None,
                 frequency_hz=frequency_hz,filaments=n,segments=len(conductors),
-                warnings=list(dict.fromkeys(warnings)),eddy=False)
+                warnings=list(dict.fromkeys(warnings)),eddy=bool(eddy))
+    if eddy_details is not None:
+        data["eddy_details"]=eddy_details
+    return data

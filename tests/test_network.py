@@ -9,6 +9,7 @@ from reasitic.bridge import request_json
 
 
 CASES=json.loads((Path(__file__).parent/"fixtures/network.json").read_text())["cases"]
+EDDY_CASES=json.loads((Path(__file__).parent/"fixtures/network_eddy.json").read_text())["cases"]
 
 
 class NetworkTests(unittest.TestCase):
@@ -21,12 +22,12 @@ class NetworkTests(unittest.TestCase):
                     self.assertAlmostEqual(value[axis],reference[axis],delta=max(1e-10,abs(reference[axis])*1e-8),msg=f"{label} {i},{j} axis {axis}")
 
     def test_native_distributed_pi2(self):
-        for case in sorted(CASES,key=lambda item:(item["process"],item["frequency_hz"])):
+        for case in sorted(CASES+EDDY_CASES,key=lambda item:(item["process"],item["frequency_hz"])):
             with self.subTest(kind=case["kind"],mesh=case["mesh"],ground=bool(case["ground"])):
                 tech=Technology.from_text(case["technology"])
                 shape=build(case["kind"],technology=tech,**case["parameters"])
                 ground=build(case["ground"]["kind"],technology=tech,**case["ground"]["parameters"]) if case["ground"] else None
-                result=solve_pi2(shape,tech,case["frequency_hz"],ground=ground,include_matrices=True,**case["mesh"])
+                result=solve_pi2(shape,tech,case["frequency_hz"],ground=ground,include_matrices=True,eddy=case.get("eddy",False),**case["mesh"])
                 for key in ("capacitance_matrix","inductive_admittance_matrix","nodal_capacitance_matrix","admittance_matrix","scattering_matrix"):
                     self.assert_matrix(result[key],case[key],key)
                 # Printed native values carry only 3 significant digits (Q and
@@ -34,10 +35,14 @@ class NetworkTests(unittest.TestCase):
                 stdout=case["stdout"]
                 qualities=re.search(r"Q =\s*([^,]+),([^,]+),([^\n]+)",stdout)
                 for key,expected in zip(("q_first","q_second","q_differential"),map(float,qualities.groups())):
-                    self.assertAlmostEqual(result["pi"][key],expected,delta=.000501,msg=key)
+                    if math.isfinite(expected):self.assertAlmostEqual(result["pi"][key],expected,delta=.000501,msg=key)
+                    else:self.assertIsNone(result["pi"][key],key)
                 fields=re.search(r"L\s*=\s*(\S+) nH\s*R\s*=\s*(\S+)\s+Cs1=\s*(\S+) fF\s*Rs1=\s*(\S+)\s+Cs2=\s*(\S+) fF\s*Rs2=\s*(\S+)\s+f_res =\s*(\S+)GHz",stdout)
                 for token,key,scale in zip(fields.groups(),("inductance_h","resistance_ohm","capacitance_first_f","resistance_first_ohm","capacitance_second_f","resistance_second_ohm","resonant_frequency_hz"),(1e-9,1,1e-15,1,1e-15,1,1e9)):
                     expected=float(token)
+                    if not math.isfinite(expected):
+                        self.assertIsNone(result["pi"][key],key)
+                        continue
                     tolerance=.00501 if key=="resonant_frequency_hz" else .00501*abs(expected) if expected else 1e-20
                     self.assertAlmostEqual(result["pi"][key]/scale,expected,delta=tolerance,msg=key)
                 shunts=re.findall(r"The shunt resistance is (\S+) Ohms",stdout)

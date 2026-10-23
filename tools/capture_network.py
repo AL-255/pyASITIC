@@ -23,6 +23,7 @@ def port_matrix(path):
 def main():
     parser=argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--reference",type=Path,required=True)
+    parser.add_argument("--eddy",action="store_true")
     args=parser.parse_args()
     reference=args.reference.resolve()
     executable=reference/"recomp_cpp/build/cli/asitic"
@@ -44,7 +45,7 @@ def main():
         for field,value in (("fftx",64),("ffty",64),("chipx",128),("chipy",128)):
             technology=re.sub(rf"(?im)^(\s*{field}\s*=\s*)[\d.]+",rf"\g<1>{value}",technology)
         ground_arg=" G" if ground else ""
-        script=f"CELL {length} {width} {thickness}\nCCELL {clength} {cwidth}\nEDDY OFF\nSAVEMAT TRUE\n{creation}\n{ground_creation}\nPI2 A {frequency}{ground_arg}\n"
+        script=f"CELL {length} {width} {thickness}\nCCELL {clength} {cwidth}\nEDDY "+("ON" if args.eddy else "OFF")+f"\nSAVEMAT TRUE\n{creation}\n{ground_creation}\nPI2 A {frequency}{ground_arg}\n"
         script+=f"2PORT A {frequency} {frequency} 1 Y RECT SLOW y.out{ground_arg}\n2PORT A {frequency} {frequency} 1 S RECT SLOW s.out{ground_arg}\nZIN S\nZIN D\nSHUNTR S\nSHUNTR D\n"
         with tempfile.TemporaryDirectory(prefix="reasitic-network-reference-") as directory:
             path=Path(directory)
@@ -56,13 +57,13 @@ def main():
                 raise RuntimeError(result.stdout+result.stderr)
             cases.append(dict(kind=kind,process=process,technology=technology,parameters=dict(name="A",**parameters),
                               ground=dict(kind="wire",parameters=dict(name="G",**ground)) if ground else None,
-                              frequency_hz=frequency*1e9,mesh=dict(length_cell=length,width_cell=width,thickness_cell=thickness,
+                              frequency_hz=frequency*1e9,eddy=args.eddy,mesh=dict(length_cell=length,width_cell=width,thickness_cell=thickness,
                               capacitance_length_cell=clength,capacitance_width_cell=cwidth),
                               capacitance_matrix=read_matrix(path/"ZC.out"),inductive_admittance_matrix=read_matrix(path/"YM.out"),
                               nodal_capacitance_matrix=read_matrix(path/"Ycap.out"),admittance_matrix=port_matrix(path/"y.out"),
                               scattering_matrix=port_matrix(path/"s.out"),script=script,stdout=result.stdout))
-    output=ROOT/"tests/fixtures/network.json"
-    output.write_text(json.dumps(dict(reference="Unmodified C++ PI2 command, snapshots and 15-digit Y/S output",reference_commit=subprocess.check_output(["git","-C",str(reference),"rev-parse","HEAD"],text=True).strip(),executable_sha256=hashlib.sha256(executable.read_bytes()).hexdigest(),cases=cases),indent=2)+"\n")
+    output=ROOT/("tests/fixtures/network_eddy.json" if args.eddy else "tests/fixtures/network.json")
+    output.write_text(json.dumps(dict(reference="Unmodified C++ PI2 command, snapshots and 15-digit Y/S output",reference_commit=subprocess.check_output(["git","-C",str(reference),"rev-parse","HEAD"],text=True).strip(),executable_sha256=hashlib.sha256(executable.read_bytes()).hexdigest(),cases=cases),indent=2,allow_nan=False)+"\n")
     print(output)
 
 

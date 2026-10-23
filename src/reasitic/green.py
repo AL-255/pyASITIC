@@ -2,8 +2,8 @@
 
 Frequency is Hz, layer conductivity is S/m, lengths are metres and wave number
 is inverse metres. Binary64 complex records and their native spill boundaries
-are retained with Decimal guard precision. These kernels do not enable eddy
-matrix stamping; the Fourier integration and solver connection are separate.
+are retained with Decimal guard precision. green_integration.py connects these
+kernels to the quadrature routines; eddy.py stamps their solver corrections.
 """
 from dataclasses import dataclass
 from decimal import Decimal,localcontext,InvalidOperation,DivisionByZero,Overflow

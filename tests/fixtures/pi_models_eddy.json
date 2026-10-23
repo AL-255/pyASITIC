@@ -1,0 +1,695 @@
+{
+  "reference": "Unmodified native PI3/PI4 commands and 2PORT/2PORTPAD Y/S records",
+  "reference_commit": "63885e808b522bdeba3f254d353afc72e643c761",
+  "executable_sha256": "184b58bf4c6b28bf0cf88a9fc39cd0a27ab24ca26f60d5b3a6bf92424362c67a",
+  "cases": [
+    {
+      "model": "pi3",
+      "kind": "wire",
+      "parameters": {
+        "name": "A",
+        "length": 40,
+        "width": 5,
+        "metal": "M4",
+        "x": 20,
+        "y": 20
+      },
+      "technology": "; Sample CMOS technology file\n\n<chip>\n\n\tchipx = 128\t; dimensions of the chip in x direction\n\tchipy = 128\t; dimensions of the chip in y direction\n\tfftx = 64\t; x-fft size (must be a power of 2)\n\tffty = 64\t; y-fft size\n\tTechFile = CMOS.tek\n\tTechPath = .\n\tfreq = 2 \t\t; frequency of operation\n\teddy = 0\n\n<layer> 0 \t\t\t; p(-) bulk layer\n\trho = 1e-3\t\t; ohm-cm\n\tt   = 700 \t\t; microns\n        eps = 11.9\n\n<layer>\t1\t   \t\t; Oxide Layer\n\trho = 1e10\n\tt = 50\n\teps = 3.9\n\n<metal> 0\n        layer = 1\t\t; in oxide layer\n        rsh = 65\t\t; sheet resistance3\n        t   = 0.5\t\t; thickness\n        d = 1.3\t\t\t; distance from bottom of layer\n        name = m1\t\n        color = yellow\n\n<metal> 1\n        layer = 1\n        rsh = 55 \n        t = 0.5\n        d = 2.4 \n        name = m2\n        color = LightSkyBlue1\n\n<metal> 2\n        layer = 1\n        rsh = 55 \n        t = 0.5\n        d =  3.5\n        name = m3\n        color = medium purple\n\n<metal> 3\n        layer = 1\n        rsh = 55 \n        t = 0.5\n        d =  4.5\n        name = m4\n        color = light green\n\n<metal> 4\n        layer = 1\n        rsh = 30\n        t = 1\n        d =  6\n        name = m5\n        color = grey\n\n<via> 0                        ; metal 1 to metal 2\n        top = 1\n        bottom = 0\n        r = 4\n        width = .5\n        space = 1.1\n        overplot1 = .2         ; to metal 1\n        overplot2 = .2         ; to metal 2\n        name = via1\n        color = purple\n<via> 1                        ; metal 2 to metal 3\n        top = 2\n        bottom = 1\n        r = 4\n        width = .4\n        space = 1.1\n        overplot1 = .2         ; to metal 1\n        overplot2 = .2         ; to metal 2\n        name = via2\n        color = cyan1\n<via> 2                        ; metal 3 to metal 4\n        top = 3\n        bottom = 2\n        r = 4\n        width = .4\n        space = 1.1\n        overplot1 = .2\n        overplot2 = .2\n        name = via3\n        color = red\n\n<via> 3                        ; metal 3 to metal 4\n        top = 4\n        bottom = 3\n        r = 4\n        width = .4\n        space = 1.2\n        overplot1 = .2\n        overplot2 = .2\n        name = via4\n        color = white\n\n",
+      "ground": {
+        "kind": "wire",
+        "parameters": {
+          "name": "G",
+          "length": 100,
+          "width": 8,
+          "metal": "M1",
+          "x": 10,
+          "y": 100
+        }
+      },
+      "eddy": true,
+      "first_pad": null,
+      "second_pad": null,
+      "frequency_hz": 1000000000.0,
+      "admittance_matrix": [
+        [
+          [
+            -0.0002387571685673241,
+            2.552376058561517e-05
+          ],
+          [
+            0.0002387574962452736,
+            9.236879706162017e-09
+          ]
+        ],
+        [
+          [
+            0.0002387574962452736,
+            9.236879706162017e-09
+          ],
+          [
+            -0.0002387574962452736,
+            -9.23687970616202e-09
+          ]
+        ]
+      ],
+      "scattering_matrix": [
+        [
+          [
+            1.024459727678376,
+            -0.001291675606654394
+          ],
+          [
+            -0.02445970437165761,
+            3.063894690061215e-05
+          ]
+        ],
+        [
+          [
+            -0.02445970437165761,
+            3.063894690061215e-05
+          ],
+          [
+            1.024459743887611,
+            5.875310836046071e-07
+          ]
+        ]
+      ],
+      "model_stdout": "\nASITIC version 10.20.99.0.0.0\nAnalysis & Simulation of Inductors and Transformers for ICs\nReading technology file <process.tek>...\nRunning in console mode...\n\nExecuting script <input.asit>...\nCELL 1000 1000 1000\n\nCCELL 1000 1000\n\nEDDY ON\n\nTurning ON eddy current calculation mode.\nSAVEMAT TRUE\n\nTurning ON Matrix Dump Mode.\nWIRE NAME=A:LEN=40:WID=5:METAL=M4:XORG=20:YORG=20\n\nWIRE NAME=G:LEN=100:WID=8:METAL=M1:XORG=10:YORG=100\n\nPI3 A G 1\n\nPerforming Analysis at 1.00 GHz\nGenerating capacitance matrix (2x2).\nWarning:  Could not open data file at frequency = 1.00.\nTried using . as path.\n\n\nGenerating data at 1.00 GHz...\n\nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nWriting data.....\nGenerating inductance matrix (1x1)..\nInverting matrix.....\nError:  Quadpack DQAGI function did not converge.\nCalled with:  freq = 1e+09, sep = 0, h = 9e-06\n\tThe algorithm does not converge.\n\troundoff error is detected in the\n\textrapolation table.\n\tit is assumed that the requested tolerance\n\tcannot be achieved, and that the returned\n\tresult is the best which can be obtained..\nSolving node equations...(1x1)\nPi Model at f=1.00 GHz:  Q = 0.107,-0.000,-0.000\nL  =0.0258 nH\tR  =-4.19e+03\nCs1=  4.06 fF\tRs1= 0.503\nCs2=     0 fF\tRs2= 1e+15\tf_res = 491.64GHz\n",
+      "stdout": "\nASITIC version 10.20.99.0.0.0\nAnalysis & Simulation of Inductors and Transformers for ICs\nReading technology file <process.tek>...\nRunning in console mode...\n\nExecuting script <input.asit>...\nCELL 1000 1000 1000\n\nCCELL 1000 1000\n\nEDDY ON\n\nTurning ON eddy current calculation mode.\nSAVEMAT TRUE\n\nTurning ON Matrix Dump Mode.\nWIRE NAME=A:LEN=40:WID=5:METAL=M4:XORG=20:YORG=20\n\nWIRE NAME=G:LEN=100:WID=8:METAL=M1:XORG=10:YORG=100\n\nPI3 A G 1\n\nPerforming Analysis at 1.00 GHz\nGenerating capacitance matrix (2x2).\nWarning:  Could not open data file at frequency = 1.00.\nTried using . as path.\n\n\nGenerating data at 1.00 GHz...\n\nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nWriting data.....\nGenerating inductance matrix (1x1)..\nInverting matrix.....\nError:  Quadpack DQAGI function did not converge.\nCalled with:  freq = 1e+09, sep = 0, h = 9e-06\n\tThe algorithm does not converge.\n\troundoff error is detected in the\n\textrapolation table.\n\tit is assumed that the requested tolerance\n\tcannot be achieved, and that the returned\n\tresult is the best which can be obtained..\nSolving node equations...(1x1)\nPi Model at f=1.00 GHz:  Q = 0.107,-0.000,-0.000\nL  =0.0258 nH\tR  =-4.19e+03\nCs1=  4.06 fF\tRs1= 0.503\nCs2=     0 fF\tRs2= 1e+15\tf_res = 491.64GHz\n2PORT A 1 1 1 Y RECT SLOW y.out G\n\nWarning:  User defined structure type may not be compatible with 2port command.\nPerforming Analysis at 1.00 GHz\nGenerating capacitance matrix (6x6)...\nGenerating inductance matrix (1x1)..\nInverting matrix.....\nError:  Quadpack DQAGI function did not converge.\nCalled with:  freq = 1e+09, sep = 0, h = 9e-06\n\tThe algorithm does not converge.\n\troundoff error is detected in the\n\textrapolation table.\n\tit is assumed that the requested tolerance\n\tcannot be achieved, and that the returned\n\tresult is the best which can be obtained..\nSolving node equations...(1x1)\n2PORT A 1 1 1 S RECT SLOW s.out G\n\nWarning:  User defined structure type may not be compatible with 2port command.\nPerforming Analysis at 1.00 GHz\nGenerating capacitance matrix (6x6)...\nGenerating inductance matrix (1x1)..\nInverting matrix.....\nError:  Quadpack DQAGI function did not converge.\nCalled with:  freq = 1e+09, sep = 0, h = 9e-06\n\tThe algorithm does not converge.\n\troundoff error is detected in the\n\textrapolation table.\n\tit is assumed that the requested tolerance\n\tcannot be achieved, and that the returned\n\tresult is the best which can be obtained..\nSolving node equations...(1x1)\nASITIC>  ",
+      "script": "CELL 1000 1000 1000\nCCELL 1000 1000\nEDDY ON\nSAVEMAT TRUE\nWIRE NAME=A:LEN=40:WID=5:METAL=M4:XORG=20:YORG=20\nWIRE NAME=G:LEN=100:WID=8:METAL=M1:XORG=10:YORG=100\nPI3 A G 1\n2PORT A 1 1 1 Y RECT SLOW y.out G\n2PORT A 1 1 1 S RECT SLOW s.out G\n"
+    },
+    {
+      "model": "pi3",
+      "kind": "wire",
+      "parameters": {
+        "name": "A",
+        "length": 40,
+        "width": 5,
+        "metal": "M4",
+        "x": 20,
+        "y": 20
+      },
+      "technology": "; Sample CMOS technology file\n\n<chip>\n\n\tchipx = 128\t; dimensions of the chip in x direction\n\tchipy = 128\t; dimensions of the chip in y direction\n\tfftx = 64\t; x-fft size (must be a power of 2)\n\tffty = 64\t; y-fft size\n\tTechFile = CMOS.tek\n\tTechPath = .\n\tfreq = 2 \t\t; frequency of operation\n\teddy = 0\n\n<layer> 0 \t\t\t; p(-) bulk layer\n\trho = 1e-3\t\t; ohm-cm\n\tt   = 700 \t\t; microns\n        eps = 11.9\n\n<layer>\t1\t   \t\t; Oxide Layer\n\trho = 1e10\n\tt = 50\n\teps = 3.9\n\n<metal> 0\n        layer = 1\t\t; in oxide layer\n        rsh = 65\t\t; sheet resistance3\n        t   = 0.5\t\t; thickness\n        d = 1.3\t\t\t; distance from bottom of layer\n        name = m1\t\n        color = yellow\n\n<metal> 1\n        layer = 1\n        rsh = 55 \n        t = 0.5\n        d = 2.4 \n        name = m2\n        color = LightSkyBlue1\n\n<metal> 2\n        layer = 1\n        rsh = 55 \n        t = 0.5\n        d =  3.5\n        name = m3\n        color = medium purple\n\n<metal> 3\n        layer = 1\n        rsh = 55 \n        t = 0.5\n        d =  4.5\n        name = m4\n        color = light green\n\n<metal> 4\n        layer = 1\n        rsh = 30\n        t = 1\n        d =  6\n        name = m5\n        color = grey\n\n<via> 0                        ; metal 1 to metal 2\n        top = 1\n        bottom = 0\n        r = 4\n        width = .5\n        space = 1.1\n        overplot1 = .2         ; to metal 1\n        overplot2 = .2         ; to metal 2\n        name = via1\n        color = purple\n<via> 1                        ; metal 2 to metal 3\n        top = 2\n        bottom = 1\n        r = 4\n        width = .4\n        space = 1.1\n        overplot1 = .2         ; to metal 1\n        overplot2 = .2         ; to metal 2\n        name = via2\n        color = cyan1\n<via> 2                        ; metal 3 to metal 4\n        top = 3\n        bottom = 2\n        r = 4\n        width = .4\n        space = 1.1\n        overplot1 = .2\n        overplot2 = .2\n        name = via3\n        color = red\n\n<via> 3                        ; metal 3 to metal 4\n        top = 4\n        bottom = 3\n        r = 4\n        width = .4\n        space = 1.2\n        overplot1 = .2\n        overplot2 = .2\n        name = via4\n        color = white\n\n",
+      "ground": {
+        "kind": "wire",
+        "parameters": {
+          "name": "G",
+          "length": 100,
+          "width": 8,
+          "metal": "M1",
+          "x": 10,
+          "y": 100
+        }
+      },
+      "eddy": true,
+      "first_pad": null,
+      "second_pad": null,
+      "frequency_hz": 5000000000.0,
+      "admittance_matrix": [
+        [
+          [
+            -4.773932272126419e-05,
+            0.0001276631372995193
+          ],
+          [
+            4.774748642431137e-05,
+            1.847065463676113e-09
+          ]
+        ],
+        [
+          [
+            4.774748642431137e-05,
+            1.847065463676113e-09
+          ],
+          [
+            -4.774748642431137e-05,
+            -1.84706546367434e-09
+          ]
+        ]
+      ],
+      "scattering_matrix": [
+        [
+          [
+            1.004797246972422,
+            -0.006398448511604135
+          ],
+          [
+            -0.004797459062648606,
+            3.051034144845121e-05
+          ]
+        ],
+        [
+          [
+            -0.004797459062648606,
+            3.051034144845121e-05
+          ],
+          [
+            1.004797655776013,
+            1.130229089139011e-07
+          ]
+        ]
+      ],
+      "model_stdout": "\nASITIC version 10.20.99.0.0.0\nAnalysis & Simulation of Inductors and Transformers for ICs\nReading technology file <process.tek>...\nRunning in console mode...\n\nExecuting script <input.asit>...\nCELL 1000 1000 1000\n\nCCELL 1000 1000\n\nEDDY ON\n\nTurning ON eddy current calculation mode.\nSAVEMAT TRUE\n\nTurning ON Matrix Dump Mode.\nWIRE NAME=A:LEN=40:WID=5:METAL=M4:XORG=20:YORG=20\n\nWIRE NAME=G:LEN=100:WID=8:METAL=M1:XORG=10:YORG=100\n\nPI3 A G 5\n\nPerforming Analysis at 5.00 GHz\nGenerating capacitance matrix (2x2).\nWarning:  Could not open data file at frequency = 5.00.\nTried using . as path.\n\n\nGenerating data at 5.00 GHz...\n\nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nWriting data.....\nGenerating inductance matrix (1x1)..\nInverting matrix.....\nError:  Quadpack DQAGI function did not converge.\nCalled with:  freq = 5e+09, sep = 0, h = 9e-06\n\tThe algorithm does not converge.\n\troundoff error is detected in the\n\textrapolation table.\n\tit is assumed that the requested tolerance\n\tcannot be achieved, and that the returned\n\tresult is the best which can be obtained..\nSolving node equations...(1x1)\nPi Model at f=5.00 GHz:  Q = 2.674,-0.000,-0.000\nL  =0.0258 nH\tR  =-2.09e+04\nCs1=  4.06 fF\tRs1= 0.501\nCs2=     0 fF\tRs2= 1e+15\tf_res = 491.64GHz\n",
+      "stdout": "\nASITIC version 10.20.99.0.0.0\nAnalysis & Simulation of Inductors and Transformers for ICs\nReading technology file <process.tek>...\nRunning in console mode...\n\nExecuting script <input.asit>...\nCELL 1000 1000 1000\n\nCCELL 1000 1000\n\nEDDY ON\n\nTurning ON eddy current calculation mode.\nSAVEMAT TRUE\n\nTurning ON Matrix Dump Mode.\nWIRE NAME=A:LEN=40:WID=5:METAL=M4:XORG=20:YORG=20\n\nWIRE NAME=G:LEN=100:WID=8:METAL=M1:XORG=10:YORG=100\n\nPI3 A G 5\n\nPerforming Analysis at 5.00 GHz\nGenerating capacitance matrix (2x2).\nWarning:  Could not open data file at frequency = 5.00.\nTried using . as path.\n\n\nGenerating data at 5.00 GHz...\n\nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nWriting data.....\nGenerating inductance matrix (1x1)..\nInverting matrix.....\nError:  Quadpack DQAGI function did not converge.\nCalled with:  freq = 5e+09, sep = 0, h = 9e-06\n\tThe algorithm does not converge.\n\troundoff error is detected in the\n\textrapolation table.\n\tit is assumed that the requested tolerance\n\tcannot be achieved, and that the returned\n\tresult is the best which can be obtained..\nSolving node equations...(1x1)\nPi Model at f=5.00 GHz:  Q = 2.674,-0.000,-0.000\nL  =0.0258 nH\tR  =-2.09e+04\nCs1=  4.06 fF\tRs1= 0.501\nCs2=     0 fF\tRs2= 1e+15\tf_res = 491.64GHz\n2PORT A 5 5 1 Y RECT SLOW y.out G\n\nWarning:  User defined structure type may not be compatible with 2port command.\nPerforming Analysis at 5.00 GHz\nGenerating capacitance matrix (6x6)...\nGenerating inductance matrix (1x1)..\nInverting matrix.....\nError:  Quadpack DQAGI function did not converge.\nCalled with:  freq = 5e+09, sep = 0, h = 9e-06\n\tThe algorithm does not converge.\n\troundoff error is detected in the\n\textrapolation table.\n\tit is assumed that the requested tolerance\n\tcannot be achieved, and that the returned\n\tresult is the best which can be obtained..\nSolving node equations...(1x1)\n2PORT A 5 5 1 S RECT SLOW s.out G\n\nWarning:  User defined structure type may not be compatible with 2port command.\nPerforming Analysis at 5.00 GHz\nGenerating capacitance matrix (6x6)...\nGenerating inductance matrix (1x1)..\nInverting matrix.....\nError:  Quadpack DQAGI function did not converge.\nCalled with:  freq = 5e+09, sep = 0, h = 9e-06\n\tThe algorithm does not converge.\n\troundoff error is detected in the\n\textrapolation table.\n\tit is assumed that the requested tolerance\n\tcannot be achieved, and that the returned\n\tresult is the best which can be obtained..\nSolving node equations...(1x1)\nASITIC>  ",
+      "script": "CELL 1000 1000 1000\nCCELL 1000 1000\nEDDY ON\nSAVEMAT TRUE\nWIRE NAME=A:LEN=40:WID=5:METAL=M4:XORG=20:YORG=20\nWIRE NAME=G:LEN=100:WID=8:METAL=M1:XORG=10:YORG=100\nPI3 A G 5\n2PORT A 5 5 1 Y RECT SLOW y.out G\n2PORT A 5 5 1 S RECT SLOW s.out G\n"
+    },
+    {
+      "model": "pi3",
+      "kind": "square",
+      "parameters": {
+        "name": "A",
+        "length": 60,
+        "width": 5,
+        "spacing": 3,
+        "turns": 1,
+        "metal": "M4",
+        "x": 20,
+        "y": 20
+      },
+      "technology": "; Sample CMOS technology file\n\n<chip>\n\n\tchipx = 128\t; dimensions of the chip in x direction\n\tchipy = 128\t; dimensions of the chip in y direction\n\tfftx = 64\t; x-fft size (must be a power of 2)\n\tffty = 64\t; y-fft size\n\tTechFile = CMOS.tek\n\tTechPath = .\n\tfreq = 2 \t\t; frequency of operation\n\teddy = 0\n\n<layer> 0 \t\t\t; p(-) bulk layer\n\trho = 1e-3\t\t; ohm-cm\n\tt   = 700 \t\t; microns\n        eps = 11.9\n\n<layer>\t1\t   \t\t; Oxide Layer\n\trho = 1e10\n\tt = 50\n\teps = 3.9\n\n<metal> 0\n        layer = 1\t\t; in oxide layer\n        rsh = 65\t\t; sheet resistance3\n        t   = 0.5\t\t; thickness\n        d = 1.3\t\t\t; distance from bottom of layer\n        name = m1\t\n        color = yellow\n\n<metal> 1\n        layer = 1\n        rsh = 55 \n        t = 0.5\n        d = 2.4 \n        name = m2\n        color = LightSkyBlue1\n\n<metal> 2\n        layer = 1\n        rsh = 55 \n        t = 0.5\n        d =  3.5\n        name = m3\n        color = medium purple\n\n<metal> 3\n        layer = 1\n        rsh = 55 \n        t = 0.5\n        d =  4.5\n        name = m4\n        color = light green\n\n<metal> 4\n        layer = 1\n        rsh = 30\n        t = 1\n        d =  6\n        name = m5\n        color = grey\n\n<via> 0                        ; metal 1 to metal 2\n        top = 1\n        bottom = 0\n        r = 4\n        width = .5\n        space = 1.1\n        overplot1 = .2         ; to metal 1\n        overplot2 = .2         ; to metal 2\n        name = via1\n        color = purple\n<via> 1                        ; metal 2 to metal 3\n        top = 2\n        bottom = 1\n        r = 4\n        width = .4\n        space = 1.1\n        overplot1 = .2         ; to metal 1\n        overplot2 = .2         ; to metal 2\n        name = via2\n        color = cyan1\n<via> 2                        ; metal 3 to metal 4\n        top = 3\n        bottom = 2\n        r = 4\n        width = .4\n        space = 1.1\n        overplot1 = .2\n        overplot2 = .2\n        name = via3\n        color = red\n\n<via> 3                        ; metal 3 to metal 4\n        top = 4\n        bottom = 3\n        r = 4\n        width = .4\n        space = 1.2\n        overplot1 = .2\n        overplot2 = .2\n        name = via4\n        color = white\n\n",
+      "ground": {
+        "kind": "wire",
+        "parameters": {
+          "name": "G",
+          "length": 100,
+          "width": 8,
+          "metal": "M1",
+          "x": 10,
+          "y": 100
+        }
+      },
+      "eddy": true,
+      "first_pad": null,
+      "second_pad": null,
+      "frequency_hz": 1000000000.0,
+      "admittance_matrix": [
+        [
+          [
+            -6.639244385361826e-05,
+            5.033177677177387e-05
+          ],
+          [
+            6.384519841677087e-05,
+            6.828631718647904e-06
+          ]
+        ],
+        [
+          [
+            6.384519841677087e-05,
+            6.828631718647904e-06
+          ],
+          [
+            -6.639452450831516e-05,
+            6.94175802226777e-05
+          ]
+        ]
+      ],
+      "scattering_matrix": [
+        [
+          [
+            1.006660850309414,
+            -0.006026315915464736
+          ],
+          [
+            -0.006431138930354967,
+            -0.0006488115202169797
+          ]
+        ],
+        [
+          [
+            -0.006431138930354967,
+            -0.0006488115202169797
+          ],
+          [
+            1.006657622410663,
+            -0.006983783103100462
+          ]
+        ]
+      ],
+      "model_stdout": "\nASITIC version 10.20.99.0.0.0\nAnalysis & Simulation of Inductors and Transformers for ICs\nReading technology file <process.tek>...\nRunning in console mode...\n\nExecuting script <input.asit>...\nCELL 1000 1000 1000\n\nCCELL 1000 1000\n\nEDDY ON\n\nTurning ON eddy current calculation mode.\nSAVEMAT TRUE\n\nTurning ON Matrix Dump Mode.\nSQUARE NAME=A:LEN=60:W=5:S=3:N=1:METAL=M4:EXIT=-1:XORG=20:YORG=20\n\nWIRE NAME=G:LEN=100:WID=8:METAL=M1:XORG=10:YORG=100\n\nPI3 A G 1\n\nPerforming Analysis at 1.00 GHz\nGenerating capacitance matrix (5x5).\nWarning:  Could not open data file at frequency = 1.00.\nTried using . as path.\n\n\nGenerating data at 1.00 GHz...\n\nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nWriting data.....\nGenerating inductance matrix (4x4)..\nInverting matrix.....\nError:  Quadpack DQAGI function did not converge.\nCalled with:  freq = 1e+09, sep = 0, h = 9e-06\n\tThe algorithm does not converge.\n\troundoff error is detected in the\n\textrapolation table.\n\tit is assumed that the requested tolerance\n\tcannot be achieved, and that the returned\n\tresult is the best which can be obtained..\nSolving node equations...(4x4)\nPi Model at f=1.00 GHz:  Q = 0.758,1.046,0.397\nL  =   264 nH\tR  =-1.55e+04\nCs1=  9.12 fF\tRs1=  -778\nCs2=  12.1 fF\tRs2=  -438\tf_res =  3.25GHz\n",
+      "stdout": "\nASITIC version 10.20.99.0.0.0\nAnalysis & Simulation of Inductors and Transformers for ICs\nReading technology file <process.tek>...\nRunning in console mode...\n\nExecuting script <input.asit>...\nCELL 1000 1000 1000\n\nCCELL 1000 1000\n\nEDDY ON\n\nTurning ON eddy current calculation mode.\nSAVEMAT TRUE\n\nTurning ON Matrix Dump Mode.\nSQUARE NAME=A:LEN=60:W=5:S=3:N=1:METAL=M4:EXIT=-1:XORG=20:YORG=20\n\nWIRE NAME=G:LEN=100:WID=8:METAL=M1:XORG=10:YORG=100\n\nPI3 A G 1\n\nPerforming Analysis at 1.00 GHz\nGenerating capacitance matrix (5x5).\nWarning:  Could not open data file at frequency = 1.00.\nTried using . as path.\n\n\nGenerating data at 1.00 GHz...\n\nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nWriting data.....\nGenerating inductance matrix (4x4)..\nInverting matrix.....\nError:  Quadpack DQAGI function did not converge.\nCalled with:  freq = 1e+09, sep = 0, h = 9e-06\n\tThe algorithm does not converge.\n\troundoff error is detected in the\n\textrapolation table.\n\tit is assumed that the requested tolerance\n\tcannot be achieved, and that the returned\n\tresult is the best which can be obtained..\nSolving node equations...(4x4)\nPi Model at f=1.00 GHz:  Q = 0.758,1.046,0.397\nL  =   264 nH\tR  =-1.55e+04\nCs1=  9.12 fF\tRs1=  -778\nCs2=  12.1 fF\tRs2=  -438\tf_res =  3.25GHz\n2PORT A 1 1 1 Y RECT SLOW y.out G\n\nPerforming Analysis at 1.00 GHz\nGenerating capacitance matrix (9x9)...\nGenerating inductance matrix (4x4)..\nInverting matrix.....\nError:  Quadpack DQAGI function did not converge.\nCalled with:  freq = 1e+09, sep = 0, h = 9e-06\n\tThe algorithm does not converge.\n\troundoff error is detected in the\n\textrapolation table.\n\tit is assumed that the requested tolerance\n\tcannot be achieved, and that the returned\n\tresult is the best which can be obtained..\nSolving node equations...(4x4)\n2PORT A 1 1 1 S RECT SLOW s.out G\n\nPerforming Analysis at 1.00 GHz\nGenerating capacitance matrix (9x9)...\nGenerating inductance matrix (4x4)..\nInverting matrix.....\nError:  Quadpack DQAGI function did not converge.\nCalled with:  freq = 1e+09, sep = 0, h = 9e-06\n\tThe algorithm does not converge.\n\troundoff error is detected in the\n\textrapolation table.\n\tit is assumed that the requested tolerance\n\tcannot be achieved, and that the returned\n\tresult is the best which can be obtained..\nSolving node equations...(4x4)\nASITIC>  ",
+      "script": "CELL 1000 1000 1000\nCCELL 1000 1000\nEDDY ON\nSAVEMAT TRUE\nSQUARE NAME=A:LEN=60:W=5:S=3:N=1:METAL=M4:EXIT=-1:XORG=20:YORG=20\nWIRE NAME=G:LEN=100:WID=8:METAL=M1:XORG=10:YORG=100\nPI3 A G 1\n2PORT A 1 1 1 Y RECT SLOW y.out G\n2PORT A 1 1 1 S RECT SLOW s.out G\n"
+    },
+    {
+      "model": "pi3",
+      "kind": "square",
+      "parameters": {
+        "name": "A",
+        "length": 60,
+        "width": 5,
+        "spacing": 3,
+        "turns": 1,
+        "metal": "M4",
+        "x": 20,
+        "y": 20
+      },
+      "technology": "; Sample CMOS technology file\n\n<chip>\n\n\tchipx = 128\t; dimensions of the chip in x direction\n\tchipy = 128\t; dimensions of the chip in y direction\n\tfftx = 64\t; x-fft size (must be a power of 2)\n\tffty = 64\t; y-fft size\n\tTechFile = CMOS.tek\n\tTechPath = .\n\tfreq = 2 \t\t; frequency of operation\n\teddy = 0\n\n<layer> 0 \t\t\t; p(-) bulk layer\n\trho = 1e-3\t\t; ohm-cm\n\tt   = 700 \t\t; microns\n        eps = 11.9\n\n<layer>\t1\t   \t\t; Oxide Layer\n\trho = 1e10\n\tt = 50\n\teps = 3.9\n\n<metal> 0\n        layer = 1\t\t; in oxide layer\n        rsh = 65\t\t; sheet resistance3\n        t   = 0.5\t\t; thickness\n        d = 1.3\t\t\t; distance from bottom of layer\n        name = m1\t\n        color = yellow\n\n<metal> 1\n        layer = 1\n        rsh = 55 \n        t = 0.5\n        d = 2.4 \n        name = m2\n        color = LightSkyBlue1\n\n<metal> 2\n        layer = 1\n        rsh = 55 \n        t = 0.5\n        d =  3.5\n        name = m3\n        color = medium purple\n\n<metal> 3\n        layer = 1\n        rsh = 55 \n        t = 0.5\n        d =  4.5\n        name = m4\n        color = light green\n\n<metal> 4\n        layer = 1\n        rsh = 30\n        t = 1\n        d =  6\n        name = m5\n        color = grey\n\n<via> 0                        ; metal 1 to metal 2\n        top = 1\n        bottom = 0\n        r = 4\n        width = .5\n        space = 1.1\n        overplot1 = .2         ; to metal 1\n        overplot2 = .2         ; to metal 2\n        name = via1\n        color = purple\n<via> 1                        ; metal 2 to metal 3\n        top = 2\n        bottom = 1\n        r = 4\n        width = .4\n        space = 1.1\n        overplot1 = .2         ; to metal 1\n        overplot2 = .2         ; to metal 2\n        name = via2\n        color = cyan1\n<via> 2                        ; metal 3 to metal 4\n        top = 3\n        bottom = 2\n        r = 4\n        width = .4\n        space = 1.1\n        overplot1 = .2\n        overplot2 = .2\n        name = via3\n        color = red\n\n<via> 3                        ; metal 3 to metal 4\n        top = 4\n        bottom = 3\n        r = 4\n        width = .4\n        space = 1.2\n        overplot1 = .2\n        overplot2 = .2\n        name = via4\n        color = white\n\n",
+      "ground": {
+        "kind": "wire",
+        "parameters": {
+          "name": "G",
+          "length": 100,
+          "width": 8,
+          "metal": "M1",
+          "x": 10,
+          "y": 100
+        }
+      },
+      "eddy": true,
+      "first_pad": null,
+      "second_pad": null,
+      "frequency_hz": 5000000000.0,
+      "admittance_matrix": [
+        [
+          [
+            -2.291024483172541e-05,
+            0.0002136914307571462
+          ],
+          [
+            3.127219917968913e-06,
+            -3.896442072669442e-06
+          ]
+        ],
+        [
+          [
+            3.127219917968913e-06,
+            -3.896442072669442e-06
+          ],
+          [
+            -2.286708360590863e-05,
+            0.000309118370785122
+          ]
+        ]
+      ],
+      "scattering_matrix": [
+        [
+          [
+            1.001886052177254,
+            -0.02619971773297505
+          ],
+          [
+            -0.0003030593067415941,
+            0.0003985347560788997
+          ]
+        ],
+        [
+          [
+            -0.0003030593067415941,
+            0.0003985347560788997
+          ],
+          [
+            1.00180999509276,
+            -0.03097534936835184
+          ]
+        ]
+      ],
+      "model_stdout": "\nASITIC version 10.20.99.0.0.0\nAnalysis & Simulation of Inductors and Transformers for ICs\nReading technology file <process.tek>...\nRunning in console mode...\n\nExecuting script <input.asit>...\nCELL 1000 1000 1000\n\nCCELL 1000 1000\n\nEDDY ON\n\nTurning ON eddy current calculation mode.\nSAVEMAT TRUE\n\nTurning ON Matrix Dump Mode.\nSQUARE NAME=A:LEN=60:W=5:S=3:N=1:METAL=M4:EXIT=-1:XORG=20:YORG=20\n\nWIRE NAME=G:LEN=100:WID=8:METAL=M1:XORG=10:YORG=100\n\nPI3 A G 5\n\nPerforming Analysis at 5.00 GHz\nGenerating capacitance matrix (5x5).\nWarning:  Could not open data file at frequency = 5.00.\nTried using . as path.\n\n\nGenerating data at 5.00 GHz...\n\nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nWriting data.....\nGenerating inductance matrix (4x4)..\nInverting matrix.....\nError:  Quadpack DQAGI function did not converge.\nCalled with:  freq = 5e+09, sep = 0, h = 9e-06\n\tThe algorithm does not converge.\n\troundoff error is detected in the\n\textrapolation table.\n\tit is assumed that the requested tolerance\n\tcannot be achieved, and that the returned\n\tresult is the best which can be obtained..\nSolving node equations...(4x4)\nPi Model at f=5.00 GHz:  Q = 9.327,13.518,9.608\nL  =-4.97e+03 nH\tR  =-1.25e+05\nCs1=  6.74 fF\tRs1=  -446\nCs2=  9.76 fF\tRs2=  -211\tf_res =  -nanGHz\n",
+      "stdout": "\nASITIC version 10.20.99.0.0.0\nAnalysis & Simulation of Inductors and Transformers for ICs\nReading technology file <process.tek>...\nRunning in console mode...\n\nExecuting script <input.asit>...\nCELL 1000 1000 1000\n\nCCELL 1000 1000\n\nEDDY ON\n\nTurning ON eddy current calculation mode.\nSAVEMAT TRUE\n\nTurning ON Matrix Dump Mode.\nSQUARE NAME=A:LEN=60:W=5:S=3:N=1:METAL=M4:EXIT=-1:XORG=20:YORG=20\n\nWIRE NAME=G:LEN=100:WID=8:METAL=M1:XORG=10:YORG=100\n\nPI3 A G 5\n\nPerforming Analysis at 5.00 GHz\nGenerating capacitance matrix (5x5).\nWarning:  Could not open data file at frequency = 5.00.\nTried using . as path.\n\n\nGenerating data at 5.00 GHz...\n\nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nWriting data.....\nGenerating inductance matrix (4x4)..\nInverting matrix.....\nError:  Quadpack DQAGI function did not converge.\nCalled with:  freq = 5e+09, sep = 0, h = 9e-06\n\tThe algorithm does not converge.\n\troundoff error is detected in the\n\textrapolation table.\n\tit is assumed that the requested tolerance\n\tcannot be achieved, and that the returned\n\tresult is the best which can be obtained..\nSolving node equations...(4x4)\nPi Model at f=5.00 GHz:  Q = 9.327,13.518,9.608\nL  =-4.97e+03 nH\tR  =-1.25e+05\nCs1=  6.74 fF\tRs1=  -446\nCs2=  9.76 fF\tRs2=  -211\tf_res =  -nanGHz\n2PORT A 5 5 1 Y RECT SLOW y.out G\n\nPerforming Analysis at 5.00 GHz\nGenerating capacitance matrix (9x9)...\nGenerating inductance matrix (4x4)..\nInverting matrix.....\nError:  Quadpack DQAGI function did not converge.\nCalled with:  freq = 5e+09, sep = 0, h = 9e-06\n\tThe algorithm does not converge.\n\troundoff error is detected in the\n\textrapolation table.\n\tit is assumed that the requested tolerance\n\tcannot be achieved, and that the returned\n\tresult is the best which can be obtained..\nSolving node equations...(4x4)\n2PORT A 5 5 1 S RECT SLOW s.out G\n\nPerforming Analysis at 5.00 GHz\nGenerating capacitance matrix (9x9)...\nGenerating inductance matrix (4x4)..\nInverting matrix.....\nError:  Quadpack DQAGI function did not converge.\nCalled with:  freq = 5e+09, sep = 0, h = 9e-06\n\tThe algorithm does not converge.\n\troundoff error is detected in the\n\textrapolation table.\n\tit is assumed that the requested tolerance\n\tcannot be achieved, and that the returned\n\tresult is the best which can be obtained..\nSolving node equations...(4x4)\nASITIC>  ",
+      "script": "CELL 1000 1000 1000\nCCELL 1000 1000\nEDDY ON\nSAVEMAT TRUE\nSQUARE NAME=A:LEN=60:W=5:S=3:N=1:METAL=M4:EXIT=-1:XORG=20:YORG=20\nWIRE NAME=G:LEN=100:WID=8:METAL=M1:XORG=10:YORG=100\nPI3 A G 5\n2PORT A 5 5 1 Y RECT SLOW y.out G\n2PORT A 5 5 1 S RECT SLOW s.out G\n"
+    },
+    {
+      "model": "pi4",
+      "kind": "wire",
+      "parameters": {
+        "name": "A",
+        "length": 40,
+        "width": 5,
+        "metal": "M4",
+        "x": 20,
+        "y": 20
+      },
+      "technology": "; Sample CMOS technology file\n\n<chip>\n\n\tchipx = 128\t; dimensions of the chip in x direction\n\tchipy = 128\t; dimensions of the chip in y direction\n\tfftx = 64\t; x-fft size (must be a power of 2)\n\tffty = 64\t; y-fft size\n\tTechFile = CMOS.tek\n\tTechPath = .\n\tfreq = 2 \t\t; frequency of operation\n\teddy = 0\n\n<layer> 0 \t\t\t; p(-) bulk layer\n\trho = 1e-3\t\t; ohm-cm\n\tt   = 700 \t\t; microns\n        eps = 11.9\n\n<layer>\t1\t   \t\t; Oxide Layer\n\trho = 1e10\n\tt = 50\n\teps = 3.9\n\n<metal> 0\n        layer = 1\t\t; in oxide layer\n        rsh = 65\t\t; sheet resistance3\n        t   = 0.5\t\t; thickness\n        d = 1.3\t\t\t; distance from bottom of layer\n        name = m1\t\n        color = yellow\n\n<metal> 1\n        layer = 1\n        rsh = 55 \n        t = 0.5\n        d = 2.4 \n        name = m2\n        color = LightSkyBlue1\n\n<metal> 2\n        layer = 1\n        rsh = 55 \n        t = 0.5\n        d =  3.5\n        name = m3\n        color = medium purple\n\n<metal> 3\n        layer = 1\n        rsh = 55 \n        t = 0.5\n        d =  4.5\n        name = m4\n        color = light green\n\n<metal> 4\n        layer = 1\n        rsh = 30\n        t = 1\n        d =  6\n        name = m5\n        color = grey\n\n<via> 0                        ; metal 1 to metal 2\n        top = 1\n        bottom = 0\n        r = 4\n        width = .5\n        space = 1.1\n        overplot1 = .2         ; to metal 1\n        overplot2 = .2         ; to metal 2\n        name = via1\n        color = purple\n<via> 1                        ; metal 2 to metal 3\n        top = 2\n        bottom = 1\n        r = 4\n        width = .4\n        space = 1.1\n        overplot1 = .2         ; to metal 1\n        overplot2 = .2         ; to metal 2\n        name = via2\n        color = cyan1\n<via> 2                        ; metal 3 to metal 4\n        top = 3\n        bottom = 2\n        r = 4\n        width = .4\n        space = 1.1\n        overplot1 = .2\n        overplot2 = .2\n        name = via3\n        color = red\n\n<via> 3                        ; metal 3 to metal 4\n        top = 4\n        bottom = 3\n        r = 4\n        width = .4\n        space = 1.2\n        overplot1 = .2\n        overplot2 = .2\n        name = via4\n        color = white\n\n",
+      "ground": {
+        "kind": "wire",
+        "parameters": {
+          "name": "G",
+          "length": 100,
+          "width": 8,
+          "metal": "M1",
+          "x": 10,
+          "y": 100
+        }
+      },
+      "eddy": true,
+      "first_pad": {
+        "kind": "wire",
+        "parameters": {
+          "name": "P1",
+          "length": 20,
+          "width": 5,
+          "metal": "M4",
+          "x": 0,
+          "y": 20
+        }
+      },
+      "second_pad": {
+        "kind": "wire",
+        "parameters": {
+          "name": "P2",
+          "length": 20,
+          "width": 5,
+          "metal": "M4",
+          "x": 95,
+          "y": 20
+        }
+      },
+      "frequency_hz": 1000000000.0,
+      "admittance_matrix": [
+        [
+          [
+            -8.469120886119817e-05,
+            1.042044056933487e-05
+          ],
+          [
+            8.448196503674807e-05,
+            6.638519980650886e-06
+          ]
+        ],
+        [
+          [
+            8.448196503674807e-05,
+            6.638519980650886e-06
+          ],
+          [
+            -8.490586270963527e-05,
+            -4.42166562210629e-07
+          ]
+        ]
+      ],
+      "scattering_matrix": [
+        [
+          [
+            1.008551943149353,
+            -0.0004951981437587476
+          ],
+          [
+            -0.008520777919118908,
+            -0.0006652841504236537
+          ]
+        ],
+        [
+          [
+            -0.008520777919118908,
+            -0.0006652841504236537
+          ],
+          [
+            1.008562708143958,
+            5.02578158831148e-05
+          ]
+        ]
+      ],
+      "model_stdout": "\nASITIC version 10.20.99.0.0.0\nAnalysis & Simulation of Inductors and Transformers for ICs\nReading technology file <process.tek>...\nRunning in console mode...\n\nExecuting script <input.asit>...\nCELL 1000 1000 1000\n\nCCELL 1000 1000\n\nEDDY ON\n\nTurning ON eddy current calculation mode.\nSAVEMAT TRUE\n\nTurning ON Matrix Dump Mode.\nWIRE NAME=A:LEN=40:WID=5:METAL=M4:XORG=20:YORG=20\n\nWIRE NAME=G:LEN=100:WID=8:METAL=M1:XORG=10:YORG=100\n\nWIRE NAME=P1:LEN=20:WID=5:METAL=M4:XORG=0:YORG=20\n\nWIRE NAME=P2:LEN=20:WID=5:METAL=M4:XORG=95:YORG=20\n\nPI4 A 1 P1 P2 G\n\nPerforming calculation with pad structure...\nPerforming Analysis at 1.00 GHz\nGenerating capacitance matrix (8x8).\nWarning:  Could not open data file at frequency = 1.00.\nTried using . as path.\n\n\nGenerating data at 1.00 GHz...\n\nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nWriting data.....\nGenerating inductance matrix (19x19)..\nInverting matrix.....\nError:  Quadpack DQAGI function did not converge.\nCalled with:  freq = 1e+09, sep = 0, h = 9e-06\n\tThe algorithm does not converge.\n\troundoff error is detected in the\n\textrapolation table.\n\tit is assumed that the requested tolerance\n\tcannot be achieved, and that the returned\n\tresult is the best which can be obtained.\nError:  Quadpack DQAGI function did not converge.\nCalled with:  freq = 1e+09, sep = 0, h = 9e-06\n\tThe algorithm does not converge.\n\troundoff error is detected in the\n\textrapolation table.\n\tit is assumed that the requested tolerance\n\tcannot be achieved, and that the returned\n\tresult is the best which can be obtained.\nError:  Quadpack DQAGI function did not converge.\nCalled with:  freq = 1e+09, sep = 0, h = 9e-06\n\tThe algorithm does not converge.\n\troundoff error is detected in the\n\textrapolation table.\n\tit is assumed that the requested tolerance\n\tcannot be achieved, and that the returned\n\tresult is the best which can be obtained.\nError:  Quadpack DQAGI function did not converge.\nCalled with:  freq = 1e+09, sep = 0, h = 9e-06\n\tThe algorithm does not converge.\n\troundoff error is detected in the\n\textrapolation table.\n\tit is assumed that the requested tolerance\n\tcannot be achieved, and that the returned\n\tresult is the best which can be obtained..\nSolving node equations...(3x3)\nPi Model at f=1.00 GHz:  Q = 0.274,0.158,0.063\nL  =   147 nH\tR  =-1.18e+04\nCs1=  4.75 fF\tRs1=  -235\nCs2=  3.19 fF\tRs2=-1.06e+03\tf_res =  6.03GHz\nPerforming Analysis at 1.00 GHz\nGenerating capacitance matrix (7x7)...\nPi Model at f=1.00 GHz:  Q = 0.123,-0.005,-0.025\nL  =   147 nH\tR  =-1.18e+04\nCs1=  2.72 fF\tRs1=  -719\nCs2= 0.991 fF\tRs2=-1.1e+04\tf_res =  7.96GHz\n",
+      "stdout": "\nASITIC version 10.20.99.0.0.0\nAnalysis & Simulation of Inductors and Transformers for ICs\nReading technology file <process.tek>...\nRunning in console mode...\n\nExecuting script <input.asit>...\nCELL 1000 1000 1000\n\nCCELL 1000 1000\n\nEDDY ON\n\nTurning ON eddy current calculation mode.\nSAVEMAT TRUE\n\nTurning ON Matrix Dump Mode.\nWIRE NAME=A:LEN=40:WID=5:METAL=M4:XORG=20:YORG=20\n\nWIRE NAME=G:LEN=100:WID=8:METAL=M1:XORG=10:YORG=100\n\nWIRE NAME=P1:LEN=20:WID=5:METAL=M4:XORG=0:YORG=20\n\nWIRE NAME=P2:LEN=20:WID=5:METAL=M4:XORG=95:YORG=20\n\nPI4 A 1 P1 P2 G\n\nPerforming calculation with pad structure...\nPerforming Analysis at 1.00 GHz\nGenerating capacitance matrix (8x8).\nWarning:  Could not open data file at frequency = 1.00.\nTried using . as path.\n\n\nGenerating data at 1.00 GHz...\n\nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nWriting data.....\nGenerating inductance matrix (19x19)..\nInverting matrix.....\nError:  Quadpack DQAGI function did not converge.\nCalled with:  freq = 1e+09, sep = 0, h = 9e-06\n\tThe algorithm does not converge.\n\troundoff error is detected in the\n\textrapolation table.\n\tit is assumed that the requested tolerance\n\tcannot be achieved, and that the returned\n\tresult is the best which can be obtained.\nError:  Quadpack DQAGI function did not converge.\nCalled with:  freq = 1e+09, sep = 0, h = 9e-06\n\tThe algorithm does not converge.\n\troundoff error is detected in the\n\textrapolation table.\n\tit is assumed that the requested tolerance\n\tcannot be achieved, and that the returned\n\tresult is the best which can be obtained.\nError:  Quadpack DQAGI function did not converge.\nCalled with:  freq = 1e+09, sep = 0, h = 9e-06\n\tThe algorithm does not converge.\n\troundoff error is detected in the\n\textrapolation table.\n\tit is assumed that the requested tolerance\n\tcannot be achieved, and that the returned\n\tresult is the best which can be obtained.\nError:  Quadpack DQAGI function did not converge.\nCalled with:  freq = 1e+09, sep = 0, h = 9e-06\n\tThe algorithm does not converge.\n\troundoff error is detected in the\n\textrapolation table.\n\tit is assumed that the requested tolerance\n\tcannot be achieved, and that the returned\n\tresult is the best which can be obtained..\nSolving node equations...(3x3)\nPi Model at f=1.00 GHz:  Q = 0.274,0.158,0.063\nL  =   147 nH\tR  =-1.18e+04\nCs1=  4.75 fF\tRs1=  -235\nCs2=  3.19 fF\tRs2=-1.06e+03\tf_res =  6.03GHz\nPerforming Analysis at 1.00 GHz\nGenerating capacitance matrix (7x7)...\nPi Model at f=1.00 GHz:  Q = 0.123,-0.005,-0.025\nL  =   147 nH\tR  =-1.18e+04\nCs1=  2.72 fF\tRs1=  -719\nCs2= 0.991 fF\tRs2=-1.1e+04\tf_res =  7.96GHz\n2PORTPAD A P1 P2 1 1 1 Y RECT y.out G\n\nPerforming calculation with pad structure...\nPerforming Analysis at 1.00 GHz\nGenerating capacitance matrix (8x8)...\nGenerating inductance matrix (19x19)..\nInverting matrix.....\nError:  Quadpack DQAGI function did not converge.\nCalled with:  freq = 1e+09, sep = 0, h = 9e-06\n\tThe algorithm does not converge.\n\troundoff error is detected in the\n\textrapolation table.\n\tit is assumed that the requested tolerance\n\tcannot be achieved, and that the returned\n\tresult is the best which can be obtained.\nError:  Quadpack DQAGI function did not converge.\nCalled with:  freq = 1e+09, sep = 0, h = 9e-06\n\tThe algorithm does not converge.\n\troundoff error is detected in the\n\textrapolation table.\n\tit is assumed that the requested tolerance\n\tcannot be achieved, and that the returned\n\tresult is the best which can be obtained.\nError:  Quadpack DQAGI function did not converge.\nCalled with:  freq = 1e+09, sep = 0, h = 9e-06\n\tThe algorithm does not converge.\n\troundoff error is detected in the\n\textrapolation table.\n\tit is assumed that the requested tolerance\n\tcannot be achieved, and that the returned\n\tresult is the best which can be obtained.\nError:  Quadpack DQAGI function did not converge.\nCalled with:  freq = 1e+09, sep = 0, h = 9e-06\n\tThe algorithm does not converge.\n\troundoff error is detected in the\n\textrapolation table.\n\tit is assumed that the requested tolerance\n\tcannot be achieved, and that the returned\n\tresult is the best which can be obtained..\nSolving node equations...(3x3)\nPi Model at f=1.00 GHz:  Q = 0.274,0.158,0.063\nL  =   147 nH\tR  =-1.18e+04\nCs1=  4.75 fF\tRs1=  -235\nCs2=  3.19 fF\tRs2=-1.06e+03\tf_res =  6.03GHz\nPerforming Analysis at 1.00 GHz\nGenerating capacitance matrix (7x7)...\nPi Model at f=1.00 GHz:  Q = 0.123,-0.005,-0.025\nL  =   147 nH\tR  =-1.18e+04\nCs1=  2.72 fF\tRs1=  -719\nCs2= 0.991 fF\tRs2=-1.1e+04\tf_res =  7.96GHz\n2PORTPAD A P1 P2 1 1 1 S RECT s.out G\n\nPerforming calculation with pad structure...\nPerforming Analysis at 1.00 GHz\nGenerating capacitance matrix (8x8)...\nGenerating inductance matrix (19x19)..\nInverting matrix.....\nError:  Quadpack DQAGI function did not converge.\nCalled with:  freq = 1e+09, sep = 0, h = 9e-06\n\tThe algorithm does not converge.\n\troundoff error is detected in the\n\textrapolation table.\n\tit is assumed that the requested tolerance\n\tcannot be achieved, and that the returned\n\tresult is the best which can be obtained.\nError:  Quadpack DQAGI function did not converge.\nCalled with:  freq = 1e+09, sep = 0, h = 9e-06\n\tThe algorithm does not converge.\n\troundoff error is detected in the\n\textrapolation table.\n\tit is assumed that the requested tolerance\n\tcannot be achieved, and that the returned\n\tresult is the best which can be obtained.\nError:  Quadpack DQAGI function did not converge.\nCalled with:  freq = 1e+09, sep = 0, h = 9e-06\n\tThe algorithm does not converge.\n\troundoff error is detected in the\n\textrapolation table.\n\tit is assumed that the requested tolerance\n\tcannot be achieved, and that the returned\n\tresult is the best which can be obtained.\nError:  Quadpack DQAGI function did not converge.\nCalled with:  freq = 1e+09, sep = 0, h = 9e-06\n\tThe algorithm does not converge.\n\troundoff error is detected in the\n\textrapolation table.\n\tit is assumed that the requested tolerance\n\tcannot be achieved, and that the returned\n\tresult is the best which can be obtained..\nSolving node equations...(3x3)\nPi Model at f=1.00 GHz:  Q = 0.274,0.158,0.063\nL  =   147 nH\tR  =-1.18e+04\nCs1=  4.75 fF\tRs1=  -235\nCs2=  3.19 fF\tRs2=-1.06e+03\tf_res =  6.03GHz\nPerforming Analysis at 1.00 GHz\nGenerating capacitance matrix (7x7)...\nPi Model at f=1.00 GHz:  Q = 0.123,-0.005,-0.025\nL  =   147 nH\tR  =-1.18e+04\nCs1=  2.72 fF\tRs1=  -719\nCs2= 0.991 fF\tRs2=-1.1e+04\tf_res =  7.96GHz\nASITIC>  ",
+      "script": "CELL 1000 1000 1000\nCCELL 1000 1000\nEDDY ON\nSAVEMAT TRUE\nWIRE NAME=A:LEN=40:WID=5:METAL=M4:XORG=20:YORG=20\nWIRE NAME=G:LEN=100:WID=8:METAL=M1:XORG=10:YORG=100\nWIRE NAME=P1:LEN=20:WID=5:METAL=M4:XORG=0:YORG=20\nWIRE NAME=P2:LEN=20:WID=5:METAL=M4:XORG=95:YORG=20\nPI4 A 1 P1 P2 G\n2PORTPAD A P1 P2 1 1 1 Y RECT y.out G\n2PORTPAD A P1 P2 1 1 1 S RECT s.out G\n"
+    },
+    {
+      "model": "pi4",
+      "kind": "wire",
+      "parameters": {
+        "name": "A",
+        "length": 40,
+        "width": 5,
+        "metal": "M4",
+        "x": 20,
+        "y": 20
+      },
+      "technology": "; Sample CMOS technology file\n\n<chip>\n\n\tchipx = 128\t; dimensions of the chip in x direction\n\tchipy = 128\t; dimensions of the chip in y direction\n\tfftx = 64\t; x-fft size (must be a power of 2)\n\tffty = 64\t; y-fft size\n\tTechFile = CMOS.tek\n\tTechPath = .\n\tfreq = 2 \t\t; frequency of operation\n\teddy = 0\n\n<layer> 0 \t\t\t; p(-) bulk layer\n\trho = 1e-3\t\t; ohm-cm\n\tt   = 700 \t\t; microns\n        eps = 11.9\n\n<layer>\t1\t   \t\t; Oxide Layer\n\trho = 1e10\n\tt = 50\n\teps = 3.9\n\n<metal> 0\n        layer = 1\t\t; in oxide layer\n        rsh = 65\t\t; sheet resistance3\n        t   = 0.5\t\t; thickness\n        d = 1.3\t\t\t; distance from bottom of layer\n        name = m1\t\n        color = yellow\n\n<metal> 1\n        layer = 1\n        rsh = 55 \n        t = 0.5\n        d = 2.4 \n        name = m2\n        color = LightSkyBlue1\n\n<metal> 2\n        layer = 1\n        rsh = 55 \n        t = 0.5\n        d =  3.5\n        name = m3\n        color = medium purple\n\n<metal> 3\n        layer = 1\n        rsh = 55 \n        t = 0.5\n        d =  4.5\n        name = m4\n        color = light green\n\n<metal> 4\n        layer = 1\n        rsh = 30\n        t = 1\n        d =  6\n        name = m5\n        color = grey\n\n<via> 0                        ; metal 1 to metal 2\n        top = 1\n        bottom = 0\n        r = 4\n        width = .5\n        space = 1.1\n        overplot1 = .2         ; to metal 1\n        overplot2 = .2         ; to metal 2\n        name = via1\n        color = purple\n<via> 1                        ; metal 2 to metal 3\n        top = 2\n        bottom = 1\n        r = 4\n        width = .4\n        space = 1.1\n        overplot1 = .2         ; to metal 1\n        overplot2 = .2         ; to metal 2\n        name = via2\n        color = cyan1\n<via> 2                        ; metal 3 to metal 4\n        top = 3\n        bottom = 2\n        r = 4\n        width = .4\n        space = 1.1\n        overplot1 = .2\n        overplot2 = .2\n        name = via3\n        color = red\n\n<via> 3                        ; metal 3 to metal 4\n        top = 4\n        bottom = 3\n        r = 4\n        width = .4\n        space = 1.2\n        overplot1 = .2\n        overplot2 = .2\n        name = via4\n        color = white\n\n",
+      "ground": {
+        "kind": "wire",
+        "parameters": {
+          "name": "G",
+          "length": 100,
+          "width": 8,
+          "metal": "M1",
+          "x": 10,
+          "y": 100
+        }
+      },
+      "eddy": true,
+      "first_pad": {
+        "kind": "wire",
+        "parameters": {
+          "name": "P1",
+          "length": 20,
+          "width": 5,
+          "metal": "M4",
+          "x": 0,
+          "y": 20
+        }
+      },
+      "second_pad": {
+        "kind": "wire",
+        "parameters": {
+          "name": "P2",
+          "length": 20,
+          "width": 5,
+          "metal": "M4",
+          "x": 95,
+          "y": 20
+        }
+      },
+      "frequency_hz": 5000000000.0,
+      "admittance_matrix": [
+        [
+          [
+            -2.370251431221866e-05,
+            4.85296210465494e-05
+          ],
+          [
+            3.214459693959754e-06,
+            2.59329784512534e-05
+          ]
+        ],
+        [
+          [
+            3.214459693959754e-06,
+            2.59329784512534e-05
+          ],
+          [
+            -4.462566999709516e-05,
+            -1.68467315566917e-05
+          ]
+        ]
+      ],
+      "scattering_matrix": [
+        [
+          [
+            1.003422061207234,
+            -0.001583949479794685
+          ],
+          [
+            -0.0003266687536398551,
+            -0.002601653742944104
+          ]
+        ],
+        [
+          [
+            -0.0003266687536398551,
+            -0.002601653742944104
+          ],
+          [
+            1.004467788851959,
+            0.001693055945679297
+          ]
+        ]
+      ],
+      "model_stdout": "\nASITIC version 10.20.99.0.0.0\nAnalysis & Simulation of Inductors and Transformers for ICs\nReading technology file <process.tek>...\nRunning in console mode...\n\nExecuting script <input.asit>...\nCELL 1000 1000 1000\n\nCCELL 1000 1000\n\nEDDY ON\n\nTurning ON eddy current calculation mode.\nSAVEMAT TRUE\n\nTurning ON Matrix Dump Mode.\nWIRE NAME=A:LEN=40:WID=5:METAL=M4:XORG=20:YORG=20\n\nWIRE NAME=G:LEN=100:WID=8:METAL=M1:XORG=10:YORG=100\n\nWIRE NAME=P1:LEN=20:WID=5:METAL=M4:XORG=0:YORG=20\n\nWIRE NAME=P2:LEN=20:WID=5:METAL=M4:XORG=95:YORG=20\n\nPI4 A 5 P1 P2 G\n\nPerforming calculation with pad structure...\nPerforming Analysis at 5.00 GHz\nGenerating capacitance matrix (8x8).\nWarning:  Could not open data file at frequency = 5.00.\nTried using . as path.\n\n\nGenerating data at 5.00 GHz...\n\nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nWriting data.....\nGenerating inductance matrix (19x19)..\nInverting matrix.....\nError:  Quadpack DQAGI function did not converge.\nCalled with:  freq = 5e+09, sep = 0, h = 9e-06\n\tThe algorithm does not converge.\n\troundoff error is detected in the\n\textrapolation table.\n\tit is assumed that the requested tolerance\n\tcannot be achieved, and that the returned\n\tresult is the best which can be obtained.\nError:  Quadpack DQAGI function did not converge.\nCalled with:  freq = 5e+09, sep = 0, h = 9e-06\n\tThe algorithm does not converge.\n\troundoff error is detected in the\n\textrapolation table.\n\tit is assumed that the requested tolerance\n\tcannot be achieved, and that the returned\n\tresult is the best which can be obtained.\nError:  Quadpack DQAGI function did not converge.\nCalled with:  freq = 5e+09, sep = 0, h = 9e-06\n\tThe algorithm does not converge.\n\troundoff error is detected in the\n\textrapolation table.\n\tit is assumed that the requested tolerance\n\tcannot be achieved, and that the returned\n\tresult is the best which can be obtained.\nError:  Quadpack DQAGI function did not converge.\nCalled with:  freq = 5e+09, sep = 0, h = 9e-06\n\tThe algorithm does not converge.\n\troundoff error is detected in the\n\textrapolation table.\n\tit is assumed that the requested tolerance\n\tcannot be achieved, and that the returned\n\tresult is the best which can be obtained..\nSolving node equations...(3x3)\nPi Model at f=5.00 GHz:  Q = 4.746,1.171,1.146\nL  =1.21e+03 nH\tR  =-4.73e+03\nCs1=   4.5 fF\tRs1=-1.05e+03\nCs2=  3.19 fF\tRs2=-5.29e+03\tf_res =  2.07GHz\nPerforming Analysis at 5.00 GHz\nGenerating capacitance matrix (7x7)...\nPi Model at f=5.00 GHz:  Q = 2.047,-0.378,-0.290\nL  =1.21e+03 nH\tR  =-4.71e+03\nCs1=  2.55 fF\tRs1=-3.44e+03\nCs2=   6.3 fF\tRs2=-2.3e+04\tf_res =  2.83GHz\n",
+      "stdout": "\nASITIC version 10.20.99.0.0.0\nAnalysis & Simulation of Inductors and Transformers for ICs\nReading technology file <process.tek>...\nRunning in console mode...\n\nExecuting script <input.asit>...\nCELL 1000 1000 1000\n\nCCELL 1000 1000\n\nEDDY ON\n\nTurning ON eddy current calculation mode.\nSAVEMAT TRUE\n\nTurning ON Matrix Dump Mode.\nWIRE NAME=A:LEN=40:WID=5:METAL=M4:XORG=20:YORG=20\n\nWIRE NAME=G:LEN=100:WID=8:METAL=M1:XORG=10:YORG=100\n\nWIRE NAME=P1:LEN=20:WID=5:METAL=M4:XORG=0:YORG=20\n\nWIRE NAME=P2:LEN=20:WID=5:METAL=M4:XORG=95:YORG=20\n\nPI4 A 5 P1 P2 G\n\nPerforming calculation with pad structure...\nPerforming Analysis at 5.00 GHz\nGenerating capacitance matrix (8x8).\nWarning:  Could not open data file at frequency = 5.00.\nTried using . as path.\n\n\nGenerating data at 5.00 GHz...\n\nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nWriting data.....\nGenerating inductance matrix (19x19)..\nInverting matrix.....\nError:  Quadpack DQAGI function did not converge.\nCalled with:  freq = 5e+09, sep = 0, h = 9e-06\n\tThe algorithm does not converge.\n\troundoff error is detected in the\n\textrapolation table.\n\tit is assumed that the requested tolerance\n\tcannot be achieved, and that the returned\n\tresult is the best which can be obtained.\nError:  Quadpack DQAGI function did not converge.\nCalled with:  freq = 5e+09, sep = 0, h = 9e-06\n\tThe algorithm does not converge.\n\troundoff error is detected in the\n\textrapolation table.\n\tit is assumed that the requested tolerance\n\tcannot be achieved, and that the returned\n\tresult is the best which can be obtained.\nError:  Quadpack DQAGI function did not converge.\nCalled with:  freq = 5e+09, sep = 0, h = 9e-06\n\tThe algorithm does not converge.\n\troundoff error is detected in the\n\textrapolation table.\n\tit is assumed that the requested tolerance\n\tcannot be achieved, and that the returned\n\tresult is the best which can be obtained.\nError:  Quadpack DQAGI function did not converge.\nCalled with:  freq = 5e+09, sep = 0, h = 9e-06\n\tThe algorithm does not converge.\n\troundoff error is detected in the\n\textrapolation table.\n\tit is assumed that the requested tolerance\n\tcannot be achieved, and that the returned\n\tresult is the best which can be obtained..\nSolving node equations...(3x3)\nPi Model at f=5.00 GHz:  Q = 4.746,1.171,1.146\nL  =1.21e+03 nH\tR  =-4.73e+03\nCs1=   4.5 fF\tRs1=-1.05e+03\nCs2=  3.19 fF\tRs2=-5.29e+03\tf_res =  2.07GHz\nPerforming Analysis at 5.00 GHz\nGenerating capacitance matrix (7x7)...\nPi Model at f=5.00 GHz:  Q = 2.047,-0.378,-0.290\nL  =1.21e+03 nH\tR  =-4.71e+03\nCs1=  2.55 fF\tRs1=-3.44e+03\nCs2=   6.3 fF\tRs2=-2.3e+04\tf_res =  2.83GHz\n2PORTPAD A P1 P2 5 5 1 Y RECT y.out G\n\nPerforming calculation with pad structure...\nPerforming Analysis at 5.00 GHz\nGenerating capacitance matrix (8x8)...\nGenerating inductance matrix (19x19)..\nInverting matrix.....\nError:  Quadpack DQAGI function did not converge.\nCalled with:  freq = 5e+09, sep = 0, h = 9e-06\n\tThe algorithm does not converge.\n\troundoff error is detected in the\n\textrapolation table.\n\tit is assumed that the requested tolerance\n\tcannot be achieved, and that the returned\n\tresult is the best which can be obtained.\nError:  Quadpack DQAGI function did not converge.\nCalled with:  freq = 5e+09, sep = 0, h = 9e-06\n\tThe algorithm does not converge.\n\troundoff error is detected in the\n\textrapolation table.\n\tit is assumed that the requested tolerance\n\tcannot be achieved, and that the returned\n\tresult is the best which can be obtained.\nError:  Quadpack DQAGI function did not converge.\nCalled with:  freq = 5e+09, sep = 0, h = 9e-06\n\tThe algorithm does not converge.\n\troundoff error is detected in the\n\textrapolation table.\n\tit is assumed that the requested tolerance\n\tcannot be achieved, and that the returned\n\tresult is the best which can be obtained.\nError:  Quadpack DQAGI function did not converge.\nCalled with:  freq = 5e+09, sep = 0, h = 9e-06\n\tThe algorithm does not converge.\n\troundoff error is detected in the\n\textrapolation table.\n\tit is assumed that the requested tolerance\n\tcannot be achieved, and that the returned\n\tresult is the best which can be obtained..\nSolving node equations...(3x3)\nPi Model at f=5.00 GHz:  Q = 4.746,1.171,1.146\nL  =1.21e+03 nH\tR  =-4.73e+03\nCs1=   4.5 fF\tRs1=-1.05e+03\nCs2=  3.19 fF\tRs2=-5.29e+03\tf_res =  2.07GHz\nPerforming Analysis at 5.00 GHz\nGenerating capacitance matrix (7x7)...\nPi Model at f=5.00 GHz:  Q = 2.047,-0.378,-0.290\nL  =1.21e+03 nH\tR  =-4.71e+03\nCs1=  2.55 fF\tRs1=-3.44e+03\nCs2=   6.3 fF\tRs2=-2.3e+04\tf_res =  2.83GHz\n2PORTPAD A P1 P2 5 5 1 S RECT s.out G\n\nPerforming calculation with pad structure...\nPerforming Analysis at 5.00 GHz\nGenerating capacitance matrix (8x8)...\nGenerating inductance matrix (19x19)..\nInverting matrix.....\nError:  Quadpack DQAGI function did not converge.\nCalled with:  freq = 5e+09, sep = 0, h = 9e-06\n\tThe algorithm does not converge.\n\troundoff error is detected in the\n\textrapolation table.\n\tit is assumed that the requested tolerance\n\tcannot be achieved, and that the returned\n\tresult is the best which can be obtained.\nError:  Quadpack DQAGI function did not converge.\nCalled with:  freq = 5e+09, sep = 0, h = 9e-06\n\tThe algorithm does not converge.\n\troundoff error is detected in the\n\textrapolation table.\n\tit is assumed that the requested tolerance\n\tcannot be achieved, and that the returned\n\tresult is the best which can be obtained.\nError:  Quadpack DQAGI function did not converge.\nCalled with:  freq = 5e+09, sep = 0, h = 9e-06\n\tThe algorithm does not converge.\n\troundoff error is detected in the\n\textrapolation table.\n\tit is assumed that the requested tolerance\n\tcannot be achieved, and that the returned\n\tresult is the best which can be obtained.\nError:  Quadpack DQAGI function did not converge.\nCalled with:  freq = 5e+09, sep = 0, h = 9e-06\n\tThe algorithm does not converge.\n\troundoff error is detected in the\n\textrapolation table.\n\tit is assumed that the requested tolerance\n\tcannot be achieved, and that the returned\n\tresult is the best which can be obtained..\nSolving node equations...(3x3)\nPi Model at f=5.00 GHz:  Q = 4.746,1.171,1.146\nL  =1.21e+03 nH\tR  =-4.73e+03\nCs1=   4.5 fF\tRs1=-1.05e+03\nCs2=  3.19 fF\tRs2=-5.29e+03\tf_res =  2.07GHz\nPerforming Analysis at 5.00 GHz\nGenerating capacitance matrix (7x7)...\nPi Model at f=5.00 GHz:  Q = 2.047,-0.378,-0.290\nL  =1.21e+03 nH\tR  =-4.71e+03\nCs1=  2.55 fF\tRs1=-3.44e+03\nCs2=   6.3 fF\tRs2=-2.3e+04\tf_res =  2.83GHz\nASITIC>  ",
+      "script": "CELL 1000 1000 1000\nCCELL 1000 1000\nEDDY ON\nSAVEMAT TRUE\nWIRE NAME=A:LEN=40:WID=5:METAL=M4:XORG=20:YORG=20\nWIRE NAME=G:LEN=100:WID=8:METAL=M1:XORG=10:YORG=100\nWIRE NAME=P1:LEN=20:WID=5:METAL=M4:XORG=0:YORG=20\nWIRE NAME=P2:LEN=20:WID=5:METAL=M4:XORG=95:YORG=20\nPI4 A 5 P1 P2 G\n2PORTPAD A P1 P2 5 5 1 Y RECT y.out G\n2PORTPAD A P1 P2 5 5 1 S RECT s.out G\n"
+    },
+    {
+      "model": "pi4",
+      "kind": "square",
+      "parameters": {
+        "name": "A",
+        "length": 60,
+        "width": 5,
+        "spacing": 3,
+        "turns": 1,
+        "metal": "M4",
+        "x": 20,
+        "y": 20
+      },
+      "technology": "; Sample CMOS technology file\n\n<chip>\n\n\tchipx = 128\t; dimensions of the chip in x direction\n\tchipy = 128\t; dimensions of the chip in y direction\n\tfftx = 64\t; x-fft size (must be a power of 2)\n\tffty = 64\t; y-fft size\n\tTechFile = CMOS.tek\n\tTechPath = .\n\tfreq = 2 \t\t; frequency of operation\n\teddy = 0\n\n<layer> 0 \t\t\t; p(-) bulk layer\n\trho = 1e-3\t\t; ohm-cm\n\tt   = 700 \t\t; microns\n        eps = 11.9\n\n<layer>\t1\t   \t\t; Oxide Layer\n\trho = 1e10\n\tt = 50\n\teps = 3.9\n\n<metal> 0\n        layer = 1\t\t; in oxide layer\n        rsh = 65\t\t; sheet resistance3\n        t   = 0.5\t\t; thickness\n        d = 1.3\t\t\t; distance from bottom of layer\n        name = m1\t\n        color = yellow\n\n<metal> 1\n        layer = 1\n        rsh = 55 \n        t = 0.5\n        d = 2.4 \n        name = m2\n        color = LightSkyBlue1\n\n<metal> 2\n        layer = 1\n        rsh = 55 \n        t = 0.5\n        d =  3.5\n        name = m3\n        color = medium purple\n\n<metal> 3\n        layer = 1\n        rsh = 55 \n        t = 0.5\n        d =  4.5\n        name = m4\n        color = light green\n\n<metal> 4\n        layer = 1\n        rsh = 30\n        t = 1\n        d =  6\n        name = m5\n        color = grey\n\n<via> 0                        ; metal 1 to metal 2\n        top = 1\n        bottom = 0\n        r = 4\n        width = .5\n        space = 1.1\n        overplot1 = .2         ; to metal 1\n        overplot2 = .2         ; to metal 2\n        name = via1\n        color = purple\n<via> 1                        ; metal 2 to metal 3\n        top = 2\n        bottom = 1\n        r = 4\n        width = .4\n        space = 1.1\n        overplot1 = .2         ; to metal 1\n        overplot2 = .2         ; to metal 2\n        name = via2\n        color = cyan1\n<via> 2                        ; metal 3 to metal 4\n        top = 3\n        bottom = 2\n        r = 4\n        width = .4\n        space = 1.1\n        overplot1 = .2\n        overplot2 = .2\n        name = via3\n        color = red\n\n<via> 3                        ; metal 3 to metal 4\n        top = 4\n        bottom = 3\n        r = 4\n        width = .4\n        space = 1.2\n        overplot1 = .2\n        overplot2 = .2\n        name = via4\n        color = white\n\n",
+      "ground": {
+        "kind": "wire",
+        "parameters": {
+          "name": "G",
+          "length": 100,
+          "width": 8,
+          "metal": "M1",
+          "x": 10,
+          "y": 100
+        }
+      },
+      "eddy": true,
+      "first_pad": {
+        "kind": "wire",
+        "parameters": {
+          "name": "P1",
+          "length": 20,
+          "width": 5,
+          "metal": "M4",
+          "x": 0,
+          "y": 20
+        }
+      },
+      "second_pad": {
+        "kind": "wire",
+        "parameters": {
+          "name": "P2",
+          "length": 20,
+          "width": 5,
+          "metal": "M4",
+          "x": 95,
+          "y": 20
+        }
+      },
+      "frequency_hz": 1000000000.0,
+      "admittance_matrix": [
+        [
+          [
+            -7.688108618357114e-05,
+            6.552150786754316e-05
+          ],
+          [
+            5.641941490511329e-05,
+            5.000875241214464e-06
+          ]
+        ],
+        [
+          [
+            5.641941490511329e-05,
+            5.000875241214464e-06
+          ],
+          [
+            -7.333057662861213e-05,
+            3.25336448288835e-05
+          ]
+        ]
+      ],
+      "scattering_matrix": [
+        [
+          [
+            1.007546158705995,
+            -0.00493035855815897
+          ],
+          [
+            -0.005686972842689654,
+            -0.0004758913770693663
+          ]
+        ],
+        [
+          [
+            -0.005686972842689654,
+            -0.0004758913770693663
+          ],
+          [
+            1.007370679534793,
+            -0.003274596169926349
+          ]
+        ]
+      ],
+      "model_stdout": "\nASITIC version 10.20.99.0.0.0\nAnalysis & Simulation of Inductors and Transformers for ICs\nReading technology file <process.tek>...\nRunning in console mode...\n\nExecuting script <input.asit>...\nCELL 1000 1000 1000\n\nCCELL 1000 1000\n\nEDDY ON\n\nTurning ON eddy current calculation mode.\nSAVEMAT TRUE\n\nTurning ON Matrix Dump Mode.\nSQUARE NAME=A:LEN=60:W=5:S=3:N=1:METAL=M4:EXIT=-1:XORG=20:YORG=20\n\nWIRE NAME=G:LEN=100:WID=8:METAL=M1:XORG=10:YORG=100\n\nWIRE NAME=P1:LEN=20:WID=5:METAL=M4:XORG=0:YORG=20\n\nWIRE NAME=P2:LEN=20:WID=5:METAL=M4:XORG=95:YORG=20\n\nPI4 A 1 P1 P2 G\n\nPerforming calculation with pad structure...\nPerforming Analysis at 1.00 GHz\nGenerating capacitance matrix (11x11).\nWarning:  Could not open data file at frequency = 1.00.\nTried using . as path.\n\n\nGenerating data at 1.00 GHz...\n\nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nWriting data.....\nGenerating inductance matrix (22x22)..\nInverting matrix.....\nError:  Quadpack DQAGI function did not converge.\nCalled with:  freq = 1e+09, sep = 0, h = 9e-06\n\tThe algorithm does not converge.\n\troundoff error is detected in the\n\textrapolation table.\n\tit is assumed that the requested tolerance\n\tcannot be achieved, and that the returned\n\tresult is the best which can be obtained.\nError:  Quadpack DQAGI function did not converge.\nCalled with:  freq = 1e+09, sep = 0, h = 9e-06\n\tThe algorithm does not converge.\n\troundoff error is detected in the\n\textrapolation table.\n\tit is assumed that the requested tolerance\n\tcannot be achieved, and that the returned\n\tresult is the best which can be obtained.\nError:  Quadpack DQAGI function did not converge.\nCalled with:  freq = 1e+09, sep = 0, h = 9e-06\n\tThe algorithm does not converge.\n\troundoff error is detected in the\n\textrapolation table.\n\tit is assumed that the requested tolerance\n\tcannot be achieved, and that the returned\n\tresult is the best which can be obtained.\nError:  Quadpack DQAGI function did not converge.\nCalled with:  freq = 1e+09, sep = 0, h = 9e-06\n\tThe algorithm does not converge.\n\troundoff error is detected in the\n\textrapolation table.\n\tit is assumed that the requested tolerance\n\tcannot be achieved, and that the returned\n\tresult is the best which can be obtained.\nError:  Quadpack DQAGI function did not converge.\nCalled with:  freq = 1e+09, sep = 0, h = 9e-06\n\tThe algorithm does not converge.\n\troundoff error is detected in the\n\textrapolation table.\n\tit is assumed that the requested tolerance\n\tcannot be achieved, and that the returned\n\tresult is the best which can be obtained.\nError:  Quadpack DQAGI function did not converge.\nCalled with:  freq = 1e+09, sep = 0, h = 9e-06\n\tThe algorithm does not converge.\n\troundoff error is detected in the\n\textrapolation table.\n\tit is assumed that the requested tolerance\n\tcannot be achieved, and that the returned\n\tresult is the best which can be obtained.\nError:  Quadpack DQAGI function did not converge.\nCalled with:  freq = 1e+09, sep = 0, h = 9e-06\n\tThe algorithm does not converge.\n\troundoff error is detected in the\n\textrapolation table.\n\tit is assumed that the requested tolerance\n\tcannot be achieved, and that the returned\n\tresult is the best which can be obtained.\nError:  Quadpack DQAGI function did not converge.\nCalled with:  freq = 1e+09, sep = 0, h = 9e-06\n\tThe algorithm does not converge.\n\troundoff error is detected in the\n\textrapolation table.\n\tit is assumed that the requested tolerance\n\tcannot be achieved, and that the returned\n\tresult is the best which can be obtained..\nSolving node equations...(6x6)\nPi Model at f=1.00 GHz:  Q = 1.019,0.632,0.407\nL  =   248 nH\tR  =-1.76e+04\nCs1=  14.1 fF\tRs1=-2.78e+03\nCs2=  9.06 fF\tRs2=-5.79e+03\tf_res =  2.70GHz\nPerforming Analysis at 1.00 GHz\nGenerating capacitance matrix (7x7)...\nPi Model at f=1.00 GHz:  Q = 0.852,0.444,0.297\nL  =   248 nH\tR  =-1.76e+04\nCs1=  12.2 fF\tRs1=-3.79e+03\nCs2=  7.19 fF\tRs2=-9.98e+03\tf_res =  2.90GHz\n",
+      "stdout": "\nASITIC version 10.20.99.0.0.0\nAnalysis & Simulation of Inductors and Transformers for ICs\nReading technology file <process.tek>...\nRunning in console mode...\n\nExecuting script <input.asit>...\nCELL 1000 1000 1000\n\nCCELL 1000 1000\n\nEDDY ON\n\nTurning ON eddy current calculation mode.\nSAVEMAT TRUE\n\nTurning ON Matrix Dump Mode.\nSQUARE NAME=A:LEN=60:W=5:S=3:N=1:METAL=M4:EXIT=-1:XORG=20:YORG=20\n\nWIRE NAME=G:LEN=100:WID=8:METAL=M1:XORG=10:YORG=100\n\nWIRE NAME=P1:LEN=20:WID=5:METAL=M4:XORG=0:YORG=20\n\nWIRE NAME=P2:LEN=20:WID=5:METAL=M4:XORG=95:YORG=20\n\nPI4 A 1 P1 P2 G\n\nPerforming calculation with pad structure...\nPerforming Analysis at 1.00 GHz\nGenerating capacitance matrix (11x11).\nWarning:  Could not open data file at frequency = 1.00.\nTried using . as path.\n\n\nGenerating data at 1.00 GHz...\n\nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nWriting data.....\nGenerating inductance matrix (22x22)..\nInverting matrix.....\nError:  Quadpack DQAGI function did not converge.\nCalled with:  freq = 1e+09, sep = 0, h = 9e-06\n\tThe algorithm does not converge.\n\troundoff error is detected in the\n\textrapolation table.\n\tit is assumed that the requested tolerance\n\tcannot be achieved, and that the returned\n\tresult is the best which can be obtained.\nError:  Quadpack DQAGI function did not converge.\nCalled with:  freq = 1e+09, sep = 0, h = 9e-06\n\tThe algorithm does not converge.\n\troundoff error is detected in the\n\textrapolation table.\n\tit is assumed that the requested tolerance\n\tcannot be achieved, and that the returned\n\tresult is the best which can be obtained.\nError:  Quadpack DQAGI function did not converge.\nCalled with:  freq = 1e+09, sep = 0, h = 9e-06\n\tThe algorithm does not converge.\n\troundoff error is detected in the\n\textrapolation table.\n\tit is assumed that the requested tolerance\n\tcannot be achieved, and that the returned\n\tresult is the best which can be obtained.\nError:  Quadpack DQAGI function did not converge.\nCalled with:  freq = 1e+09, sep = 0, h = 9e-06\n\tThe algorithm does not converge.\n\troundoff error is detected in the\n\textrapolation table.\n\tit is assumed that the requested tolerance\n\tcannot be achieved, and that the returned\n\tresult is the best which can be obtained.\nError:  Quadpack DQAGI function did not converge.\nCalled with:  freq = 1e+09, sep = 0, h = 9e-06\n\tThe algorithm does not converge.\n\troundoff error is detected in the\n\textrapolation table.\n\tit is assumed that the requested tolerance\n\tcannot be achieved, and that the returned\n\tresult is the best which can be obtained.\nError:  Quadpack DQAGI function did not converge.\nCalled with:  freq = 1e+09, sep = 0, h = 9e-06\n\tThe algorithm does not converge.\n\troundoff error is detected in the\n\textrapolation table.\n\tit is assumed that the requested tolerance\n\tcannot be achieved, and that the returned\n\tresult is the best which can be obtained.\nError:  Quadpack DQAGI function did not converge.\nCalled with:  freq = 1e+09, sep = 0, h = 9e-06\n\tThe algorithm does not converge.\n\troundoff error is detected in the\n\textrapolation table.\n\tit is assumed that the requested tolerance\n\tcannot be achieved, and that the returned\n\tresult is the best which can be obtained.\nError:  Quadpack DQAGI function did not converge.\nCalled with:  freq = 1e+09, sep = 0, h = 9e-06\n\tThe algorithm does not converge.\n\troundoff error is detected in the\n\textrapolation table.\n\tit is assumed that the requested tolerance\n\tcannot be achieved, and that the returned\n\tresult is the best which can be obtained..\nSolving node equations...(6x6)\nPi Model at f=1.00 GHz:  Q = 1.019,0.632,0.407\nL  =   248 nH\tR  =-1.76e+04\nCs1=  14.1 fF\tRs1=-2.78e+03\nCs2=  9.06 fF\tRs2=-5.79e+03\tf_res =  2.70GHz\nPerforming Analysis at 1.00 GHz\nGenerating capacitance matrix (7x7)...\nPi Model at f=1.00 GHz:  Q = 0.852,0.444,0.297\nL  =   248 nH\tR  =-1.76e+04\nCs1=  12.2 fF\tRs1=-3.79e+03\nCs2=  7.19 fF\tRs2=-9.98e+03\tf_res =  2.90GHz\n2PORTPAD A P1 P2 1 1 1 Y RECT y.out G\n\nPerforming calculation with pad structure...\nPerforming Analysis at 1.00 GHz\nGenerating capacitance matrix (11x11)...\nGenerating inductance matrix (22x22)..\nInverting matrix.....\nError:  Quadpack DQAGI function did not converge.\nCalled with:  freq = 1e+09, sep = 0, h = 9e-06\n\tThe algorithm does not converge.\n\troundoff error is detected in the\n\textrapolation table.\n\tit is assumed that the requested tolerance\n\tcannot be achieved, and that the returned\n\tresult is the best which can be obtained.\nError:  Quadpack DQAGI function did not converge.\nCalled with:  freq = 1e+09, sep = 0, h = 9e-06\n\tThe algorithm does not converge.\n\troundoff error is detected in the\n\textrapolation table.\n\tit is assumed that the requested tolerance\n\tcannot be achieved, and that the returned\n\tresult is the best which can be obtained.\nError:  Quadpack DQAGI function did not converge.\nCalled with:  freq = 1e+09, sep = 0, h = 9e-06\n\tThe algorithm does not converge.\n\troundoff error is detected in the\n\textrapolation table.\n\tit is assumed that the requested tolerance\n\tcannot be achieved, and that the returned\n\tresult is the best which can be obtained.\nError:  Quadpack DQAGI function did not converge.\nCalled with:  freq = 1e+09, sep = 0, h = 9e-06\n\tThe algorithm does not converge.\n\troundoff error is detected in the\n\textrapolation table.\n\tit is assumed that the requested tolerance\n\tcannot be achieved, and that the returned\n\tresult is the best which can be obtained.\nError:  Quadpack DQAGI function did not converge.\nCalled with:  freq = 1e+09, sep = 0, h = 9e-06\n\tThe algorithm does not converge.\n\troundoff error is detected in the\n\textrapolation table.\n\tit is assumed that the requested tolerance\n\tcannot be achieved, and that the returned\n\tresult is the best which can be obtained.\nError:  Quadpack DQAGI function did not converge.\nCalled with:  freq = 1e+09, sep = 0, h = 9e-06\n\tThe algorithm does not converge.\n\troundoff error is detected in the\n\textrapolation table.\n\tit is assumed that the requested tolerance\n\tcannot be achieved, and that the returned\n\tresult is the best which can be obtained.\nError:  Quadpack DQAGI function did not converge.\nCalled with:  freq = 1e+09, sep = 0, h = 9e-06\n\tThe algorithm does not converge.\n\troundoff error is detected in the\n\textrapolation table.\n\tit is assumed that the requested tolerance\n\tcannot be achieved, and that the returned\n\tresult is the best which can be obtained.\nError:  Quadpack DQAGI function did not converge.\nCalled with:  freq = 1e+09, sep = 0, h = 9e-06\n\tThe algorithm does not converge.\n\troundoff error is detected in the\n\textrapolation table.\n\tit is assumed that the requested tolerance\n\tcannot be achieved, and that the returned\n\tresult is the best which can be obtained..\nSolving node equations...(6x6)\nPi Model at f=1.00 GHz:  Q = 1.019,0.632,0.407\nL  =   248 nH\tR  =-1.76e+04\nCs1=  14.1 fF\tRs1=-2.78e+03\nCs2=  9.06 fF\tRs2=-5.79e+03\tf_res =  2.70GHz\nPerforming Analysis at 1.00 GHz\nGenerating capacitance matrix (7x7)...\nPi Model at f=1.00 GHz:  Q = 0.852,0.444,0.297\nL  =   248 nH\tR  =-1.76e+04\nCs1=  12.2 fF\tRs1=-3.79e+03\nCs2=  7.19 fF\tRs2=-9.98e+03\tf_res =  2.90GHz\n2PORTPAD A P1 P2 1 1 1 S RECT s.out G\n\nPerforming calculation with pad structure...\nPerforming Analysis at 1.00 GHz\nGenerating capacitance matrix (11x11)...\nGenerating inductance matrix (22x22)..\nInverting matrix.....\nError:  Quadpack DQAGI function did not converge.\nCalled with:  freq = 1e+09, sep = 0, h = 9e-06\n\tThe algorithm does not converge.\n\troundoff error is detected in the\n\textrapolation table.\n\tit is assumed that the requested tolerance\n\tcannot be achieved, and that the returned\n\tresult is the best which can be obtained.\nError:  Quadpack DQAGI function did not converge.\nCalled with:  freq = 1e+09, sep = 0, h = 9e-06\n\tThe algorithm does not converge.\n\troundoff error is detected in the\n\textrapolation table.\n\tit is assumed that the requested tolerance\n\tcannot be achieved, and that the returned\n\tresult is the best which can be obtained.\nError:  Quadpack DQAGI function did not converge.\nCalled with:  freq = 1e+09, sep = 0, h = 9e-06\n\tThe algorithm does not converge.\n\troundoff error is detected in the\n\textrapolation table.\n\tit is assumed that the requested tolerance\n\tcannot be achieved, and that the returned\n\tresult is the best which can be obtained.\nError:  Quadpack DQAGI function did not converge.\nCalled with:  freq = 1e+09, sep = 0, h = 9e-06\n\tThe algorithm does not converge.\n\troundoff error is detected in the\n\textrapolation table.\n\tit is assumed that the requested tolerance\n\tcannot be achieved, and that the returned\n\tresult is the best which can be obtained.\nError:  Quadpack DQAGI function did not converge.\nCalled with:  freq = 1e+09, sep = 0, h = 9e-06\n\tThe algorithm does not converge.\n\troundoff error is detected in the\n\textrapolation table.\n\tit is assumed that the requested tolerance\n\tcannot be achieved, and that the returned\n\tresult is the best which can be obtained.\nError:  Quadpack DQAGI function did not converge.\nCalled with:  freq = 1e+09, sep = 0, h = 9e-06\n\tThe algorithm does not converge.\n\troundoff error is detected in the\n\textrapolation table.\n\tit is assumed that the requested tolerance\n\tcannot be achieved, and that the returned\n\tresult is the best which can be obtained.\nError:  Quadpack DQAGI function did not converge.\nCalled with:  freq = 1e+09, sep = 0, h = 9e-06\n\tThe algorithm does not converge.\n\troundoff error is detected in the\n\textrapolation table.\n\tit is assumed that the requested tolerance\n\tcannot be achieved, and that the returned\n\tresult is the best which can be obtained.\nError:  Quadpack DQAGI function did not converge.\nCalled with:  freq = 1e+09, sep = 0, h = 9e-06\n\tThe algorithm does not converge.\n\troundoff error is detected in the\n\textrapolation table.\n\tit is assumed that the requested tolerance\n\tcannot be achieved, and that the returned\n\tresult is the best which can be obtained..\nSolving node equations...(6x6)\nPi Model at f=1.00 GHz:  Q = 1.019,0.632,0.407\nL  =   248 nH\tR  =-1.76e+04\nCs1=  14.1 fF\tRs1=-2.78e+03\nCs2=  9.06 fF\tRs2=-5.79e+03\tf_res =  2.70GHz\nPerforming Analysis at 1.00 GHz\nGenerating capacitance matrix (7x7)...\nPi Model at f=1.00 GHz:  Q = 0.852,0.444,0.297\nL  =   248 nH\tR  =-1.76e+04\nCs1=  12.2 fF\tRs1=-3.79e+03\nCs2=  7.19 fF\tRs2=-9.98e+03\tf_res =  2.90GHz\nASITIC>  ",
+      "script": "CELL 1000 1000 1000\nCCELL 1000 1000\nEDDY ON\nSAVEMAT TRUE\nSQUARE NAME=A:LEN=60:W=5:S=3:N=1:METAL=M4:EXIT=-1:XORG=20:YORG=20\nWIRE NAME=G:LEN=100:WID=8:METAL=M1:XORG=10:YORG=100\nWIRE NAME=P1:LEN=20:WID=5:METAL=M4:XORG=0:YORG=20\nWIRE NAME=P2:LEN=20:WID=5:METAL=M4:XORG=95:YORG=20\nPI4 A 1 P1 P2 G\n2PORTPAD A P1 P2 1 1 1 Y RECT y.out G\n2PORTPAD A P1 P2 1 1 1 S RECT s.out G\n"
+    },
+    {
+      "model": "pi4",
+      "kind": "square",
+      "parameters": {
+        "name": "A",
+        "length": 60,
+        "width": 5,
+        "spacing": 3,
+        "turns": 1,
+        "metal": "M4",
+        "x": 20,
+        "y": 20
+      },
+      "technology": "; Sample CMOS technology file\n\n<chip>\n\n\tchipx = 128\t; dimensions of the chip in x direction\n\tchipy = 128\t; dimensions of the chip in y direction\n\tfftx = 64\t; x-fft size (must be a power of 2)\n\tffty = 64\t; y-fft size\n\tTechFile = CMOS.tek\n\tTechPath = .\n\tfreq = 2 \t\t; frequency of operation\n\teddy = 0\n\n<layer> 0 \t\t\t; p(-) bulk layer\n\trho = 1e-3\t\t; ohm-cm\n\tt   = 700 \t\t; microns\n        eps = 11.9\n\n<layer>\t1\t   \t\t; Oxide Layer\n\trho = 1e10\n\tt = 50\n\teps = 3.9\n\n<metal> 0\n        layer = 1\t\t; in oxide layer\n        rsh = 65\t\t; sheet resistance3\n        t   = 0.5\t\t; thickness\n        d = 1.3\t\t\t; distance from bottom of layer\n        name = m1\t\n        color = yellow\n\n<metal> 1\n        layer = 1\n        rsh = 55 \n        t = 0.5\n        d = 2.4 \n        name = m2\n        color = LightSkyBlue1\n\n<metal> 2\n        layer = 1\n        rsh = 55 \n        t = 0.5\n        d =  3.5\n        name = m3\n        color = medium purple\n\n<metal> 3\n        layer = 1\n        rsh = 55 \n        t = 0.5\n        d =  4.5\n        name = m4\n        color = light green\n\n<metal> 4\n        layer = 1\n        rsh = 30\n        t = 1\n        d =  6\n        name = m5\n        color = grey\n\n<via> 0                        ; metal 1 to metal 2\n        top = 1\n        bottom = 0\n        r = 4\n        width = .5\n        space = 1.1\n        overplot1 = .2         ; to metal 1\n        overplot2 = .2         ; to metal 2\n        name = via1\n        color = purple\n<via> 1                        ; metal 2 to metal 3\n        top = 2\n        bottom = 1\n        r = 4\n        width = .4\n        space = 1.1\n        overplot1 = .2         ; to metal 1\n        overplot2 = .2         ; to metal 2\n        name = via2\n        color = cyan1\n<via> 2                        ; metal 3 to metal 4\n        top = 3\n        bottom = 2\n        r = 4\n        width = .4\n        space = 1.1\n        overplot1 = .2\n        overplot2 = .2\n        name = via3\n        color = red\n\n<via> 3                        ; metal 3 to metal 4\n        top = 4\n        bottom = 3\n        r = 4\n        width = .4\n        space = 1.2\n        overplot1 = .2\n        overplot2 = .2\n        name = via4\n        color = white\n\n",
+      "ground": {
+        "kind": "wire",
+        "parameters": {
+          "name": "G",
+          "length": 100,
+          "width": 8,
+          "metal": "M1",
+          "x": 10,
+          "y": 100
+        }
+      },
+      "eddy": true,
+      "first_pad": {
+        "kind": "wire",
+        "parameters": {
+          "name": "P1",
+          "length": 20,
+          "width": 5,
+          "metal": "M4",
+          "x": 0,
+          "y": 20
+        }
+      },
+      "second_pad": {
+        "kind": "wire",
+        "parameters": {
+          "name": "P2",
+          "length": 20,
+          "width": 5,
+          "metal": "M4",
+          "x": 95,
+          "y": 20
+        }
+      },
+      "frequency_hz": 5000000000.0,
+      "admittance_matrix": [
+        [
+          [
+            -2.121055080524212e-05,
+            0.0001197640568047442
+          ],
+          [
+            -3.633245735503535e-05,
+            -2.094799981515435e-05
+          ]
+        ],
+        [
+          [
+            -3.633245735503535e-05,
+            -2.094799981515435e-05
+          ],
+          [
+            -2.708572989423111e-05,
+            -1.84276927514574e-05
+          ]
+        ]
+      ],
+      "scattering_matrix": [
+        [
+          [
+            1.002427247942637,
+            -0.005063849456046287
+          ],
+          [
+            0.003652571717065743,
+            0.002081349200217166
+          ]
+        ],
+        [
+          [
+            0.003652571717065743,
+            0.002081349200217166
+          ],
+          [
+            1.002714995683474,
+            0.001855390290608145
+          ]
+        ]
+      ],
+      "model_stdout": "\nASITIC version 10.20.99.0.0.0\nAnalysis & Simulation of Inductors and Transformers for ICs\nReading technology file <process.tek>...\nRunning in console mode...\n\nExecuting script <input.asit>...\nCELL 1000 1000 1000\n\nCCELL 1000 1000\n\nEDDY ON\n\nTurning ON eddy current calculation mode.\nSAVEMAT TRUE\n\nTurning ON Matrix Dump Mode.\nSQUARE NAME=A:LEN=60:W=5:S=3:N=1:METAL=M4:EXIT=-1:XORG=20:YORG=20\n\nWIRE NAME=G:LEN=100:WID=8:METAL=M1:XORG=10:YORG=100\n\nWIRE NAME=P1:LEN=20:WID=5:METAL=M4:XORG=0:YORG=20\n\nWIRE NAME=P2:LEN=20:WID=5:METAL=M4:XORG=95:YORG=20\n\nPI4 A 5 P1 P2 G\n\nPerforming calculation with pad structure...\nPerforming Analysis at 5.00 GHz\nGenerating capacitance matrix (11x11).\nWarning:  Could not open data file at frequency = 5.00.\nTried using . as path.\n\n\nGenerating data at 5.00 GHz...\n\nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nWriting data.....\nGenerating inductance matrix (22x22)..\nInverting matrix.....\nError:  Quadpack DQAGI function did not converge.\nCalled with:  freq = 5e+09, sep = 0, h = 9e-06\n\tThe algorithm does not converge.\n\troundoff error is detected in the\n\textrapolation table.\n\tit is assumed that the requested tolerance\n\tcannot be achieved, and that the returned\n\tresult is the best which can be obtained.\nError:  Quadpack DQAGI function did not converge.\nCalled with:  freq = 5e+09, sep = 0, h = 9e-06\n\tThe algorithm does not converge.\n\troundoff error is detected in the\n\textrapolation table.\n\tit is assumed that the requested tolerance\n\tcannot be achieved, and that the returned\n\tresult is the best which can be obtained.\nError:  Quadpack DQAGI function did not converge.\nCalled with:  freq = 5e+09, sep = 0, h = 9e-06\n\tThe algorithm does not converge.\n\troundoff error is detected in the\n\textrapolation table.\n\tit is assumed that the requested tolerance\n\tcannot be achieved, and that the returned\n\tresult is the best which can be obtained.\nError:  Quadpack DQAGI function did not converge.\nCalled with:  freq = 5e+09, sep = 0, h = 9e-06\n\tThe algorithm does not converge.\n\troundoff error is detected in the\n\textrapolation table.\n\tit is assumed that the requested tolerance\n\tcannot be achieved, and that the returned\n\tresult is the best which can be obtained.\nError:  Quadpack DQAGI function did not converge.\nCalled with:  freq = 5e+09, sep = 0, h = 9e-06\n\tThe algorithm does not converge.\n\troundoff error is detected in the\n\textrapolation table.\n\tit is assumed that the requested tolerance\n\tcannot be achieved, and that the returned\n\tresult is the best which can be obtained.\nError:  Quadpack DQAGI function did not converge.\nCalled with:  freq = 5e+09, sep = 0, h = 9e-06\n\tThe algorithm does not converge.\n\troundoff error is detected in the\n\textrapolation table.\n\tit is assumed that the requested tolerance\n\tcannot be achieved, and that the returned\n\tresult is the best which can be obtained.\nError:  Quadpack DQAGI function did not converge.\nCalled with:  freq = 5e+09, sep = 0, h = 9e-06\n\tThe algorithm does not converge.\n\troundoff error is detected in the\n\textrapolation table.\n\tit is assumed that the requested tolerance\n\tcannot be achieved, and that the returned\n\tresult is the best which can be obtained.\nError:  Quadpack DQAGI function did not converge.\nCalled with:  freq = 5e+09, sep = 0, h = 9e-06\n\tThe algorithm does not converge.\n\troundoff error is detected in the\n\textrapolation table.\n\tit is assumed that the requested tolerance\n\tcannot be achieved, and that the returned\n\tresult is the best which can be obtained..\nSolving node equations...(6x6)\nPi Model at f=5.00 GHz:  Q = 8.663,1.872,9.391\nL  =  -380 nH\tR  =2.06e+04\nCs1=  5.83 fF\tRs1=-1.93e+03\nCs2=  5.26 fF\tRs2=-1.29e+04\tf_res =  -nanGHz\nPerforming Analysis at 5.00 GHz\nGenerating capacitance matrix (7x7)...\nPi Model at f=5.00 GHz:  Q = 5.646,-0.680,0.850\nL  =  -379 nH\tR  =2.07e+04\nCs1=  4.21 fF\tRs1=-4.4e+03\nCs2=  -4.5 fF\tRs2=-1.14e+04\tf_res =  -nanGHz\n",
+      "stdout": "\nASITIC version 10.20.99.0.0.0\nAnalysis & Simulation of Inductors and Transformers for ICs\nReading technology file <process.tek>...\nRunning in console mode...\n\nExecuting script <input.asit>...\nCELL 1000 1000 1000\n\nCCELL 1000 1000\n\nEDDY ON\n\nTurning ON eddy current calculation mode.\nSAVEMAT TRUE\n\nTurning ON Matrix Dump Mode.\nSQUARE NAME=A:LEN=60:W=5:S=3:N=1:METAL=M4:EXIT=-1:XORG=20:YORG=20\n\nWIRE NAME=G:LEN=100:WID=8:METAL=M1:XORG=10:YORG=100\n\nWIRE NAME=P1:LEN=20:WID=5:METAL=M4:XORG=0:YORG=20\n\nWIRE NAME=P2:LEN=20:WID=5:METAL=M4:XORG=95:YORG=20\n\nPI4 A 5 P1 P2 G\n\nPerforming calculation with pad structure...\nPerforming Analysis at 5.00 GHz\nGenerating capacitance matrix (11x11).\nWarning:  Could not open data file at frequency = 5.00.\nTried using . as path.\n\n\nGenerating data at 5.00 GHz...\n\nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nCalculating Green Function...\nComputing FFTs...            \nWriting data.....\nGenerating inductance matrix (22x22)..\nInverting matrix.....\nError:  Quadpack DQAGI function did not converge.\nCalled with:  freq = 5e+09, sep = 0, h = 9e-06\n\tThe algorithm does not converge.\n\troundoff error is detected in the\n\textrapolation table.\n\tit is assumed that the requested tolerance\n\tcannot be achieved, and that the returned\n\tresult is the best which can be obtained.\nError:  Quadpack DQAGI function did not converge.\nCalled with:  freq = 5e+09, sep = 0, h = 9e-06\n\tThe algorithm does not converge.\n\troundoff error is detected in the\n\textrapolation table.\n\tit is assumed that the requested tolerance\n\tcannot be achieved, and that the returned\n\tresult is the best which can be obtained.\nError:  Quadpack DQAGI function did not converge.\nCalled with:  freq = 5e+09, sep = 0, h = 9e-06\n\tThe algorithm does not converge.\n\troundoff error is detected in the\n\textrapolation table.\n\tit is assumed that the requested tolerance\n\tcannot be achieved, and that the returned\n\tresult is the best which can be obtained.\nError:  Quadpack DQAGI function did not converge.\nCalled with:  freq = 5e+09, sep = 0, h = 9e-06\n\tThe algorithm does not converge.\n\troundoff error is detected in the\n\textrapolation table.\n\tit is assumed that the requested tolerance\n\tcannot be achieved, and that the returned\n\tresult is the best which can be obtained.\nError:  Quadpack DQAGI function did not converge.\nCalled with:  freq = 5e+09, sep = 0, h = 9e-06\n\tThe algorithm does not converge.\n\troundoff error is detected in the\n\textrapolation table.\n\tit is assumed that the requested tolerance\n\tcannot be achieved, and that the returned\n\tresult is the best which can be obtained.\nError:  Quadpack DQAGI function did not converge.\nCalled with:  freq = 5e+09, sep = 0, h = 9e-06\n\tThe algorithm does not converge.\n\troundoff error is detected in the\n\textrapolation table.\n\tit is assumed that the requested tolerance\n\tcannot be achieved, and that the returned\n\tresult is the best which can be obtained.\nError:  Quadpack DQAGI function did not converge.\nCalled with:  freq = 5e+09, sep = 0, h = 9e-06\n\tThe algorithm does not converge.\n\troundoff error is detected in the\n\textrapolation table.\n\tit is assumed that the requested tolerance\n\tcannot be achieved, and that the returned\n\tresult is the best which can be obtained.\nError:  Quadpack DQAGI function did not converge.\nCalled with:  freq = 5e+09, sep = 0, h = 9e-06\n\tThe algorithm does not converge.\n\troundoff error is detected in the\n\textrapolation table.\n\tit is assumed that the requested tolerance\n\tcannot be achieved, and that the returned\n\tresult is the best which can be obtained..\nSolving node equations...(6x6)\nPi Model at f=5.00 GHz:  Q = 8.663,1.872,9.391\nL  =  -380 nH\tR  =2.06e+04\nCs1=  5.83 fF\tRs1=-1.93e+03\nCs2=  5.26 fF\tRs2=-1.29e+04\tf_res =  -nanGHz\nPerforming Analysis at 5.00 GHz\nGenerating capacitance matrix (7x7)...\nPi Model at f=5.00 GHz:  Q = 5.646,-0.680,0.850\nL  =  -379 nH\tR  =2.07e+04\nCs1=  4.21 fF\tRs1=-4.4e+03\nCs2=  -4.5 fF\tRs2=-1.14e+04\tf_res =  -nanGHz\n2PORTPAD A P1 P2 5 5 1 Y RECT y.out G\n\nPerforming calculation with pad structure...\nPerforming Analysis at 5.00 GHz\nGenerating capacitance matrix (11x11)...\nGenerating inductance matrix (22x22)..\nInverting matrix.....\nError:  Quadpack DQAGI function did not converge.\nCalled with:  freq = 5e+09, sep = 0, h = 9e-06\n\tThe algorithm does not converge.\n\troundoff error is detected in the\n\textrapolation table.\n\tit is assumed that the requested tolerance\n\tcannot be achieved, and that the returned\n\tresult is the best which can be obtained.\nError:  Quadpack DQAGI function did not converge.\nCalled with:  freq = 5e+09, sep = 0, h = 9e-06\n\tThe algorithm does not converge.\n\troundoff error is detected in the\n\textrapolation table.\n\tit is assumed that the requested tolerance\n\tcannot be achieved, and that the returned\n\tresult is the best which can be obtained.\nError:  Quadpack DQAGI function did not converge.\nCalled with:  freq = 5e+09, sep = 0, h = 9e-06\n\tThe algorithm does not converge.\n\troundoff error is detected in the\n\textrapolation table.\n\tit is assumed that the requested tolerance\n\tcannot be achieved, and that the returned\n\tresult is the best which can be obtained.\nError:  Quadpack DQAGI function did not converge.\nCalled with:  freq = 5e+09, sep = 0, h = 9e-06\n\tThe algorithm does not converge.\n\troundoff error is detected in the\n\textrapolation table.\n\tit is assumed that the requested tolerance\n\tcannot be achieved, and that the returned\n\tresult is the best which can be obtained.\nError:  Quadpack DQAGI function did not converge.\nCalled with:  freq = 5e+09, sep = 0, h = 9e-06\n\tThe algorithm does not converge.\n\troundoff error is detected in the\n\textrapolation table.\n\tit is assumed that the requested tolerance\n\tcannot be achieved, and that the returned\n\tresult is the best which can be obtained.\nError:  Quadpack DQAGI function did not converge.\nCalled with:  freq = 5e+09, sep = 0, h = 9e-06\n\tThe algorithm does not converge.\n\troundoff error is detected in the\n\textrapolation table.\n\tit is assumed that the requested tolerance\n\tcannot be achieved, and that the returned\n\tresult is the best which can be obtained.\nError:  Quadpack DQAGI function did not converge.\nCalled with:  freq = 5e+09, sep = 0, h = 9e-06\n\tThe algorithm does not converge.\n\troundoff error is detected in the\n\textrapolation table.\n\tit is assumed that the requested tolerance\n\tcannot be achieved, and that the returned\n\tresult is the best which can be obtained.\nError:  Quadpack DQAGI function did not converge.\nCalled with:  freq = 5e+09, sep = 0, h = 9e-06\n\tThe algorithm does not converge.\n\troundoff error is detected in the\n\textrapolation table.\n\tit is assumed that the requested tolerance\n\tcannot be achieved, and that the returned\n\tresult is the best which can be obtained..\nSolving node equations...(6x6)\nPi Model at f=5.00 GHz:  Q = 8.663,1.872,9.391\nL  =  -380 nH\tR  =2.06e+04\nCs1=  5.83 fF\tRs1=-1.93e+03\nCs2=  5.26 fF\tRs2=-1.29e+04\tf_res =  -nanGHz\nPerforming Analysis at 5.00 GHz\nGenerating capacitance matrix (7x7)...\nPi Model at f=5.00 GHz:  Q = 5.646,-0.680,0.850\nL  =  -379 nH\tR  =2.07e+04\nCs1=  4.21 fF\tRs1=-4.4e+03\nCs2=  -4.5 fF\tRs2=-1.14e+04\tf_res =  -nanGHz\n2PORTPAD A P1 P2 5 5 1 S RECT s.out G\n\nPerforming calculation with pad structure...\nPerforming Analysis at 5.00 GHz\nGenerating capacitance matrix (11x11)...\nGenerating inductance matrix (22x22)..\nInverting matrix.....\nError:  Quadpack DQAGI function did not converge.\nCalled with:  freq = 5e+09, sep = 0, h = 9e-06\n\tThe algorithm does not converge.\n\troundoff error is detected in the\n\textrapolation table.\n\tit is assumed that the requested tolerance\n\tcannot be achieved, and that the returned\n\tresult is the best which can be obtained.\nError:  Quadpack DQAGI function did not converge.\nCalled with:  freq = 5e+09, sep = 0, h = 9e-06\n\tThe algorithm does not converge.\n\troundoff error is detected in the\n\textrapolation table.\n\tit is assumed that the requested tolerance\n\tcannot be achieved, and that the returned\n\tresult is the best which can be obtained.\nError:  Quadpack DQAGI function did not converge.\nCalled with:  freq = 5e+09, sep = 0, h = 9e-06\n\tThe algorithm does not converge.\n\troundoff error is detected in the\n\textrapolation table.\n\tit is assumed that the requested tolerance\n\tcannot be achieved, and that the returned\n\tresult is the best which can be obtained.\nError:  Quadpack DQAGI function did not converge.\nCalled with:  freq = 5e+09, sep = 0, h = 9e-06\n\tThe algorithm does not converge.\n\troundoff error is detected in the\n\textrapolation table.\n\tit is assumed that the requested tolerance\n\tcannot be achieved, and that the returned\n\tresult is the best which can be obtained.\nError:  Quadpack DQAGI function did not converge.\nCalled with:  freq = 5e+09, sep = 0, h = 9e-06\n\tThe algorithm does not converge.\n\troundoff error is detected in the\n\textrapolation table.\n\tit is assumed that the requested tolerance\n\tcannot be achieved, and that the returned\n\tresult is the best which can be obtained.\nError:  Quadpack DQAGI function did not converge.\nCalled with:  freq = 5e+09, sep = 0, h = 9e-06\n\tThe algorithm does not converge.\n\troundoff error is detected in the\n\textrapolation table.\n\tit is assumed that the requested tolerance\n\tcannot be achieved, and that the returned\n\tresult is the best which can be obtained.\nError:  Quadpack DQAGI function did not converge.\nCalled with:  freq = 5e+09, sep = 0, h = 9e-06\n\tThe algorithm does not converge.\n\troundoff error is detected in the\n\textrapolation table.\n\tit is assumed that the requested tolerance\n\tcannot be achieved, and that the returned\n\tresult is the best which can be obtained.\nError:  Quadpack DQAGI function did not converge.\nCalled with:  freq = 5e+09, sep = 0, h = 9e-06\n\tThe algorithm does not converge.\n\troundoff error is detected in the\n\textrapolation table.\n\tit is assumed that the requested tolerance\n\tcannot be achieved, and that the returned\n\tresult is the best which can be obtained..\nSolving node equations...(6x6)\nPi Model at f=5.00 GHz:  Q = 8.663,1.872,9.391\nL  =  -380 nH\tR  =2.06e+04\nCs1=  5.83 fF\tRs1=-1.93e+03\nCs2=  5.26 fF\tRs2=-1.29e+04\tf_res =  -nanGHz\nPerforming Analysis at 5.00 GHz\nGenerating capacitance matrix (7x7)...\nPi Model at f=5.00 GHz:  Q = 5.646,-0.680,0.850\nL  =  -379 nH\tR  =2.07e+04\nCs1=  4.21 fF\tRs1=-4.4e+03\nCs2=  -4.5 fF\tRs2=-1.14e+04\tf_res =  -nanGHz\nASITIC>  ",
+      "script": "CELL 1000 1000 1000\nCCELL 1000 1000\nEDDY ON\nSAVEMAT TRUE\nSQUARE NAME=A:LEN=60:W=5:S=3:N=1:METAL=M4:EXIT=-1:XORG=20:YORG=20\nWIRE NAME=G:LEN=100:WID=8:METAL=M1:XORG=10:YORG=100\nWIRE NAME=P1:LEN=20:WID=5:METAL=M4:XORG=0:YORG=20\nWIRE NAME=P2:LEN=20:WID=5:METAL=M4:XORG=95:YORG=20\nPI4 A 5 P1 P2 G\n2PORTPAD A P1 P2 5 5 1 Y RECT y.out G\n2PORTPAD A P1 P2 5 5 1 S RECT s.out G\n"
+    }
+  ]
+}

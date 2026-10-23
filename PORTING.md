@@ -19,6 +19,9 @@ Reference checkout: `~/github/asitic-re`, revision recorded in each fixture.
 | `quadrature.py` | `quadrature.cpp` | DQK15I transformed rule, DQPSRT ranking, DQELG epsilon extrapolation and DQAGIE adaptive infinite integration; direct 32-bit C++ probe covers 60 integrations and 36 rules, including convergence/failure statuses and exact evaluation/subdivision counts |
 | `green.py` | `green.cpp`, `legacy_complex.cpp` | 186 direct 32-bit C++ object probes: propagation constants, complex tanh, reflection, layered/limiting integrands, oscillating/reflection kernels; realistic and extreme conductivities, zero frequency/wave number, decay cutoff and native nonfinite classifications |
 | `oscillatory.py` | `oscillatory.cpp` | Native DQK15W/DQCHEB/DGTSL/DQC25F/DQAWOE/DQAWFE: 176 oscillatory rules, 88 weighted rules, 4 Chebyshev transforms, 8 pivoted tridiagonal cases, 168 adaptive integrals and 80 Fourier runs with per-cycle values/statuses and extrapolation history |
+| `green_integration.py` | `green_integration.cpp` | 58 complete integrations: native selector boundaries, warm-up callbacks, final scaling, partial statuses and retained Fourier history |
+| `eddy.py`, `solver.py` | `eddy.cpp`, `solver.cpp` | 16 EDDY ON LMAT matrices across CMOS/BiCMOS wire, square, polygon and via-exit cases; coarse/refined meshes and square Eddy.out snapshots |
+| `network.py` eddy integration | `combined_network.cpp`, `extended_analysis.cpp` | Eight additional PI2 and eight PI3/PI4 sessions with EDDY ON, compared using native precise Y/S outputs and printed metrics |
 | `gds.py` | Native ribbon and `layout_export.cpp` via pitch conventions | Independent gdstk round-trip for nine generators, units, coordinates, layer mapping, via counts and cut area |
 | `bridge.py`, `web/worker.js` | New browser interface | Generation, estimates, sweeps and exports exercised in pinned Pyodide WebAssembly runtime |
 
@@ -58,9 +61,9 @@ QLF (the native DC-loss extrapolation), not network quality or HF Q. Inductance
 does not change with frequency in estimate mode. LMAT's separate series Q is
 Im(sum Z)/Re(sum Z). CAP now computes layered-substrate capacitance and substrate
 loss independently. Pi2 combines those two distributed solvers and reports the
-original frequency-dependent network metrics. Eddy-current corrections, the
-fast Pi path, extended/transformer/multiport networks and self-resonance search
-remain pending.
+original frequency-dependent network metrics. Native eddy correction is optional
+for LMAT and Pi2/Pi3/Pi4. The fast Pi path, extended/transformer/multiport networks
+and self-resonance search remain pending.
 
 Outstanding validation: broader rotated/fractional/negative-phase geometry
 fixtures, arbitrary technology files, segment-kernel precision fixtures, real
@@ -124,9 +127,8 @@ Decimal guard precision preserves the original explicit binary64 stores and
 unspilled arithmetic; it does not reproduce every x87 instruction rounding.
 Direct object probes compare values/errors with max(1e-13 absolute, 1e-12
 relative) and require exact statuses, subdivision counts and evaluation counts.
-These are quadrature dependency tests, not an enabled eddy-current solver.
-The Fourier/oscillatory dependency is also ported; Green-integrator connection
-and eddy matrix stamping still need connected reference validation.
+These dependency tests are supplemented by complete Green integration, LMAT
+stamping and Pi-family comparisons described below.
 
 The eddy Green kernels now preserve the original complex record spills, with
 64-bit-significand arithmetic for the layered integrand and legacy division.
@@ -136,8 +138,7 @@ infinities. The fixtures retain those classifications and exact zero results.
 The native reflection callback returns only exponential decay, discarding the
 reflection/cosine values; that behavior is preserved. Finite comparisons use
 max(1e-14 absolute, 1e-12 relative), with relative checks down to 1e-300 absolute
-for reflection decay and the before/after ln(FLT_MAX) cutoff cases. These tests
-validate kernel dependencies, not a connected eddy-loss simulation. Full x87
+for reflection decay and the before/after ln(FLT_MAX) cutoff cases. Full x87
 exception flags, signed NaN payloads, arbitrary extreme inputs and process
 stacks remain outside the current evidence.
 
@@ -154,6 +155,35 @@ values use max(1e-13 absolute, 1e-12 relative); cancellation-limited error
 estimates use max(1e-12 absolute, 1e-10 relative). These are algorithm
 conformance tolerances, not guarantees of integration accuracy for every
 integrand or a claim of matching all x87 flags/roundoff histories.
+
+The Green wrapper retains the source's discarded warm-up samples, the
+|separation| < 1e-10 DQAGIE selector, DQAWFE cosine weighting (in addition to
+the oscillating callback's cosine), physical scaling and three history cells.
+All 58 direct native cases require exact statuses and callback counts; finite
+values use max(1e-12 absolute, 1e-12 relative). Three native nonfinite cases
+retain their NaN classification and partial-result status.
+
+EDDY ON stamps impedance before via corrections and reinverts it for the Pi
+driver. Mode 1 uses packed square indices; other shapes use segment folding.
+The original omitted final square index, via-consuming off-diagonal traversal,
+primary-block widths and axial length-minus-two-width rules are preserved.
+The eight geometry/process fixtures cover coarse 1 GHz and refined 2 GHz
+matrices; tolerance is max(1e-8 ohm, 1e-8 relative) per component. The eight
+additional Pi2 and eight Pi3/Pi4 fixtures use the existing Y/S tolerances.
+These paths run in CPython and WebAssembly; arbitrary process stacks and all
+creator/eddy combinations still need independent fixtures.
+
+The technology reader retains the first two repeated EDDY layer declarations.
+A single layer selects the original pure-decay reflection callback; two layers
+select the layered oscillating callback. Native results can consequently have
+large negative conductor resistance; the app exposes a diagnostic and preserves
+those values. Short/wide joined segments can produce native NaN impedances;
+Python reports this failure explicitly. Eddy correction defaults off. With no
+EDDY layers, the square path preserves the native skip/warning, while the
+segment path rejects the undefined incoming-index history of the reference.
+
+Static releases version the HTML asset references, module imports, worker and
+Python archive together so cached solvers do not receive newer UI controls.
 
 `3DTrans`, `3DMIRRORTRANS`, `Trans3D` and `TransMIM` are aliases of creator ID 10,
 not separate generator algorithms. The 3D builder is generated into standalone

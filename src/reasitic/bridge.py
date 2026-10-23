@@ -51,7 +51,7 @@ def handle(request):
         ground=_shape(request["ground"],tech) if request.get("ground") else None
         pads={"first_pad":_shape(request["first_pad"],tech),"second_pad":_shape(request["second_pad"],tech)} if action=="pi4" else {}
         solver={"pi2":solve_pi2,"pi3":solve_pi3,"pi4":solve_pi4}[action]
-        return solver(shape,tech,float(request.get("frequency_hz",1e9)),ground=ground,**pads,
+        return solver(shape,tech,float(request.get("frequency_hz",1e9)),ground=ground,eddy=request.get("eddy",False),**pads,
                          **{key:float(mesh.get(key,1000)) for key in ("length_cell","width_cell","thickness_cell","capacitance_length_cell","capacitance_width_cell")})
     if action == "capacitance":
         mesh=request.get("mesh",{})
@@ -61,6 +61,7 @@ def handle(request):
     if action == "lmat":
         mesh = request.get("mesh",{})
         return solve_impedance(shape,tech,float(request.get("frequency_hz",1e9)),
+                               eddy=request.get("eddy",False),
                                length_cell=float(mesh.get("length_cell",1000)),
                                width_cell=float(mesh.get("width_cell",1000)),
                                thickness_cell=float(mesh.get("thickness_cell",1000)),

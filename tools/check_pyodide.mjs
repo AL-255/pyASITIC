@@ -5,6 +5,11 @@ import { readFileSync } from "node:fs";
 import { pathToFileURL } from "node:url";
 import assert from "node:assert/strict";
 const { loadPyodide } = await import(pathToFileURL(process.argv[2]).href);
+const siteVersion=JSON.parse(readFileSync(new URL("../dist/version.json",import.meta.url))).version;
+for(const [file,references] of [["index.html",["app.js","style.css"]],["app.js",["analysis-views.mjs","worker.js"]],["worker.js",["reasitic.zip"]]]){
+  const body=readFileSync(new URL("../dist/"+file,import.meta.url),"utf8");
+  for(const reference of references)assert.ok(body.includes(`${reference}?v=${siteVersion}`),`Coherent release asset ${reference}`);
+}
 const py = await loadPyodide();
 py.unpackArchive(new Uint8Array(readFileSync(new URL("../dist/reasitic.zip",import.meta.url))),"zip");
 py.runPython("from reasitic.bridge import request_json");
@@ -82,10 +87,11 @@ for(const fixture of potentialCases){
   })));
 }
 console.log("Eight native layered-substrate capacitance matrices passed in WebAssembly.");
-const networkCases=JSON.parse(readFileSync(new URL("../tests/fixtures/network.json",import.meta.url))).cases;
+const networkCases=[...JSON.parse(readFileSync(new URL("../tests/fixtures/network.json",import.meta.url))).cases,
+  ...JSON.parse(readFileSync(new URL("../tests/fixtures/network_eddy.json",import.meta.url))).cases];
 for(const fixture of networkCases){
   const result=request({action:"pi2",kind:fixture.kind,parameters:fixture.parameters,technology:fixture.technology,
-    frequency_hz:fixture.frequency_hz,mesh:fixture.mesh,ground:fixture.ground});
+    frequency_hz:fixture.frequency_hz,mesh:fixture.mesh,ground:fixture.ground,eddy:fixture.eddy||false});
   for(const key of ["admittance_matrix","scattering_matrix"]){
     assert.equal(result[key].length,2);
     result[key].forEach((row,i)=>row.forEach((value,j)=>value.forEach((component,k)=>{
@@ -93,16 +99,17 @@ for(const fixture of networkCases){
       assert.ok(Math.abs(component-expected)<=Math.max(1e-10,Math.abs(expected)*1e-8),`PI2 ${fixture.process} ${fixture.kind} ${key} [${i},${j}]`);
     })));
   }
-  assert.equal(result.eddy,false);
+  assert.equal(result.eddy,fixture.eddy||false);
   assert.ok(Number.isFinite(result.pi.q_first));
   assert.ok(Number.isFinite(result.pi.inductance_h));
   if(fixture.kind==="wire" && !fixture.ground)assert.equal(result.pi.shunt_differential_ohm,null);
 }
-console.log("Eight native distributed Pi2 Y/S matrices passed in WebAssembly.");
-const piModelCases=JSON.parse(readFileSync(new URL("../tests/fixtures/pi_models.json",import.meta.url))).cases;
+console.log("16 native distributed Pi2 Y/S models passed in WebAssembly, eddy off/on.");
+const piModelCases=[...JSON.parse(readFileSync(new URL("../tests/fixtures/pi_models.json",import.meta.url))).cases,
+  ...JSON.parse(readFileSync(new URL("../tests/fixtures/pi_models_eddy.json",import.meta.url))).cases];
 for(const fixture of piModelCases){
   const result=request({action:fixture.model,kind:fixture.kind,parameters:fixture.parameters,technology:fixture.technology,
-    ground:fixture.ground,first_pad:fixture.first_pad,second_pad:fixture.second_pad,frequency_hz:fixture.frequency_hz});
+    ground:fixture.ground,first_pad:fixture.first_pad,second_pad:fixture.second_pad,frequency_hz:fixture.frequency_hz,eddy:fixture.eddy||false});
   for(const key of ["admittance_matrix","scattering_matrix"]){
     result[key].forEach((row,i)=>row.forEach((value,j)=>value.forEach((component,k)=>{
       const expected=fixture[key][i][j][k];
@@ -113,7 +120,7 @@ for(const fixture of piModelCases){
 }
 assert.throws(()=>request({action:"pi"}),/native fast Pi/);
 assert.throws(()=>request({action:"pi3"}),/explicit ground/);
-console.log("Eight native Pi3/Pi4 models and explicit fast-Pi limitation passed in WebAssembly.");
+console.log("16 native Pi3/Pi4 models and explicit fast-Pi limitation passed in WebAssembly, eddy off/on.");
 }
 py.runPython(`
 from dataclasses import asdict
@@ -232,5 +239,46 @@ for(const group of ["rules","weighted","chebyshev","tridiagonal","oscillatory","
 }
 oscillatoryProbe.destroy();
 console.log("524 native weighted/Chebyshev/moment/adaptive/Fourier cases passed in WebAssembly.");
+py.runPython(`
+from reasitic.green_integration import GreenIntegrationState,green_integral
+def green_integral_probe(payload):
+    case=json.loads(payload)
+    state=GreenIntegrationState(GreenLayers(case["layer1"],case["layer2"],case["depth"]),case["kernel"])
+    points=[]
+    value=green_integral(case["frequency"],case["separation"],case["height"],case["z_offset"],state,observer=points.append)
+    result=dict(value=value.value,status=value.status,observations=value.observations,first_point=points[0],last_point=value.last_point,
+                state=[state.frequency,state.separation,state.height,state.z_offset],history=state.history)
+    if not math.isfinite(result["value"]):result["value"]=str(result["value"])
+    return json.dumps(result,allow_nan=False)
+`);
+const greenIntegralProbe=py.globals.get("green_integral_probe");
+const greenIntegralCases=JSON.parse(readFileSync(new URL("../tests/fixtures/green_integration.json",import.meta.url))).cases;
+for(const fixture of greenIntegralCases){
+  const result=JSON.parse(greenIntegralProbe(JSON.stringify(fixture)));
+  function compare(actual,expected,label){
+    if(Array.isArray(expected)){
+      assert.equal(actual.length,expected.length,label);
+      actual.forEach((value,i)=>compare(value,expected[i],`${label}[${i}]`));
+    }else if(typeof expected==="string" || ["status","observations"].includes(label))assert.equal(actual,expected,label);
+    else if(expected===0)assert.ok(actual===0,label);
+    else assert.ok(Math.abs(actual-expected)<=Math.max(1e-12,Math.abs(expected)*1e-12),`Green integral ${label}`);
+  }
+  for(const [key,value] of Object.entries(result))compare(value,fixture[key],key);
+}
+greenIntegralProbe.destroy();
+console.log("58 complete native Green integrations passed in WebAssembly, including selector boundaries and callback traces.");
+const eddyCases=JSON.parse(readFileSync(new URL("../tests/fixtures/eddy.json",import.meta.url))).cases;
+for(const fixture of eddyCases){
+  for(const [frequency_hz,mesh,key] of [[1e9,{},"matrix_1ghz"],[2e9,{length_cell:50,width_cell:3,thickness_cell:.5},"matrix_fine_2ghz"]]){
+    const result=request({action:"lmat",kind:fixture.kind,parameters:fixture.parameters,technology:fixture.technology,frequency_hz,mesh,eddy:true});
+    assert.equal(result.eddy,true);
+    assert.equal(result.matrix.length,fixture[key].length);
+    result.matrix.forEach((row,i)=>row.forEach((value,j)=>value.forEach((component,k)=>{
+      const expected=fixture[key][i][j][k];
+      assert.ok(Math.abs(component-expected)<=Math.max(1e-8,Math.abs(expected)*1e-8),`EDDY ${fixture.kind} ${fixture.process} ${key} [${i},${j}]`);
+    })));
+  }
+}
+console.log("16 complete native EDDY ON LMAT matrices passed in WebAssembly.");
 call.destroy();
 console.log("Pinned Pyodide archive smoke test passed.");

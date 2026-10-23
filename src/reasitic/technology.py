@@ -1,5 +1,5 @@
 """ASITIC .tek reader. RSH is specified in milliohms per square."""
-from dataclasses import dataclass, asdict
+from dataclasses import dataclass, asdict, field
 from pathlib import Path
 import math
 import re
@@ -33,11 +33,13 @@ class Technology:
     vias: list[Via]
     substrate: list[dict]
     chip: dict
+    eddy_layers: list[int] = field(default_factory=list)
 
     @classmethod
     def from_text(cls, text):
         blocks = {"chip": [], "layer": [], "metal": [], "via": []}
         current = None
+        eddy_layers = []
         for line in text.splitlines():
             line = line.split(";", 1)[0].strip()
             if not line:
@@ -59,6 +61,8 @@ class Technology:
                     if key.lower() not in {"name", "color", "techfile", "techpath"}:
                         raise ValueError(f"Invalid technology value: {line}") from None
                 current[key.lower()] = value
+                if kind=="chip" and key.lower().startswith("eddy") and len(eddy_layers)<2:
+                    eddy_layers.append(int(value))
             else:
                 raise ValueError(f"Invalid technology line: {line}")
         metals, vias = [], []
@@ -85,7 +89,7 @@ class Technology:
                             v.get("overplot1", 0), v.get("overplot2", 0)))
         if not metals:
             raise ValueError("Technology must contain at least one metal layer")
-        return cls(metals, vias, blocks["layer"], blocks["chip"][0] if blocks["chip"] else {})
+        return cls(metals, vias, blocks["layer"], blocks["chip"][0] if blocks["chip"] else {},eddy_layers)
 
     @classmethod
     def default(cls):

@@ -19,14 +19,17 @@ Implemented so far:
   high-frequency resistance model, including parallel via counts.
 - Original `Inductance` and `Coupling` estimate algorithms: segment self terms,
   signed parallel, planar and spatial mutual-inductance cases.
-- No-eddy `LMAT` filament solver with longitudinal and cross-section meshing,
+- `LMAT` filament solver with longitudinal and cross-section meshing,
   impedance assembly, inversion/reduction and via corrections. The web app
   displays L, R, series Q and the complex matrix, with full matrix CSV download.
+- Optional native `EDDY ON` substrate correction, including square packing,
+  segment folding, layered Green integration and convergence diagnostics.
+  Preserves native negative-resistance results and reports nonfinite failures.
 - Original layered-substrate `CAP` solver: contact discretization, layered
   spectral Green functions, reflected FFT tables, potential-matrix inversion,
   and admittance reduction. Includes explicit ground winding selection, total
   capacitance, substrate equivalent resistance and admittance CSV download.
-- Distributed `PI2` / `PI3` two-port models with eddy currents disabled: combines CAP
+- Distributed `PI2` / `PI3` two-port models with optional native eddy correction: combines CAP
   and filament admittance through the original node equations. Reports series
   L/R, two RC shunts, port/differential Q, input impedances, shunt resistance,
   narrowband resonance estimate and native 50 Ω Y/S output, with JSON/CSV export.
@@ -72,6 +75,10 @@ python3 tools/capture_quadrature.py --reference ~/github/asitic-re
 python3 tools/capture_green.py --reference ~/github/asitic-re
 python3 tools/capture_oscillatory.py --reference ~/github/asitic-re
 python3 tools/capture_pi_models.py --reference ~/github/asitic-re
+python3 tools/capture_green_integration.py --reference ~/github/asitic-re
+python3 tools/capture_eddy.py --reference ~/github/asitic-re
+python3 tools/capture_network.py --reference ~/github/asitic-re --eddy
+python3 tools/capture_pi_models.py --reference ~/github/asitic-re --eddy
 ```
 
 Install `gdstk==1.0.2` to enable the independent GDS reader tests. CI runs those
@@ -103,8 +110,8 @@ add `--gds coil.gds` to export a layout request. See `src/reasitic/bridge.py`.
 ## Remaining scope
 
 The full objective includes geometry editing/session commands;
-substrate eddy-current algorithms; extended/transformer and multiport networks;
-EM frequency sweeps and optimization. Work will be validated against the reference
+broader substrate eddy-current validation; extended/transformer and multiport
+networks; self-resonance search and optimization. Work will be validated against the reference
 one connected path at a time. No fitted spiral-inductance formula is substituted
 for the original electromagnetic solver.
 

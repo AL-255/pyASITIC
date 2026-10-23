@@ -173,18 +173,18 @@ def convert_scattering(y):
 
 
 def solve_pi2(shape,technology,frequency_hz,*,ground=None,length_cell=1000,width_cell=1000,thickness_cell=1000,
-              capacitance_length_cell=1000,capacitance_width_cell=1000,max_filaments=256,max_contacts=256,include_matrices=False):
-    """Original distributed Pi2 combination with substrate capacitance, eddy off."""
+              capacitance_length_cell=1000,capacitance_width_cell=1000,max_filaments=256,max_contacts=256,include_matrices=False,eddy=False):
+    """Original distributed Pi2 combination with substrate capacitance and loss."""
     if not all(math.isfinite(v) and v>0 for v in (frequency_hz,length_cell,width_cell,thickness_cell,capacitance_length_cell,capacitance_width_cell)):
         raise ValueError("Pi2 frequency and mesh sizes must be finite and positive")
     meshed=discretize(shape,capacitance_length_cell,length_cell)
     cap=solve_capacitance(meshed,technology,frequency_hz,ground=ground,length_cell=capacitance_length_cell,
                           width_cell=capacitance_width_cell,max_contacts=max_contacts)
     ind=solve_impedance(meshed,technology,frequency_hz,width_cell=width_cell,thickness_cell=thickness_cell,
-                        max_filaments=max_filaments,admittance=True,discretized=True)
+                        max_filaments=max_filaments,admittance=True,discretized=True,eddy=eddy)
     y,nodal=solve_node_equations(_complex_matrix(cap["matrix"]),_complex_matrix(ind["matrix"]))
     z1,z2,zd=(two_port_impedance(y,port=1),two_port_impedance(y,port=2),two_port_impedance(y,differential=True))
-    data=dict(frequency_hz=frequency_hz,method="ASITIC PI2, eddy off",eddy=False,
+    data=dict(frequency_hz=frequency_hz,method="ASITIC PI2, native eddy on" if eddy else "ASITIC PI2, eddy off",eddy=bool(eddy),
               admittance_matrix=_pairs([[y["y22"],y["y21"]],[y["y12"],y["y11"]]]),
               scattering_matrix=_pairs(convert_scattering(y)),reference_impedance_ohm=50,
               pi=extract_pi_equivalent(y,frequency_hz),input_impedance_first_ohm=[z1.real,z1.imag],
@@ -192,6 +192,8 @@ def solve_pi2(shape,technology,frequency_hz,*,ground=None,length_cell=1000,width
               contacts=cap["contacts"],filaments=ind["filaments"],segments=ind["segments"],warnings=ind["warnings"])
     if include_matrices:
         data.update(capacitance_matrix=cap["matrix"],inductive_admittance_matrix=ind["matrix"],nodal_capacitance_matrix=_pairs(nodal))
+    if "eddy_details" in ind:
+        data["eddy_details"]=ind["eddy_details"]
     return data
 
 
@@ -200,7 +202,7 @@ def solve_pi3(shape,technology,frequency_hz,*,ground,**mesh):
     if ground is None:
         raise ValueError("Pi3 requires an explicit ground shape")
     result=solve_pi2(shape,technology,frequency_hz,ground=ground,**mesh)
-    result["method"]="ASITIC PI3, eddy off"
+    result["method"]="ASITIC PI3, native eddy on" if result["eddy"] else "ASITIC PI3, eddy off"
     return result
 
 
@@ -250,7 +252,7 @@ def solve_pi4(shape,technology,frequency_hz,*,first_pad,second_pad,ground=None,*
     first,second,cross=cap[0][0]+cap[1][0],cap[1][1]+cap[1][0],-cap[1][0]
     y=dict(y22=saved[0][0]-first,y11=saved[1][1]-second,y21=saved[0][1]-cross,y12=saved[1][0]-cross)
     z1,z2,zd=two_port_impedance(y,port=1),two_port_impedance(y,port=2),two_port_impedance(y,differential=True)
-    result.update(method="ASITIC PI4, eddy off",admittance_matrix=_pairs([[y["y22"],y["y21"]],[y["y12"],y["y11"]]]),
+    result.update(method="ASITIC PI4, native eddy on" if result["eddy"] else "ASITIC PI4, eddy off",admittance_matrix=_pairs([[y["y22"],y["y21"]],[y["y12"],y["y11"]]]),
                   scattering_matrix=_pairs(convert_scattering(y)),pi=extract_pi_equivalent(y,frequency_hz),
                   input_impedance_first_ohm=[z1.real,z1.imag],input_impedance_second_ohm=[z2.real,z2.imag],
                   differential_impedance_ohm=[zd.real,zd.imag],pad_admittance_matrix=pad_cap["matrix"],pad_contacts=pad_cap["contacts"])

@@ -6,6 +6,7 @@ const COLORS = ["#e8bd65", "#81b4ef", "#b899eb", "#8fd1ae", "#e89971", "#e88fbd"
 let worker, ready = false, busy = false, nextId = 0, current = null, currentDefinition = null, technology = null, technologyText = "", sweepRows = null, matrixResult = null, capacitanceResult = null, pi2Result = null;
 let sweepContext=null,sweepModels=[];
 const MODEL_NAMES={pi:"Pi",pi2:"Pi2",pi3:"Pi3",pi4:"Pi4"};
+const eddyEnabled=()=>!!$("#eddy-mode")?.checked;
 const pending = new Map();
 const fmt = (value, digits=4) => Number(value).toLocaleString(undefined, { maximumSignificantDigits: digits });
 
@@ -146,6 +147,7 @@ function resetSweep(){
 }
 function resetModel(){
   pi2Result=null;$("#pi2-metrics").replaceChildren();$("#pi2-ports").replaceChildren();$("#pi2-result").textContent="";
+  if($("#model-diagnostics")){$("#model-diagnostics").hidden=true;$("#model-diagnostics").textContent="";}
   $("#model-circuit").innerHTML=circuitSVG({}, {model:MODEL_NAMES[$("#pi-model").value],note:$("#pi-model").value==="pi"?"Native fast Pi is unavailable for conductor coils":"Run the selected model to show component values"});
 }
 function updateModelControls(clear=true){
@@ -160,10 +162,10 @@ function updateModelControls(clear=true){
   $("#pi2").textContent="Run "+MODEL_NAMES[model];
   $("#model-note").textContent={
     pi:"The supplied ASITIC fast Pi command faults on conductor coils before it produces circuit values. The topology is shown here; numerical fast-Pi results are unavailable in this reference.",
-    pi2:"Distributed filament and layered-substrate model. The diagram shows series L/R and two series RC shunts. Uses the frequency above and CAP/LMAT mesh settings below. Eddy currents are disabled.",
-    pi3:"Original Pi3: the distributed model with an explicit ground structure. Choose the other winding or define a ground strip. Eddy currents are disabled.",
-    pi4:"Original Pi4: solve the device with its pads, subtract the pads’ capacitive contribution, and extract the three-terminal circuit. Define two pad strips and a reference. Eddy currents are disabled."
-  }[model];
+    pi2:"Distributed filament and layered-substrate model. The diagram shows series L/R and two series RC shunts. Uses the frequency above and CAP/LMAT mesh settings below.",
+    pi3:"Original Pi3: the distributed model with an explicit ground structure. Choose the other winding or define a ground strip.",
+    pi4:"Original Pi4: solve the device with its pads, subtract the pads’ capacitive contribution, and extract the three-terminal circuit. Define two pad strips and a reference."
+  }[model]+(model==="pi"?"":eddyEnabled()?" Native eddy correction is enabled; convergence diagnostics appear with results.":" Eddy currents are disabled.");
   if(clear)resetModel();controls();
 }
 function stripDefinition(prefix,suffix){
@@ -175,7 +177,7 @@ function modelPayload(model,frequency){
   if(model==="pi3"&&mode==="none")throw new Error("Choose a ground strip or the other winding for Pi3.");
   if(mode==="other" && current.windings.length!==2)throw new Error("This layout has no other winding; choose a ground strip.");
   const ground=mode==="other"?{...currentDefinition,winding:1-(currentDefinition.winding||0)}:mode==="strip"?stripDefinition("model-ground","_ground"):null;
-  return {action:model,...currentDefinition,ground,technology:technologyText,frequency_hz:frequency,
+  return {action:model,...currentDefinition,ground,technology:technologyText,frequency_hz:frequency,eddy:eddyEnabled(),
     ...(model==="pi4"?{first_pad:stripDefinition("model-pad1","_pad1"),second_pad:stripDefinition("model-pad2","_pad2")} : {}),
     mesh:{length_cell:numeric("#mesh-length"),width_cell:numeric("#mesh-width"),thickness_cell:numeric("#mesh-thickness"),
       capacitance_length_cell:numeric("#cap-length"),capacitance_width_cell:numeric("#cap-width")}};
@@ -183,10 +185,11 @@ function modelPayload(model,frequency){
 function renderSweep(rows) {
   const model=sweepContext?.model||$("#sweep-model").value,estimate=model==="estimates",metric=$("#sweep-metric").value;
   const labels={inductance_nh:estimate?"Inductance estimate · nH":"Series inductance · nH",resistance_ohm:estimate?"HF resistance · Ω":"Series resistance · Ω",q:estimate?"LF extrapolated quality · QLF":"Port 1 quality factor · Q"};
-  const name=estimate?"Conductor estimates":MODEL_NAMES[model];
+  const eddy=sweepContext?!!sweepContext.eddy:!estimate&&eddyEnabled();
+  const name=estimate?"Conductor estimates":MODEL_NAMES[model]+(eddy?" · eddy on":"");
   $("#sweep-chart").innerHTML=sweepSVG(rows,metric,{model:name,label:labels[metric],scale:$("#sweep-scale").value,
     firstHz:sweepContext?.firstHz||Number($("#sweep-first").value)*1e9,lastHz:sweepContext?.lastHz||Number($("#sweep-last").value)*1e9});
-  $("#sweep-method").textContent=estimate?"Conductor estimates: QLF uses DC loss and the inductance estimate is frequency independent.":`${name}: frequency-dependent distributed model, eddy currents disabled. Select a plotted point to inspect its three-terminal circuit.`;
+  $("#sweep-method").textContent=estimate?"Conductor estimates: QLF uses DC loss and the inductance estimate is frequency independent.":`${name}: frequency-dependent distributed model, native eddy ${eddy?"enabled":"disabled"}. Select a plotted point to inspect its three-terminal circuit.`;
   const table=document.createElement("table"),head=table.createTHead().insertRow();
   for(const title of ["GHz",estimate?"L estimate (nH)":"Series L (nH)",estimate?"HF R (Ω)":"Series R (Ω)",estimate?"QLF":"Port 1 Q"]) { const th=document.createElement("th");th.textContent=title;head.append(th); }
   const body=table.createTBody();
@@ -228,7 +231,7 @@ $("#sweep").addEventListener("click",()=>task(async()=>{
   if(!(first>0&&last>first&&Number.isInteger(count)&&count>=2&&count<=101))throw new Error("Sweep needs 0 < start < stop and 2–101 points.");
   const log=$("#sweep-scale").value==="log";
   const base=model==="estimates"?{action:"simulate",...currentDefinition,technology:technologyText}:modelPayload(model,first);
-  sweepRows=[];sweepModels=[];sweepContext={model,firstHz:first,lastHz:last};
+  sweepRows=[];sweepModels=[];sweepContext={model,firstHz:first,lastHz:last,eddy:model!=="estimates"&&base.eddy};
   for(let i=0;i<count;i++){
     const f=log?first*(last/first)**(i/(count-1)):first+(last-first)*i/(count-1);
     status(`Running ${model==="estimates"?"conductor estimates":MODEL_NAMES[model]} sweep: ${i+1} / ${count} · ${fmt(f/1e9)} GHz…`);
@@ -246,7 +249,7 @@ $("#sweep").addEventListener("click",()=>task(async()=>{
 }));
 $("#download-csv").addEventListener("click",()=>{
   const keys=["frequency_hz","inductance_nh","resistance_ohm","q"];
-  download("model,"+keys.join(",")+"\n"+sweepRows.map(row=>[sweepContext.model,...keys.map(key=>row[key]??"")].join(",")).join("\n"),"text/csv",filename("-sweep.csv"));
+  download("model,eddy,"+keys.join(",")+"\n"+sweepRows.map(row=>[sweepContext.model,!!sweepContext.eddy,...keys.map(key=>row[key]??"")].join(",")).join("\n"),"text/csv",filename("-sweep.csv"));
 });
 $("#download-plot").addEventListener("click",()=>download($("#sweep-chart").innerHTML,"image/svg+xml",filename("-"+$("#sweep-metric").value+"-sweep.svg")));
 $("#download-model-svg").addEventListener("click",()=>download($("#model-circuit").innerHTML,"image/svg+xml",filename("-"+$("#pi-model").value+"-circuit.svg")));
@@ -262,6 +265,9 @@ $("#pi-model").addEventListener("change",()=>{
   $("#sweep-count").value=model==="pi"?"31":"11";resetSweep();updateModelControls();
 });
 $("#model-ground-mode").addEventListener("change",()=>updateModelControls());
+$("#eddy-mode")?.addEventListener("change",()=>{
+  updateModelControls();resetSweep();matrixResult=null;$("#matrix-table").replaceChildren();$("#lmat-result").textContent="";controls();
+});
 function inspectSweepPoint(event,select=false){
   const point=event.target.closest?.("[data-index]");if(!point)return;
   const index=Number(point.dataset.index),row=sweepRows?.[index];if(!row)return;
@@ -277,10 +283,10 @@ $("#sweep-chart").addEventListener("click",event=>inspectSweepPoint(event,true))
 $("#sweep-chart").addEventListener("keydown",event=>{if(event.key==="Enter"||event.key===" "){event.preventDefault();inspectSweepPoint(event,true);}});
 $("#lmat").addEventListener("click",()=>task(async()=>{
   status("Assembling and solving filament impedance matrix…");
-  const result=await request({action:"lmat",...currentDefinition,technology:technologyText,frequency_hz:numeric("#frequency")*1e9,
+  const result=await request({action:"lmat",...currentDefinition,technology:technologyText,frequency_hz:numeric("#frequency")*1e9,eddy:eddyEnabled(),
     mesh:{length_cell:numeric("#mesh-length"),width_cell:numeric("#mesh-width"),thickness_cell:numeric("#mesh-thickness")}});
   matrixResult=result;
-  $("#lmat-result").textContent=`L = ${fmt(result.inductance_h*1e9,6)} nH · R = ${fmt(result.resistance_ohm,6)} Ω · Series Q = ${fmt(result.series_q,6)} · ${result.filaments} filaments / ${result.segments} metal segments`;
+  $("#lmat-result").textContent=`L = ${fmt(result.inductance_h*1e9,6)} nH · R = ${fmt(result.resistance_ohm,6)} Ω · Series Q = ${fmt(result.series_q,6)} · ${result.filaments} filaments / ${result.segments} metal segments · Native eddy ${result.eddy?"on":"off"}`;
   const table=document.createElement("table"),head=table.createTHead().insertRow(),limit=Math.min(16,result.matrix.length);
   head.append(document.createElement("th"));
   for(let j=0;j<limit;j++){const th=document.createElement("th");th.textContent=j;head.append(th);}
@@ -329,8 +335,9 @@ $("#pi2").addEventListener("click",()=>task(async()=>{
 function renderModelResult(result,model){
   pi2Result=result;
   const name=MODEL_NAMES[model];
-  $("#pi2-result").textContent=`${name} · ${fmt(result.frequency_hz/1e9)} GHz · ${result.segments} metal segments · ${result.filaments} filaments · ${result.contacts} contacts · Eddy currents disabled`;
-  $("#model-circuit").innerHTML=circuitSVG(result.pi,{model:name,frequencyHz:result.frequency_hz,note:model==="pi4"?"Pad capacitance de-embedded · eddy currents disabled":"Frequency-specific equivalent circuit · eddy currents disabled"});
+  $("#pi2-result").textContent=`${name} · ${fmt(result.frequency_hz/1e9)} GHz · ${result.segments} metal segments · ${result.filaments} filaments · ${result.contacts} contacts · Native eddy ${result.eddy?"on":"off"}`;
+  $("#model-circuit").innerHTML=circuitSVG(result.pi,{model:name,frequencyHz:result.frequency_hz,note:(model==="pi4"?"Pad capacitance de-embedded":"Frequency-specific equivalent circuit")+` · native eddy ${result.eddy?"on":"off"}`});
+  if($("#model-diagnostics")){$("#model-diagnostics").hidden=!result.warnings.length;$("#model-diagnostics").textContent=result.warnings.join(" ");}
   const p=result.pi,table=document.createElement("table"),head=table.createTHead().insertRow();
   for(const title of [name+" metric","Value"]){const th=document.createElement("th");th.textContent=title;head.append(th);}
   const rows=[

@@ -1,0 +1,1523 @@
+{
+  "reference": "Direct unmodified 32-bit C++ Green integration wrapper and callback trace",
+  "reference_commit": "63885e808b522bdeba3f254d353afc72e643c761",
+  "object_sha256": {
+    "green_integration.o": "6a2ffed4751932d318ddc22f770defa6872838019f56988d3e060cd585e7a075",
+    "green.o": "5bcb8866814ff6b3f289cd6c78d8f07da6aff414f31abd86b74f33807e5eadaa",
+    "legacy_complex.o": "bdaae91b358b71834cc61a091eaa3e6867db8c2c9a34b8dd5a017c7fffa0bfc3",
+    "quadrature_wrappers.o": "708a9099b97510c32e8486a6f9ae2fd7498293cc686b927421dee9c85341da71",
+    "quadrature.o": "68fba0cdb433ff3e8e0731c33117638b57d56a2bd5c3060044ce5e8435d2e8f4",
+    "oscillatory.o": "854151010991bce2c1329b54ed97885ee69a7ab2d55a34cb7584d34bbd393e0d"
+  },
+  "probe": "\n#include \"asitic/green_integration.hpp\"\nextern \"C\" int printf(const char*,...);\nextern \"C\" int atoi(const char*);\nextern \"C\" double atof(const char*);\nextern \"C\" double sin(double);\nextern \"C\" double cos(double);\nlong double sine(double x) { return sin(x); }\nlong double cosine(double x) { return cos(x); }\nstruct Trace { int calls,status;double first,last; };\nvoid observe(void* context,double k) { auto& t=*static_cast<Trace*>(context);if(t.calls++==0)t.first=k;t.last=k; }\nvoid diagnostic(void* context,const char*,int,int status,int) { static_cast<Trace*>(context)->status=status; }\nvoid value(double x) { if(__builtin_isnan(x))printf(\"nan \");else if(__builtin_isinf(x))printf(x>0?\"inf \":\"-inf \");else printf(\"%.17g \",x); }\nextern \"C\" int probe_main(int,char** argv) {\n    asitic::GreenIntegrationState state{{atof(argv[1]),atof(argv[2]),atof(argv[3])},0,0,0,0,\n        atoi(argv[4])?asitic::GreenKernel::reflection:asitic::GreenKernel::oscillating};\n    asitic::GreenIntegrationWorkspace workspace{};Trace trace{};\n    asitic::GreenIntegrationRuntime runtime{{sine,cosine},{diagnostic,&trace},nullptr,observe,&trace,nullptr};\n    const double frequency=atof(argv[5]),separation=atof(argv[6]),height=atof(argv[7]),width=atof(argv[8]);\n    const auto integral=asitic::green_integral(frequency,separation,height,width,state,workspace,runtime);\n    value(double(integral));printf(\"%d %d \",trace.status,trace.calls);value(trace.first);value(trace.last);\n    value(state.frequency);value(state.separation);value(state.height);value(state.z_offset);\n    for(double v:workspace.history)value(v);printf(\"\\n\");return 0;\n}\nasm(\".text\\n.global _start\\n_start:\\n\"\n    \"xorl %ebp,%ebp\\npopl %esi\\nmovl %esp,%ecx\\nandl $-16,%esp\\n\"\n    \"pushl %eax\\npushl %esp\\npushl %edx\\npushl $0\\npushl $0\\npushl %ecx\\npushl %esi\\npushl $probe_main\\n\"\n    \"call __libc_start_main\\nhlt\\n\");\n",
+  "cases": [
+    {
+      "layer1": 100000.0,
+      "layer2": 0,
+      "depth": 0,
+      "kernel": "reflection",
+      "frequency": 1000000.0,
+      "separation": 0,
+      "height": 2.6e-06,
+      "z_offset": 5e-06,
+      "value": 1.2566393698057579,
+      "status": 5,
+      "observations": 776,
+      "first_point": 0.0,
+      "last_point": 653768.5105546239,
+      "state": [
+        1000000.0,
+        0.0,
+        2.6e-06,
+        5e-06
+      ],
+      "history": [
+        0.0,
+        0.0,
+        0.0
+      ]
+    },
+    {
+      "layer1": 100000.0,
+      "layer2": 0,
+      "depth": 0,
+      "kernel": "reflection",
+      "frequency": 1000000.0,
+      "separation": 5e-06,
+      "height": 2.6e-06,
+      "z_offset": 5e-06,
+      "value": -102873.31107472873,
+      "status": 0,
+      "observations": 75,
+      "first_point": 314159.2653589793,
+      "last_point": 2892710.9570487435,
+      "state": [
+        1000000.0,
+        5e-06,
+        2.6e-06,
+        5e-06
+      ],
+      "history": [
+        81863.97984886647,
+        81863.97984886648,
+        0.0
+      ]
+    },
+    {
+      "layer1": 100000.0,
+      "layer2": 0,
+      "depth": 0,
+      "kernel": "reflection",
+      "frequency": 1000000.0,
+      "separation": 0.0005,
+      "height": 2.6e-06,
+      "z_offset": 5e-06,
+      "value": -13.068672062039095,
+      "status": 0,
+      "observations": 90,
+      "first_point": 3141.592653589793,
+      "last_point": 35210.294877667024,
+      "state": [
+        1000000.0,
+        0.0005,
+        2.6e-06,
+        5e-06
+      ],
+      "history": [
+        10.399718791602279,
+        10.399718791602037,
+        10.399718791602373
+      ]
+    },
+    {
+      "layer1": 100000.0,
+      "layer2": 0,
+      "depth": 0,
+      "kernel": "reflection",
+      "frequency": 1000000.0,
+      "separation": 0,
+      "height": 0.0001,
+      "z_offset": 5e-06,
+      "value": -12566.370614375637,
+      "status": 0,
+      "observations": 596,
+      "first_point": 0.0,
+      "last_point": 40859.594409663994,
+      "state": [
+        1000000.0,
+        0.0,
+        0.0001,
+        5e-06
+      ],
+      "history": [
+        0.0,
+        0.0,
+        0.0
+      ]
+    },
+    {
+      "layer1": 100000.0,
+      "layer2": 0,
+      "depth": 0,
+      "kernel": "reflection",
+      "frequency": 1000000.0,
+      "separation": 5e-06,
+      "height": 0.0001,
+      "z_offset": 5e-06,
+      "value": -12535.033031779723,
+      "status": 0,
+      "observations": 135,
+      "first_point": 314159.2653589793,
+      "last_point": 1636073.8956128263,
+      "state": [
+        1000000.0,
+        5e-06,
+        0.0001,
+        5e-06
+      ],
+      "history": [
+        0.0,
+        0.0,
+        0.0
+      ]
+    },
+    {
+      "layer1": 100000.0,
+      "layer2": 0,
+      "depth": 0,
+      "kernel": "reflection",
+      "frequency": 1000000.0,
+      "separation": 0.0005,
+      "height": 0.0001,
+      "z_offset": 5e-06,
+      "value": -483.3219467061219,
+      "status": 0,
+      "observations": 90,
+      "first_point": 3141.592653589793,
+      "last_point": 35210.294877667024,
+      "state": [
+        1000000.0,
+        0.0005,
+        0.0001,
+        5e-06
+      ],
+      "history": [
+        384.6153846153845,
+        384.6153846153845,
+        384.61538461538447
+      ]
+    },
+    {
+      "layer1": 100000.0,
+      "layer2": 0,
+      "depth": 0,
+      "kernel": "reflection",
+      "frequency": 1000000000.0,
+      "separation": 0,
+      "height": 2.6e-06,
+      "z_offset": 5e-06,
+      "value": 1256.639369805758,
+      "status": 5,
+      "observations": 776,
+      "first_point": 0.0,
+      "last_point": 653768.5105546239,
+      "state": [
+        1000000000.0,
+        0.0,
+        2.6e-06,
+        5e-06
+      ],
+      "history": [
+        0.0,
+        0.0,
+        0.0
+      ]
+    },
+    {
+      "layer1": 100000.0,
+      "layer2": 0,
+      "depth": 0,
+      "kernel": "reflection",
+      "frequency": 1000000000.0,
+      "separation": 5e-06,
+      "height": 2.6e-06,
+      "z_offset": 5e-06,
+      "value": -102873311.07472873,
+      "status": 0,
+      "observations": 75,
+      "first_point": 314159.2653589793,
+      "last_point": 2892710.9570487435,
+      "state": [
+        1000000000.0,
+        5e-06,
+        2.6e-06,
+        5e-06
+      ],
+      "history": [
+        81863.97984886647,
+        81863.97984886648,
+        0.0
+      ]
+    },
+    {
+      "layer1": 100000.0,
+      "layer2": 0,
+      "depth": 0,
+      "kernel": "reflection",
+      "frequency": 1000000000.0,
+      "separation": 0.0005,
+      "height": 2.6e-06,
+      "z_offset": 5e-06,
+      "value": -13068.672062039095,
+      "status": 0,
+      "observations": 90,
+      "first_point": 3141.592653589793,
+      "last_point": 35210.294877667024,
+      "state": [
+        1000000000.0,
+        0.0005,
+        2.6e-06,
+        5e-06
+      ],
+      "history": [
+        10.399718791602279,
+        10.399718791602037,
+        10.399718791602373
+      ]
+    },
+    {
+      "layer1": 100000.0,
+      "layer2": 0,
+      "depth": 0,
+      "kernel": "reflection",
+      "frequency": 1000000000.0,
+      "separation": 0,
+      "height": 0.0001,
+      "z_offset": 5e-06,
+      "value": -12566370.614375638,
+      "status": 0,
+      "observations": 596,
+      "first_point": 0.0,
+      "last_point": 40859.594409663994,
+      "state": [
+        1000000000.0,
+        0.0,
+        0.0001,
+        5e-06
+      ],
+      "history": [
+        0.0,
+        0.0,
+        0.0
+      ]
+    },
+    {
+      "layer1": 100000.0,
+      "layer2": 0,
+      "depth": 0,
+      "kernel": "reflection",
+      "frequency": 1000000000.0,
+      "separation": 5e-06,
+      "height": 0.0001,
+      "z_offset": 5e-06,
+      "value": -12535033.031779723,
+      "status": 0,
+      "observations": 135,
+      "first_point": 314159.2653589793,
+      "last_point": 1636073.8956128263,
+      "state": [
+        1000000000.0,
+        5e-06,
+        0.0001,
+        5e-06
+      ],
+      "history": [
+        0.0,
+        0.0,
+        0.0
+      ]
+    },
+    {
+      "layer1": 100000.0,
+      "layer2": 0,
+      "depth": 0,
+      "kernel": "reflection",
+      "frequency": 1000000000.0,
+      "separation": 0.0005,
+      "height": 0.0001,
+      "z_offset": 5e-06,
+      "value": -483321.94670612185,
+      "status": 0,
+      "observations": 90,
+      "first_point": 3141.592653589793,
+      "last_point": 35210.294877667024,
+      "state": [
+        1000000000.0,
+        0.0005,
+        0.0001,
+        5e-06
+      ],
+      "history": [
+        384.6153846153845,
+        384.6153846153845,
+        384.61538461538447
+      ]
+    },
+    {
+      "layer1": 100000.0,
+      "layer2": 0,
+      "depth": 0,
+      "kernel": "reflection",
+      "frequency": 20000000000.0,
+      "separation": 0,
+      "height": 2.6e-06,
+      "z_offset": 5e-06,
+      "value": 25132.78739611516,
+      "status": 5,
+      "observations": 776,
+      "first_point": 0.0,
+      "last_point": 653768.5105546239,
+      "state": [
+        20000000000.0,
+        0.0,
+        2.6e-06,
+        5e-06
+      ],
+      "history": [
+        0.0,
+        0.0,
+        0.0
+      ]
+    },
+    {
+      "layer1": 100000.0,
+      "layer2": 0,
+      "depth": 0,
+      "kernel": "reflection",
+      "frequency": 20000000000.0,
+      "separation": 5e-06,
+      "height": 2.6e-06,
+      "z_offset": 5e-06,
+      "value": -2057466221.4945745,
+      "status": 0,
+      "observations": 75,
+      "first_point": 314159.2653589793,
+      "last_point": 2892710.9570487435,
+      "state": [
+        20000000000.0,
+        5e-06,
+        2.6e-06,
+        5e-06
+      ],
+      "history": [
+        81863.97984886647,
+        81863.97984886648,
+        0.0
+      ]
+    },
+    {
+      "layer1": 100000.0,
+      "layer2": 0,
+      "depth": 0,
+      "kernel": "reflection",
+      "frequency": 20000000000.0,
+      "separation": 0.0005,
+      "height": 2.6e-06,
+      "z_offset": 5e-06,
+      "value": -261373.4412407819,
+      "status": 0,
+      "observations": 90,
+      "first_point": 3141.592653589793,
+      "last_point": 35210.294877667024,
+      "state": [
+        20000000000.0,
+        0.0005,
+        2.6e-06,
+        5e-06
+      ],
+      "history": [
+        10.399718791602279,
+        10.399718791602037,
+        10.399718791602373
+      ]
+    },
+    {
+      "layer1": 100000.0,
+      "layer2": 0,
+      "depth": 0,
+      "kernel": "reflection",
+      "frequency": 20000000000.0,
+      "separation": 0,
+      "height": 0.0001,
+      "z_offset": 5e-06,
+      "value": -251327412.28751275,
+      "status": 0,
+      "observations": 596,
+      "first_point": 0.0,
+      "last_point": 40859.594409663994,
+      "state": [
+        20000000000.0,
+        0.0,
+        0.0001,
+        5e-06
+      ],
+      "history": [
+        0.0,
+        0.0,
+        0.0
+      ]
+    },
+    {
+      "layer1": 100000.0,
+      "layer2": 0,
+      "depth": 0,
+      "kernel": "reflection",
+      "frequency": 20000000000.0,
+      "separation": 5e-06,
+      "height": 0.0001,
+      "z_offset": 5e-06,
+      "value": -250700660.6355945,
+      "status": 0,
+      "observations": 135,
+      "first_point": 314159.2653589793,
+      "last_point": 1636073.8956128263,
+      "state": [
+        20000000000.0,
+        5e-06,
+        0.0001,
+        5e-06
+      ],
+      "history": [
+        0.0,
+        0.0,
+        0.0
+      ]
+    },
+    {
+      "layer1": 100000.0,
+      "layer2": 0,
+      "depth": 0,
+      "kernel": "reflection",
+      "frequency": 20000000000.0,
+      "separation": 0.0005,
+      "height": 0.0001,
+      "z_offset": 5e-06,
+      "value": -9666438.934122438,
+      "status": 0,
+      "observations": 90,
+      "first_point": 3141.592653589793,
+      "last_point": 35210.294877667024,
+      "state": [
+        20000000000.0,
+        0.0005,
+        0.0001,
+        5e-06
+      ],
+      "history": [
+        384.6153846153845,
+        384.6153846153845,
+        384.61538461538447
+      ]
+    },
+    {
+      "layer1": 1e-08,
+      "layer2": 100000.0,
+      "depth": 5e-05,
+      "kernel": "oscillating",
+      "frequency": 1000000.0,
+      "separation": 0,
+      "height": 2.6e-06,
+      "z_offset": 5e-06,
+      "value": 0.9378938158860658,
+      "status": 0,
+      "observations": 506,
+      "first_point": 0.0,
+      "last_point": 5106.574301207999,
+      "state": [
+        1000000.0,
+        0.0,
+        2.6e-06,
+        5e-06
+      ],
+      "history": [
+        0.0,
+        0.0,
+        0.0
+      ]
+    },
+    {
+      "layer1": 1e-08,
+      "layer2": 100000.0,
+      "depth": 5e-05,
+      "kernel": "oscillating",
+      "frequency": 1000000.0,
+      "separation": 5e-06,
+      "height": 2.6e-06,
+      "z_offset": 5e-06,
+      "value": 0.9378793794933947,
+      "status": 0,
+      "observations": 285,
+      "first_point": 314159.2653589793,
+      "last_point": 1636073.8956128263,
+      "state": [
+        1000000.0,
+        5e-06,
+        2.6e-06,
+        5e-06
+      ],
+      "history": [
+        0.0,
+        0.0,
+        0.0
+      ]
+    },
+    {
+      "layer1": 1e-08,
+      "layer2": 100000.0,
+      "depth": 5e-05,
+      "kernel": "oscillating",
+      "frequency": 1000000.0,
+      "separation": 0.0005,
+      "height": 2.6e-06,
+      "z_offset": 5e-06,
+      "value": 0.8578115785081756,
+      "status": 0,
+      "observations": 150,
+      "first_point": 3141.592653589793,
+      "last_point": 35210.294877667024,
+      "state": [
+        1000000.0,
+        0.0005,
+        2.6e-06,
+        5e-06
+      ],
+      "history": [
+        -0.682619706988924,
+        -0.682624586275561,
+        -0.6826253426744766
+      ]
+    },
+    {
+      "layer1": 1e-08,
+      "layer2": 100000.0,
+      "depth": 5e-05,
+      "kernel": "oscillating",
+      "frequency": 1000000.0,
+      "separation": 0,
+      "height": 0.0001,
+      "z_offset": 5e-06,
+      "value": 0.8972482625309725,
+      "status": 0,
+      "observations": 476,
+      "first_point": 0.0,
+      "last_point": 2552.7871506039996,
+      "state": [
+        1000000.0,
+        0.0,
+        0.0001,
+        5e-06
+      ],
+      "history": [
+        0.0,
+        0.0,
+        0.0
+      ]
+    },
+    {
+      "layer1": 1e-08,
+      "layer2": 100000.0,
+      "depth": 5e-05,
+      "kernel": "oscillating",
+      "frequency": 1000000.0,
+      "separation": 5e-06,
+      "height": 0.0001,
+      "z_offset": 5e-06,
+      "value": 0.897237582855175,
+      "status": 0,
+      "observations": 285,
+      "first_point": 314159.2653589793,
+      "last_point": 1636073.8956128263,
+      "state": [
+        1000000.0,
+        5e-06,
+        0.0001,
+        5e-06
+      ],
+      "history": [
+        0.0,
+        0.0,
+        0.0
+      ]
+    },
+    {
+      "layer1": 1e-08,
+      "layer2": 100000.0,
+      "depth": 5e-05,
+      "kernel": "oscillating",
+      "frequency": 1000000.0,
+      "separation": 0.0005,
+      "height": 0.0001,
+      "z_offset": 5e-06,
+      "value": 0.8272047821922688,
+      "status": 0,
+      "observations": 150,
+      "first_point": 3141.592653589793,
+      "last_point": 35210.294877667024,
+      "state": [
+        1000000.0,
+        0.0005,
+        0.0001,
+        5e-06
+      ],
+      "history": [
+        -0.6582680474139752,
+        -0.6582686266783103,
+        -0.658268669384031
+      ]
+    },
+    {
+      "layer1": 1e-08,
+      "layer2": 100000.0,
+      "depth": 5e-05,
+      "kernel": "oscillating",
+      "frequency": 1000000000.0,
+      "separation": 0,
+      "height": 2.6e-06,
+      "z_offset": 5e-06,
+      "value": 391.69209397409196,
+      "status": 0,
+      "observations": 566,
+      "first_point": 0.0,
+      "last_point": 20429.297204831997,
+      "state": [
+        1000000000.0,
+        0.0,
+        2.6e-06,
+        5e-06
+      ],
+      "history": [
+        0.0,
+        0.0,
+        0.0
+      ]
+    },
+    {
+      "layer1": 1e-08,
+      "layer2": 100000.0,
+      "depth": 5e-05,
+      "kernel": "oscillating",
+      "frequency": 1000000000.0,
+      "separation": 5e-06,
+      "height": 2.6e-06,
+      "z_offset": 5e-06,
+      "value": 391.0271227096684,
+      "status": 0,
+      "observations": 135,
+      "first_point": 314159.2653589793,
+      "last_point": 1636073.8956128263,
+      "state": [
+        1000000000.0,
+        5e-06,
+        2.6e-06,
+        5e-06
+      ],
+      "history": [
+        0.0,
+        0.0,
+        0.0
+      ]
+    },
+    {
+      "layer1": 1e-08,
+      "layer2": 100000.0,
+      "depth": 5e-05,
+      "kernel": "oscillating",
+      "frequency": 1000000000.0,
+      "separation": 0.0005,
+      "height": 2.6e-06,
+      "z_offset": 5e-06,
+      "value": 200.55929155331538,
+      "status": 0,
+      "observations": 90,
+      "first_point": 3141.592653589793,
+      "last_point": 35210.294877667024,
+      "state": [
+        1000000000.0,
+        0.0005,
+        2.6e-06,
+        5e-06
+      ],
+      "history": [
+        -0.15965356846183348,
+        -0.15957828157311008,
+        -0.15960001316859376
+      ]
+    },
+    {
+      "layer1": 1e-08,
+      "layer2": 100000.0,
+      "depth": 5e-05,
+      "kernel": "oscillating",
+      "frequency": 1000000000.0,
+      "separation": 0,
+      "height": 0.0001,
+      "z_offset": 5e-06,
+      "value": 247.1816752037523,
+      "status": 0,
+      "observations": 566,
+      "first_point": 0.0,
+      "last_point": 20429.297204831997,
+      "state": [
+        1000000000.0,
+        0.0,
+        0.0001,
+        5e-06
+      ],
+      "history": [
+        0.0,
+        0.0,
+        0.0
+      ]
+    },
+    {
+      "layer1": 1e-08,
+      "layer2": 100000.0,
+      "depth": 5e-05,
+      "kernel": "oscillating",
+      "frequency": 1000000000.0,
+      "separation": 5e-06,
+      "height": 0.0001,
+      "z_offset": 5e-06,
+      "value": 247.00454530473684,
+      "status": 0,
+      "observations": 165,
+      "first_point": 314159.2653589793,
+      "last_point": 1636073.8956128263,
+      "state": [
+        1000000000.0,
+        5e-06,
+        0.0001,
+        5e-06
+      ],
+      "history": [
+        0.0,
+        0.0,
+        0.0
+      ]
+    },
+    {
+      "layer1": 1e-08,
+      "layer2": 100000.0,
+      "depth": 5e-05,
+      "kernel": "oscillating",
+      "frequency": 1000000000.0,
+      "separation": 0.0005,
+      "height": 0.0001,
+      "z_offset": 5e-06,
+      "value": 131.03904645741133,
+      "status": 0,
+      "observations": 90,
+      "first_point": 3141.592653589793,
+      "last_point": 35210.294877667024,
+      "state": [
+        1000000000.0,
+        0.0005,
+        0.0001,
+        5e-06
+      ],
+      "history": [
+        -0.10434755476518141,
+        -0.10430024417508668,
+        -0.10429642043527164
+      ]
+    },
+    {
+      "layer1": 1e-08,
+      "layer2": 100000.0,
+      "depth": 5e-05,
+      "kernel": "oscillating",
+      "frequency": 20000000000.0,
+      "separation": 0,
+      "height": 2.6e-06,
+      "z_offset": 5e-06,
+      "value": "nan",
+      "status": 2,
+      "observations": 1346,
+      "first_point": 0.0,
+      "last_point": 13646.79960906701,
+      "state": [
+        20000000000.0,
+        0.0,
+        2.6e-06,
+        5e-06
+      ],
+      "history": [
+        0.0,
+        0.0,
+        0.0
+      ]
+    },
+    {
+      "layer1": 1e-08,
+      "layer2": 100000.0,
+      "depth": 5e-05,
+      "kernel": "oscillating",
+      "frequency": 20000000000.0,
+      "separation": 5e-06,
+      "height": 2.6e-06,
+      "z_offset": 5e-06,
+      "value": 2462.015179631897,
+      "status": 0,
+      "observations": 135,
+      "first_point": 314159.2653589793,
+      "last_point": 2892710.9570487435,
+      "state": [
+        20000000000.0,
+        5e-06,
+        2.6e-06,
+        5e-06
+      ],
+      "history": [
+        -0.09796047145142425,
+        0.0,
+        0.0
+      ]
+    },
+    {
+      "layer1": 1e-08,
+      "layer2": 100000.0,
+      "depth": 5e-05,
+      "kernel": "oscillating",
+      "frequency": 20000000000.0,
+      "separation": 0.0005,
+      "height": 2.6e-06,
+      "z_offset": 5e-06,
+      "value": 1251.4948143457189,
+      "status": 0,
+      "observations": 90,
+      "first_point": 3141.592653589793,
+      "last_point": 35210.294877667024,
+      "state": [
+        20000000000.0,
+        0.0005,
+        2.6e-06,
+        5e-06
+      ],
+      "history": [
+        -0.04982838328632691,
+        -0.04979488299495291,
+        -0.04979539648924875
+      ]
+    },
+    {
+      "layer1": 1e-08,
+      "layer2": 100000.0,
+      "depth": 5e-05,
+      "kernel": "oscillating",
+      "frequency": 20000000000.0,
+      "separation": 0,
+      "height": 0.0001,
+      "z_offset": 5e-06,
+      "value": 1336.8853624145322,
+      "status": 0,
+      "observations": 566,
+      "first_point": 0.0,
+      "last_point": 20429.297204831997,
+      "state": [
+        20000000000.0,
+        0.0,
+        0.0001,
+        5e-06
+      ],
+      "history": [
+        0.0,
+        0.0,
+        0.0
+      ]
+    },
+    {
+      "layer1": 1e-08,
+      "layer2": 100000.0,
+      "depth": 5e-05,
+      "kernel": "oscillating",
+      "frequency": 20000000000.0,
+      "separation": 5e-06,
+      "height": 0.0001,
+      "z_offset": 5e-06,
+      "value": 1335.4023052473717,
+      "status": 0,
+      "observations": 135,
+      "first_point": 314159.2653589793,
+      "last_point": 1636073.8956128263,
+      "state": [
+        20000000000.0,
+        5e-06,
+        0.0001,
+        5e-06
+      ],
+      "history": [
+        0.0,
+        0.0,
+        0.0
+      ]
+    },
+    {
+      "layer1": 1e-08,
+      "layer2": 100000.0,
+      "depth": 5e-05,
+      "kernel": "oscillating",
+      "frequency": 20000000000.0,
+      "separation": 0.0005,
+      "height": 0.0001,
+      "z_offset": 5e-06,
+      "value": 696.1733548954095,
+      "status": 0,
+      "observations": 90,
+      "first_point": 3141.592653589793,
+      "last_point": 35210.294877667024,
+      "state": [
+        20000000000.0,
+        0.0005,
+        0.0001,
+        5e-06
+      ],
+      "history": [
+        -0.02773738523379929,
+        -0.027735378219942014,
+        -0.027734612790787615
+      ]
+    },
+    {
+      "layer1": 10000.0,
+      "layer2": 100000.0,
+      "depth": 5e-05,
+      "kernel": "oscillating",
+      "frequency": 1000000.0,
+      "separation": 0,
+      "height": 2.6e-06,
+      "z_offset": 5e-06,
+      "value": 0.942828753088922,
+      "status": 0,
+      "observations": 506,
+      "first_point": 0.0,
+      "last_point": 5106.574301207999,
+      "state": [
+        1000000.0,
+        0.0,
+        2.6e-06,
+        5e-06
+      ],
+      "history": [
+        0.0,
+        0.0,
+        0.0
+      ]
+    },
+    {
+      "layer1": 10000.0,
+      "layer2": 100000.0,
+      "depth": 5e-05,
+      "kernel": "oscillating",
+      "frequency": 1000000.0,
+      "separation": 5e-06,
+      "height": 2.6e-06,
+      "z_offset": 5e-06,
+      "value": 0.9428123681930802,
+      "status": 0,
+      "observations": 330,
+      "first_point": 314159.2653589793,
+      "last_point": 3521029.487766702,
+      "state": [
+        1000000.0,
+        5e-06,
+        2.6e-06,
+        5e-06
+      ],
+      "history": [
+        -0.7502662440288286,
+        -0.7502662440304695,
+        -0.7502662440305488
+      ]
+    },
+    {
+      "layer1": 10000.0,
+      "layer2": 100000.0,
+      "depth": 5e-05,
+      "kernel": "oscillating",
+      "frequency": 1000000.0,
+      "separation": 0.0005,
+      "height": 2.6e-06,
+      "z_offset": 5e-06,
+      "value": 0.8614260273731611,
+      "status": 0,
+      "observations": 150,
+      "first_point": 3141.592653589793,
+      "last_point": 35210.294877667024,
+      "state": [
+        1000000.0,
+        0.0005,
+        2.6e-06,
+        5e-06
+      ],
+      "history": [
+        -0.6854906523046432,
+        -0.6855004906663525,
+        -0.6855035215661758
+      ]
+    },
+    {
+      "layer1": 10000.0,
+      "layer2": 100000.0,
+      "depth": 5e-05,
+      "kernel": "oscillating",
+      "frequency": 1000000.0,
+      "separation": 0,
+      "height": 0.0001,
+      "z_offset": 5e-06,
+      "value": 0.9015874839809787,
+      "status": 0,
+      "observations": 476,
+      "first_point": 0.0,
+      "last_point": 2552.7871506039996,
+      "state": [
+        1000000.0,
+        0.0,
+        0.0001,
+        5e-06
+      ],
+      "history": [
+        0.0,
+        0.0,
+        0.0
+      ]
+    },
+    {
+      "layer1": 10000.0,
+      "layer2": 100000.0,
+      "depth": 5e-05,
+      "kernel": "oscillating",
+      "frequency": 1000000.0,
+      "separation": 5e-06,
+      "height": 0.0001,
+      "z_offset": 5e-06,
+      "value": 0.9015764137654062,
+      "status": 0,
+      "observations": 285,
+      "first_point": 314159.2653589793,
+      "last_point": 1636073.8956128263,
+      "state": [
+        1000000.0,
+        5e-06,
+        0.0001,
+        5e-06
+      ],
+      "history": [
+        0.0,
+        0.0,
+        0.0
+      ]
+    },
+    {
+      "layer1": 10000.0,
+      "layer2": 100000.0,
+      "depth": 5e-05,
+      "kernel": "oscillating",
+      "frequency": 1000000.0,
+      "separation": 0.0005,
+      "height": 0.0001,
+      "z_offset": 5e-06,
+      "value": 0.830503577515838,
+      "status": 0,
+      "observations": 150,
+      "first_point": 3141.592653589793,
+      "last_point": 35210.294877667024,
+      "state": [
+        1000000.0,
+        0.0005,
+        0.0001,
+        5e-06
+      ],
+      "history": [
+        -0.6608925835901514,
+        -0.6608936762594401,
+        -0.6608938198616829
+      ]
+    },
+    {
+      "layer1": 10000.0,
+      "layer2": 100000.0,
+      "depth": 5e-05,
+      "kernel": "oscillating",
+      "frequency": 1000000000.0,
+      "separation": 0,
+      "height": 2.6e-06,
+      "z_offset": 5e-06,
+      "value": "nan",
+      "status": 2,
+      "observations": 1316,
+      "first_point": 0.0,
+      "last_point": 3410.9499022667524,
+      "state": [
+        1000000000.0,
+        0.0,
+        2.6e-06,
+        5e-06
+      ],
+      "history": [
+        0.0,
+        0.0,
+        0.0
+      ]
+    },
+    {
+      "layer1": 10000.0,
+      "layer2": 100000.0,
+      "depth": 5e-05,
+      "kernel": "oscillating",
+      "frequency": 1000000000.0,
+      "separation": 5e-06,
+      "height": 2.6e-06,
+      "z_offset": 5e-06,
+      "value": 559.6518306776911,
+      "status": 0,
+      "observations": 180,
+      "first_point": 314159.2653589793,
+      "last_point": 3521029.487766702,
+      "state": [
+        1000000000.0,
+        5e-06,
+        2.6e-06,
+        5e-06
+      ],
+      "history": [
+        -0.44535677461876283,
+        -0.4453567762596341,
+        -0.4453567763389719
+      ]
+    },
+    {
+      "layer1": 10000.0,
+      "layer2": 100000.0,
+      "depth": 5e-05,
+      "kernel": "oscillating",
+      "frequency": 1000000000.0,
+      "separation": 0.0005,
+      "height": 2.6e-06,
+      "z_offset": 5e-06,
+      "value": 285.5553660761568,
+      "status": 0,
+      "observations": 105,
+      "first_point": 3141.592653589793,
+      "last_point": 41493.480184846616,
+      "state": [
+        1000000000.0,
+        0.0005,
+        2.6e-06,
+        5e-06
+      ],
+      "history": [
+        -0.22454841241795845,
+        -0.22875134092627142,
+        -0.22723774018718038
+      ]
+    },
+    {
+      "layer1": 10000.0,
+      "layer2": 100000.0,
+      "depth": 5e-05,
+      "kernel": "oscillating",
+      "frequency": 1000000000.0,
+      "separation": 0,
+      "height": 0.0001,
+      "z_offset": 5e-06,
+      "value": 331.35690461894325,
+      "status": 0,
+      "observations": 566,
+      "first_point": 0.0,
+      "last_point": 20429.297204831997,
+      "state": [
+        1000000000.0,
+        0.0,
+        0.0001,
+        5e-06
+      ],
+      "history": [
+        0.0,
+        0.0,
+        0.0
+      ]
+    },
+    {
+      "layer1": 10000.0,
+      "layer2": 100000.0,
+      "depth": 5e-05,
+      "kernel": "oscillating",
+      "frequency": 1000000000.0,
+      "separation": 5e-06,
+      "height": 0.0001,
+      "z_offset": 5e-06,
+      "value": 331.07070039966317,
+      "status": 0,
+      "observations": 135,
+      "first_point": 314159.2653589793,
+      "last_point": 1636073.8956128263,
+      "state": [
+        1000000000.0,
+        5e-06,
+        0.0001,
+        5e-06
+      ],
+      "history": [
+        0.0,
+        0.0,
+        0.0
+      ]
+    },
+    {
+      "layer1": 10000.0,
+      "layer2": 100000.0,
+      "depth": 5e-05,
+      "kernel": "oscillating",
+      "frequency": 1000000000.0,
+      "separation": 0.0005,
+      "height": 0.0001,
+      "z_offset": 5e-06,
+      "value": 174.169807675324,
+      "status": 0,
+      "observations": 90,
+      "first_point": 3141.592653589793,
+      "last_point": 35210.294877667024,
+      "state": [
+        1000000000.0,
+        0.0005,
+        0.0001,
+        5e-06
+      ],
+      "history": [
+        -0.13864432993476913,
+        -0.13864896098232016,
+        -0.13864334378790696
+      ]
+    },
+    {
+      "layer1": 10000.0,
+      "layer2": 100000.0,
+      "depth": 5e-05,
+      "kernel": "oscillating",
+      "frequency": 20000000000.0,
+      "separation": 0,
+      "height": 2.6e-06,
+      "z_offset": 5e-06,
+      "value": "nan",
+      "status": 2,
+      "observations": 1346,
+      "first_point": 0.0,
+      "last_point": 27294.59921813402,
+      "state": [
+        20000000000.0,
+        0.0,
+        2.6e-06,
+        5e-06
+      ],
+      "history": [
+        0.0,
+        0.0,
+        0.0
+      ]
+    },
+    {
+      "layer1": 10000.0,
+      "layer2": 100000.0,
+      "depth": 5e-05,
+      "kernel": "oscillating",
+      "frequency": 20000000000.0,
+      "separation": 5e-06,
+      "height": 2.6e-06,
+      "z_offset": 5e-06,
+      "value": 18094.778787857013,
+      "status": 0,
+      "observations": 150,
+      "first_point": 314159.2653589793,
+      "last_point": 3521029.487766702,
+      "state": [
+        20000000000.0,
+        5e-06,
+        2.6e-06,
+        5e-06
+      ],
+      "history": [
+        -0.7199683381574966,
+        -0.71996837097484,
+        -0.719968372561595
+      ]
+    },
+    {
+      "layer1": 10000.0,
+      "layer2": 100000.0,
+      "depth": 5e-05,
+      "kernel": "oscillating",
+      "frequency": 20000000000.0,
+      "separation": 0.0005,
+      "height": 2.6e-06,
+      "z_offset": 5e-06,
+      "value": 9036.296725381682,
+      "status": 0,
+      "observations": 105,
+      "first_point": 3141.592653589793,
+      "last_point": 41493.480184846616,
+      "state": [
+        20000000000.0,
+        0.0005,
+        2.6e-06,
+        5e-06
+      ],
+      "history": [
+        -0.3565501452566525,
+        -0.35886584937013283,
+        -0.35954282277240046
+      ]
+    },
+    {
+      "layer1": 10000.0,
+      "layer2": 100000.0,
+      "depth": 5e-05,
+      "kernel": "oscillating",
+      "frequency": 20000000000.0,
+      "separation": 0,
+      "height": 0.0001,
+      "z_offset": 5e-06,
+      "value": 6455.071033697299,
+      "status": 0,
+      "observations": 566,
+      "first_point": 0.0,
+      "last_point": 20429.297204831997,
+      "state": [
+        20000000000.0,
+        0.0,
+        0.0001,
+        5e-06
+      ],
+      "history": [
+        0.0,
+        0.0,
+        0.0
+      ]
+    },
+    {
+      "layer1": 10000.0,
+      "layer2": 100000.0,
+      "depth": 5e-05,
+      "kernel": "oscillating",
+      "frequency": 20000000000.0,
+      "separation": 5e-06,
+      "height": 0.0001,
+      "z_offset": 5e-06,
+      "value": 6440.752651760375,
+      "status": 0,
+      "observations": 135,
+      "first_point": 314159.2653589793,
+      "last_point": 1636073.8956128263,
+      "state": [
+        20000000000.0,
+        5e-06,
+        0.0001,
+        5e-06
+      ],
+      "history": [
+        0.0,
+        0.0,
+        0.0
+      ]
+    },
+    {
+      "layer1": 10000.0,
+      "layer2": 100000.0,
+      "depth": 5e-05,
+      "kernel": "oscillating",
+      "frequency": 20000000000.0,
+      "separation": 0.0005,
+      "height": 0.0001,
+      "z_offset": 5e-06,
+      "value": 3290.5822512701257,
+      "status": 0,
+      "observations": 90,
+      "first_point": 3141.592653589793,
+      "last_point": 35210.294877667024,
+      "state": [
+        20000000000.0,
+        0.0005,
+        0.0001,
+        5e-06
+      ],
+      "history": [
+        -0.13102117367298038,
+        -0.13091397352714548,
+        -0.13092810773502442
+      ]
+    },
+    {
+      "layer1": 100000.0,
+      "layer2": 0,
+      "depth": 0,
+      "kernel": "reflection",
+      "frequency": 1000000000.0,
+      "separation": 9.999999999999999e-11,
+      "height": 2.6e-06,
+      "z_offset": 5e-06,
+      "value": 1256.639369805758,
+      "status": 5,
+      "observations": 776,
+      "first_point": 0.0,
+      "last_point": 653768.5105546239,
+      "state": [
+        1000000000.0,
+        9.999999999999999e-11,
+        2.6e-06,
+        5e-06
+      ],
+      "history": [
+        0.0,
+        0.0,
+        0.0
+      ]
+    },
+    {
+      "layer1": 100000.0,
+      "layer2": 0,
+      "depth": 0,
+      "kernel": "reflection",
+      "frequency": 1000000000.0,
+      "separation": 1e-10,
+      "height": 2.6e-06,
+      "z_offset": 5e-06,
+      "value": -0.0,
+      "status": 0,
+      "observations": 45,
+      "first_point": 15707963267.948965,
+      "last_point": 81803694780.64133,
+      "state": [
+        1000000000.0,
+        1e-10,
+        2.6e-06,
+        5e-06
+      ],
+      "history": [
+        0.0,
+        0.0,
+        0.0
+      ]
+    },
+    {
+      "layer1": 100000.0,
+      "layer2": 0,
+      "depth": 0,
+      "kernel": "reflection",
+      "frequency": 1000000000.0,
+      "separation": 1.0000000000000002e-10,
+      "height": 2.6e-06,
+      "z_offset": 5e-06,
+      "value": -0.0,
+      "status": 0,
+      "observations": 45,
+      "first_point": 15707963267.948963,
+      "last_point": 81803694780.64131,
+      "state": [
+        1000000000.0,
+        1.0000000000000002e-10,
+        2.6e-06,
+        5e-06
+      ],
+      "history": [
+        0.0,
+        0.0,
+        0.0
+      ]
+    },
+    {
+      "layer1": 100000.0,
+      "layer2": 0,
+      "depth": 0,
+      "kernel": "reflection",
+      "frequency": 1000000000.0,
+      "separation": -1e-10,
+      "height": 2.6e-06,
+      "z_offset": 5e-06,
+      "value": -0.0,
+      "status": 0,
+      "observations": 45,
+      "first_point": 15707963267.948965,
+      "last_point": 81803694780.64133,
+      "state": [
+        1000000000.0,
+        -1e-10,
+        2.6e-06,
+        5e-06
+      ],
+      "history": [
+        0.0,
+        0.0,
+        0.0
+      ]
+    }
+  ]
+}

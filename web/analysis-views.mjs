@@ -44,7 +44,7 @@ export function sweepSVG(rows,metric="q",options={}){
   const last=options.lastHz||valid.at(-1)?.frequency_hz||first*10;
   const lowF=first,highF=last>first?last:first*10;
   const log=options.scale!=="linear";
-  const x=f=>70+660*(log?Math.log(f/lowF)/Math.log(highF/lowF):(f-lowF)/(highF-lowF));
+  const x=f=>90+640*(log?Math.log(f/lowF)/Math.log(highF/lowF):(f-lowF)/(highF-lowF));
   const values=valid.map(row=>row[metric]).filter(Number.isFinite);
   let low=Math.min(0,...values),high=Math.max(0,...values);
   if(low===high)high=low+1;
@@ -57,7 +57,7 @@ export function sweepSVG(rows,metric="q",options={}){
   let grid="",points="",curve="",drawing=false;
   for(let i=0;i<=4;i++){
     const v=low+(high-low)*i/4;
-    grid+=`<path d="M70 ${y(v)}H730" stroke="#283744"/>${text(60,y(v)+4,number(v),'text-anchor="end"')}`;
+    grid+=`<path d="M90 ${y(v)}H730" stroke="#283744"/>${text(80,y(v)+4,number(v),'text-anchor="end"')}`;
     const frequency=log?lowF*(highF/lowF)**(i/4):lowF+(highF-lowF)*i/4;
     grid+=`<path d="M${x(frequency)} 30V270" stroke="#1e2e3a"/>${text(x(frequency),292,number(frequency/1e9),'text-anchor="middle"')}`;
   }
@@ -69,8 +69,8 @@ export function sweepSVG(rows,metric="q",options={}){
     points+=`<g class="plot-point" data-index="${i}" tabindex="0" role="button" aria-label="${escape(caption)}"><title>${escape(caption)}</title><circle cx="${x(f)}" cy="${y(value)}" r="10" fill="transparent"/><circle cx="${x(f)}" cy="${y(value)}" r="3" fill="${setting.color}"/></g>`;
   });
   return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 760 320" role="img" aria-label="${escape(title)}"><title>${escape(title)}</title><rect width="760" height="320" fill="#101820" rx="7"/>
-  <g font-family="monospace" font-size="12" fill="#9cabb9">${grid}${text(70,18,label)}${text(730,18,options.model||"ASITIC",'text-anchor="end"')}${text(730,314,`Frequency · GHz${log?" (log)":""}`,'text-anchor="end"')}</g>
-  <path d="M70 30V270H730" fill="none" stroke="#61788b"/>
+  <g font-family="monospace" font-size="12" fill="#9cabb9">${grid}${text(90,18,label)}${text(730,18,options.model||"ASITIC",'text-anchor="end"')}${text(730,314,`Frequency · GHz${log?" (log)":""}`,'text-anchor="end"')}</g>
+  <path d="M90 30V270H730" fill="none" stroke="#61788b"/>
   <g><path class="sweep-curve" d="${curve}" fill="none" stroke="${setting.color}" stroke-width="2"/>${points}</g>
   ${values.length?"":`<g font-family="monospace" font-size="13" fill="#9cabb9">${text(400,150,"Run a sweep to plot the selected metric",'text-anchor="middle"')}</g>`}</svg>`;
 }
