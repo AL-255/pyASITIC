@@ -4,7 +4,6 @@ Metal i maps to GDS layer i+1; via i maps to 100+i. Foundry layer maps
 can be supplied explicitly. Ribbons are BOUNDARY elements, never PATH strokes.
 """
 import math
-import re
 import struct
 
 

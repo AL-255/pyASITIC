@@ -1,0 +1,63 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta name="description" content="Generate ASITIC coil layouts, run conductor estimates in Python, and download GDSII files in your browser.">
+  <title>reASITIC · Coil workbench</title>
+  <link rel="stylesheet" href="style.css">
+  <script type="module" src="app.js"></script>
+</head>
+<body>
+  <header class="topbar">
+    <a class="brand" href="./"><span class="brand-icon">◎</span> reASITIC <span class="tag">COIL WORKBENCH</span></a>
+    <div class="top-actions"><span id="runtime" role="status"><i class="led loading"></i> Loading Python…</span><a href="https://github.com/AL-255/reASITIC" target="_blank" rel="noreferrer">Source ↗</a></div>
+  </header>
+  <main>
+    <aside class="sidebar">
+      <div class="section-label">01 / GEOMETRY</div>
+      <h1>Build a coil.</h1>
+      <p class="muted intro">From winding parameters to a physical layout.</p>
+      <form id="geometry-form">
+        <label>Generator<select name="kind" id="kind"><option value="square">Square spiral</option><option value="polygon">Polygon spiral</option><option value="multimetal">Multi-metal square</option><option value="ring">Polygon ring</option><option value="wire">Straight wire</option><option value="capacitor">Capacitor plates</option><option value="via">Via array</option></select></label>
+        <label>Shape name<input name="name" value="L1" required maxlength="79"></label>
+        <div class="field-pair">
+          <label data-kinds="square multimetal wire capacitor">Length <span>µm</span><input name="length" type="number" value="100" min="0.001" step="any" required></label>
+          <label data-kinds="square multimetal">Height <span>µm</span><input name="height" type="number" value="100" min="0.001" step="any" required></label>
+          <label data-kinds="polygon ring">Radius <span>µm</span><input name="radius" type="number" value="50" min="0.001" step="any" required></label>
+          <label data-kinds="polygon ring">Sides<input name="sides" type="number" value="8" min="3" max="1024" step="1" required></label>
+        </div>
+        <div class="field-pair">
+          <label data-kinds="square polygon multimetal ring wire capacitor">Width <span>µm</span><input name="width" type="number" value="5" min="0.001" step="any" required></label>
+          <label data-kinds="square polygon multimetal">Spacing <span>µm</span><input name="spacing" type="number" value="2" min="0" step="any" required></label>
+          <label data-kinds="square polygon multimetal">Turns<input name="turns" type="number" value="2.5" min="0.0625" step="any" required></label>
+          <label data-kinds="ring">Gap <span>degrees</span><input name="gap" type="number" value="20" min="0" max="360" step="any" required></label>
+        </div>
+        <label data-kinds="square polygon multimetal ring wire capacitor">Metal<select name="metal" id="metal"></select></label>
+        <label data-kinds="square">Exit metal<select name="exit_metal" id="exit-metal"><option value="-1">No exit lead</option></select></label>
+        <label data-kinds="multimetal capacitor">Bottom metal<select name="bottom_metal" id="bottom-metal"></select></label>
+        <label data-kinds="via">Via layer<select name="via" id="via"></select></label>
+        <div class="field-pair" data-kinds="via"><label>Columns<input name="nx" type="number" value="3" min="1" max="1000" required></label><label>Rows<input name="ny" type="number" value="3" min="1" max="1000" required></label></div>
+        <details class="placement"><summary>Placement & direction</summary><div class="field-pair"><label>Origin X <span>µm</span><input name="x" type="number" value="0" step="any" required></label><label>Origin Y <span>µm</span><input name="y" type="number" value="0" step="any" required></label><label data-kinds="square polygon multimetal ring wire capacitor">Orientation <span>°</span><input name="angle" type="number" value="0" min="-360" max="360" step="any" required></label><label data-kinds="square multimetal wire via">Current phase<select name="phase"><option value="1">+1</option><option value="-1">−1</option></select></label></div></details>
+        <button class="primary" id="generate" disabled type="submit">Generate layout <span>↗</span></button>
+      </form>
+      <details class="technology"><summary>Process technology <span id="tech-name">CMOS</span></summary><p class="muted">Load an ASITIC .tek file. The sample process uses five metals; it is not a fabrication PDK.</p><label class="file-button">Load .tek file<input id="technology-file" type="file" accept=".tek,.txt" hidden></label><button class="quiet" id="reset-technology">Reset sample</button><div id="tech-table"></div></details>
+    </aside>
+    <section class="workspace">
+      <div id="error" role="alert" hidden></div>
+      <div class="workspace-head"><div><div class="section-label">02 / LAYOUT</div><h2 id="layout-title">L1 <span>Square spiral</span></h2></div><div class="toolbar"><button id="fit" class="quiet" title="Fit layout to view">Fit view</button><button id="download-gds" disabled>↓ GDSII</button><button id="download-project" disabled title="Save editable geometry and technology">↓ Project</button><label class="file-button compact">Open project<input id="project-file" type="file" accept=".json" hidden></label></div></div>
+      <div class="canvas-wrap"><svg id="layout" role="img" aria-label="Coil layout preview" viewBox="0 0 600 440"><defs><pattern id="grid" width="20" height="20" patternUnits="userSpaceOnUse"><path d="M 20 0 L 0 0 0 20" fill="none" stroke="#273442" stroke-width="0.5"/></pattern></defs><rect width="100%" height="100%" fill="url(#grid)"/><g id="drawing"></g></svg><div class="canvas-label"><span id="canvas-caption">Waiting for Python runtime</span><span id="scale"></span></div><div id="legend"></div></div>
+      <div class="geometry-stats"><div><span>SEGMENTS</span><strong id="stat-segments">—</strong></div><div><span>CENTERLINE LENGTH</span><strong id="stat-length">—</strong></div><div><span>SUM OF RIBBON AREAS</span><strong id="stat-area">—</strong></div><div><span>DC RESISTANCE</span><strong id="stat-dc">—</strong></div></div>
+      <p id="warnings" class="warnings" hidden></p>
+      <section class="analysis-panel"><div class="analysis-head"><div><div class="section-label">03 / ANALYSIS</div><h2>Conductor estimates</h2></div><div class="simulation-controls"><label>Frequency <span>GHz</span><input id="frequency" type="number" value="2" min="0.000001" max="100000" step="any"></label><button id="simulate" disabled>Run estimates →</button></div></div>
+        <p class="muted method-note">Original ASITIC <code>Inductance</code>, <code>ResisHF</code> and <code>QLF</code> algorithms. QLF extrapolates DC loss. Substrate effects and the full Pi/Pi2 network solver are still being ported.</p>
+        <div class="result-grid"><div><span>INDUCTANCE ESTIMATE</span><strong id="result-l">—</strong></div><div><span>HF RESISTANCE</span><strong id="result-r">—</strong></div><div><span>LF EXTRAPOLATED Q</span><strong id="result-q">—</strong></div></div>
+        <details id="sweep-section"><summary>Frequency sweep</summary><div class="sweep-controls"><label>Start <span>GHz</span><input id="sweep-first" type="number" value="0.1" min="0.000001" step="any"></label><label>Stop <span>GHz</span><input id="sweep-last" type="number" value="20" min="0.000001" step="any"></label><button id="sweep" disabled>Run sweep</button><button id="download-csv" disabled>↓ CSV</button></div><svg id="sweep-chart" viewBox="0 0 700 190" role="img" aria-label="High-frequency resistance versus frequency" hidden></svg><div id="sweep-table"></div></details>
+        <p id="analysis-status" role="status" class="muted">Generate a layout to begin.</p>
+      </section>
+      <footer><span>Python in your browser · No simulation server</span><a href="https://github.com/AL-255/reASITIC/blob/main/PORTING.md" target="_blank" rel="noreferrer">Port coverage & validation ↗</a></footer>
+    </section>
+  </main>
+  <noscript>This workbench requires JavaScript to load the Python runtime. The Python package can also be run locally from the source repository.</noscript>
+</body>
+</html>
