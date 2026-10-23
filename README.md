@@ -13,7 +13,7 @@ Implemented so far:
 
 - Square, polygon and symmetric square/polygon spirals, wires, polygon rings, capacitors, via arrays,
   and multi-metal square windings, preserving native ribbon edge records.
-- Planar transformers and baluns with separate winding records, winding
+- Planar transformers, 3D mirror transformers, and baluns with separate winding records, winding
   selection for electrical analysis, and combined GDS export.
 - `.tek` technology loading, conductor DC resistance and the original empirical
   high-frequency resistance model, including parallel via counts.
@@ -49,6 +49,7 @@ fields, hashes, and the reference revision. Regenerate with:
 ```sh
 python3 tools/capture_reference.py --reference ~/github/asitic-re
 python3 tools/capture_analysis.py --reference ~/github/asitic-re
+python3 tools/capture_transformer3d.py --reference ~/github/asitic-re
 ```
 
 Install `gdstk==1.0.2` to enable the independent GDS reader tests. CI runs those
@@ -74,8 +75,7 @@ add `--gds coil.gds` to export a layout request. See `src/reasitic/bridge.py`.
 
 ## Remaining scope
 
-The full objective includes 3D/mirror
-transformers; geometry editing/session commands;
+The full objective includes geometry editing/session commands;
 substrate eddy/capacitance algorithms; network, transformer and port metrics;
 EM frequency sweeps and optimization. Work will be validated against the reference
 one connected path at a time. No fitted spiral-inductance formula is substituted

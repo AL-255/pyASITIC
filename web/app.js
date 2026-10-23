@@ -34,6 +34,7 @@ function definition() {
 }
 function showFields() {
   const kind = $("#kind").value;
+  $("#secondary-metal").parentElement.firstChild.nodeValue=kind==="transformer3d"?"Secondary winding metal":"Crossover metal";
   for (const label of form.querySelectorAll("[data-kinds]")) {
     const visible = label.dataset.kinds.split(" ").includes(kind);
     label.hidden = !visible;
@@ -143,7 +144,16 @@ function renderSweep(rows) {
   $("#sweep-table").replaceChildren(table);
 }
 form.addEventListener("submit",event=>{event.preventDefault();task(generate);});
-$("#kind").addEventListener("change",()=>{if($("#kind").value==="balun" && Number(form.elements.turns.value)<3)form.elements.turns.value="3";showFields();});
+$("#kind").addEventListener("change",()=>{
+  const kind=$("#kind").value;
+  if(kind==="balun" && Number(form.elements.turns.value)<3)form.elements.turns.value="3";
+  if(kind==="transformer3d"){
+    if(Number(form.elements.turns.value)<1)form.elements.turns.value="1";
+    const minimum=.4142*Number(form.elements.width.value)+2*1.4142;
+    if(Number(form.elements.spacing.value)<minimum)form.elements.spacing.value=String(Math.ceil(minimum));
+  }
+  showFields();
+});
 $("#active-winding").addEventListener("change",()=>task(async()=>{
   const next={...currentDefinition,winding:Number($("#active-winding").value)};
   const shape=await request({action:"build",...next,technology:technologyText});

@@ -41,7 +41,13 @@ class ReferenceGeometryTests(unittest.TestCase):
                 if family in ("symmetric_square","symmetric_polygon"):
                     p.update(inner_gap=float(f["WID"]),secondary_metal=f["EXIT"])
                 with self.subTest(family=family,name=f["NAME"]):
-                    if family in ("transformer","balun"):
+                    if family=="mirror_3d_transformer":
+                        lines=fixture["stdin"].splitlines()
+                        params=dict(primary_name=lines[0],secondary_name=lines[1],length=float(lines[2].split()[0]),height=float(lines[2].split()[1]),
+                                    width=float(lines[3]),spacing=float(lines[4]),turns=float(lines[5]),metal=lines[6],secondary_metal=lines[7],
+                                    x=float(lines[8].split()[0]),y=float(lines[8].split()[1]),angle=float(lines[9]),phase=int(lines[10]))
+                        shape=next(s for s in build_device("transformer3d",technology=tech,**params) if s.name==f["NAME"])
+                    elif family in ("transformer","balun"):
                         line=next(line for line in fixture["script"].splitlines() if line.startswith("TRANS ") or line.startswith("BALUN "))
                         fields=dict(part.split("=",1) for part in line.split(" ",1)[1].split(":"))
                         params=dict(name=fields.get("NAME","T"),primary_name=fields.get("PNAME","B-P"),secondary_name=fields.get("SNAME","B-S"),

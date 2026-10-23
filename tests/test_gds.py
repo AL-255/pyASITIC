@@ -46,7 +46,7 @@ class GdsTests(unittest.TestCase):
     def test_paired_windings_export_together(self):
         import gdstk
         tech=Technology.default()
-        for kind in ("transformer","balun"):
+        for kind in ("transformer","balun","transformer3d"):
             shapes=build_device(kind,technology=tech,turns=3 if kind=="balun" else 1.5,
                                 metal="M4",exit_metal="M3",x=123,y=47)
             expected=[(shape,index,points) for shape in shapes for index,points in layout_polygons(shape,tech)]

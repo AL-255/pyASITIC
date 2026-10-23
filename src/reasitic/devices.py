@@ -8,11 +8,13 @@ from .geometry import build, _square
 from .model import Shape
 from .technology import Technology
 
-PAIRED_KINDS = ("transformer","balun")
+PAIRED_KINDS = ("transformer","balun","transformer3d")
 
 
 def build_device(kind="square",*,technology=None,**parameters):
     tech = technology or Technology.default()
+    kind = {"3dtrans":"transformer3d","3dmirrortrans":"transformer3d","trans3d":"transformer3d",
+            "transmim":"transformer3d","mirror_transformer3d":"transformer3d"}.get(kind.lower(),kind.lower())
     if kind not in PAIRED_KINDS:
         return [build(kind,technology=tech,**parameters)]
     p = dict(parameters)
@@ -24,7 +26,7 @@ def build_device(kind="square",*,technology=None,**parameters):
     name = str(p.get("name","T1"))
     length = number("length",100)
     width = number("width",3)
-    spacing = number("spacing",2)
+    spacing = number("spacing",8 if kind=="transformer3d" else 2)
     x,y = number("x",0),number("y",0)
     angle = number("angle",0)
     if min(length,width)<=0 or spacing<0 or max(length,width)>1e6 or abs(angle)>360:
@@ -72,7 +74,7 @@ def build_device(kind="square",*,technology=None,**parameters):
                 primary.origin[1] -= width
             else:
                 primary.origin[1] += width
-    else:
+    elif kind=="balun":
         secondary_width = number("secondary_width",width)
         total_turns = number("turns",3)
         if total_turns<3 or secondary_width<=0:
@@ -90,4 +92,26 @@ def build_device(kind="square",*,technology=None,**parameters):
         secondary.reflect(0)
         for segment in secondary.segments:
             segment.reverse()
+    else:
+        from .transformer3d import build_3d
+        height = number("height",length)
+        turns = number("turns",2)
+        secondary_metal = tech.metal_index(p.get("secondary_metal",max(0,metal-1)))
+        if secondary_metal==metal:
+            raise ValueError("3D transformer windings must use distinct metals")
+        projected = (spacing-float.fromhex("0x1.a8240b780346ep-2")*width)/float.fromhex("0x1.6a0902de00d1bp+0")
+        if projected<2:
+            raise ValueError("Spacing too small for the original 3D transformer transitions")
+        if not 1<=turns<=1000 or not 0<height<=1e6:
+            raise ValueError("3D transformer needs 1–1000 turns and a positive height")
+        phase = number("phase",1)
+        if phase not in (-1,1):
+            raise ValueError("3D transformer phase must be +1 or −1")
+        common = dict(p,length=length,height=height,width=width,spacing=spacing,turns=turns,angle=angle,phase=phase)
+        primary = Shape(primary_name,kind,[x,y],dict(common,metal=metal))
+        secondary = Shape(secondary_name,kind,[x,y],dict(common,metal=secondary_metal))
+        build_3d(primary,secondary,tech)
+        if angle or phase<0:
+            for winding in (primary,secondary):
+                winding.warnings.append("The original 3D creator records orientation and phase without transforming its segments.")
     return [primary,secondary]

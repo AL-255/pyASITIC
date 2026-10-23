@@ -18,7 +18,7 @@ def main():
     root = args.reference.resolve()
     proof = root/"recomp_cpp/build/cli/native-creator-proof"
     fixtures = []
-    for family in ("square","polygon","symmetric_square","symmetric_polygon","wire","ring","via","capacitor","multimetal_square","transformer","balun"):
+    for family in ("square","polygon","symmetric_square","symmetric_polygon","wire","ring","via","capacitor","multimetal_square","transformer","balun","mirror_3d_transformer"):
         directory = proof/family/"native"
         text = (directory/"saved.spi").read_text()
         shapes = []

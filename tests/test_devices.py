@@ -5,7 +5,7 @@ from reasitic.bridge import handle
 
 class DeviceTests(unittest.TestCase):
     def test_paired_preview_and_winding_analysis(self):
-        for kind in ("transformer","balun"):
+        for kind in ("transformer","balun","transformer3d"):
             definition=dict(kind=kind,parameters=dict(name="T",turns=3 if kind=="balun" else 1.5,width=3,secondary_width=4,metal="M4",exit_metal="M3"))
             first=handle(dict(action="build",**definition,winding=0))
             second=handle(dict(action="build",**definition,winding=1))

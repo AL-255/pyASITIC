@@ -20,6 +20,8 @@ class Segment:
     metal: int
     nx: int = 0
     ny: int = 0
+    primary_width: float | None = None
+    primary_thickness: float | None = None
 
     @property
     def points(self):

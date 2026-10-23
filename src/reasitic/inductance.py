@@ -266,7 +266,9 @@ def segment_mutual(a,b,warnings=None):
 
 def _record(s,origin=(0,0)):
     return [s.start[0]+origin[0],s.start[1]+origin[1],s.start[2],
-            s.end[0]+origin[0],s.end[1]+origin[1],s.end[2],s.width,s.thickness]
+            s.end[0]+origin[0],s.end[1]+origin[1],s.end[2],
+            s.width if s.primary_width is None else s.primary_width,
+            s.thickness if s.primary_thickness is None else s.primary_thickness]
 
 
 def inductance_estimate(shape,technology):

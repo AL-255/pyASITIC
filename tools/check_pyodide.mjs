@@ -43,5 +43,25 @@ for (const fixture of cases) {
   }
 }
 console.log("24 reference LMAT matrices passed in WebAssembly.");
+const cases3d=JSON.parse(readFileSync(new URL("../tests/fixtures/transformer3d.json",import.meta.url))).cases;
+for(const fixture of cases3d){
+  for(const [winding,name] of [[0,"P"],[1,"S"]]){
+    const input={kind:"transformer3d",parameters:fixture.parameters,winding};
+    const geometry=request({action:"build",...input});
+    const reference=fixture.geometry[name];
+    assert.equal(geometry.segments.length,reference.length);
+    geometry.segments.forEach((segment,i)=>{
+      for(const [field,point] of [["AX",segment.outer_start],["BX",segment.outer_end],["CX",segment.inner_start],["DX",segment.inner_end],["PORT1X",segment.start],["PORT2X",segment.end]]){
+        assert.ok(Math.abs(point[0]-reference[i][field])<5.1e-7);
+        assert.ok(Math.abs(point[1]-reference[i][field.replace(/X$/,"Y")])<5.1e-7);
+      }
+    });
+    const matrix=request({action:"lmat",...input,frequency_hz:1e9}).matrix;
+    const expected=fixture.matrices[name];
+    assert.equal(matrix.length,expected.length);
+    matrix.forEach((row,i)=>row.forEach((value,j)=>value.forEach((component,k)=>assert.ok(Math.abs(component-expected[i][j][k])<1e-8,`3D ${name} matrix [${i},${j}]`))));
+  }
+}
+console.log("Seven 3D geometry sessions and 14 winding matrices passed in WebAssembly.");
 call.destroy();
 console.log("Pinned Pyodide archive smoke test passed.");
