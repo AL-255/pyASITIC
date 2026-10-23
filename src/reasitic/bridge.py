@@ -10,6 +10,7 @@ from .gds import write_gds, layout_polygons
 from .solver import solve_impedance
 from .devices import build_device, PAIRED_KINDS
 from .potential import solve_capacitance
+from .network import solve_pi2
 
 
 def _technology(request):
@@ -43,6 +44,11 @@ def handle(request):
         mutual,k = coupling_estimate(a,b,tech)
         return dict(mutual_nh=mutual,k=k)
     shape = _shape(request,tech)
+    if action == "pi2":
+        mesh=request.get("mesh",{})
+        ground=_shape(request["ground"],tech) if request.get("ground") else None
+        return solve_pi2(shape,tech,float(request.get("frequency_hz",1e9)),ground=ground,
+                         **{key:float(mesh.get(key,1000)) for key in ("length_cell","width_cell","thickness_cell","capacitance_length_cell","capacitance_width_cell")})
     if action == "capacitance":
         mesh=request.get("mesh",{})
         ground=_shape(request["ground"],tech) if request.get("ground") else None

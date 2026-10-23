@@ -2,7 +2,7 @@ const $ = selector => document.querySelector(selector);
 const form = $("#geometry-form");
 const NS = "http://www.w3.org/2000/svg";
 const COLORS = ["#e8bd65", "#81b4ef", "#b899eb", "#8fd1ae", "#e89971", "#e88fbd", "#64cbd1", "#cecf86"];
-let worker, ready = false, busy = false, nextId = 0, current = null, currentDefinition = null, technology = null, technologyText = "", sweepRows = null, matrixResult = null, capacitanceResult = null;
+let worker, ready = false, busy = false, nextId = 0, current = null, currentDefinition = null, technology = null, technologyText = "", sweepRows = null, matrixResult = null, capacitanceResult = null, pi2Result = null;
 const pending = new Map();
 const fmt = (value, digits=4) => Number(value).toLocaleString(undefined, { maximumSignificantDigits: digits });
 
@@ -10,10 +10,11 @@ function error(message="") { $("#error").hidden = !message; $("#error").textCont
 function status(message) { $("#analysis-status").textContent = message; }
 function controls() {
   $("#generate").disabled = !ready || busy;
-  for (const id of ["simulate", "sweep", "lmat", "capacitance", "download-gds", "download-project"]) $("#"+id).disabled = !ready || busy || !current;
+  for (const id of ["simulate", "sweep", "lmat", "capacitance", "pi2", "download-gds", "download-project"]) $("#"+id).disabled = !ready || busy || !current;
   $("#download-csv").disabled = busy || !sweepRows;
   $("#download-matrix").disabled = busy || !matrixResult;
   $("#download-capacitance").disabled = busy || !capacitanceResult;
+  for(const id of ["download-pi2","download-ports"]) $("#"+id).disabled = busy || !pi2Result;
   $("#active-winding").disabled = busy;
   $("#coupling").disabled = busy || !current || current.windings.length!==2;
 }
@@ -81,6 +82,7 @@ function render(shape) {
   const subtitle = document.createElement("span"); subtitle.textContent = $("#kind").selectedOptions[0].textContent; $("#layout-title").append(subtitle);
   $("#winding-control").hidden=shape.windings.length<2;
   $("#cap-ground-control").hidden=shape.windings.length<2;
+  $("#pi2-ground-control").hidden=shape.windings.length<2;
   $("#active-winding").replaceChildren(...shape.windings.map((name,index)=>new Option(name,String(index),false,index===(currentDefinition.winding||0))));
   $("#canvas-caption").textContent=`${fmt(x1-x0)} × ${fmt(y1-y0)} µm · ${shape.windings.length>1?"both windings · ":""}origin (${fmt(shape.origin[0])}, ${fmt(shape.origin[1])})`;
   $("#scale").textContent="Scroll to zoom · drag to pan";
@@ -96,6 +98,7 @@ function resetResults() {
   sweepRows=null; $("#sweep-table").replaceChildren(); $("#sweep-chart").hidden=true;
   matrixResult=null; $("#matrix-table").replaceChildren(); $("#lmat-result").textContent="";
   capacitanceResult=null; $("#capacitance-table").replaceChildren(); $("#capacitance-result").textContent="";
+  pi2Result=null; $("#pi2-metrics").replaceChildren(); $("#pi2-ports").replaceChildren(); $("#pi2-result").textContent="";
 }
 async function generate() {
   const next = definition();
@@ -228,6 +231,49 @@ $("#download-capacitance").addEventListener("click",()=>{
   const rows=["row,column,real_siemens,imag_siemens"];
   capacitanceResult.matrix.forEach((row,i)=>row.forEach(([real,imag],j)=>rows.push([i,j,real,imag].join(","))));
   download(rows.join("\n"),"text/csv",filename("-capacitance-admittance.csv"));
+});
+$("#pi2").addEventListener("click",()=>task(async()=>{
+  status("Combining the filament and substrate matrices and solving Pi2 node equations…");
+  const ground=current.windings.length===2 && $("#pi2-ground").checked ? {...currentDefinition,winding:1-(currentDefinition.winding||0)} : null;
+  const result=await request({action:"pi2",...currentDefinition,ground,technology:technologyText,frequency_hz:numeric("#frequency")*1e9,
+    mesh:{length_cell:numeric("#mesh-length"),width_cell:numeric("#mesh-width"),thickness_cell:numeric("#mesh-thickness"),
+      capacitance_length_cell:numeric("#cap-length"),capacitance_width_cell:numeric("#cap-width")}});
+  pi2Result=result;
+  $("#pi2-result").textContent=`${fmt(result.frequency_hz/1e9)} GHz · ${result.segments} metal segments · ${result.filaments} filaments · ${result.contacts} contacts · Eddy currents disabled`;
+  const p=result.pi,table=document.createElement("table"),head=table.createTHead().insertRow();
+  for(const title of ["Pi2 metric","Value"]){const th=document.createElement("th");th.textContent=title;head.append(th);}
+  const rows=[
+    ["Series inductance",p.inductance_h===null?null:p.inductance_h*1e9,"nH"],["Series resistance",p.resistance_ohm,"Ω"],
+    ["Port 1 shunt capacitance",p.capacitance_first_f===null?null:p.capacitance_first_f*1e15,"fF"],["Port 1 shunt resistance",p.resistance_first_ohm,"Ω"],
+    ["Port 2 shunt capacitance",p.capacitance_second_f===null?null:p.capacitance_second_f*1e15,"fF"],["Port 2 shunt resistance",p.resistance_second_ohm,"Ω"],
+    ["Port 1 Q",p.q_first,""],["Port 2 Q",p.q_second,""],["Differential Q",p.q_differential,""],
+    ["Single-ended shunt R",p.shunt_single_ohm,"Ω"],["Differential shunt R",p.shunt_differential_ohm,"Ω"],
+    ["Narrowband resonance estimate",p.resonant_frequency_hz===null?null:p.resonant_frequency_hz/1e9,"GHz"]
+  ];
+  const body=table.createTBody();
+  for(const [label,value,unit] of rows){const row=body.insertRow();row.insertCell().textContent=label;row.insertCell().textContent=value===null?"Undefined":`${fmt(value,6)} ${unit}`;}
+  const complex=z=>`${fmt(z[0],6)} ${z[1]<0?"−":"+"} j${fmt(Math.abs(z[1]),6)}`;
+  for(const [label,value] of [["Port 1 input Z",result.input_impedance_first_ohm],["Port 2 input Z",result.input_impedance_second_ohm],["Differential input Z",result.differential_impedance_ohm]]){
+    const row=body.insertRow();row.insertCell().textContent=label;row.insertCell().textContent=complex(value)+" Ω";
+  }
+  $("#pi2-metrics").replaceChildren(table);
+  const ports=document.createElement("table"),portsHead=ports.createTHead().insertRow();
+  for(const title of ["Parameter","Y (S)","ASITIC S (50 Ω)"]){const th=document.createElement("th");th.textContent=title;portsHead.append(th);}
+  const portsBody=ports.createTBody();
+  for(let i=0;i<2;i++)for(let j=0;j<2;j++){
+    const row=portsBody.insertRow();row.insertCell().textContent=`${i+1}${j+1}`;
+    row.insertCell().textContent=complex(result.admittance_matrix[i][j]);row.insertCell().textContent=complex(result.scattering_matrix[i][j]);
+  }
+  $("#pi2-ports").replaceChildren(ports);
+  status(`Pi2 complete. Resonance is an estimate from the model at this frequency. ${ground?"The other winding is grounded. ":""}${result.warnings.join(" ")}`);
+}));
+$("#download-pi2").addEventListener("click",()=>download(JSON.stringify(pi2Result,null,2),"application/json",filename("-pi2.json")));
+$("#download-ports").addEventListener("click",()=>{
+  const rows=["frequency_hz,parameter,row,column,real,imag,unit"];
+  for(const [parameter,matrix,unit] of [["Y",pi2Result.admittance_matrix,"siemens"],["S",pi2Result.scattering_matrix,"dimensionless"]]){
+    matrix.forEach((row,i)=>row.forEach(([real,imag],j)=>rows.push([pi2Result.frequency_hz,parameter,i+1,j+1,real,imag,unit].join(","))));
+  }
+  download(rows.join("\n"),"text/csv",filename("-two-port.csv"));
 });
 $("#download-gds").addEventListener("click",()=>task(async()=>{
   const result=await request({action:"gds",...currentDefinition,technology:technologyText});

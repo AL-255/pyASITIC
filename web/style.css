@@ -3,4 +3,4 @@
 
 #winding-control{display:flex;gap:8px;align-items:end;margin-top:8px}#winding-control label{margin:0;min-width:130px}#winding-control select{height:31px;padding:4px 8px;font-size:11px}
 
-#capacitance-table{max-height:260px;overflow:auto;margin-top:14px}#capacitance-table td{white-space:nowrap}#capacitance-result{font:12px var(--mono);line-height:1.9;color:var(--accent)}#cap-ground{width:auto;height:auto;margin:0 7px 0 0;vertical-align:middle}
+#capacitance-table{max-height:260px;overflow:auto;margin-top:14px}#capacitance-table td{white-space:nowrap}#capacitance-result,#pi2-result{font:12px var(--mono);line-height:1.9;color:var(--accent)}#cap-ground,#pi2-ground{width:auto;height:auto;margin:0 7px 0 0;vertical-align:middle}#pi2-metrics,#pi2-ports{overflow:auto;margin-top:14px}#pi2-metrics td:first-child{text-align:left}#pi2-ports td{white-space:nowrap}

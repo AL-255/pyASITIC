@@ -26,6 +26,10 @@ Implemented so far:
   spectral Green functions, reflected FFT tables, potential-matrix inversion,
   and admittance reduction. Includes explicit ground winding selection, total
   capacitance, substrate equivalent resistance and admittance CSV download.
+- Distributed `PI2` two-port model with eddy currents disabled: combines CAP
+  and filament admittance through the original node equations. Reports series
+  L/R, two RC shunts, port/differential Q, input impedances, shunt resistance,
+  narrowband resonance estimate and native 50 Ω Y/S output, with JSON/CSV export.
 - GDSII export with actual via cuts and metal landing pads. Default mapping:
   metal index + 1, via index + 100; datatype 0. Python callers can override it.
   Units are micrometres, with a 1 nm export grid.
@@ -33,7 +37,8 @@ Implemented so far:
   estimates, logarithmic frequency sweeps and CSV download. Python runs in a
   module worker using pinned Pyodide 314.0.7; the runtime loads from jsDelivr.
 
-Python arithmetic is binary64; the reference retains x87 extended intermediates.
+Records use binary64 with selected retained-precision intermediates matching the
+reference's x87 arithmetic.
 Bitwise numerical equality is not claimed. Original saved geometry fixtures are
 compared at their 6-decimal printed precision (5.1e-7 µm).
 Foundry design rules and layer mapping must come from the user's process.
@@ -55,6 +60,7 @@ python3 tools/capture_reference.py --reference ~/github/asitic-re
 python3 tools/capture_analysis.py --reference ~/github/asitic-re
 python3 tools/capture_transformer3d.py --reference ~/github/asitic-re
 python3 tools/capture_potential.py --reference ~/github/asitic-re
+python3 tools/capture_network.py --reference ~/github/asitic-re
 ```
 
 Install `gdstk==1.0.2` to enable the independent GDS reader tests. CI runs those
@@ -73,6 +79,11 @@ coil = build("square", technology=tech, length=100, width=5,
 print(inductance_estimate(coil, tech))  # nH, original INDUCTANCE estimate
 print(resistance_hf(coil, tech, 2e9))  # ohms
 Path("coil.gds").write_bytes(write_gds(coil, tech))
+
+from reasitic import solve_pi2
+model = solve_pi2(coil, tech, 2e9, length_cell=50, width_cell=3,
+                  thickness_cell=.5)
+print(model["pi"])  # SI units; eddy currents disabled
 ```
 
 `python -m reasitic request.json` runs the same JSON interface used by the worker;
@@ -81,9 +92,13 @@ add `--gds coil.gds` to export a layout request. See `src/reasitic/bridge.py`.
 ## Remaining scope
 
 The full objective includes geometry editing/session commands;
-substrate eddy-current algorithms; network, transformer and port metrics;
+substrate eddy-current algorithms; grounded/pad/transformer and multiport networks;
 EM frequency sweeps and optimization. Work will be validated against the reference
 one connected path at a time. No fitted spiral-inductance formula is substituted
 for the original electromagnetic solver.
+
+Pi2's resonance value is an estimate from the model at the chosen frequency;
+the native self-resonance search is pending. Native S conversion preserves an
+ASITIC first-diagonal quirk for asymmetric devices; see the fidelity notes.
 
 See [PORTING.md](PORTING.md) for the source mapping and validation boundary.

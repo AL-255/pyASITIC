@@ -13,6 +13,7 @@ Reference checkout: `~/github/asitic-re`, revision recorded in each fixture.
 | `inductance.py` | `analysis_commands.cpp`, `segment.cpp`, `canonicalize.cpp`, `intersection.cpp`, `parallel.cpp`, `separation.cpp`, `planar.cpp`, `spatial.cpp` | Twelve live C++ INDUCTANCE command reports, including symmetric, nonparallel, stacked and via geometry |
 | `solver.py` | `geometry.cpp`, `filament_setup.cpp`, `filaments.cpp`, `impedance.cpp`, `vias.cpp`, `solver.cpp` | 36 complete C++ LMAT matrices: coarse 1 GHz, refined 2 GHz, and unequal inductive/capacitive length cells; within 1e-8 Ω per component in CPython and WebAssembly |
 | `potential.py` | `potential_tables.cpp`, `potential.cpp`, `contacts.cpp`, `potential_solver.cpp` | Eight CAP sessions across CMOS/BiCMOS: full potential snapshots, folded admittance matrices, and actual cache FFT samples for every metal pair; browser runtime checks cover all eight reduced matrices |
+| `network.py` | `combined_network.cpp`, `node_equations.cpp`, `network.cpp`, `two_port_output.cpp` | Eight no-eddy PI2 sessions: CAP/inductive/nodal snapshots, 15-digit Y/S output, printed L/R/C/Q/shunt-R/resonance reports; isolated node/S checks and JSON/WebAssembly interfaces |
 | `gds.py` | Native ribbon and `layout_export.cpp` via pitch conventions | Independent gdstk round-trip for nine generators, units, coordinates, layer mapping, via counts and cut area |
 | `bridge.py`, `web/worker.js` | New browser interface | Generation, estimates, sweeps and exports exercised in pinned Pyodide WebAssembly runtime |
 
@@ -51,8 +52,10 @@ The current web app labels its estimate Q value as
 QLF (the native DC-loss extrapolation), not network quality or HF Q. Inductance
 does not change with frequency in estimate mode. LMAT's separate series Q is
 Im(sum Z)/Re(sum Z). CAP now computes layered-substrate capacitance and substrate
-loss independently. Eddy-current corrections, the combined Pi/Pi2 network, and
-resonance extraction remain pending.
+loss independently. Pi2 combines those two distributed solvers and reports the
+original frequency-dependent network metrics. Eddy-current corrections, the
+fast Pi path, full transformer/grounded/pad networks and self-resonance search
+remain pending.
 
 Outstanding validation: broader rotated/fractional/negative-phase geometry
 fixtures, arbitrary technology files, segment-kernel precision fixtures, real
@@ -67,6 +70,29 @@ Paired devices keep separate electrical shapes. The layout shows both windings,
 the winding picker selects the shape used by estimates/LMAT, and GDS contains
 both. The coupling button uses the original estimate path; the full transformer
 network analysis remains pending.
+
+Pi2 clones the geometry once using the original inductive/capacitive length
+thresholds, requests the filament solver's admittance mode, converts folded CAP
+to nodal admittance, and solves the two native drive/bias experiments. Its
+general node factorization uses partial pivoting in binary64 rather than the
+original LAPACK implementation. End-to-end Y/S comparisons use max(1e-10,
+1e-8 relative) per component; separate snapshot/node checks guard the stage
+boundaries. Eight independent fixtures cover wires, square/polygon coils,
+capacitor plates, multi-metal coils, via corrections, unequal cells, an explicit
+ground wire, and CMOS/BiCMOS. Their 64 × 64 FFT on a 128 µm chip complements the
+CAP fixtures' original 128 × 128 grids.
+
+Public Y matrices and Pi RC shunts follow native output port order: public port 1
+is the internal y22 node. Differential impedance retains the native reciprocal
+y21-squared determinant. The native 50 Ω S conversion repeats y22 in both
+factors of the first diagonal numerator; this changes s11 for asymmetric devices
+and is deliberately preserved. The app and CSV label these as ASITIC S values.
+Pi2 resonance is the native narrowband Pi formula, not a frequency search.
+Undefined native metrics (for example differential shunt R for a one-segment
+wire with a zero RC branch) are JSON null and appear as Undefined in the app.
+Native printed Pi metrics have only three significant digits; full Y/S records
+provide the stronger numerical comparisons. More devices, grounds with vias,
+near-singular networks and process stacks remain to validate.
 
 `3DTrans`, `3DMIRRORTRANS`, `Trans3D` and `TransMIM` are aliases of creator ID 10,
 not separate generator algorithms. The 3D builder is generated into standalone

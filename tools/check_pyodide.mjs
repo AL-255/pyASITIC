@@ -79,5 +79,22 @@ for(const fixture of potentialCases){
   })));
 }
 console.log("Eight native layered-substrate capacitance matrices passed in WebAssembly.");
+const networkCases=JSON.parse(readFileSync(new URL("../tests/fixtures/network.json",import.meta.url))).cases;
+for(const fixture of networkCases){
+  const result=request({action:"pi2",kind:fixture.kind,parameters:fixture.parameters,technology:fixture.technology,
+    frequency_hz:fixture.frequency_hz,mesh:fixture.mesh,ground:fixture.ground});
+  for(const key of ["admittance_matrix","scattering_matrix"]){
+    assert.equal(result[key].length,2);
+    result[key].forEach((row,i)=>row.forEach((value,j)=>value.forEach((component,k)=>{
+      const expected=fixture[key][i][j][k];
+      assert.ok(Math.abs(component-expected)<=Math.max(1e-10,Math.abs(expected)*1e-8),`PI2 ${fixture.process} ${fixture.kind} ${key} [${i},${j}]`);
+    })));
+  }
+  assert.equal(result.eddy,false);
+  assert.ok(Number.isFinite(result.pi.q_first));
+  assert.ok(Number.isFinite(result.pi.inductance_h));
+  if(fixture.kind==="wire" && !fixture.ground)assert.equal(result.pi.shunt_differential_ohm,null);
+}
+console.log("Eight native distributed Pi2 Y/S matrices passed in WebAssembly.");
 call.destroy();
 console.log("Pinned Pyodide archive smoke test passed.");

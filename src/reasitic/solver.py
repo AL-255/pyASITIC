@@ -85,12 +85,16 @@ def filament(segment,origin,yi,zi,ny,nz,edge_cell,max_width_cells,technology):
 
 
 def solve_impedance(shape,technology,frequency_hz,*,length_cell=1000,width_cell=1000,
-                    thickness_cell=1000,max_width_cells=9,capacitance_length_cell=None,max_filaments=256):
+                    thickness_cell=1000,max_width_cells=9,capacitance_length_cell=None,max_filaments=256,
+                    admittance=False,discretized=False):
     """Return the reduced segment impedance matrix, total L/R/Q and mesh size.
 
     Cells are in micrometres; frequency is in Hz. Returns ohms and henries.
     Includes the reference's via correction. Substrate eddy stamping is separate
     work and is deliberately absent from this explicitly no-eddy API.
+    `admittance=True` returns the branch matrix in siemens instead of ohms;
+    scalar L/R/Q still describe total series impedance. `discretized=True`
+    accepts the already cloned geometry used by the combined PI2 driver.
     """
     values = (frequency_hz,length_cell,width_cell,thickness_cell)
     if not all(math.isfinite(v) and v>0 for v in values):
@@ -104,7 +108,7 @@ def solve_impedance(shape,technology,frequency_hz,*,length_cell=1000,width_cell=
     # GeometryDiscretization is {half_width, length_step}: the native clone
     # tests the smaller limit, but its ceiling count divides by the inductive
     # length cell (half_width), even when the capacitance cell is different.
-    meshed = discretize(shape,capacitance_length_cell,length_cell)
+    meshed = shape if discretized else discretize(shape,capacitance_length_cell,length_cell)
     metal_count = len(technology.metals)
     conductors = [s for s in meshed.segments if s.metal<metal_count]
     if not conductors:
@@ -137,8 +141,8 @@ def solve_impedance(shape,technology,frequency_hz,*,length_cell=1000,width_cell=
         for col in range(row+1,n):
             mutual = segment_mutual(a,filaments[col][0],warnings)
             full[row][col] = full[col][row] = complex(0,omega*1e-9*mutual)
-    admittance = inverse(full)
-    reduced_y = [[sum(admittance[r][c] for r in rows for c in columns)
+    full_y = inverse(full)
+    reduced_y = [[sum(full_y[r][c] for r in rows for c in columns)
                   for columns in groups] for rows in groups]
     reduced_z = inverse(reduced_y)
     group = 0
@@ -156,7 +160,13 @@ def solve_impedance(shape,technology,frequency_hz,*,length_cell=1000,width_cell=
         inductance = height*2e-4*(math.log(2*height/perimeter)+SELF_CONSTANT+perimeter/(height*3))
         reduced_z[group][group] += complex(via.resistance/(s.nx*s.ny),omega*1e-9*inductance)
     total = sum(sum(row) for row in reduced_z)
-    return dict(matrix=[[[z.real,z.imag] for z in row] for row in reduced_z],
+    # PI2 requests admittance directly. The native driver only reinverts the
+    # reduced matrix when via corrections have required an impedance stamp.
+    if admittance:
+        result = inverse(reduced_z) if any(s.metal>=metal_count for s in meshed.segments) else reduced_y
+    else:
+        result = reduced_z
+    return dict(matrix=[[[z.real,z.imag] for z in row] for row in result],
                 resistance_ohm=total.real,inductance_h=total.imag/omega,
                 series_q=total.imag/total.real if total.real else None,
                 frequency_hz=frequency_hz,filaments=n,segments=len(conductors),
