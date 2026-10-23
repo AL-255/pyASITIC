@@ -5,10 +5,45 @@ segment.cpp, canonicalize.cpp, parallel.cpp, planar.cpp and spatial.cpp.
 Intermediate units are centimetres and the result is nH, as in ASITIC.
 """
 import math
+from fractions import Fraction
+from functools import lru_cache
 
 EPS = 1e-10
 SCALE = 1e-4
 SELF_CONSTANT = float.fromhex("0x1.004039abf3387p-1")
+
+
+def _round_extended(value):
+    """Round a rational to the x87 64-bit significand (nearest/even).
+
+    Needed for the reference's 5000-unit basis translation: rounding both
+    translated endpoints straight to binary64 can change its case selection.
+    No platform long-double dependency, so this also works in WebAssembly.
+    """
+    if not value:
+        return value
+    sign = -1 if value<0 else 1
+    value = abs(value)
+    num,den = value.numerator,value.denominator
+    exponent = num.bit_length()-den.bit_length()
+    if (Fraction(2)**exponent)>value:
+        exponent -= 1
+    shift = 63-exponent
+    if shift>=0:
+        num <<= shift
+    else:
+        den <<= -shift
+    integer,remainder = divmod(num,den)
+    if remainder*2>den or (remainder*2==den and integer%2):
+        integer += 1
+    return sign*Fraction(integer,1<<shift) if shift>=0 else sign*Fraction(integer*(1<<-shift))
+
+
+@lru_cache(maxsize=8192)
+def _basis_delta(start,end,z_axis):
+    a = _round_extended(Fraction(start)+5000)
+    b = _round_extended(Fraction(end)+5000)
+    return float(_round_extended(b-(a if z_axis else Fraction(float(a)))))
 
 
 def _dot(a,b):
@@ -143,7 +178,7 @@ def _canonical(a,b):
     u,v = _unit(da),_unit(db)
     if _intersects(a[:3],u,b[:3],v,na,nb):
         return 3
-    delta = [(a[i+3]+5000)-(a[i]+5000) for i in range(3)]
+    delta = [_basis_delta(a[i],a[i+3],i==2) for i in range(3)]
     start,end = _sub(b[:3],a[:3]),_sub(b[3:6],a[:3])
     if _norm(delta)<EPS:
         return 4

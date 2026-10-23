@@ -19,6 +19,10 @@ class BridgeTests(unittest.TestCase):
         stream=base64.b64decode(handle(dict(action="gds",**definition))["base64"])
         self.assertEqual(stream[:4],bytes.fromhex("00060002"))
         self.assertEqual(stream[-4:],bytes.fromhex("00040400"))
+        matrix=handle(dict(action="lmat",frequency_hz=2e9,mesh=dict(length_cell=50,width_cell=3,thickness_cell=.5),**definition))
+        self.assertFalse(matrix["eddy"])
+        self.assertEqual(len(matrix["matrix"]),matrix["segments"])
+        self.assertGreater(matrix["inductance_h"],0)
 
     def test_invalid_requests_return_errors(self):
         for payload in ["{",'{"action":"unknown"}','{"parameters":{"turns":-2}}','{"parameters":{"length":NaN}}']:

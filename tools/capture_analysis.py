@@ -34,6 +34,8 @@ def main():
             script = "CELL 1000 1000 1000\nCCELL 1000 1000\n"+command+"\nINDUCTANCE A\nRESIS A\n"
             frequencies = [0.001,0.1,1,10,100]
             script += "".join(f"RESISHF A {f}\n" for f in frequencies)
+            script += "LMAT A 1 matrix.out\n"
+            script += "CELL 50 3 0.5\nCCELL 50 1000\nLMAT A 2 mesh.out\n"
             Path(directory,"input.asit").write_text(script)
             result = subprocess.run([str(executable),"-g","-t",str(root/"run/tek/CMOS.tek"),"-x","input.asit"],
                                     input="quit\n",text=True,capture_output=True,cwd=directory,timeout=30,start_new_session=True,
@@ -44,7 +46,17 @@ def main():
             hf = re.findall(r"A: at ([\d.eE+-]+) GHz R = ([\d.eE+-]+)",output)
             if result.returncode or not inductance or not dc or len(hf)!=len(frequencies):
                 raise RuntimeError(output+result.stderr)
-            cases.append(dict(kind=kind,parameters=params,script=script,stdout=output,
+            def read_matrix(filename):
+                matrix = []
+                for line in Path(directory,filename).read_text().splitlines():
+                    parts=line.split()
+                    if len(parts)==4:
+                        i,j=int(parts[0]),int(parts[1])
+                        while len(matrix)<=i:
+                            matrix.append([])
+                        matrix[i].append([float(parts[2]),float(parts[3])])
+                return matrix
+            cases.append(dict(kind=kind,parameters=params,script=script,stdout=output,matrix_1ghz=read_matrix("matrix.out"),matrix_fine_2ghz=read_matrix("mesh.out"),
                               inductance_nh=float(inductance[1]),dc=float(dc[1]),
                               hf=[[float(f)*1e9,float(r.rstrip("."))] for f,r in hf]))
     destination = Path(__file__).resolve().parents[1]/"tests/fixtures/analysis.json"

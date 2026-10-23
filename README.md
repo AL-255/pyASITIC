@@ -17,6 +17,9 @@ Implemented so far:
   high-frequency resistance model, including parallel via counts.
 - Original `Inductance` and `Coupling` estimate algorithms: segment self terms,
   signed parallel, planar and spatial mutual-inductance cases.
+- No-eddy `LMAT` filament solver with longitudinal and cross-section meshing,
+  impedance assembly, inversion/reduction and via corrections. The web app
+  displays L, R, series Q and the complex matrix, with full matrix CSV download.
 - GDSII export with actual via cuts and metal landing pads. Default mapping:
   metal index + 1, via index + 100; datatype 0. Python callers can override it.
   Units are micrometres, with a 1 nm export grid.
@@ -70,9 +73,9 @@ add `--gds coil.gds` to export a layout request. See `src/reasitic/bridge.py`.
 ## Remaining scope
 
 The full objective includes planar/3D/mirror
-transformers and baluns; geometry editing/session commands; filament impedance
-and substrate eddy/capacitance algorithms; network, transformer and port metrics;
-frequency sweeps and optimization. Work will be validated against the reference
+transformers and baluns; geometry editing/session commands;
+substrate eddy/capacitance algorithms; network, transformer and port metrics;
+EM frequency sweeps and optimization. Work will be validated against the reference
 one connected path at a time. No fitted spiral-inductance formula is substituted
 for the original electromagnetic solver.
 

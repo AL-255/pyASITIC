@@ -8,6 +8,7 @@ Reference checkout: `~/github/asitic-re`, revision recorded in each fixture.
 | `technology.py` | `technology_text.cpp`, `technology_records.cpp` | Sample CMOS technology; additional technology variants remain to validate |
 | `resistance.py` | `resistance.cpp` | Original DC reports for nine families; twelve live C++ cases at five frequencies (1 MHz–100 GHz) |
 | `inductance.py` | `analysis_commands.cpp`, `segment.cpp`, `canonicalize.cpp`, `intersection.cpp`, `parallel.cpp`, `separation.cpp`, `planar.cpp`, `spatial.cpp` | Twelve live C++ INDUCTANCE command reports, including symmetric, nonparallel, stacked and via geometry |
+| `solver.py` | `geometry.cpp`, `filament_setup.cpp`, `filaments.cpp`, `impedance.cpp`, `vias.cpp`, `solver.cpp` | 24 complete C++ LMAT matrices, coarse 1 GHz and refined 2 GHz, within 1e-8 Ω per component in both CPython and WebAssembly |
 | `gds.py` | Native ribbon and `layout_export.cpp` via pitch conventions | Independent gdstk round-trip for nine generators, units, coordinates, layer mapping, via counts and cut area |
 | `bridge.py`, `web/worker.js` | New browser interface | Generation, estimates, sweeps and exports exercised in pinned Pyodide WebAssembly runtime |
 
@@ -26,12 +27,25 @@ Symmetric polygon construction starts from the reference console's zeroed
 Symmetric coils quantize to whole turns; symmetric polygon side counts are even.
 
 The original INDUCTANCE estimate is distinct from the frequency-dependent
-filament solver behind LMAT and PI2. The current web app labels its Q value as
+filament solver behind LMAT and PI2. The LMAT path now assembles and reduces the
+full no-eddy filament impedance matrix. Its dense complex inverse uses partial
+pivoting in binary64 rather than the original i386 LAPACK symmetric factorization.
+The case selector's extended-precision 5000-unit translation is reproduced with
+exact rational rounding to a 64-bit binary significand. Rounding both translated
+endpoints to binary64 caused large errors in some refined meshes; the matrix
+fixtures catch that regression.
+
+The current web app labels its estimate Q value as
 QLF (the native DC-loss extrapolation), not network quality or HF Q. Inductance
-does not change with frequency in this mode. Eddy currents, substrate loss,
+does not change with frequency in estimate mode. LMAT's separate series Q is
+Im(sum Z)/Re(sum Z). Eddy currents, substrate loss,
 capacitance and resonances are not yet included.
 
 Outstanding validation: broader rotated/fractional/negative-phase geometry
 fixtures, arbitrary technology files, segment-kernel precision fixtures, real
 browser interaction and rendered layout checks. The current environment has no
 browser connection; WebAssembly runtime execution is tested separately from UI.
+The adaptive edge mesh branch is ported but still needs native fixtures. Its
+original sqrt(dot) normalization can be invalid for some coordinates; Python
+reports that failure explicitly. Current LMAT supports one series shape without
+shunt-segment groups and caps the browser matrix at 256 filaments.

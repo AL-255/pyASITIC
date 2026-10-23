@@ -7,6 +7,7 @@ from .technology import Technology
 from .resistance import resistance_dc, resistance_hf
 from .inductance import inductance_estimate, coupling_estimate
 from .gds import write_gds, layout_polygons
+from .solver import solve_impedance
 
 
 def _technology(request):
@@ -32,6 +33,12 @@ def handle(request):
         mutual,k = coupling_estimate(a,b,tech)
         return dict(mutual_nh=mutual,k=k)
     shape = _shape(request,tech)
+    if action == "lmat":
+        mesh = request.get("mesh",{})
+        return solve_impedance(shape,tech,float(request.get("frequency_hz",1e9)),
+                               length_cell=float(mesh.get("length_cell",1000)),
+                               width_cell=float(mesh.get("width_cell",1000)),
+                               thickness_cell=float(mesh.get("thickness_cell",1000)))
     if action == "build":
         data = shape.to_dict()
         # Render exactly the polygons exported to GDS, including individual cuts.

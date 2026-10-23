@@ -27,5 +27,18 @@ for(const kind of init.generators) {
 }
 const sweep=request({action:"sweep",first_hz:1e8,last_hz:2e10,count:31});
 assert.equal(sweep.rows.length,31);
+const cases=JSON.parse(readFileSync(new URL("../tests/fixtures/analysis.json",import.meta.url))).cases;
+for (const fixture of cases) {
+  // Keyword angles cross a native binary32 boundary before entering geometry.
+  const parameters={...fixture.parameters};
+  for (const key of ["gap","angle"]) if(key in parameters) parameters[key]=Math.fround(parameters[key]*Math.PI/180)*180/Math.PI;
+  for(const [frequency_hz,mesh,key] of [[1e9,{},"matrix_1ghz"],[2e9,{length_cell:50,width_cell:3,thickness_cell:.5},"matrix_fine_2ghz"]]) {
+    const result=request({action:"lmat",kind:fixture.kind,parameters,frequency_hz,mesh});
+    const expected=fixture[key];
+    assert.equal(result.matrix.length,expected.length);
+    result.matrix.forEach((row,i)=>row.forEach((z,j)=>z.forEach((value,component)=>assert.ok(Math.abs(value-expected[i][j][component])<1e-8,`${fixture.kind} ${key} [${i},${j}]`))));
+  }
+}
+console.log("24 reference LMAT matrices passed in WebAssembly.");
 call.destroy();
 console.log("Pinned Pyodide archive smoke test passed.");
