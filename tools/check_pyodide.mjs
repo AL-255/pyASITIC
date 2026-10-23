@@ -163,5 +163,59 @@ for(const fixture of greenCases){
 }
 greenProbe.destroy();
 console.log("186 native Green-kernel cases passed in WebAssembly, including cutoff and nonfinite classifications.");
+py.runPython(`
+from reasitic.oscillatory import (MomentCache,weighted_rule,chebyshev_transform,solve_tridiagonal,
+                                  oscillatory_rule,integrate_oscillatory,integrate_fourier)
+from reasitic.quadrature import _d
+def oscillatory_probe(payload):
+    case=json.loads(payload)
+    group=case.pop("group")
+    kind=case.get("kind",0)
+    callback=[lambda x:1/(1+x*x),lambda x:math.exp(-x),lambda x:1/(1+x),lambda x:1.,
+              lambda x:x*x*x,lambda x:abs(x-.37)][kind]
+    if group=="rules":
+        cache=MomentCache(case["rows"])
+        value=oscillatory_rule(callback,case["a"],case["b"],case["frequency"],case["selector"],0,False,cache)
+        result=asdict(value.value)
+        result.update(evaluations=value.evaluations,computed=cache.computed,moments=cache.data[0])
+    elif group=="weighted":
+        weight=lambda x:(math.sin if case["selector"]==2 else math.cos)(float(_d(case["frequency"])*_d(x)))
+        result=asdict(weighted_rule(callback,weight,case["a"],case["b"]))
+    elif group=="chebyshev":
+        samples=case["samples"].copy()
+        y,z=chebyshev_transform(samples)
+        result=dict(overwritten=samples,degree12=y,degree24=z)
+    elif group=="tridiagonal":
+        arrays=[case[key].copy() for key in ("c","d","e","rhs")]
+        result=dict(status=solve_tridiagonal(*arrays),overwritten=arrays)
+    else:
+        args={k:v for k,v in case.items() if k not in ("kind","rows","result","cycle_integrals","cycle_errors","cycle_statuses","history")}
+        if group=="oscillatory":
+            cache=MomentCache(case["rows"])
+            result=asdict(integrate_oscillatory(callback,cache=cache,**args))
+            result["computed"]=cache.computed
+        else:result=asdict(integrate_fourier(callback,**args))
+    return json.dumps(result,allow_nan=False)
+`);
+const oscillatoryProbe=py.globals.get("oscillatory_probe");
+const oscillatoryFixture=JSON.parse(readFileSync(new URL("../tests/fixtures/oscillatory.json",import.meta.url)));
+function compareOscillatory(actual,expected,label){
+  if(Array.isArray(expected)){
+    assert.equal(actual.length,expected.length,label);
+    actual.forEach((v,i)=>compareOscillatory(v,expected[i],`${label}[${i}]`));
+  } else if(/evaluations|status|intervals|computed|cycles/.test(label))assert.equal(actual,expected,label);
+  else {
+    const floor=label.includes("error")?1e-12:1e-13,relative=label.includes("error")?1e-10:1e-12;
+    assert.ok(Math.abs(actual-expected)<=Math.max(floor,Math.abs(expected)*relative),label);
+  }
+}
+for(const group of ["rules","weighted","chebyshev","tridiagonal","oscillatory","fourier"]){
+  for(const fixture of oscillatoryFixture[group]){
+    const result=JSON.parse(oscillatoryProbe(JSON.stringify({...fixture,group})));
+    for(const [key,value] of Object.entries(result))compareOscillatory(value,key in fixture?fixture[key]:fixture.result[key],`${group} ${key}`);
+  }
+}
+oscillatoryProbe.destroy();
+console.log("524 native weighted/Chebyshev/moment/adaptive/Fourier cases passed in WebAssembly.");
 call.destroy();
 console.log("Pinned Pyodide archive smoke test passed.");

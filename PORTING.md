@@ -16,6 +16,7 @@ Reference checkout: `~/github/asitic-re`, revision recorded in each fixture.
 | `network.py` | `combined_network.cpp`, `node_equations.cpp`, `network.cpp`, `two_port_output.cpp` | Eight no-eddy PI2 sessions: CAP/inductive/nodal snapshots, 15-digit Y/S output, printed L/R/C/Q/shunt-R/resonance reports; isolated node/S checks and JSON/WebAssembly interfaces |
 | `quadrature.py` | `quadrature.cpp` | DQK15I transformed rule, DQPSRT ranking, DQELG epsilon extrapolation and DQAGIE adaptive infinite integration; direct 32-bit C++ probe covers 60 integrations and 36 rules, including convergence/failure statuses and exact evaluation/subdivision counts |
 | `green.py` | `green.cpp`, `legacy_complex.cpp` | 186 direct 32-bit C++ object probes: propagation constants, complex tanh, reflection, layered/limiting integrands, oscillating/reflection kernels; realistic and extreme conductivities, zero frequency/wave number, decay cutoff and native nonfinite classifications |
+| `oscillatory.py` | `oscillatory.cpp` | Native DQK15W/DQCHEB/DGTSL/DQC25F/DQAWOE/DQAWFE: 176 oscillatory rules, 88 weighted rules, 4 Chebyshev transforms, 8 pivoted tridiagonal cases, 168 adaptive integrals and 80 Fourier runs with per-cycle values/statuses and extrapolation history |
 | `gds.py` | Native ribbon and `layout_export.cpp` via pitch conventions | Independent gdstk round-trip for nine generators, units, coordinates, layer mapping, via counts and cut area |
 | `bridge.py`, `web/worker.js` | New browser interface | Generation, estimates, sweeps and exports exercised in pinned Pyodide WebAssembly runtime |
 
@@ -104,8 +105,8 @@ unspilled arithmetic; it does not reproduce every x87 instruction rounding.
 Direct object probes compare values/errors with max(1e-13 absolute, 1e-12
 relative) and require exact statuses, subdivision counts and evaluation counts.
 These are quadrature dependency tests, not an enabled eddy-current solver.
-Fourier/oscillatory quadrature and eddy matrix stamping still need porting and
-connected reference validation.
+The Fourier/oscillatory dependency is also ported; Green-integrator connection
+and eddy matrix stamping still need connected reference validation.
 
 The eddy Green kernels now preserve the original complex record spills, with
 64-bit-significand arithmetic for the layered integrand and legacy division.
@@ -119,6 +120,20 @@ for reflection decay and the before/after ln(FLT_MAX) cutoff cases. These tests
 validate kernel dependencies, not a connected eddy-loss simulation. Full x87
 exception flags, signed NaN payloads, arbitrary extreme inputs and process
 stacks remain outside the current evidence.
+
+Oscillatory integration retains the native weighted-rule constants (which
+differ slightly from DQK15I), the DQCHEB butterfly, DGTSL pivot ordering, and
+both moment-generation branches around |par| = 24. Cache rows and their
+computed count follow the source, including a one-row cache and the 15/25
+evaluation threshold. DQAWOE leaves its subdivision count zero on initial
+return. DQAWFE preserves the native direct-sum jump's previous table tail,
+zero-frequency bound-zero behavior, negative sine sign, partial results and
+three explicit extrapolation-history cells. Tests require native statuses,
+evaluation/subdivision/cycle/cache counts and per-cycle status lists. Finite
+values use max(1e-13 absolute, 1e-12 relative); cancellation-limited error
+estimates use max(1e-12 absolute, 1e-10 relative). These are algorithm
+conformance tolerances, not guarantees of integration accuracy for every
+integrand or a claim of matching all x87 flags/roundoff histories.
 
 `3DTrans`, `3DMIRRORTRANS`, `Trans3D` and `TransMIM` are aliases of creator ID 10,
 not separate generator algorithms. The 3D builder is generated into standalone
