@@ -1,0 +1,10 @@
+{
+  "reference_commit": "63885e808b522bdeba3f254d353afc72e643c761",
+  "source_sha256": "dda360aabf49def2bf8e8aa3ca9ced881719811b4774eeabe064401faa6081a5",
+  "adaptation": "Typed metal records; SoftReal 80-bit arithmetic and original binary64 stores; existing retained hyperbolic/FFT kernels; bounded caller-owned backing for rectangular grids.",
+  "initialization_sources": {
+    "potential_solver.cpp": "2367b1161436325b559d89cdb9594e215450042a3086571de303b50ad726123c",
+    "legacy_complex.cpp": "a493b4d50bc88448c40b0a89526e8f806aa0219fd39a69ff09975898e0420fd1",
+    "technology_text.cpp": "fd02e27f5d0af9766f8b9a3b1cf6e258cd990cc7295d9861b82e6eb990659c64"
+  }
+}

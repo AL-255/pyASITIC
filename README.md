@@ -45,6 +45,9 @@ Implemented so far:
   CAP and Pi-family node solves use the original general LU/inverse sequence;
   the compiled path is checked against original factors, inverses, solves and
   network products across the native 64-column block boundaries.
+  Retained compiled Green-table generation is checked against 33 complete
+  original-binary tables through 256×256, with separate native coefficient and
+  regional-transfer checks.
 - Distributed `PI2` / `PI3` two-port models with optional native eddy correction: combines CAP
   and filament admittance through the original node equations. Reports series
   L/R, two RC shunts, port/differential Q, input impedances, shunt resistance,
@@ -117,7 +120,7 @@ tests and the same source archive inside the pinned WebAssembly runtime before
 deploying to Pages. No external simulation service is required.
 
 The Pages workflow runs Python core checks, every native potential-reference
-process/frequency group, and five WebAssembly groups in parallel. FFT/CAP and
+process/frequency group, and ten WebAssembly groups in parallel. FFT/CAP and
 SELFRES checks print case progress. Fixture-derived grouping keeps all native
 cases covered; deployment waits for every group and publishes only the current
 main commit. Active validation is retained when another commit is pushed.

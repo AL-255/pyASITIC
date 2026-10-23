@@ -2,11 +2,12 @@
 
 The browser runs Python in Pyodide 314.0.7. Numerical loops written in Python
 were the principal cost: retained FFT butterflies, spectral arithmetic, and
-matrix inversion. The FFT, retained exponential helpers, contact potentials,
+matrix inversion. The FFT, complete spectral table generation, layer coefficients, contact potentials,
 symmetric/general factors and inverses, triangular solves and network dot
 products now run in a compiled
-WebAssembly module. Per-table memoization reuses spectral values and interface
-ratios only at identical inputs. Filament mutual terms use bounded caching of
+WebAssembly module. Both backends cache complete tables at identical inputs;
+the portable table fallback also memoizes spectral values and interface ratios.
+Filament mutual terms use bounded caching of
 ordered binary geometry records; frequency scaling and eddy terms are evaluated
 for each solve.
 
@@ -77,6 +78,39 @@ original. Full inputs, raw samples and current results are saved in
 `benchmarks/2026-10-23-general.json`; previous browser samples are from
 `27ccf16`, and native timing samples are retained from the original benchmark.
 
+The spectral-table step moves complete metal-pair generation into the retained
+kernel: transfer/source recursion, Green kernels, wave numbers, normalization
+and FFTs. Layer coefficients also follow the original retained frequency weight
+and scalar complex inverse. Compared with `e86a3b3`, measured first requests are:
+
+| FFT grid | 34 filaments, previous / current | 189 filaments, previous / current |
+| --- | ---: | ---: |
+| 64 × 64 | 0.89 s / 0.33 s | 5.90 s / 5.38 s |
+| 128 × 128 | 2.65 s / 0.78 s | 2.96 s / 1.10 s |
+
+Cached identical-frequency solves remain about 14/23 ms at 34 filaments and
+0.35 s at 189 filaments. The first dense 64-grid request still pays the large
+initial geometry cost; caches persist into its 128-grid request. Raw samples
+and complete current results are in `benchmarks/2026-10-23-spectral.json`.
+
+A separate benchmark follows the webpage's eleven distinct, linearly spaced
+Pi2 requests from 0.1 to 20 GHz. It includes geometry/table work and Python JSON
+transport, excluding interpreter loading and DOM rendering:
+
+| Mesh / FFT grid | General release | Spectral-table step |
+| --- | ---: | ---: |
+| 34 filaments / 64 × 64 | 7.27 s | 2.01 s |
+| 34 filaments / 128 × 128 | 27.94 s | 8.58 s |
+| 189 filaments / 64 × 64 | 15.23 s | 10.45 s |
+| 189 filaments / 128 × 128 | 31.49 s | 12.21 s |
+
+The 128-grid sweeps improve about 3.3× and 2.6× for the two meshes. Both versions
+run sequentially with the same requests. One portable Python regression process
+overlapped the first part of the sequence on the development host. Inputs,
+per-point times and L/R/Q results are in
+`benchmarks/2026-10-23-spectral-sweeps.json`. These are browser comparisons;
+original-binary sweep timing has not been measured by this tool.
+
 Cold browser timing is the first request for each FFT grid in one interpreter,
 excluding interpreter loading. Geometry caches persist between the two grids;
 the first dense case pays their initial cost. The native cold estimate
@@ -96,7 +130,8 @@ Before the matrix step, profiling a cached 34-filament case attributed about 80%
 of Python runtime to three symmetric matrix inversions. The compiled path keeps
 the original pivot, eigen-rotation and binary64-store behavior. Geometry caching
 alone made only a small difference. Contact-potential evaluation and remaining
-spectral/matrix assembly are the next performance targets.
+spectral/matrix assembly were subsequent performance targets. A current dense
+cached profile puts most remaining time in symmetric filament inversions.
 
 Reproduce the comparison after building the static site:
 
@@ -107,6 +142,8 @@ python tools/benchmark_pi.py --reference ../asitic-re \
   --output /tmp/native-pi.json
 node tools/benchmark_pi.mjs /tmp/native-pi.json \
   /path/to/pyodide/pyodide.mjs /tmp/browser-pi.json
+node tools/benchmark_sweep.mjs /tmp/native-pi.json \
+  /path/to/pyodide/pyodide.mjs dist /tmp/browser-sweep.json
 ```
 
 Use `--dense --skip-python` with `benchmark_pi.py` to reproduce the denser native
@@ -122,10 +159,16 @@ tolerances. Exact agreement of these kernels does not establish universal
 bitwise agreement of the whole simulator. Contact gates now compare 41 original
 matrices (264,844 output components), finite values bit for bit and nonfinite
 values by classification, plus all eight production raw potential and reduced
-CAP snapshots with unchanged tolerances. Spectral generation and the remaining
-network arithmetic still require further precision work.
+CAP snapshots with unchanged tolerances. End-to-end assembly/reduction and
+broader geometry/process inputs still require independent verification.
 General-matrix gates check 33 original cases / 2,571,696 components, including
 complete dense 514-entry factor/inverse/solve/product digests. Finite outputs
 match bit for bit and nonfinite classifications match; caller inputs remain
 unchanged. These establish the tested matrix boundaries, not universal
 whole-simulator equality.
+The spectral gate checks 1,728 original regional/transfer calls and 33 complete
+tables (556,434 components), including rectangular and 256×256 table digests.
+Another 88 groups / 3,556 components compare the intact original CAP coefficient
+loop with both Python and compiled implementations. Finite bits and nonfinite
+classifications match; source helpers must restore depth bytes. These extend
+the checked boundaries without establishing universal electrical parity.

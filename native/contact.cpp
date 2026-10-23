@@ -6,6 +6,15 @@
 
 namespace asitic {
 namespace legacy {
+ComplexValue divide(double numerator,const ComplexValue& b) {
+ const SoftReal c=b.real,d=b.imag,n=numerator;
+ if(x87::abs(c)<=x87::abs(d)){
+  const SoftReal ratio=c/d,denominator=(ratio*ratio)*d+d;
+  return {x87::binary64((n*ratio)/denominator),x87::binary64(-n/denominator)};
+ }
+ const SoftReal ratio=d/c,denominator=(ratio*ratio)*c+c;
+ return {x87::binary64(n/denominator),x87::binary64((-n*ratio)/denominator)};
+}
 ComplexValue divide(const ComplexValue& a,const ComplexValue& b) {
  const SoftReal c=b.real,d=b.imag;
  if(x87::abs(d)>=x87::abs(c)) {

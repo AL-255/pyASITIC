@@ -44,22 +44,26 @@ static void fft(C* a,int n){
 }
 __attribute__((export_name("buffer"))) uintptr_t get_buffer(void){return (uintptr_t)buffer;}
 __attribute__((export_name("fft"))) int run_fft(int n){if(n<0||n>512||(n&&(n&(n-1))))return -1;plan();fft(buffer,n);return 0;}
+void retained_fft(C* values,int n){plan();fft(values,n);}
+void retained_grid(C* values,int nx,int ny);
 __attribute__((export_name("grid"))) int run_grid(int nx,int ny){
  if(nx<1||ny<1||nx>256||ny>256||(nx&(nx-1))||(ny&(ny-1)))return -1;
+ retained_grid(buffer,nx,ny);return 0;
+}
+void retained_grid(C* values,int nx,int ny){
  plan();int stride=ny+1;
  for(int x=0;x<=nx;x++){
-  for(int y=0;y<=ny;y++)scratch[y]=buffer[x*stride+y];
-  for(int y=ny+1;y<2*ny;y++)scratch[y]=buffer[x*stride+2*ny-y];
+  for(int y=0;y<=ny;y++)scratch[y]=values[x*stride+y];
+  for(int y=ny+1;y<2*ny;y++)scratch[y]=values[x*stride+2*ny-y];
   fft(scratch,2*ny);
-  for(int y=0;y<=ny;y++)buffer[x*stride+y]=scratch[y];
+  for(int y=0;y<=ny;y++)values[x*stride+y]=scratch[y];
  }
  for(int y=0;y<=ny;y++){
-  for(int x=0;x<=nx;x++)scratch[x]=buffer[x*stride+y];
-  for(int x=nx+1;x<2*nx;x++)scratch[x]=buffer[(2*nx-x)*stride+y];
+  for(int x=0;x<=nx;x++)scratch[x]=values[x*stride+y];
+  for(int x=nx+1;x<2*nx;x++)scratch[x]=values[(2*nx-x)*stride+y];
   fft(scratch,2*nx);
-  for(int x=0;x<=nx;x++)buffer[x*stride+y]=scratch[x];
+  for(int x=0;x<=nx;x++)values[x*stride+y]=scratch[x];
  }
- return 0;
 }
 
 // Original x87 exponent reduction: FLDL2E, FRNDINT, F2XM1, FSCALE.
@@ -89,9 +93,11 @@ static double cosh80(E x,int rounded){
  return spill(extF80_mul(load(.5),extF80_add(extF80_div(load(1),exponential),exponential)));
 }
 __attribute__((export_name("cosh"))) double run_cosh(double x){return cosh80(load(x),0);}
+double retained_cosh(E x,int rounded){return cosh80(x,rounded);}
 __attribute__((export_name("cosh_argument"))) double run_cosh_argument(double k,double a,double b,int rounded){return cosh80(argument(k,a,b),rounded);}
-__attribute__((export_name("tanh_argument"))) double run_tanh_argument(double k,double a,double b){
- E x=argument(k,a,b),absolute=x;absolute.signExp&=0x7fff;
+double retained_tanh(E x){
+ if((x.signExp&0x7fff)==0x7fff)return spill(extF80_sub(x,x));
+ E absolute=x;absolute.signExp&=0x7fff;
  if(extF80_lt(load(25),absolute))return x.signExp&0x8000?-1:1;
  E doubled=extF80_add(x,x);doubled.signExp|=0x8000;
  E e=extF80_mul(doubled,log2e),i=integral(e),whole=pow2(integer(i));
@@ -100,3 +106,4 @@ __attribute__((export_name("tanh_argument"))) double run_tanh_argument(double k,
  E fraction=extF80_div(em1,extF80_add(em1,load(2)));
  return spill(extF80_mul(fraction,load(extF80_le(x,load(0))?1:-1)));
 }
+__attribute__((export_name("tanh_argument"))) double run_tanh_argument(double k,double a,double b){return retained_tanh(argument(k,a,b));}

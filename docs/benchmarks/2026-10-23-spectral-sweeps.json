@@ -1,0 +1,1097 @@
+{
+  "date": "2026-10-23",
+  "baseline_commit": "e86a3b37156abcae2e15e2292c51c27edb5b0e26",
+  "method": "tools/benchmark_sweep.mjs, sequential old/current runs, eleven distinct linear frequencies from 0.1 to 20 GHz. The first part overlapped one portable Python regression process on the development host. No timing thresholds; original-binary sweep timing is not measured.",
+  "measurements": [
+    {
+      "label": "small",
+      "previous": {
+        "site_version": "402bb61763574236",
+        "runtime": "Pyodide 314.0.7",
+        "first_hz": 100000000,
+        "last_hz": 20000000000,
+        "count": 11,
+        "scale": "linear",
+        "method": "Eleven distinct frequencies, one interpreter shared across FFT cases. Includes geometry/table work and Python JSON transport; excludes interpreter loading and DOM rendering. Browser timing only; original binary sweep timing is not measured here.",
+        "cases": [
+          {
+            "fft": 64,
+            "request": {
+              "kind": "square",
+              "parameters": {
+                "name": "A",
+                "length": 80,
+                "width": 5,
+                "spacing": 3,
+                "turns": 1,
+                "metal": "M1",
+                "exit_metal": "M2",
+                "x": 10,
+                "y": 20
+              },
+              "technology": "; Sample CMOS technology file\n\n<chip>\n\n\tchipx = 128\t; dimensions of the chip in x direction\n\tchipy = 128\t; dimensions of the chip in y direction\n\tfftx = 64\t; x-fft size (must be a power of 2)\n\tffty = 64\t; y-fft size\n\tTechFile = CMOS.tek\n\tTechPath = .\n\tfreq = 2 \t\t; frequency of operation\n\teddy = 0\n\n<layer> 0 \t\t\t; p(-) bulk layer\n\trho = 1e-3\t\t; ohm-cm\n\tt   = 700 \t\t; microns\n        eps = 11.9\n\n<layer>\t1\t   \t\t; Oxide Layer\n\trho = 1e10\n\tt = 50\n\teps = 3.9\n\n<metal> 0\n        layer = 1\t\t; in oxide layer\n        rsh = 65\t\t; sheet resistance3\n        t   = 0.5\t\t; thickness\n        d = 1.3\t\t\t; distance from bottom of layer\n        name = m1\t\n        color = yellow\n\n<metal> 1\n        layer = 1\n        rsh = 55 \n        t = 0.5\n        d = 2.4 \n        name = m2\n        color = LightSkyBlue1\n\n<metal> 2\n        layer = 1\n        rsh = 55 \n        t = 0.5\n        d =  3.5\n        name = m3\n        color = medium purple\n\n<metal> 3\n        layer = 1\n        rsh = 55 \n        t = 0.5\n        d =  4.5\n        name = m4\n        color = light green\n\n<metal> 4\n        layer = 1\n        rsh = 30\n        t = 1\n        d =  6\n        name = m5\n        color = grey\n\n<via> 0                        ; metal 1 to metal 2\n        top = 1\n        bottom = 0\n        r = 4\n        width = .5\n        space = 1.1\n        overplot1 = .2         ; to metal 1\n        overplot2 = .2         ; to metal 2\n        name = via1\n        color = purple\n<via> 1                        ; metal 2 to metal 3\n        top = 2\n        bottom = 1\n        r = 4\n        width = .4\n        space = 1.1\n        overplot1 = .2         ; to metal 1\n        overplot2 = .2         ; to metal 2\n        name = via2\n        color = cyan1\n<via> 2                        ; metal 3 to metal 4\n        top = 3\n        bottom = 2\n        r = 4\n        width = .4\n        space = 1.1\n        overplot1 = .2\n        overplot2 = .2\n        name = via3\n        color = red\n\n<via> 3                        ; metal 3 to metal 4\n        top = 4\n        bottom = 3\n        r = 4\n        width = .4\n        space = 1.2\n        overplot1 = .2\n        overplot2 = .2\n        name = via4\n        color = white\n\n",
+              "frequency_hz": 1000000000,
+              "mesh": {
+                "length_cell": 20,
+                "width_cell": 3,
+                "thickness_cell": 0.5,
+                "capacitance_length_cell": 50,
+                "capacitance_width_cell": 8
+              },
+              "ground": null,
+              "action": "pi2"
+            },
+            "points": [
+              {
+                "frequency_hz": 100000000,
+                "seconds": 0.9032361539999999,
+                "filaments": 34,
+                "contacts": 17,
+                "inductance_h": 2.1091425506129585e-10,
+                "resistance_ohm": 4.49070301620663,
+                "q": 0.02940370025185244
+              },
+              {
+                "frequency_hz": 2090000000,
+                "seconds": 0.642276322,
+                "filaments": 34,
+                "contacts": 17,
+                "inductance_h": 2.1081975400466804e-10,
+                "resistance_ohm": 4.491648992104551,
+                "q": 0.6132852857856802
+              },
+              {
+                "frequency_hz": 4080000000,
+                "seconds": 0.6441467739999999,
+                "filaments": 34,
+                "contacts": 17,
+                "inductance_h": 2.1055721637376623e-10,
+                "resistance_ohm": 4.493936135422063,
+                "q": 1.1904687554778923
+              },
+              {
+                "frequency_hz": 6070000000,
+                "seconds": 0.6380936820000002,
+                "filaments": 34,
+                "contacts": 17,
+                "inductance_h": 2.1013513375381392e-10,
+                "resistance_ohm": 4.496645749070416,
+                "q": 1.7550969349982275
+              },
+              {
+                "frequency_hz": 8060000000,
+                "seconds": 0.6335082310000002,
+                "filaments": 34,
+                "contacts": 17,
+                "inductance_h": 2.095632044181978e-10,
+                "resistance_ohm": 4.498622113564469,
+                "q": 2.3020394104697957
+              },
+              {
+                "frequency_hz": 10050000000,
+                "seconds": 0.6309339289999998,
+                "filaments": 34,
+                "contacts": 17,
+                "inductance_h": 2.0885018274164398e-10,
+                "resistance_ohm": 4.498701466100951,
+                "q": 2.8268525059463077
+              },
+              {
+                "frequency_hz": 12040000000,
+                "seconds": 0.6335158810000002,
+                "filaments": 34,
+                "contacts": 17,
+                "inductance_h": 2.0800312358657063e-10,
+                "resistance_ohm": 4.495835787908751,
+                "q": 3.3256214936678408
+              },
+              {
+                "frequency_hz": 14030000000,
+                "seconds": 0.6309278629999999,
+                "filaments": 34,
+                "contacts": 17,
+                "inductance_h": 2.070272846067311e-10,
+                "resistance_ohm": 4.489142279991741,
+                "q": 3.7947795310660277
+              },
+              {
+                "frequency_hz": 16020000000,
+                "seconds": 0.636396001,
+                "filaments": 34,
+                "contacts": 17,
+                "inductance_h": 2.0592630630231534e-10,
+                "resistance_ohm": 4.477906018128825,
+                "q": 4.23095420037635
+              },
+              {
+                "frequency_hz": 18010000000,
+                "seconds": 0.6390724569999993,
+                "filaments": 34,
+                "contacts": 17,
+                "inductance_h": 2.0470251228317342e-10,
+                "resistance_ohm": 4.461556402799816,
+                "q": 4.630863311619235
+              },
+              {
+                "frequency_hz": 20000000000,
+                "seconds": 0.6329660600000007,
+                "filaments": 34,
+                "contacts": 17,
+                "inductance_h": 2.0335723878845368e-10,
+                "resistance_ohm": 4.439633140644442,
+                "q": 4.991261894708582
+              }
+            ],
+            "seconds": 7.265128673
+          },
+          {
+            "fft": 128,
+            "request": {
+              "kind": "square",
+              "parameters": {
+                "name": "A",
+                "length": 80,
+                "width": 5,
+                "spacing": 3,
+                "turns": 1,
+                "metal": "M1",
+                "exit_metal": "M2",
+                "x": 10,
+                "y": 20
+              },
+              "technology": "; Sample CMOS technology file\n\n<chip>\n\n\tchipx = 512\t; dimensions of the chip in x direction\n\tchipy = 512\t; dimensions of the chip in y direction\n\tfftx = 128\t; x-fft size (must be a power of 2)\n\tffty = 128\t; y-fft size\n\tTechFile = CMOS.tek\n\tTechPath = .\n\tfreq = 2 \t\t; frequency of operation\n\teddy = 0\n\n<layer> 0 \t\t\t; p(-) bulk layer\n\trho = 1e-3\t\t; ohm-cm\n\tt   = 700 \t\t; microns\n        eps = 11.9\n\n<layer>\t1\t   \t\t; Oxide Layer\n\trho = 1e10\n\tt = 50\n\teps = 3.9\n\n<metal> 0\n        layer = 1\t\t; in oxide layer\n        rsh = 65\t\t; sheet resistance3\n        t   = 0.5\t\t; thickness\n        d = 1.3\t\t\t; distance from bottom of layer\n        name = m1\t\n        color = yellow\n\n<metal> 1\n        layer = 1\n        rsh = 55 \n        t = 0.5\n        d = 2.4 \n        name = m2\n        color = LightSkyBlue1\n\n<metal> 2\n        layer = 1\n        rsh = 55 \n        t = 0.5\n        d =  3.5\n        name = m3\n        color = medium purple\n\n<metal> 3\n        layer = 1\n        rsh = 55 \n        t = 0.5\n        d =  4.5\n        name = m4\n        color = light green\n\n<metal> 4\n        layer = 1\n        rsh = 30\n        t = 1\n        d =  6\n        name = m5\n        color = grey\n\n<via> 0                        ; metal 1 to metal 2\n        top = 1\n        bottom = 0\n        r = 4\n        width = .5\n        space = 1.1\n        overplot1 = .2         ; to metal 1\n        overplot2 = .2         ; to metal 2\n        name = via1\n        color = purple\n<via> 1                        ; metal 2 to metal 3\n        top = 2\n        bottom = 1\n        r = 4\n        width = .4\n        space = 1.1\n        overplot1 = .2         ; to metal 1\n        overplot2 = .2         ; to metal 2\n        name = via2\n        color = cyan1\n<via> 2                        ; metal 3 to metal 4\n        top = 3\n        bottom = 2\n        r = 4\n        width = .4\n        space = 1.1\n        overplot1 = .2\n        overplot2 = .2\n        name = via3\n        color = red\n\n<via> 3                        ; metal 3 to metal 4\n        top = 4\n        bottom = 3\n        r = 4\n        width = .4\n        space = 1.2\n        overplot1 = .2\n        overplot2 = .2\n        name = via4\n        color = white\n\n",
+              "frequency_hz": 1000000000,
+              "mesh": {
+                "length_cell": 20,
+                "width_cell": 3,
+                "thickness_cell": 0.5,
+                "capacitance_length_cell": 50,
+                "capacitance_width_cell": 8
+              },
+              "ground": null,
+              "action": "pi2"
+            },
+            "points": [
+              {
+                "frequency_hz": 100000000,
+                "seconds": 2.6171578329999994,
+                "filaments": 34,
+                "contacts": 17,
+                "inductance_h": 2.1090895424126046e-10,
+                "resistance_ohm": 4.490703233505451,
+                "q": 0.029392904046021368
+              },
+              {
+                "frequency_hz": 2090000000,
+                "seconds": 2.5314700429999992,
+                "filaments": 34,
+                "contacts": 17,
+                "inductance_h": 2.108168976191861e-10,
+                "resistance_ohm": 4.491744228383045,
+                "q": 0.6129745720797147
+              },
+              {
+                "frequency_hz": 4080000000,
+                "seconds": 2.5257997030000006,
+                "filaments": 34,
+                "contacts": 17,
+                "inductance_h": 2.1056121976375794e-10,
+                "resistance_ohm": 4.494302448113157,
+                "q": 1.1893977911083016
+              },
+              {
+                "frequency_hz": 6070000000,
+                "seconds": 2.513772952000001,
+                "filaments": 34,
+                "contacts": 17,
+                "inductance_h": 2.101503366198347e-10,
+                "resistance_ohm": 4.497468643279054,
+                "q": 1.752382888513971
+              },
+              {
+                "frequency_hz": 8060000000,
+                "seconds": 2.564357094999999,
+                "filaments": 34,
+                "contacts": 17,
+                "inductance_h": 2.0959382624481684e-10,
+                "resistance_ohm": 4.500102120236963,
+                "q": 2.2964046465030585
+              },
+              {
+                "frequency_hz": 10050000000,
+                "seconds": 2.535522400000002,
+                "filaments": 34,
+                "contacts": 17,
+                "inductance_h": 2.0890028202954445e-10,
+                "resistance_ohm": 4.50105920285521,
+                "q": 2.816660717116327
+              },
+              {
+                "frequency_hz": 12040000000,
+                "seconds": 2.5270106210000014,
+                "filaments": 34,
+                "contacts": 17,
+                "inductance_h": 2.0807656011010257e-10,
+                "resistance_ohm": 4.4993165543086375,
+                "q": 3.3089193410311797
+              },
+              {
+                "frequency_hz": 14030000000,
+                "seconds": 2.5184159929999987,
+                "filaments": 34,
+                "contacts": 17,
+                "inductance_h": 2.0712768379624419e-10,
+                "resistance_ohm": 4.494020271497415,
+                "q": 3.769341812502938
+              },
+              {
+                "frequency_hz": 16020000000,
+                "seconds": 2.5277527679999983,
+                "filaments": 34,
+                "contacts": 17,
+                "inductance_h": 2.0605702514965377e-10,
+                "resistance_ohm": 4.48448822014863,
+                "q": 4.194331234643062
+              },
+              {
+                "frequency_hz": 18010000000,
+                "seconds": 2.4908692679999986,
+                "filaments": 34,
+                "contacts": 17,
+                "inductance_h": 2.0486660655789042e-10,
+                "resistance_ohm": 4.470186186928945,
+                "q": 4.580429453773506
+              },
+              {
+                "frequency_hz": 20000000000,
+                "seconds": 2.5856623739999995,
+                "filaments": 34,
+                "contacts": 17,
+                "inductance_h": 2.0355743166006344e-10,
+                "resistance_ohm": 4.450693552703729,
+                "q": 4.924263965872292
+              }
+            ],
+            "seconds": 27.937849872999998
+          }
+        ]
+      },
+      "updated": {
+        "site_version": "46ec8dc282ffa25b",
+        "runtime": "Pyodide 314.0.7",
+        "first_hz": 100000000,
+        "last_hz": 20000000000,
+        "count": 11,
+        "scale": "linear",
+        "method": "Eleven distinct frequencies, one interpreter shared across FFT cases. Includes geometry/table work and Python JSON transport; excludes interpreter loading and DOM rendering. Browser timing only; original binary sweep timing is not measured here.",
+        "cases": [
+          {
+            "fft": 64,
+            "request": {
+              "kind": "square",
+              "parameters": {
+                "name": "A",
+                "length": 80,
+                "width": 5,
+                "spacing": 3,
+                "turns": 1,
+                "metal": "M1",
+                "exit_metal": "M2",
+                "x": 10,
+                "y": 20
+              },
+              "technology": "; Sample CMOS technology file\n\n<chip>\n\n\tchipx = 128\t; dimensions of the chip in x direction\n\tchipy = 128\t; dimensions of the chip in y direction\n\tfftx = 64\t; x-fft size (must be a power of 2)\n\tffty = 64\t; y-fft size\n\tTechFile = CMOS.tek\n\tTechPath = .\n\tfreq = 2 \t\t; frequency of operation\n\teddy = 0\n\n<layer> 0 \t\t\t; p(-) bulk layer\n\trho = 1e-3\t\t; ohm-cm\n\tt   = 700 \t\t; microns\n        eps = 11.9\n\n<layer>\t1\t   \t\t; Oxide Layer\n\trho = 1e10\n\tt = 50\n\teps = 3.9\n\n<metal> 0\n        layer = 1\t\t; in oxide layer\n        rsh = 65\t\t; sheet resistance3\n        t   = 0.5\t\t; thickness\n        d = 1.3\t\t\t; distance from bottom of layer\n        name = m1\t\n        color = yellow\n\n<metal> 1\n        layer = 1\n        rsh = 55 \n        t = 0.5\n        d = 2.4 \n        name = m2\n        color = LightSkyBlue1\n\n<metal> 2\n        layer = 1\n        rsh = 55 \n        t = 0.5\n        d =  3.5\n        name = m3\n        color = medium purple\n\n<metal> 3\n        layer = 1\n        rsh = 55 \n        t = 0.5\n        d =  4.5\n        name = m4\n        color = light green\n\n<metal> 4\n        layer = 1\n        rsh = 30\n        t = 1\n        d =  6\n        name = m5\n        color = grey\n\n<via> 0                        ; metal 1 to metal 2\n        top = 1\n        bottom = 0\n        r = 4\n        width = .5\n        space = 1.1\n        overplot1 = .2         ; to metal 1\n        overplot2 = .2         ; to metal 2\n        name = via1\n        color = purple\n<via> 1                        ; metal 2 to metal 3\n        top = 2\n        bottom = 1\n        r = 4\n        width = .4\n        space = 1.1\n        overplot1 = .2         ; to metal 1\n        overplot2 = .2         ; to metal 2\n        name = via2\n        color = cyan1\n<via> 2                        ; metal 3 to metal 4\n        top = 3\n        bottom = 2\n        r = 4\n        width = .4\n        space = 1.1\n        overplot1 = .2\n        overplot2 = .2\n        name = via3\n        color = red\n\n<via> 3                        ; metal 3 to metal 4\n        top = 4\n        bottom = 3\n        r = 4\n        width = .4\n        space = 1.2\n        overplot1 = .2\n        overplot2 = .2\n        name = via4\n        color = white\n\n",
+              "frequency_hz": 1000000000,
+              "mesh": {
+                "length_cell": 20,
+                "width_cell": 3,
+                "thickness_cell": 0.5,
+                "capacitance_length_cell": 50,
+                "capacitance_width_cell": 8
+              },
+              "ground": null,
+              "action": "pi2"
+            },
+            "points": [
+              {
+                "frequency_hz": 100000000,
+                "seconds": 0.33182783999999993,
+                "filaments": 34,
+                "contacts": 17,
+                "inductance_h": 2.1091425506129585e-10,
+                "resistance_ohm": 4.49070301620663,
+                "q": 0.02940370025185244
+              },
+              {
+                "frequency_hz": 2090000000,
+                "seconds": 0.16860450000000016,
+                "filaments": 34,
+                "contacts": 17,
+                "inductance_h": 2.1081975400466804e-10,
+                "resistance_ohm": 4.491648992104551,
+                "q": 0.6132852857856802
+              },
+              {
+                "frequency_hz": 4080000000,
+                "seconds": 0.16740169400000013,
+                "filaments": 34,
+                "contacts": 17,
+                "inductance_h": 2.1055721637376703e-10,
+                "resistance_ohm": 4.493936135422043,
+                "q": 1.1904687554778932
+              },
+              {
+                "frequency_hz": 6070000000,
+                "seconds": 0.16761935900000002,
+                "filaments": 34,
+                "contacts": 17,
+                "inductance_h": 2.1013513375381381e-10,
+                "resistance_ohm": 4.4966457490704,
+                "q": 1.7550969349982275
+              },
+              {
+                "frequency_hz": 8060000000,
+                "seconds": 0.16731635800000003,
+                "filaments": 34,
+                "contacts": 17,
+                "inductance_h": 2.0956320441819766e-10,
+                "resistance_ohm": 4.4986221135644735,
+                "q": 2.302039410469806
+              },
+              {
+                "frequency_hz": 10050000000,
+                "seconds": 0.16793572600000015,
+                "filaments": 34,
+                "contacts": 17,
+                "inductance_h": 2.0885018274164365e-10,
+                "resistance_ohm": 4.4987014661009095,
+                "q": 2.8268525059462837
+              },
+              {
+                "frequency_hz": 12040000000,
+                "seconds": 0.16729920500000026,
+                "filaments": 34,
+                "contacts": 17,
+                "inductance_h": 2.0800312358657084e-10,
+                "resistance_ohm": 4.495835787908731,
+                "q": 3.325621493667824
+              },
+              {
+                "frequency_hz": 14030000000,
+                "seconds": 0.16778344800000014,
+                "filaments": 34,
+                "contacts": 17,
+                "inductance_h": 2.0702728460673087e-10,
+                "resistance_ohm": 4.489142279991834,
+                "q": 3.7947795310660624
+              },
+              {
+                "frequency_hz": 16020000000,
+                "seconds": 0.16833967200000005,
+                "filaments": 34,
+                "contacts": 17,
+                "inductance_h": 2.059263063023165e-10,
+                "resistance_ohm": 4.4779060181288814,
+                "q": 4.230954200376357
+              },
+              {
+                "frequency_hz": 18010000000,
+                "seconds": 0.16756857999999966,
+                "filaments": 34,
+                "contacts": 17,
+                "inductance_h": 2.0470251228317316e-10,
+                "resistance_ohm": 4.461556402799787,
+                "q": 4.630863311619174
+              },
+              {
+                "frequency_hz": 20000000000,
+                "seconds": 0.1668118840000002,
+                "filaments": 34,
+                "contacts": 17,
+                "inductance_h": 2.0335723878845453e-10,
+                "resistance_ohm": 4.439633140644436,
+                "q": 4.991261894708584
+              }
+            ],
+            "seconds": 2.008560107
+          },
+          {
+            "fft": 128,
+            "request": {
+              "kind": "square",
+              "parameters": {
+                "name": "A",
+                "length": 80,
+                "width": 5,
+                "spacing": 3,
+                "turns": 1,
+                "metal": "M1",
+                "exit_metal": "M2",
+                "x": 10,
+                "y": 20
+              },
+              "technology": "; Sample CMOS technology file\n\n<chip>\n\n\tchipx = 512\t; dimensions of the chip in x direction\n\tchipy = 512\t; dimensions of the chip in y direction\n\tfftx = 128\t; x-fft size (must be a power of 2)\n\tffty = 128\t; y-fft size\n\tTechFile = CMOS.tek\n\tTechPath = .\n\tfreq = 2 \t\t; frequency of operation\n\teddy = 0\n\n<layer> 0 \t\t\t; p(-) bulk layer\n\trho = 1e-3\t\t; ohm-cm\n\tt   = 700 \t\t; microns\n        eps = 11.9\n\n<layer>\t1\t   \t\t; Oxide Layer\n\trho = 1e10\n\tt = 50\n\teps = 3.9\n\n<metal> 0\n        layer = 1\t\t; in oxide layer\n        rsh = 65\t\t; sheet resistance3\n        t   = 0.5\t\t; thickness\n        d = 1.3\t\t\t; distance from bottom of layer\n        name = m1\t\n        color = yellow\n\n<metal> 1\n        layer = 1\n        rsh = 55 \n        t = 0.5\n        d = 2.4 \n        name = m2\n        color = LightSkyBlue1\n\n<metal> 2\n        layer = 1\n        rsh = 55 \n        t = 0.5\n        d =  3.5\n        name = m3\n        color = medium purple\n\n<metal> 3\n        layer = 1\n        rsh = 55 \n        t = 0.5\n        d =  4.5\n        name = m4\n        color = light green\n\n<metal> 4\n        layer = 1\n        rsh = 30\n        t = 1\n        d =  6\n        name = m5\n        color = grey\n\n<via> 0                        ; metal 1 to metal 2\n        top = 1\n        bottom = 0\n        r = 4\n        width = .5\n        space = 1.1\n        overplot1 = .2         ; to metal 1\n        overplot2 = .2         ; to metal 2\n        name = via1\n        color = purple\n<via> 1                        ; metal 2 to metal 3\n        top = 2\n        bottom = 1\n        r = 4\n        width = .4\n        space = 1.1\n        overplot1 = .2         ; to metal 1\n        overplot2 = .2         ; to metal 2\n        name = via2\n        color = cyan1\n<via> 2                        ; metal 3 to metal 4\n        top = 3\n        bottom = 2\n        r = 4\n        width = .4\n        space = 1.1\n        overplot1 = .2\n        overplot2 = .2\n        name = via3\n        color = red\n\n<via> 3                        ; metal 3 to metal 4\n        top = 4\n        bottom = 3\n        r = 4\n        width = .4\n        space = 1.2\n        overplot1 = .2\n        overplot2 = .2\n        name = via4\n        color = white\n\n",
+              "frequency_hz": 1000000000,
+              "mesh": {
+                "length_cell": 20,
+                "width_cell": 3,
+                "thickness_cell": 0.5,
+                "capacitance_length_cell": 50,
+                "capacitance_width_cell": 8
+              },
+              "ground": null,
+              "action": "pi2"
+            },
+            "points": [
+              {
+                "frequency_hz": 100000000,
+                "seconds": 0.7760619740000002,
+                "filaments": 34,
+                "contacts": 17,
+                "inductance_h": 2.109089542412606e-10,
+                "resistance_ohm": 4.490703233505451,
+                "q": 0.029392904046021368
+              },
+              {
+                "frequency_hz": 2090000000,
+                "seconds": 0.781084973,
+                "filaments": 34,
+                "contacts": 17,
+                "inductance_h": 2.1081689761918562e-10,
+                "resistance_ohm": 4.491744228383046,
+                "q": 0.6129745720797176
+              },
+              {
+                "frequency_hz": 4080000000,
+                "seconds": 0.7768086130000001,
+                "filaments": 34,
+                "contacts": 17,
+                "inductance_h": 2.1056121976375766e-10,
+                "resistance_ohm": 4.494302448113119,
+                "q": 1.1893977911082774
+              },
+              {
+                "frequency_hz": 6070000000,
+                "seconds": 0.7798176960000001,
+                "filaments": 34,
+                "contacts": 17,
+                "inductance_h": 2.1015033661983725e-10,
+                "resistance_ohm": 4.49746864327908,
+                "q": 1.752382888513982
+              },
+              {
+                "frequency_hz": 8060000000,
+                "seconds": 0.7801203619999997,
+                "filaments": 34,
+                "contacts": 17,
+                "inductance_h": 2.0959382624481723e-10,
+                "resistance_ohm": 4.500102120236956,
+                "q": 2.2964046465030576
+              },
+              {
+                "frequency_hz": 10050000000,
+                "seconds": 0.7802027399999997,
+                "filaments": 34,
+                "contacts": 17,
+                "inductance_h": 2.0890028202954365e-10,
+                "resistance_ohm": 4.501059202855175,
+                "q": 2.8166607171163682
+              },
+              {
+                "frequency_hz": 12040000000,
+                "seconds": 0.7779556169999996,
+                "filaments": 34,
+                "contacts": 17,
+                "inductance_h": 2.0807656011010374e-10,
+                "resistance_ohm": 4.499316554308655,
+                "q": 3.3089193410312094
+              },
+              {
+                "frequency_hz": 14030000000,
+                "seconds": 0.7782493260000011,
+                "filaments": 34,
+                "contacts": 17,
+                "inductance_h": 2.0712768379624328e-10,
+                "resistance_ohm": 4.49402027149743,
+                "q": 3.7693418125029265
+              },
+              {
+                "frequency_hz": 16020000000,
+                "seconds": 0.7811038459999999,
+                "filaments": 34,
+                "contacts": 17,
+                "inductance_h": 2.0605702514965312e-10,
+                "resistance_ohm": 4.484488220148556,
+                "q": 4.19433123464286
+              },
+              {
+                "frequency_hz": 18010000000,
+                "seconds": 0.7840922879999999,
+                "filaments": 34,
+                "contacts": 17,
+                "inductance_h": 2.0486660655788995e-10,
+                "resistance_ohm": 4.470186186928957,
+                "q": 4.5804294537735455
+              },
+              {
+                "frequency_hz": 20000000000,
+                "seconds": 0.7826058790000007,
+                "filaments": 34,
+                "contacts": 17,
+                "inductance_h": 2.0355743166006476e-10,
+                "resistance_ohm": 4.450693552703819,
+                "q": 4.924263965872433
+              }
+            ],
+            "seconds": 8.578157398
+          }
+        ]
+      }
+    },
+    {
+      "label": "dense",
+      "previous": {
+        "site_version": "402bb61763574236",
+        "runtime": "Pyodide 314.0.7",
+        "first_hz": 100000000,
+        "last_hz": 20000000000,
+        "count": 11,
+        "scale": "linear",
+        "method": "Eleven distinct frequencies, one interpreter shared across FFT cases. Includes geometry/table work and Python JSON transport; excludes interpreter loading and DOM rendering. Browser timing only; original binary sweep timing is not measured here.",
+        "cases": [
+          {
+            "fft": 64,
+            "request": {
+              "kind": "square",
+              "parameters": {
+                "name": "A",
+                "length": 80,
+                "width": 5,
+                "spacing": 3,
+                "turns": 1,
+                "metal": "M1",
+                "exit_metal": "M2",
+                "x": 10,
+                "y": 20
+              },
+              "technology": "; Sample CMOS technology file\n\n<chip>\n\n\tchipx = 128\t; dimensions of the chip in x direction\n\tchipy = 128\t; dimensions of the chip in y direction\n\tfftx = 64\t; x-fft size (must be a power of 2)\n\tffty = 64\t; y-fft size\n\tTechFile = CMOS.tek\n\tTechPath = .\n\tfreq = 2 \t\t; frequency of operation\n\teddy = 0\n\n<layer> 0 \t\t\t; p(-) bulk layer\n\trho = 1e-3\t\t; ohm-cm\n\tt   = 700 \t\t; microns\n        eps = 11.9\n\n<layer>\t1\t   \t\t; Oxide Layer\n\trho = 1e10\n\tt = 50\n\teps = 3.9\n\n<metal> 0\n        layer = 1\t\t; in oxide layer\n        rsh = 65\t\t; sheet resistance3\n        t   = 0.5\t\t; thickness\n        d = 1.3\t\t\t; distance from bottom of layer\n        name = m1\t\n        color = yellow\n\n<metal> 1\n        layer = 1\n        rsh = 55 \n        t = 0.5\n        d = 2.4 \n        name = m2\n        color = LightSkyBlue1\n\n<metal> 2\n        layer = 1\n        rsh = 55 \n        t = 0.5\n        d =  3.5\n        name = m3\n        color = medium purple\n\n<metal> 3\n        layer = 1\n        rsh = 55 \n        t = 0.5\n        d =  4.5\n        name = m4\n        color = light green\n\n<metal> 4\n        layer = 1\n        rsh = 30\n        t = 1\n        d =  6\n        name = m5\n        color = grey\n\n<via> 0                        ; metal 1 to metal 2\n        top = 1\n        bottom = 0\n        r = 4\n        width = .5\n        space = 1.1\n        overplot1 = .2         ; to metal 1\n        overplot2 = .2         ; to metal 2\n        name = via1\n        color = purple\n<via> 1                        ; metal 2 to metal 3\n        top = 2\n        bottom = 1\n        r = 4\n        width = .4\n        space = 1.1\n        overplot1 = .2         ; to metal 1\n        overplot2 = .2         ; to metal 2\n        name = via2\n        color = cyan1\n<via> 2                        ; metal 3 to metal 4\n        top = 3\n        bottom = 2\n        r = 4\n        width = .4\n        space = 1.1\n        overplot1 = .2\n        overplot2 = .2\n        name = via3\n        color = red\n\n<via> 3                        ; metal 3 to metal 4\n        top = 4\n        bottom = 3\n        r = 4\n        width = .4\n        space = 1.2\n        overplot1 = .2\n        overplot2 = .2\n        name = via4\n        color = white\n\n",
+              "frequency_hz": 1000000000,
+              "mesh": {
+                "length_cell": 5,
+                "width_cell": 1.5,
+                "thickness_cell": 0.5,
+                "capacitance_length_cell": 50,
+                "capacitance_width_cell": 8
+              },
+              "ground": null,
+              "action": "pi2"
+            },
+            "points": [
+              {
+                "frequency_hz": 100000000,
+                "seconds": 5.892546811,
+                "filaments": 189,
+                "contacts": 63,
+                "inductance_h": 2.1033676070879265e-10,
+                "resistance_ohm": 4.49019946604303,
+                "q": 0.02932996363436176
+              },
+              {
+                "frequency_hz": 2090000000,
+                "seconds": 0.9406032540000006,
+                "filaments": 189,
+                "contacts": 63,
+                "inductance_h": 2.1023255518966857e-10,
+                "resistance_ohm": 4.493914278306618,
+                "q": 0.6113721612886697
+              },
+              {
+                "frequency_hz": 4080000000,
+                "seconds": 0.949479902,
+                "filaments": 189,
+                "contacts": 63,
+                "inductance_h": 2.099417799528406e-10,
+                "resistance_ohm": 4.503943576560332,
+                "q": 1.1847291659242465
+              },
+              {
+                "frequency_hz": 6070000000,
+                "seconds": 0.9333077849999991,
+                "filaments": 189,
+                "contacts": 63,
+                "inductance_h": 2.0947169226160832e-10,
+                "resistance_ohm": 4.519131269856066,
+                "q": 1.741876969138088
+              },
+              {
+                "frequency_hz": 8060000000,
+                "seconds": 0.9321966950000006,
+                "filaments": 189,
+                "contacts": 63,
+                "inductance_h": 2.0883224274110715e-10,
+                "resistance_ohm": 4.537820046489102,
+                "q": 2.276503921327023
+              },
+              {
+                "frequency_hz": 10050000000,
+                "seconds": 0.9327767409999996,
+                "filaments": 189,
+                "contacts": 63,
+                "inductance_h": 2.0803430967463608e-10,
+                "resistance_ohm": 4.5580880278528495,
+                "q": 2.7836803487956887
+              },
+              {
+                "frequency_hz": 12040000000,
+                "seconds": 0.9395229159999999,
+                "filaments": 189,
+                "contacts": 63,
+                "inductance_h": 2.0708843645871622e-10,
+                "resistance_ohm": 4.577944157478207,
+                "q": 3.2597793148716216
+              },
+              {
+                "frequency_hz": 14030000000,
+                "seconds": 0.9185934459999989,
+                "filaments": 189,
+                "contacts": 63,
+                "inductance_h": 2.0600413390395423e-10,
+                "resistance_ohm": 4.595464655438341,
+                "q": 3.702250432211771
+              },
+              {
+                "frequency_hz": 16020000000,
+                "seconds": 0.9340150620000004,
+                "filaments": 189,
+                "contacts": 63,
+                "inductance_h": 2.0478957518653098e-10,
+                "resistance_ohm": 4.608879228965778,
+                "q": 4.10933423312773
+              },
+              {
+                "frequency_hz": 18010000000,
+                "seconds": 0.9255299989999985,
+                "filaments": 189,
+                "contacts": 63,
+                "inductance_h": 2.0345150993407741e-10,
+                "resistance_ohm": 4.616620273846615,
+                "q": 4.4797752354322755
+              },
+              {
+                "frequency_hz": 20000000000,
+                "seconds": 0.9281880039999997,
+                "filaments": 189,
+                "contacts": 63,
+                "inductance_h": 2.0199529358895853e-10,
+                "resistance_ohm": 4.61734511646653,
+                "q": 4.812567596016123
+              }
+            ],
+            "seconds": 15.226823549999999
+          },
+          {
+            "fft": 128,
+            "request": {
+              "kind": "square",
+              "parameters": {
+                "name": "A",
+                "length": 80,
+                "width": 5,
+                "spacing": 3,
+                "turns": 1,
+                "metal": "M1",
+                "exit_metal": "M2",
+                "x": 10,
+                "y": 20
+              },
+              "technology": "; Sample CMOS technology file\n\n<chip>\n\n\tchipx = 512\t; dimensions of the chip in x direction\n\tchipy = 512\t; dimensions of the chip in y direction\n\tfftx = 128\t; x-fft size (must be a power of 2)\n\tffty = 128\t; y-fft size\n\tTechFile = CMOS.tek\n\tTechPath = .\n\tfreq = 2 \t\t; frequency of operation\n\teddy = 0\n\n<layer> 0 \t\t\t; p(-) bulk layer\n\trho = 1e-3\t\t; ohm-cm\n\tt   = 700 \t\t; microns\n        eps = 11.9\n\n<layer>\t1\t   \t\t; Oxide Layer\n\trho = 1e10\n\tt = 50\n\teps = 3.9\n\n<metal> 0\n        layer = 1\t\t; in oxide layer\n        rsh = 65\t\t; sheet resistance3\n        t   = 0.5\t\t; thickness\n        d = 1.3\t\t\t; distance from bottom of layer\n        name = m1\t\n        color = yellow\n\n<metal> 1\n        layer = 1\n        rsh = 55 \n        t = 0.5\n        d = 2.4 \n        name = m2\n        color = LightSkyBlue1\n\n<metal> 2\n        layer = 1\n        rsh = 55 \n        t = 0.5\n        d =  3.5\n        name = m3\n        color = medium purple\n\n<metal> 3\n        layer = 1\n        rsh = 55 \n        t = 0.5\n        d =  4.5\n        name = m4\n        color = light green\n\n<metal> 4\n        layer = 1\n        rsh = 30\n        t = 1\n        d =  6\n        name = m5\n        color = grey\n\n<via> 0                        ; metal 1 to metal 2\n        top = 1\n        bottom = 0\n        r = 4\n        width = .5\n        space = 1.1\n        overplot1 = .2         ; to metal 1\n        overplot2 = .2         ; to metal 2\n        name = via1\n        color = purple\n<via> 1                        ; metal 2 to metal 3\n        top = 2\n        bottom = 1\n        r = 4\n        width = .4\n        space = 1.1\n        overplot1 = .2         ; to metal 1\n        overplot2 = .2         ; to metal 2\n        name = via2\n        color = cyan1\n<via> 2                        ; metal 3 to metal 4\n        top = 3\n        bottom = 2\n        r = 4\n        width = .4\n        space = 1.1\n        overplot1 = .2\n        overplot2 = .2\n        name = via3\n        color = red\n\n<via> 3                        ; metal 3 to metal 4\n        top = 4\n        bottom = 3\n        r = 4\n        width = .4\n        space = 1.2\n        overplot1 = .2\n        overplot2 = .2\n        name = via4\n        color = white\n\n",
+              "frequency_hz": 1000000000,
+              "mesh": {
+                "length_cell": 5,
+                "width_cell": 1.5,
+                "thickness_cell": 0.5,
+                "capacitance_length_cell": 50,
+                "capacitance_width_cell": 8
+              },
+              "ground": null,
+              "action": "pi2"
+            },
+            "points": [
+              {
+                "frequency_hz": 100000000,
+                "seconds": 2.9507536359999995,
+                "filaments": 189,
+                "contacts": 63,
+                "inductance_h": 2.103154514491404e-10,
+                "resistance_ohm": 4.490200243609451,
+                "q": 0.02931650525275336
+              },
+              {
+                "frequency_hz": 2090000000,
+                "seconds": 2.8881510009999984,
+                "filaments": 189,
+                "contacts": 63,
+                "inductance_h": 2.1021898854536169e-10,
+                "resistance_ohm": 4.494254487300696,
+                "q": 0.6109850013608729
+              },
+              {
+                "frequency_hz": 4080000000,
+                "seconds": 2.8436903010000023,
+                "filaments": 189,
+                "contacts": 63,
+                "inductance_h": 2.0994993556499605e-10,
+                "resistance_ohm": 4.505245925637424,
+                "q": 1.1833961258783603
+              },
+              {
+                "frequency_hz": 6070000000,
+                "seconds": 2.840075144999999,
+                "filaments": 189,
+                "contacts": 63,
+                "inductance_h": 2.0951529465612098e-10,
+                "resistance_ohm": 4.522034221222517,
+                "q": 1.7385040668005218
+              },
+              {
+                "frequency_hz": 8060000000,
+                "seconds": 2.8312471780000013,
+                "filaments": 189,
+                "contacts": 63,
+                "inductance_h": 2.089246136561681e-10,
+                "resistance_ohm": 4.542985277221111,
+                "q": 2.269515096150413
+              },
+              {
+                "frequency_hz": 10050000000,
+                "seconds": 2.902409289000003,
+                "filaments": 189,
+                "contacts": 63,
+                "inductance_h": 2.0818823873641285e-10,
+                "resistance_ohm": 4.566204790611842,
+                "q": 2.7710671527976
+              },
+              {
+                "frequency_hz": 12040000000,
+                "seconds": 2.864436646000002,
+                "filaments": 189,
+                "contacts": 63,
+                "inductance_h": 2.0731606960135194e-10,
+                "resistance_ohm": 4.5897304634946305,
+                "q": 3.2391538325934914
+              },
+              {
+                "frequency_hz": 14030000000,
+                "seconds": 2.844246475,
+                "filaments": 189,
+                "contacts": 63,
+                "inductance_h": 2.0631687683516078e-10,
+                "resistance_ohm": 4.6116656418848745,
+                "q": 3.6708963793425253
+              },
+              {
+                "frequency_hz": 16020000000,
+                "seconds": 2.8472375449999965,
+                "filaments": 189,
+                "contacts": 63,
+                "inductance_h": 2.0519800862777747e-10,
+                "resistance_ohm": 4.6302633028229145,
+                "q": 4.064253223620202
+              },
+              {
+                "frequency_hz": 18010000000,
+                "seconds": 2.8366762129999987,
+                "filaments": 189,
+                "contacts": 63,
+                "inductance_h": 2.0396531349683926e-10,
+                "resistance_ohm": 4.643973706509133,
+                "q": 4.417726962850261
+              },
+              {
+                "frequency_hz": 20000000000,
+                "seconds": 2.8373485440000006,
+                "filaments": 189,
+                "contacts": 63,
+                "inductance_h": 2.0262317559930634e-10,
+                "resistance_ohm": 4.651465743538176,
+                "q": 4.73010387759021
+              }
+            ],
+            "seconds": 31.48634217
+          }
+        ]
+      },
+      "updated": {
+        "site_version": "46ec8dc282ffa25b",
+        "runtime": "Pyodide 314.0.7",
+        "first_hz": 100000000,
+        "last_hz": 20000000000,
+        "count": 11,
+        "scale": "linear",
+        "method": "Eleven distinct frequencies, one interpreter shared across FFT cases. Includes geometry/table work and Python JSON transport; excludes interpreter loading and DOM rendering. Browser timing only; original binary sweep timing is not measured here.",
+        "cases": [
+          {
+            "fft": 64,
+            "request": {
+              "kind": "square",
+              "parameters": {
+                "name": "A",
+                "length": 80,
+                "width": 5,
+                "spacing": 3,
+                "turns": 1,
+                "metal": "M1",
+                "exit_metal": "M2",
+                "x": 10,
+                "y": 20
+              },
+              "technology": "; Sample CMOS technology file\n\n<chip>\n\n\tchipx = 128\t; dimensions of the chip in x direction\n\tchipy = 128\t; dimensions of the chip in y direction\n\tfftx = 64\t; x-fft size (must be a power of 2)\n\tffty = 64\t; y-fft size\n\tTechFile = CMOS.tek\n\tTechPath = .\n\tfreq = 2 \t\t; frequency of operation\n\teddy = 0\n\n<layer> 0 \t\t\t; p(-) bulk layer\n\trho = 1e-3\t\t; ohm-cm\n\tt   = 700 \t\t; microns\n        eps = 11.9\n\n<layer>\t1\t   \t\t; Oxide Layer\n\trho = 1e10\n\tt = 50\n\teps = 3.9\n\n<metal> 0\n        layer = 1\t\t; in oxide layer\n        rsh = 65\t\t; sheet resistance3\n        t   = 0.5\t\t; thickness\n        d = 1.3\t\t\t; distance from bottom of layer\n        name = m1\t\n        color = yellow\n\n<metal> 1\n        layer = 1\n        rsh = 55 \n        t = 0.5\n        d = 2.4 \n        name = m2\n        color = LightSkyBlue1\n\n<metal> 2\n        layer = 1\n        rsh = 55 \n        t = 0.5\n        d =  3.5\n        name = m3\n        color = medium purple\n\n<metal> 3\n        layer = 1\n        rsh = 55 \n        t = 0.5\n        d =  4.5\n        name = m4\n        color = light green\n\n<metal> 4\n        layer = 1\n        rsh = 30\n        t = 1\n        d =  6\n        name = m5\n        color = grey\n\n<via> 0                        ; metal 1 to metal 2\n        top = 1\n        bottom = 0\n        r = 4\n        width = .5\n        space = 1.1\n        overplot1 = .2         ; to metal 1\n        overplot2 = .2         ; to metal 2\n        name = via1\n        color = purple\n<via> 1                        ; metal 2 to metal 3\n        top = 2\n        bottom = 1\n        r = 4\n        width = .4\n        space = 1.1\n        overplot1 = .2         ; to metal 1\n        overplot2 = .2         ; to metal 2\n        name = via2\n        color = cyan1\n<via> 2                        ; metal 3 to metal 4\n        top = 3\n        bottom = 2\n        r = 4\n        width = .4\n        space = 1.1\n        overplot1 = .2\n        overplot2 = .2\n        name = via3\n        color = red\n\n<via> 3                        ; metal 3 to metal 4\n        top = 4\n        bottom = 3\n        r = 4\n        width = .4\n        space = 1.2\n        overplot1 = .2\n        overplot2 = .2\n        name = via4\n        color = white\n\n",
+              "frequency_hz": 1000000000,
+              "mesh": {
+                "length_cell": 5,
+                "width_cell": 1.5,
+                "thickness_cell": 0.5,
+                "capacitance_length_cell": 50,
+                "capacitance_width_cell": 8
+              },
+              "ground": null,
+              "action": "pi2"
+            },
+            "points": [
+              {
+                "frequency_hz": 100000000,
+                "seconds": 5.425474015000001,
+                "filaments": 189,
+                "contacts": 63,
+                "inductance_h": 2.1033676070879265e-10,
+                "resistance_ohm": 4.49019946604303,
+                "q": 0.02932996363436176
+              },
+              {
+                "frequency_hz": 2090000000,
+                "seconds": 0.5060125230000003,
+                "filaments": 189,
+                "contacts": 63,
+                "inductance_h": 2.102325551896592e-10,
+                "resistance_ohm": 4.493914278306495,
+                "q": 0.6113721612886804
+              },
+              {
+                "frequency_hz": 4080000000,
+                "seconds": 0.5044336249999997,
+                "filaments": 189,
+                "contacts": 63,
+                "inductance_h": 2.099417799528369e-10,
+                "resistance_ohm": 4.503943576560334,
+                "q": 1.18472916592411
+              },
+              {
+                "frequency_hz": 6070000000,
+                "seconds": 0.4958842599999998,
+                "filaments": 189,
+                "contacts": 63,
+                "inductance_h": 2.0947169226161877e-10,
+                "resistance_ohm": 4.5191312698553885,
+                "q": 1.7418769691376486
+              },
+              {
+                "frequency_hz": 8060000000,
+                "seconds": 0.5021741679999996,
+                "filaments": 189,
+                "contacts": 63,
+                "inductance_h": 2.0883224274110912e-10,
+                "resistance_ohm": 4.537820046489644,
+                "q": 2.276503921327005
+              },
+              {
+                "frequency_hz": 10050000000,
+                "seconds": 0.4987907920000016,
+                "filaments": 189,
+                "contacts": 63,
+                "inductance_h": 2.0803430967463073e-10,
+                "resistance_ohm": 4.558088027852289,
+                "q": 2.783680348795888
+              },
+              {
+                "frequency_hz": 12040000000,
+                "seconds": 0.5088679220000013,
+                "filaments": 189,
+                "contacts": 63,
+                "inductance_h": 2.0708843645871304e-10,
+                "resistance_ohm": 4.577944157479008,
+                "q": 3.2597793148737595
+              },
+              {
+                "frequency_hz": 14030000000,
+                "seconds": 0.5013835240000007,
+                "filaments": 189,
+                "contacts": 63,
+                "inductance_h": 2.060041339039668e-10,
+                "resistance_ohm": 4.59546465543828,
+                "q": 3.7022504322108976
+              },
+              {
+                "frequency_hz": 16020000000,
+                "seconds": 0.500510311,
+                "filaments": 189,
+                "contacts": 63,
+                "inductance_h": 2.0478957518654098e-10,
+                "resistance_ohm": 4.608879228965534,
+                "q": 4.109334233126479
+              },
+              {
+                "frequency_hz": 18010000000,
+                "seconds": 0.5016344499999995,
+                "filaments": 189,
+                "contacts": 63,
+                "inductance_h": 2.0345150993408232e-10,
+                "resistance_ohm": 4.616620273845228,
+                "q": 4.479775235433749
+              },
+              {
+                "frequency_hz": 20000000000,
+                "seconds": 0.5025900120000005,
+                "filaments": 189,
+                "contacts": 63,
+                "inductance_h": 2.0199529358897487e-10,
+                "resistance_ohm": 4.6173451164666215,
+                "q": 4.812567596014013
+              }
+            ],
+            "seconds": 10.447818413999999
+          },
+          {
+            "fft": 128,
+            "request": {
+              "kind": "square",
+              "parameters": {
+                "name": "A",
+                "length": 80,
+                "width": 5,
+                "spacing": 3,
+                "turns": 1,
+                "metal": "M1",
+                "exit_metal": "M2",
+                "x": 10,
+                "y": 20
+              },
+              "technology": "; Sample CMOS technology file\n\n<chip>\n\n\tchipx = 512\t; dimensions of the chip in x direction\n\tchipy = 512\t; dimensions of the chip in y direction\n\tfftx = 128\t; x-fft size (must be a power of 2)\n\tffty = 128\t; y-fft size\n\tTechFile = CMOS.tek\n\tTechPath = .\n\tfreq = 2 \t\t; frequency of operation\n\teddy = 0\n\n<layer> 0 \t\t\t; p(-) bulk layer\n\trho = 1e-3\t\t; ohm-cm\n\tt   = 700 \t\t; microns\n        eps = 11.9\n\n<layer>\t1\t   \t\t; Oxide Layer\n\trho = 1e10\n\tt = 50\n\teps = 3.9\n\n<metal> 0\n        layer = 1\t\t; in oxide layer\n        rsh = 65\t\t; sheet resistance3\n        t   = 0.5\t\t; thickness\n        d = 1.3\t\t\t; distance from bottom of layer\n        name = m1\t\n        color = yellow\n\n<metal> 1\n        layer = 1\n        rsh = 55 \n        t = 0.5\n        d = 2.4 \n        name = m2\n        color = LightSkyBlue1\n\n<metal> 2\n        layer = 1\n        rsh = 55 \n        t = 0.5\n        d =  3.5\n        name = m3\n        color = medium purple\n\n<metal> 3\n        layer = 1\n        rsh = 55 \n        t = 0.5\n        d =  4.5\n        name = m4\n        color = light green\n\n<metal> 4\n        layer = 1\n        rsh = 30\n        t = 1\n        d =  6\n        name = m5\n        color = grey\n\n<via> 0                        ; metal 1 to metal 2\n        top = 1\n        bottom = 0\n        r = 4\n        width = .5\n        space = 1.1\n        overplot1 = .2         ; to metal 1\n        overplot2 = .2         ; to metal 2\n        name = via1\n        color = purple\n<via> 1                        ; metal 2 to metal 3\n        top = 2\n        bottom = 1\n        r = 4\n        width = .4\n        space = 1.1\n        overplot1 = .2         ; to metal 1\n        overplot2 = .2         ; to metal 2\n        name = via2\n        color = cyan1\n<via> 2                        ; metal 3 to metal 4\n        top = 3\n        bottom = 2\n        r = 4\n        width = .4\n        space = 1.1\n        overplot1 = .2\n        overplot2 = .2\n        name = via3\n        color = red\n\n<via> 3                        ; metal 3 to metal 4\n        top = 4\n        bottom = 3\n        r = 4\n        width = .4\n        space = 1.2\n        overplot1 = .2\n        overplot2 = .2\n        name = via4\n        color = white\n\n",
+              "frequency_hz": 1000000000,
+              "mesh": {
+                "length_cell": 5,
+                "width_cell": 1.5,
+                "thickness_cell": 0.5,
+                "capacitance_length_cell": 50,
+                "capacitance_width_cell": 8
+              },
+              "ground": null,
+              "action": "pi2"
+            },
+            "points": [
+              {
+                "frequency_hz": 100000000,
+                "seconds": 1.1057389530000001,
+                "filaments": 189,
+                "contacts": 63,
+                "inductance_h": 2.1031545144914157e-10,
+                "resistance_ohm": 4.4902002436094515,
+                "q": 0.029316505252753373
+              },
+              {
+                "frequency_hz": 2090000000,
+                "seconds": 1.1140244249999995,
+                "filaments": 189,
+                "contacts": 63,
+                "inductance_h": 2.1021898854535672e-10,
+                "resistance_ohm": 4.494254487300702,
+                "q": 0.610985001360888
+              },
+              {
+                "frequency_hz": 4080000000,
+                "seconds": 1.1115012719999995,
+                "filaments": 189,
+                "contacts": 63,
+                "inductance_h": 2.099499355649913e-10,
+                "resistance_ohm": 4.505245925637333,
+                "q": 1.18339612587845
+              },
+              {
+                "frequency_hz": 6070000000,
+                "seconds": 1.1060499020000008,
+                "filaments": 189,
+                "contacts": 63,
+                "inductance_h": 2.0951529465611377e-10,
+                "resistance_ohm": 4.522034221222328,
+                "q": 1.7385040668008955
+              },
+              {
+                "frequency_hz": 8060000000,
+                "seconds": 1.1084377410000015,
+                "filaments": 189,
+                "contacts": 63,
+                "inductance_h": 2.089246136561436e-10,
+                "resistance_ohm": 4.542985277221509,
+                "q": 2.2695150961510784
+              },
+              {
+                "frequency_hz": 10050000000,
+                "seconds": 1.1141977210000005,
+                "filaments": 189,
+                "contacts": 63,
+                "inductance_h": 2.0818823873642997e-10,
+                "resistance_ohm": 4.566204790611091,
+                "q": 2.771067152796696
+              },
+              {
+                "frequency_hz": 12040000000,
+                "seconds": 1.119198199999999,
+                "filaments": 189,
+                "contacts": 63,
+                "inductance_h": 2.0731606960135194e-10,
+                "resistance_ohm": 4.589730463494984,
+                "q": 3.239153832594396
+              },
+              {
+                "frequency_hz": 14030000000,
+                "seconds": 1.1116994699999996,
+                "filaments": 189,
+                "contacts": 63,
+                "inductance_h": 2.0631687683515644e-10,
+                "resistance_ohm": 4.611665641884654,
+                "q": 3.6708963793418623
+              },
+              {
+                "frequency_hz": 16020000000,
+                "seconds": 1.1109073300000019,
+                "filaments": 189,
+                "contacts": 63,
+                "inductance_h": 2.0519800862775728e-10,
+                "resistance_ohm": 4.630263302822164,
+                "q": 4.064253223620797
+              },
+              {
+                "frequency_hz": 18010000000,
+                "seconds": 1.1064483949999995,
+                "filaments": 189,
+                "contacts": 63,
+                "inductance_h": 2.0396531349682088e-10,
+                "resistance_ohm": 4.643973706510984,
+                "q": 4.417726962848067
+              },
+              {
+                "frequency_hz": 20000000000,
+                "seconds": 1.1043661809999976,
+                "filaments": 189,
+                "contacts": 63,
+                "inductance_h": 2.0262317559932893e-10,
+                "resistance_ohm": 4.651465743536143,
+                "q": 4.7301038775916915
+              }
+            ],
+            "seconds": 12.212627304
+          }
+        ]
+      }
+    }
+  ]
+}

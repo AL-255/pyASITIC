@@ -323,5 +323,24 @@ network matrix-vector accumulation order. Direct original-machine-code
 fixtures check 33 cases / 2,571,696 components, including complete large-system
 digests, singular statuses, signed zeros and nonfinite classifications. The
 portable path retains Decimal guard precision and component-tolerance checks.
-Whole-simulator bitwise equivalence remains unproven: spectral generation,
-remaining stamping/reduction and process/geometry coverage still require work.
+Whole-simulator bitwise equivalence remains unproven: remaining stamping/reduction,
+broader spectral inputs and process/geometry coverage still require work.
+
+The browser's full spectral table generator now uses retained 80-bit arithmetic
+for transfer/source terms, both regional kernels, wave numbers, square roots,
+normalization and every recorded spill. Complex zero products remain explicit,
+including in nonfinite histories. Original Y-axis thickness offsets and the
+nx+1 generation / ny+1 transform strides are preserved. A direct original loader
+checks 1,728 regional/transfer calls and 33 whole tables (556,434 components),
+including rectangular grids and 256×256 digests. Only allocation/deletion/status
+boundaries are replaced; coefficient sentinels and rectangular padding have
+explicit zero backing. Arbitrary original allocator histories are not implied.
+
+Frequency coefficients preserve the retained native weight and scalar complex
+division, rather than Python's modern complex reciprocal. Eighty-eight groups
+execute the intact original CAP initialization loop, captured before cache I/O.
+All 3,556 output components have exact finite-bit or nonfinite-classification
+checks in both Python and WebAssembly. The portable coefficient implementation
+also preserves negative zero on unary negation. Source hashes and boundary
+adaptations are recorded in `native/spectral-source.json`. The portable table
+fallback and complete electrical snapshots retain their existing tolerances.

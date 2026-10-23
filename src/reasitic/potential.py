@@ -14,6 +14,7 @@ from .solver import inverse,_sum_complex
 from .fft import _fft,_transform_grid,_fft_extended,_fft_spill
 from .x87_math import tanh_argument,cosh_argument
 from .contact_kernel import contact_matrix
+from .table_kernel import generate_tables,layer_coefficients
 
 EPSILON0=float.fromhex("0x1.8ebfab864ade4p-44")
 FACTOR=float.fromhex("0x1.3bd3cc9be45dep+4")
@@ -124,6 +125,8 @@ def _spectral(down,source,target,last,k,source_height,target_height,coefficients
 
 @lru_cache(maxsize=16)
 def _tables(source,target,nx,ny,width,height,metal_records,coefficients,depth_records):
+    compiled=generate_tables(source,target,nx,ny,width,height,metal_records,coefficients,depth_records)
+    if compiled is not None:return compiled
     depths=list(depth_records)
     @lru_cache(maxsize=None)
     def interfaces(i,j):
@@ -340,14 +343,9 @@ def solve_capacitance(shape,technology,frequency_hz,*,ground=None,length_cell=10
     if not 1<=len(contacts)<=max_contacts:
         raise ValueError(f"Capacitance mesh needs 1–{max_contacts} contacts")
     depths=[0.0]*(len(technology.substrate)+1)
-    coefficients=[]
-    weight=frequency_hz*2*math.pi*EPSILON0*1e-4
     for i in range(len(technology.substrate)-1,-1,-1):
         depths[i]=depths[i+1]+technology.substrate[i]["t"]
-    for layer in technology.substrate:
-        # The native .tek reader converts rho from ohm-cm to ohm-µm.
-        coefficients.append(1/complex(1/(layer["rho"]*10000),weight*layer["eps"]))
-    coefficients=tuple(coefficients)
+    coefficients=layer_coefficients(technology.substrate,frequency_hz)
     records=tuple((m.layer,depths[m.layer]-m.height,m.thickness) for m in technology.metals)
     packed={}
     def get_table(low,high):

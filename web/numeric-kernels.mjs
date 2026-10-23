@@ -16,7 +16,38 @@ export async function installNumericalKernels(python, bytes) {
   const generalMatrix = new Float64Array(api.memory.buffer, api.general_buffer(), 2 * 514 * 514);
   const generalRhs = new Float64Array(api.memory.buffer, api.general_rhs_buffer(), 2 * 514);
   const generalPivots = new Int32Array(api.memory.buffer, api.general_pivots_buffer(), 514);
+  const spectralConfig = new Float64Array(api.memory.buffer, api.spectral_config_buffer(), 2048);
+  const spectralTables = new Float64Array(api.memory.buffer, api.spectral_table_buffer(), 2 * (66049 + 1024));
+  const spectralDepths = new Float64Array(api.memory.buffer, api.spectral_depth_buffer(), 257);
+  function spectralCall(config,output,probe) {
+    let c,o;
+    try {
+      c=config.getBuffer("f64");o=output.getBuffer("f64");
+      const [version,nx,ny,nm,nl]=c.data;
+      if(version!==1||![nm,nl].every(v=>Number.isInteger(v)&&v>=1&&v<=256)||
+         ![nx,ny].every(v=>Number.isInteger(v)&&v>=2&&v<=256&&!(v&(v-1)))||c.data.length!==10+3*nm+3*nl)
+        throw new Error("Spectral configuration is invalid");
+      const cells=Math.max((nx+1)*(ny+1),nx*(nx+1)+ny+1),count=probe?nl+3:4*nx+4*ny+2*cells;
+      if(o.data.length!==count)throw new Error("Spectral output length is invalid");
+      spectralConfig.set(c.data);
+      const status=probe?api.spectral_probe(...probe):api.spectral_tables();
+      if(probe){o.data.set(spectralTables.subarray(0,2));o.data.set(spectralDepths.subarray(0,nl+1),2);}
+      else o.data.set(spectralTables.subarray(0,count));
+      return status;
+    } finally {o?.release();c?.release();}
+  }
   python.registerJsModule("_reasitic_numeric", {
+    layer_coefficients(buffer) {
+      const view=buffer.getBuffer("f64");
+      try {
+        const [version,n]=view.data;
+        if(version!==1||!Number.isInteger(n)||n<1||n>256||view.data.length!==3+4*n)throw new Error("Layer coefficient configuration is invalid");
+        spectralConfig.set(view.data);
+        const status=api.layer_coefficients();view.data.set(spectralConfig.subarray(0,view.data.length));return status;
+      } finally {view.release();}
+    },
+    spectral_tables: (config,output) => spectralCall(config,output),
+    spectral_probe: (config,output,...args) => spectralCall(config,output,args),
     tanh_argument: (k,a,b) => api.tanh_argument(k,a,b),
     cosh_argument: (k,a,b,rounded) => api.cosh_argument(k,a,b,rounded),
     general(buffer,n,operation) {

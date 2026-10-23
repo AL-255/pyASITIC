@@ -70,8 +70,8 @@ cases provide sufficient backing for the original `nx+1` table stride; they do
 not validate the original allocator's behavior. Eight complete production raw
 potential and reduced CAP matrices also retain their existing snapshot
 tolerances. These checks establish the contact-arithmetic boundary given the
-same coefficients and tables; spectral table generation still requires further
-precision work before whole-simulator equality can be claimed.
+same coefficients and tables; whole-simulator equality needs end-to-end evidence
+beyond these isolated component gates.
 
 `matrix_general.cpp` retains the general LU's absolute-one pivots, 64-column
 panels, exterior swaps and BLAS coefficient spills. The general inverse uses
@@ -95,7 +95,38 @@ checks also require caller input immutability. The portable fallback has
 component-tolerance comparisons and a separate panel-boundary check, rather
 than a claim of universal bitwise equality.
 
-Rebuild the checked-in, stripped `web/numeric.wasm` (87.7 KiB):
+`spectral.cpp` follows the native transfer/source recursions, regional Green
+kernels and complete table generator. It preserves retained wave numbers and
+square roots, mixed-term spills, complex zero products, opposite Y-axis
+half-thickness offsets, repeated legacy complex normalization and the differing
+generation/transform strides. It calls the existing retained hyperbolic and FFT
+implementations inside the same module. One Python call produces a metal pair's
+complete X, Y and combined tables; no per-sample Python/JavaScript calls are
+needed. The bounded storage supports the application's 2–256 power-of-two grids.
+
+`capture_original_spectral.py` executes intact original transfer, regional and
+table-generation routines. Only allocation, deletion and status boundaries are
+replaced. Its 1,728 regional/transfer calls and 33 complete tables check 556,434
+components, finite values bit for bit and nonfinite classifications. Cases
+include both height branches, multiple layers, zero/large/tiny coefficients,
+source-depth restoration, rectangular grids and complete 256×256 table digests.
+Capture arrays provide explicit zero-backed coefficient sentinels and sufficient
+rectangular padding. They do not certify arbitrary original uninitialized
+allocation histories. The portable table fallback retains its existing native
+snapshot tolerances.
+
+Layer initialization also retains the frequency weight until the original
+stores and uses the legacy scalar complex inverse, which has different zero
+terms from complex/complex division. `capture_original_coefficients.py` enters
+the actual CAP driver with an empty contact-preparation boundary and captures
+its coefficients at the subsequent cache-load boundary. The weight/coefficient
+instructions and DSO imports are unchanged. Its 88 groups / 3,556 components
+check both compiled and portable implementations, including signed zeros,
+subnormals, extreme frequencies and nonfinite classifications. Inputs to that
+oracle are already stored ohm-µm resistivities; the production reader conversion
+retains the original multiply-by-10000 store separately.
+
+Rebuild the checked-in, stripped `web/numeric.wasm` (110.4 KiB):
 
 ```sh
 python tools/build_kernels.py --download-zig

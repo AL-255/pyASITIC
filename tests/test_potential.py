@@ -1,10 +1,10 @@
 import json
-import math
 import os
 from pathlib import Path
 import unittest
 from reasitic import Technology,build
-from reasitic.potential import solve_capacitance,_tables,EPSILON0
+from reasitic.potential import solve_capacitance,_tables
+from reasitic.table_kernel import layer_coefficients
 
 
 def cases_for_run():
@@ -57,8 +57,7 @@ class PotentialTests(unittest.TestCase):
             depths=[0.]*(len(technology.substrate)+1)
             for i in range(len(technology.substrate)-1,-1,-1):
                 depths[i]=depths[i+1]+technology.substrate[i]["t"]
-            weight=case["frequency_hz"]*2*math.pi*EPSILON0*1e-4
-            coefficients=tuple(1/complex(1/(layer["rho"]*10000),weight*layer["eps"]) for layer in technology.substrate)
+            coefficients=layer_coefficients(technology.substrate,case["frequency_hz"])
             records=tuple((metal.layer,depths[metal.layer]-metal.height,metal.thickness) for metal in technology.metals)
             nx,ny=int(technology.chip["fftx"]),int(technology.chip["ffty"])
             for pair in case["greens"]:

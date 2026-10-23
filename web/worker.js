@@ -13,7 +13,8 @@ from reasitic.x87_math import _native_tanh,_native_cosh
 from reasitic.symmetric import _compiled_symmetric
 from reasitic.contact_kernel import _compiled_contact_pair
 from reasitic.linear import _compiled_general
-assert all(x is not None for x in (_compiled_transform,_native_tanh,_native_cosh,_compiled_symmetric,_compiled_contact_pair,_compiled_general)), "Could not initialize numerical kernels"
+from reasitic.table_kernel import _compiled_tables,_compiled_coefficients
+assert all(x is not None for x in (_compiled_transform,_native_tanh,_native_cosh,_compiled_symmetric,_compiled_contact_pair,_compiled_general,_compiled_tables,_compiled_coefficients)), "Could not initialize numerical kernels"
 from reasitic.bridge import request_json
 `);
   self.postMessage({ ready: true });
