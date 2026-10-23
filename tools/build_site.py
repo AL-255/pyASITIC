@@ -23,7 +23,8 @@ with zipfile.ZipFile(DIST/"reasitic.zip","w",zipfile.ZIP_DEFLATED) as archive:
 for name,replacements in {
     "index.html":{'src="app.js"':f'src="app.js?v={version}"','href="style.css"':f'href="style.css?v={version}"'},
     "app.js":{'"./analysis-views.mjs"':f'"./analysis-views.mjs?v={version}"','"worker.js"':f'"worker.js?v={version}"'},
-    "worker.js":{'"reasitic.zip"':f'"reasitic.zip?v={version}"'},
+    "worker.js":{'"reasitic.zip"':f'"reasitic.zip?v={version}"','"./numeric-kernels.mjs"':f'"./numeric-kernels.mjs?v={version}"'},
+    "numeric-kernels.mjs":{'"numeric.wasm"':f'"numeric.wasm?v={version}"'},
 }.items():
     target=DIST/name
     text=target.read_text()

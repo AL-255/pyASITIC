@@ -5,14 +5,16 @@
 import { readFileSync } from "node:fs";
 import { pathToFileURL } from "node:url";
 import assert from "node:assert/strict";
+import {installNumericalKernels} from "../web/numeric-kernels.mjs";
 const { loadPyodide } = await import(pathToFileURL(process.argv[2]).href);
 const siteVersion=JSON.parse(readFileSync(new URL("../dist/version.json",import.meta.url))).version;
-for(const [file,references] of [["index.html",["app.js","style.css"]],["app.js",["analysis-views.mjs","worker.js"]],["worker.js",["reasitic.zip"]]]){
+for(const [file,references] of [["index.html",["app.js","style.css"]],["app.js",["analysis-views.mjs","worker.js"]],["worker.js",["reasitic.zip","numeric-kernels.mjs"]],["numeric-kernels.mjs",["numeric.wasm"]]]){
   const body=readFileSync(new URL("../dist/"+file,import.meta.url),"utf8");
   for(const reference of references)assert.ok(body.includes(`${reference}?v=${siteVersion}`),`Coherent release asset ${reference}`);
 }
 const py = await loadPyodide();
 py.unpackArchive(new Uint8Array(readFileSync(new URL("../dist/reasitic.zip",import.meta.url))),"zip");
+await installNumericalKernels(py,readFileSync(new URL("../dist/numeric.wasm",import.meta.url)));
 py.runPython("from reasitic.bridge import request_json");
 const call=py.globals.get("request_json");
 const dependenciesOnly=process.argv[3]==="dependencies";

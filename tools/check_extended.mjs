@@ -3,9 +3,11 @@
 import {readFileSync} from "node:fs";
 import {pathToFileURL} from "node:url";
 import assert from "node:assert/strict";
+import {installNumericalKernels} from "../web/numeric-kernels.mjs";
 const {loadPyodide}=await import(pathToFileURL(process.argv[2]).href);
 const py=await loadPyodide();
 py.unpackArchive(new Uint8Array(readFileSync(new URL("../dist/reasitic.zip",import.meta.url))),"zip");
+await installNumericalKernels(py,readFileSync(new URL("../dist/numeric.wasm",import.meta.url)));
 const fixture=name=>JSON.parse(readFileSync(new URL(`../tests/fixtures/${name}.json`,import.meta.url)));
 // JSON.stringify(-0) emits 0. Primitive native fixtures intentionally contain
 // signed-zero inputs, so preserve those bits on the trip into Python.

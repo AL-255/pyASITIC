@@ -13,6 +13,8 @@ Reference checkout: `~/github/asitic-re`, revision recorded in each fixture.
 | `inductance.py` | `analysis_commands.cpp`, `segment.cpp`, `canonicalize.cpp`, `intersection.cpp`, `parallel.cpp`, `separation.cpp`, `planar.cpp`, `spatial.cpp` | Twelve live C++ INDUCTANCE command reports, including symmetric, nonparallel, stacked and via geometry |
 | `solver.py` | `geometry.cpp`, `filament_setup.cpp`, `filaments.cpp`, `impedance.cpp`, `vias.cpp`, `solver.cpp` | 36 complete C++ LMAT matrices: coarse 1 GHz, refined 2 GHz, and unequal inductive/capacitive length cells; within 1e-8 Ω per component in CPython and WebAssembly |
 | `potential.py` | `potential_tables.cpp`, `potential.cpp`, `contacts.cpp`, `potential_solver.cpp` | Eight CAP sessions across CMOS/BiCMOS: full potential snapshots, folded admittance matrices, and actual cache FFT samples for every metal pair; browser runtime checks cover all eight reduced matrices |
+| `fft.py`, `native/fft.c` | Original machine-code routine at `0x080912c0`; `potential_tables.cpp` | 83 direct original-binary FFT/reflected-grid cases, 17,342 bit-identical binary64 output components including signed zeros/subnormals, verified in Python and compiled WebAssembly; pinned compiler reproduces the module byte for byte |
+| `x87_math.py`, `native/fft.c` | Original clipped cosh at `0x0809123c`, tanh through transfer-up at `0x0808f004`; `potential_tables.cpp` | 20,014 direct original-binary scalar cases match bit for bit in Python and compiled WebAssembly; retained argument formation and exponent reduction fix the grounded-wire raw-potential reference without widening tolerance |
 | `network.py` | `combined_network.cpp`, `node_equations.cpp`, `network.cpp`, `two_port_output.cpp` | Eight no-eddy PI2 sessions: CAP/inductive/nodal snapshots, 15-digit Y/S output, printed L/R/C/Q/shunt-R/resonance reports; isolated node/S checks and JSON/WebAssembly interfaces |
 | `network.py` Pi3/Pi4 | `analysis_dispatch.cpp`, `extended_analysis.cpp`, `composite_geometry.cpp` | Eight more wire/square PI3/PI4 sessions at 1/5 GHz, including precise native 2PORT/2PORTPAD Y/S records, printed Q, explicit ground, pad mesh sentinels, and distinct-origin wire/spiral joins |
 | `web/analysis-views.mjs`, `web/app.js` | New static plotting/circuit interface | Selectable L/R/Q plots, log/linear sampling, curve gaps for undefined values, point-to-circuit inspection, Pi-family diagrams, ground/pad controls, SVG/CSV/JSON exports; pure-view checks and rendered SVG visual inspection |
@@ -76,6 +78,13 @@ original frequency-dependent network metrics. Native eddy correction is optional
 for LMAT and Pi2/Pi3/Pi4/PiX. The fast Pi path and transformer/multiport networks
 remain pending. SELFRES SLOW now repeats the distributed solver through the
 original midpoint search.
+
+The plotted sweep defaults to distributed Pi2. Estimate sweeps remain an explicit
+selection. Starter geometry is placed at (100, 100) µm so its contacts resolve
+inside the sample process. Browser workers require the compiled numerical module
+to initialize; validation asserts that the backend is active. The portable Python
+fallback and compiled path have separate exact kernel checks. See
+[docs/PERFORMANCE.md](docs/PERFORMANCE.md) for timings and remaining bottlenecks.
 
 Outstanding validation: broader rotated/fractional/negative-phase geometry
 fixtures, arbitrary technology files, segment-kernel precision fixtures, real

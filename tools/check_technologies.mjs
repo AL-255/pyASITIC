@@ -3,9 +3,11 @@
 import {readFileSync} from "node:fs";
 import {pathToFileURL} from "node:url";
 import assert from "node:assert/strict";
+import {installNumericalKernels} from "../web/numeric-kernels.mjs";
 import {circuitSVG,sweepSVG} from "../web/analysis-views.mjs";
 const {loadPyodide}=await import(pathToFileURL(process.argv[2]).href),py=await loadPyodide();
 py.unpackArchive(new Uint8Array(readFileSync(new URL("../dist/reasitic.zip",import.meta.url))),"zip");
+await installNumericalKernels(py,readFileSync(new URL("../dist/numeric.wasm",import.meta.url)));
 py.runPython("from reasitic.bridge import request_json");
 const call=py.globals.get("request_json");
 function request(payload){const result=JSON.parse(call(JSON.stringify(payload)));if(result.error)throw Error(result.error);return result.result;}
@@ -50,6 +52,16 @@ if(process.argv[3]){
   async function change(id,value){$(id).value=value;$(id).dispatchEvent(new w.Event("change"));await idle();assert.equal($("#error").hidden,true,$("#error").textContent);}
   async function click(id){$(id).click();await idle();assert.equal($("#error").hidden,true,$("#error").textContent);}
   await idle();assert.ok(w.testState().current);assert.equal($("#technology-preset").options.length,47);
+  assert.equal($("#sweep-model").value,"pi2");assert.equal($("#sweep-count").value,"11");
+  await change("#pi-model","pi");assert.equal($("#sweep-model").value,"pi2","Fast-Pi inspection must not select estimate physics");
+  await change("#pi-model","pi2");
+  $("#sweep-count").value="2";
+  await click("#sweep");
+  assert.ok($("#sweep-chart svg"));assert.ok($("#sweep-method").textContent.includes("frequency-dependent distributed model"));
+  $("#sweep-chart [data-index]").dispatchEvent(new w.MouseEvent("click",{bubbles:true}));
+  assert.equal(Number($("#frequency").value),Number($("#sweep-first").value));
+  assert.equal($("#download-pi2").disabled,false);assert.ok($("#model-circuit svg"));
+  console.log("Default distributed Pi2 sweep, valid starter contacts and plotted-point circuit inspection passed through actual DOM handlers.");
   await change("#technology-preset","gf180-1p3m-6ka-no-mim");
   assert.equal($("#gf180-settings").hidden,false);assert.equal($("#mim-density-field").hidden,true);assert.equal($("#metal").selectedOptions[0].textContent.split(" · ")[0],"M3");
   await change("#technology-preset","gf180-1p6m-9ka-mim-b");

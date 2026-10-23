@@ -7,12 +7,12 @@ generated on demand for the same packed metal pairs used by the native solver.
 """
 from dataclasses import dataclass
 from functools import lru_cache
-from decimal import Decimal,localcontext,ROUND_HALF_EVEN
-from fractions import Fraction
+from decimal import Decimal,localcontext
 import copy
 import math
 from .solver import inverse
-from .inductance import _round_extended
+from .fft import _fft,_transform_grid,_fft_extended,_fft_spill
+from .x87_math import tanh_argument,cosh_argument
 
 EPSILON0=float.fromhex("0x1.8ebfab864ade4p-44")
 FACTOR=float.fromhex("0x1.3bd3cc9be45dep+4")
@@ -54,109 +54,13 @@ def _spectral_combine(scale,ratio,upper,lower,top,bottom,ta,tb,tc,down):
         return _divide(numerator,denominator)
 
 
-@lru_cache(maxsize=16)
-def _fft_plan(n):
-    with localcontext() as context:
-        context.prec=25
-        def extended(value):
-            value=_round_extended(Fraction(value))
-            return Decimal(value.numerator)/Decimal(value.denominator)
-        def sine(value):
-            term=total=value
-            square=value*value
-            for i in range(1,60):
-                term*=-square/((2*i)*(2*i+1))
-                total+=term
-                if abs(term)<Decimal("1e-27"):
-                    return extended(total)
-            raise ValueError("FFT sine failed to converge")
-        plan=[]
-        half=1
-        while half<n:
-            step=2*half
-            angle=Decimal.from_float(float.fromhex("0x1.921fb54442d1cp+2"))/step
-            small=sine(angle/2)
-            wpr=extended(extended(-2*small)*small)
-            wpi=Decimal.from_float(float(sine(angle)))
-            wr,wi=Decimal(1),Decimal(0)
-            weights=[]
-            for m in range(half):
-                weights.append((wr,wi))
-                old_wr=wr
-                wr=extended(extended(extended(wr*wpr)-extended(wi*wpi))+wr)
-                wi=extended(extended(extended(wi*wpr)+extended(old_wr*wpi))+wi)
-            plan.append((half,weights))
-            half=step
-        return plan
-
-
-@lru_cache(maxsize=512)
-def _fft_quantum(exponent):
-    with localcontext() as context:
-        context.prec=256
-        return Decimal(2)**exponent
-
-
-def _fft_extended(value):
-    if not value:
-        return value
-    exponent=math.frexp(float(value))[1]-64
-    quantum=_fft_quantum(exponent)
-    return (value/quantum).to_integral_value(rounding=ROUND_HALF_EVEN)*quantum
-
-
-def _fft(values):
-    n=len(values)
-    j=0
-    for i in range(n-1):
-        if i<j:
-            values[j],values[i]=values[i],values[j]
-        k=n>>1
-        while k>1 and j>=k:
-            j-=k
-            k>>=1
-        j+=k
-    # Native twiddles remain extended while each butterfly output is spilled
-    # to binary64. Keeping that precision prevents the large reactive channel
-    # from contaminating small substrate-loss terms through roundoff.
-    with localcontext() as context:
-        context.prec=25
-        convert=Decimal.from_float
-        for half,weights in _fft_plan(n):
-            step=2*half
-            for m,(wr,wi) in enumerate(weights):
-                for i in range(m,n,step):
-                    a,b=values[i],values[i+half]
-                    ar,ai,br,bi=convert(a.real),convert(a.imag),convert(b.real),convert(b.imag)
-                    tr=_fft_extended(_fft_extended(wr*br)-_fft_extended(wi*bi))
-                    ti=_fft_extended(_fft_extended(wr*bi)+_fft_extended(wi*br))
-                    values[i+half]=complex(float(_fft_extended(ar-tr)),float(_fft_extended(ai-ti)))
-                    values[i]=complex(float(_fft_extended(tr+ar)),float(_fft_extended(ti+ai)))
-
-
-def _transform_grid(grid,nx,ny):
-    stride=ny+1
-    for x in range(nx+1):
-        scratch=[grid[x*stride+y] for y in range(ny+1)]
-        scratch.extend(grid[x*stride+2*ny-y] for y in range(ny+1,2*ny))
-        _fft(scratch)
-        for y in range(ny+1):
-            grid[x*stride+y]=scratch[y]
-    for y in range(ny+1):
-        scratch=[grid[x*stride+y] for x in range(nx+1)]
-        scratch.extend(grid[(2*nx-x)*stride+y] for x in range(nx+1,2*nx))
-        _fft(scratch)
-        for x in range(nx+1):
-            grid[x*stride+y]=scratch[x]
-
-
-def _transfer(down,first,last,k,coefficients,depths):
-    initial=math.tanh(k*(depths[last+1]-depths[last] if down else depths[0]-depths[1]))
+def _transfer(down,first,last,k,coefficients,depths,interfaces=None):
+    initial=(tanh_argument(k,depths[last+1],depths[last]) if down else tanh_argument(k,depths[0],depths[1]))
     u,v=(1+0j,complex(initial)) if down else (complex(initial),1+0j)
     for i in (range(last-1,first-1,-1) if down else range(1,last+1)):
-        argument=k*(depths[i+1]-depths[i] if down else depths[i]-depths[i+1])
-        q=_divide(coefficients[i],coefficients[i+1 if down else i-1])
-        t=math.tanh(argument)
+        t=(tanh_argument(k,depths[i+1],depths[i]) if down else tanh_argument(k,depths[i],depths[i+1]))
+        other=i+1 if down else i-1
+        q=interfaces(i,other) if interfaces is not None else _divide(coefficients[i],coefficients[other])
         with localcontext() as context:
             context.prec=25
             qr,qi,ur,ui,vr,vi=(Decimal.from_float(value) for z in (q,u,v) for value in (z.real,z.imag))
@@ -166,56 +70,49 @@ def _transfer(down,first,last,k,coefficients,depths):
     return u,v
 
 
-def _source(down,source,last,k,height,coefficients,depths):
+def _source(down,source,last,k,height,coefficients,depths,interfaces=None):
     index=source if down else source+1
     saved=depths[index]
     depths[index]=height
     try:
-        return _transfer(down,source if down else 0,last if down else source,k,coefficients,depths)[0]
+        return _transfer(down,source if down else 0,last if down else source,k,coefficients,depths,interfaces)[0]
     finally:
         depths[index]=saved
 
 
-def _cosh(x):
-    if x>500:
-        return 1e15
-    e=math.exp(x)
-    return .5*(1/e+e)
-
-
-def _spectral(down,source,target,last,k,source_height,target_height,coefficients,depths):
+def _spectral(down,source,target,last,k,source_height,target_height,coefficients,depths,interfaces=None):
     z,c=depths,coefficients
-    ta=math.tanh(k*(z[target if down else target+1]-target_height))
-    tb=math.tanh(k*(z[target+1 if down else target]-source_height))
-    tc=math.tanh(k*(z[target+1]-z[target]))
+    ta=tanh_argument(k,z[target if down else target+1],target_height)
+    tb=tanh_argument(k,z[target+1 if down else target],source_height)
+    tc=tanh_argument(k,z[target+1],z[target])
     scale=1.0
     for i in range(target if down else source,(source if down else target)+1):
-        a=_cosh(k*(z[0]-z[i+1]))
-        b=_cosh(k*(z[0]-z[i]))
-        d=_cosh(k*(z[i+1]-z[i]))
+        a=cosh_argument(k,z[0],z[i+1])
+        b=cosh_argument(k,z[0],z[i])
+        d=cosh_argument(k,z[i+1],z[i],True)
         scale=a/(b*d)*scale
     top,bottom,lower=0j,0j,1+0j
     if target==last:
-        top=_divide(c[target],c[target-1])
+        top=interfaces(target,target-1) if interfaces is not None else _divide(c[target],c[target-1])
     else:
         if target!=0:
-            top=_divide(c[target],c[target-1])
-        bottom=_divide(c[target],c[target+1])
-        u,v=_transfer(True,target+1,last,k,c,z)
+            top=interfaces(target,target-1) if interfaces is not None else _divide(c[target],c[target-1])
+        bottom=interfaces(target,target+1) if interfaces is not None else _divide(c[target],c[target+1])
+        u,v=_transfer(True,target+1,last,k,c,z,interfaces)
         lower=_divide(u,v)
-    u,v=_transfer(False,0,target-1,k,c,z)
+    u,v=_transfer(False,0,target-1,k,c,z,interfaces)
     upper=_divide(u,v)
-    ratio=_divide(_source(down,source,last,k,source_height,c,z),_source(down,target,last,k,source_height,c,z))
+    ratio=_divide(_source(down,source,last,k,source_height,c,z,interfaces),_source(down,target,last,k,source_height,c,z,interfaces))
     value=_spectral_combine(scale,ratio,upper,lower,top,bottom,ta,tb,tc,down)
-    first=_cosh(k*(z[target]-target_height if down else z[source]-source_height))
+    first=(cosh_argument(k,z[target],target_height) if down else cosh_argument(k,z[source],source_height))
     value*=first
-    second=_cosh(k*(z[0]-z[target if down else source]))
-    third=_cosh(k*(z[0]-z[(source if down else target)+1]))
+    second=cosh_argument(k,z[0],z[target if down else source])
+    third=cosh_argument(k,z[0],z[(source if down else target)+1])
     with localcontext() as context:
         context.prec=25
         weight=Decimal.from_float(second)/Decimal.from_float(third)
         value=complex(float(Decimal.from_float(value.real)*weight),float(Decimal.from_float(value.imag)*weight))
-    final=_cosh(k*(z[(source if down else target)+1]-(source_height if down else target_height)))
+    final=cosh_argument(k,z[(source if down else target)+1],source_height if down else target_height)
     with localcontext() as context:
         context.prec=25
         dec=Decimal.from_float
@@ -224,10 +121,13 @@ def _spectral(down,source,target,last,k,source_height,target_height,coefficients
                          float(dec(c[target].imag)*dec(float(real))+dec(c[target].real)*imag))
     return _divide(weighted,complex(k))
 
-
 @lru_cache(maxsize=16)
 def _tables(source,target,nx,ny,width,height,metal_records,coefficients,depth_records):
     depths=list(depth_records)
+    @lru_cache(maxsize=None)
+    def interfaces(i,j):
+        return _divide(coefficients[i],coefficients[j])
+    @lru_cache(maxsize=None)
     def sample(k,y_axis):
         sl,sh,st=metal_records[source]
         tl,th,tt=metal_records[target]
@@ -239,7 +139,7 @@ def _tables(source,target,nx,ny,width,height,metal_records,coefficients,depth_re
             else:
                 sh-=st/2
                 th+=tt/2
-        return _spectral(down,sl,tl,len(coefficients)-1,k,sh,th,coefficients,depths)
+        return _spectral(down,sl,tl,len(coefficients)-1,k,sh,th,coefficients,depths,interfaces)
     # Native generation and lookup use nx+1 stride, while the transform uses
     # ny+1. Keep both index rules and initialize all backing cells explicitly.
     cells=max((nx+1)*(ny+1),nx*(nx+1)+ny+1)

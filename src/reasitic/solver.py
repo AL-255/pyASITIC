@@ -7,9 +7,21 @@ elimination; bitwise equality is not expected.
 """
 import copy
 import math
+import struct
 from decimal import Decimal,localcontext
+from functools import lru_cache
 from .inductance import segment_mutual, SELF_CONSTANT
 from .symmetric import inverse_symmetric
+
+
+@lru_cache(maxsize=32768)
+def _filament_mutual(record):
+    # Geometry-only kernel. Ordered binary records retain every input bit,
+    # including signed zeros; warnings must be replayed on cached calls too.
+    values=struct.unpack("=16d",record)
+    warnings=[]
+    value=segment_mutual(values[:8],values[8:],warnings)
+    return value,tuple(warnings)
 
 
 def _sum_complex(values):
@@ -162,7 +174,8 @@ def solve_impedance(shape,technology,frequency_hz,*,length_cell=1000,width_cell=
     for row,(a,metal,nz) in enumerate(filaments):
         full[row][row]=_filament_self_impedance(a,technology.metals[metal].resistance,nz,omega_nh)
         for col in range(row+1,n):
-            mutual = segment_mutual(a,filaments[col][0],warnings)
+            mutual,notices = _filament_mutual(struct.pack("=16d",*a,*filaments[col][0]))
+            warnings.extend(notices)
             full[row][col] = full[col][row] = complex(0,omega*1e-9*mutual)
     full_y = inverse_symmetric(full)
     reduced_y = [[_sum_complex(full_y[r][c] for r in rows for c in columns)

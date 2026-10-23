@@ -1,11 +1,18 @@
 import { loadPyodide } from "https://cdn.jsdelivr.net/pyodide/v314.0.7/full/pyodide.mjs";
+import { installNumericalKernels } from "./numeric-kernels.mjs";
 
 const ready = (async () => {
   const python = await loadPyodide();
   const response = await fetch(new URL("reasitic.zip", import.meta.url));
   if (!response.ok) throw new Error("Could not load the simulation package.");
   python.unpackArchive(await response.arrayBuffer(), "zip");
-  python.runPython("from reasitic.bridge import request_json");
+  await installNumericalKernels(python);
+  python.runPython(`
+from reasitic.fft import _compiled_transform
+from reasitic.x87_math import _native_tanh,_native_cosh
+assert all(x is not None for x in (_compiled_transform,_native_tanh,_native_cosh)), "Could not initialize numerical kernels"
+from reasitic.bridge import request_json
+`);
   self.postMessage({ ready: true });
   return python;
 })();

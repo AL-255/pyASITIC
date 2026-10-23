@@ -117,7 +117,7 @@ async function generate() {
   const next = definition();
   const shape = await request({action:"build",...next,technology:technologyText});
   current=shape; currentDefinition=next;
-  render(shape); resetResults(); status("Layout ready. Run estimates at a frequency of your choice.");
+  render(shape); resetResults(); status("Layout ready. Run a Pi model or frequency sweep.");
 }
 function fillTechnology(data) {
   technology=data.technology;
@@ -300,9 +300,9 @@ $("#sweep-model").addEventListener("change",()=>{
   resetSweep();controls();
 });
 $("#pi-model").addEventListener("change",()=>{
-  const model=$("#pi-model").value;$("#sweep-model").value=model==="pi"?"estimates":model;
+  const model=$("#pi-model").value;if(model!=="pi")$("#sweep-model").value=model;
   if(model==="pi4"&&$("#model-ground-mode").value==="none")$("#model-ground-mode").value="strip";
-  $("#sweep-count").value=model==="pi"?"31":"11";resetSweep();updateModelControls();
+  if(model!=="pi")$("#sweep-count").value="11";resetSweep();updateModelControls();
 });
 $("#model-ground-mode").addEventListener("change",()=>updateModelControls());
 $("#eddy-mode")?.addEventListener("change",()=>{

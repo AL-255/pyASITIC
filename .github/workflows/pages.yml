@@ -43,6 +43,16 @@ jobs:
           python-version: '3.12'
       - run: pip install gdstk==1.0.2
       - run: python -u tools/run_python_checks.py core
+  kernel-build:
+    name: Rebuild retained-precision WebAssembly kernel
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - run: python tools/build_kernels.py --download-zig --verify
   python-tables:
     name: Python · FFT tables · ${{ matrix.label }}
     needs: build
@@ -65,7 +75,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        suite: [baseline, dependencies, resonance, extended, technologies]
+        suite: [baseline, dependencies, resonance, extended, technologies, fft]
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
@@ -87,11 +97,13 @@ jobs:
               node tools/check_extended.mjs /tmp/reasitic-pyodide/node_modules/pyodide/pyodide.mjs ;;
             technologies)
               node tools/check_technologies.mjs /tmp/reasitic-pyodide/node_modules/pyodide/pyodide.mjs /tmp/reasitic-pyodide/node_modules/jsdom/lib/api.js ;;
+            fft)
+              node tools/check_potential_fft.mjs /tmp/reasitic-pyodide/node_modules/pyodide/pyodide.mjs ;;
             *) exit 1 ;;
           esac
   deploy:
     name: Deploy validated Pages
-    needs: [build, python-core, python-tables, wasm]
+    needs: [build, python-core, kernel-build, python-tables, wasm]
     runs-on: ubuntu-latest
     timeout-minutes: 10
     concurrency:

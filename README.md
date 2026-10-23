@@ -3,7 +3,9 @@
 Python reconstruction of ASITIC, with a static browser application for GitHub
 Pages. The reference is [`AL-255/asitic-re`](https://github.com/AL-255/asitic-re),
 specifically its `recomp_cpp` reconstruction. This repository implements the
-algorithms in Python; it does not invoke the reference executable at runtime.
+algorithms through a Python API; it does not invoke the reference executable at
+runtime. The browser accelerates retained FFT and spectral math with a small compiled
+WebAssembly kernel; a portable Python implementation is also included.
 
 **[Open the workbench](https://al-255.github.io/pyASITIC/)**
 
