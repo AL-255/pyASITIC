@@ -366,6 +366,83 @@
           19.557108
         ]
       ]
+    },
+    {
+      "kind": "symmetric_square",
+      "parameters": {
+        "length": 100,
+        "inner_gap": 15,
+        "width": 3,
+        "spacing": 2,
+        "turns": 2,
+        "metal": "M4",
+        "secondary_metal": "M3"
+      },
+      "script": "CELL 1000 1000 1000\nCCELL 1000 1000\nSYMSQ NAME=A:LEN=100:ILEN=15:W=3:S=2:N=2:METAL=M4:METAL2=M3\nINDUCTANCE A\nRESIS A\nRESISHF A 0.001\nRESISHF A 0.1\nRESISHF A 1\nRESISHF A 10\nRESISHF A 100\n",
+      "stdout": "\nASITIC version 10.20.99.0.0.0\nAnalysis & Simulation of Inductors and Transformers for ICs\nReading technology file </home/yukidama/github/asitic-re/run/tek/CMOS.tek>...\nRunning in console mode...\n\nExecuting script <input.asit>...\nCELL 1000 1000 1000\n\nCCELL 1000 1000\n\nSYMSQ NAME=A:LEN=100:ILEN=15:W=3:S=2:N=2:METAL=M4:METAL2=M3\n\nINDUCTANCE A\n\nInductance of A = 0.847908 (nH).\nRESIS A\n\nResistance of A = 15.248084 (Ohms).\nRESISHF A 0.001\n\nA: at 0.001000 GHz R = 15.248084.\nRESISHF A 0.1\n\nA: at 0.100000 GHz R = 15.248344.\nRESISHF A 1\n\nA: at 1.000000 GHz R = 15.256277.\nRESISHF A 10\n\nA: at 10.000000 GHz R = 15.508070.\nRESISHF A 100\n\nA: at 99.999998 GHz R = 19.717301.\nASITIC>  ",
+      "inductance_nh": 0.847908,
+      "dc": 15.248084,
+      "hf": [
+        [
+          1000000.0,
+          15.248084
+        ],
+        [
+          100000000.0,
+          15.248344
+        ],
+        [
+          1000000000.0,
+          15.256277
+        ],
+        [
+          10000000000.0,
+          15.50807
+        ],
+        [
+          99999998000.0,
+          19.717301
+        ]
+      ]
+    },
+    {
+      "kind": "symmetric_polygon",
+      "parameters": {
+        "radius": 50,
+        "sides": 6,
+        "inner_gap": 15,
+        "width": 3,
+        "spacing": 2,
+        "turns": 2,
+        "metal": "M4",
+        "secondary_metal": "M3"
+      },
+      "script": "CELL 1000 1000 1000\nCCELL 1000 1000\nSYMPOLY NAME=A:RAD=50:ILEN=15:SIDES=6:W=3:S=2:N=2:METAL=M4:METAL2=M3\nINDUCTANCE A\nRESIS A\nRESISHF A 0.001\nRESISHF A 0.1\nRESISHF A 1\nRESISHF A 10\nRESISHF A 100\n",
+      "stdout": "\nASITIC version 10.20.99.0.0.0\nAnalysis & Simulation of Inductors and Transformers for ICs\nReading technology file </home/yukidama/github/asitic-re/run/tek/CMOS.tek>...\nRunning in console mode...\n\nExecuting script <input.asit>...\nCELL 1000 1000 1000\n\nCCELL 1000 1000\n\nSYMPOLY NAME=A:RAD=50:ILEN=15:SIDES=6:W=3:S=2:N=2:METAL=M4:METAL2=M3\n\nINDUCTANCE A\n\nInductance of A = 0.740596 (nH).\nRESIS A\n\nResistance of A = 12.838796 (Ohms).\nRESISHF A 0.001\n\nA: at 0.001000 GHz R = 12.838796.\nRESISHF A 0.1\n\nA: at 0.100000 GHz R = 12.839008.\nRESISHF A 1\n\nA: at 1.000000 GHz R = 12.845499.\nRESISHF A 10\n\nA: at 10.000000 GHz R = 13.051501.\nRESISHF A 100\n\nA: at 99.999998 GHz R = 16.495244.\nASITIC>  ",
+      "inductance_nh": 0.740596,
+      "dc": 12.838796,
+      "hf": [
+        [
+          1000000.0,
+          12.838796
+        ],
+        [
+          100000000.0,
+          12.839008
+        ],
+        [
+          1000000000.0,
+          12.845499
+        ],
+        [
+          10000000000.0,
+          13.051501
+        ],
+        [
+          99999998000.0,
+          16.495244
+        ]
+      ]
     }
   ]
 }

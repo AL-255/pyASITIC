@@ -8,7 +8,7 @@ import math
 from .model import Shape, Segment
 from .technology import Technology
 
-KINDS = ("square", "polygon", "wire", "ring", "via", "capacitor", "multimetal")
+KINDS = ("square", "polygon", "symmetric_square", "symmetric_polygon", "wire", "ring", "via", "capacitor", "multimetal")
 
 
 def _segment(tech, metal, width, start, end, outer_start, outer_end, inner_start, inner_end):
@@ -31,7 +31,7 @@ def _via(tech, index, nx, ny, x=0, y=0):
                    len(tech.metals)+index, nx, ny)
 
 
-def _via_pair(shape, tech, a, b, width, x, y):
+def _via_pair(shape, tech, a, b, width, x, y, dy=0):
     if a == b or not tech.vias:
         return
     for i, v in enumerate(tech.vias):
@@ -41,7 +41,8 @@ def _via_pair(shape, tech, a, b, width, x, y):
             if count <= 0:
                 shape.warnings.append("Insufficient space to insert via.")
             else:
-                shape.segments.append(_via(tech, i, count, count, x, y))
+                radius = ((count-1)*v.spacing+count*v.width)/2+overplot
+                shape.segments.append(_via(tech, i, count, count, x, y+radius*dy))
             return
     shape.warnings.append(f"No via layer connects metal {a} to metal {b}.")
 
@@ -188,7 +189,7 @@ def build(kind="square", *, technology=None, **parameters):
     spacing, radius = num("spacing", 2), num("radius", 50)
     sides_value = num("sides", 16)
     sides = int(sides_value)
-    if kind in ("polygon","ring") and (sides != sides_value or not 3 <= sides <= 1024):
+    if kind in ("polygon","ring","symmetric_polygon") and (sides != sides_value or not 3 <= sides <= 1024):
         raise ValueError("Sides must be an integer from 3 to 1024")
     angle = num("angle",0)
     if abs(angle) > 360:
@@ -203,7 +204,39 @@ def build(kind="square", *, technology=None, **parameters):
     exit_metal = -1 if str(exit_value) in ("-1","none","") else tech.metal_index(exit_value)
     shape = Shape(name,kind,[num("x",0),num("y",0)],p)
     radians = math.radians(angle)
-    if kind in ("square","polygon","multimetal"):
+    if kind in ("symmetric_square","symmetric_polygon"):
+        from .symmetric_geometry import symmetric_square, symmetric_polygon
+        inner_gap = num("inner_gap",width+spacing)
+        if inner_gap<=0:
+            raise ValueError("Inner transition gap must be positive")
+        secondary = tech.metal_index(p.get("secondary_metal",max(0,metal-1)))
+        raw_turns = num("turns",2)
+        turns = math.floor(raw_turns)
+        if kind == "symmetric_polygon":
+            if sides%2:
+                sides -= 1
+                shape.warnings.append(f"Symmetric polygon sides reduced to even count {sides}.")
+            if sides<4:
+                raise ValueError("Symmetric polygon requires at least four sides")
+            maximum = math.floor(radius*math.cos(math.pi/sides)/(width+spacing))
+        else:
+            maximum = math.floor(length/(2*(width+spacing))-.25)
+        if not 1<=raw_turns<=maximum or turns*sides>20000:
+            raise ValueError(f"Symmetric winding supports 1–{maximum} turns")
+        if raw_turns!=turns:
+            shape.warnings.append(f"Turns quantized to {turns} (whole turns for symmetric coils).")
+        shape.parameters["turns"] = turns
+        hypotenuse = math.hypot(inner_gap,spacing)
+        if width>hypotenuse:
+            raise ValueError("Need more space for transitions")
+        half = (math.pi-math.atan2(inner_gap,spacing)-math.acos(width/hypotenuse))/2
+        if 2*width*math.tan(half)>inner_gap-1e-10:
+            raise ValueError("Need more space for transitions")
+        if kind == "symmetric_square":
+            symmetric_square(shape,tech,metal,secondary,length,inner_gap,width,spacing,turns,radians,phase)
+        else:
+            symmetric_polygon(shape,tech,metal,secondary,radius,sides,inner_gap,width,spacing,turns,radians,phase)
+    elif kind in ("square","polygon","multimetal"):
         count = 4 if kind in ("square","multimetal") else sides
         raw_turns = num("turns",2)
         if raw_turns <= 0:

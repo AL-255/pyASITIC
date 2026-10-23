@@ -11,7 +11,7 @@ This is an active port, **not yet a complete replacement** for ASITIC.
 
 Implemented so far:
 
-- Square and polygon spirals, wires, polygon rings, capacitors, via arrays,
+- Square, polygon and symmetric square/polygon spirals, wires, polygon rings, capacitors, via arrays,
   and multi-metal square windings, preserving native ribbon edge records.
 - `.tek` technology loading, conductor DC resistance and the original empirical
   high-frequency resistance model, including parallel via counts.
@@ -69,7 +69,7 @@ add `--gds coil.gds` to export a layout request. See `src/reasitic/bridge.py`.
 
 ## Remaining scope
 
-The full objective includes symmetric square/polygon coils, planar/3D/mirror
+The full objective includes planar/3D/mirror
 transformers and baluns; geometry editing/session commands; filament impedance
 and substrate eddy/capacitance algorithms; network, transformer and port metrics;
 frequency sweeps and optimization. Work will be validated against the reference

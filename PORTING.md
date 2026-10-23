@@ -4,11 +4,11 @@ Reference checkout: `~/github/asitic-re`, revision recorded in each fixture.
 
 | Python | C++ source under `recomp_cpp/src/` | Current evidence |
 | --- | --- | --- |
-| `geometry.py`, `model.py` | `shape_construction.cpp`, `spiral_construction.cpp`, `winding_construction.cpp`, `composite_geometry.cpp` | Original SAVE records for seven creator families, coordinates/layer/width and DC reports |
+| `geometry.py`, `model.py`, `symmetric_geometry.py` | `shape_construction.cpp`, `spiral_construction.cpp`, `winding_construction.cpp`, `composite_geometry.cpp`, `symmetric_construction.cpp` | Original SAVE records for nine creator families, coordinates/layer/width and DC reports |
 | `technology.py` | `technology_text.cpp`, `technology_records.cpp` | Sample CMOS technology; additional technology variants remain to validate |
-| `resistance.py` | `resistance.cpp` | Original DC reports for seven families; ten live C++ cases at five frequencies (1 MHz–100 GHz) |
-| `inductance.py` | `analysis_commands.cpp`, `segment.cpp`, `canonicalize.cpp`, `intersection.cpp`, `parallel.cpp`, `separation.cpp`, `planar.cpp`, `spatial.cpp` | Ten live C++ INDUCTANCE command reports, including nonparallel, stacked and via geometry |
-| `gds.py` | Native ribbon and `layout_export.cpp` via pitch conventions | Independent gdstk round-trip for seven generators, units, coordinates, layer mapping, via counts and cut area |
+| `resistance.py` | `resistance.cpp` | Original DC reports for nine families; twelve live C++ cases at five frequencies (1 MHz–100 GHz) |
+| `inductance.py` | `analysis_commands.cpp`, `segment.cpp`, `canonicalize.cpp`, `intersection.cpp`, `parallel.cpp`, `separation.cpp`, `planar.cpp`, `spatial.cpp` | Twelve live C++ INDUCTANCE command reports, including symmetric, nonparallel, stacked and via geometry |
+| `gds.py` | Native ribbon and `layout_export.cpp` via pitch conventions | Independent gdstk round-trip for nine generators, units, coordinates, layer mapping, via counts and cut area |
 | `bridge.py`, `web/worker.js` | New browser interface | Generation, estimates, sweeps and exports exercised in pinned Pyodide WebAssembly runtime |
 
 The fixture tolerance is 5.1e-7 µm, covering only the rounding of six decimal
@@ -21,6 +21,9 @@ Native ring and polygon builders ignore PHASE in the referenced source; this is
 preserved. Square exit segments retain the winding's thickness, even when the
 exit metal has a different thickness. Multi-metal construction in the reference
 does not automatically insert vias between stacked windings; this is preserved.
+Symmetric polygon construction starts from the reference console's zeroed
+`polygon_metal` history; the first crossover can therefore use the primary metal.
+Symmetric coils quantize to whole turns; symmetric polygon side counts are even.
 
 The original INDUCTANCE estimate is distinct from the frequency-dependent
 filament solver behind LMAT and PI2. The current web app labels its Q value as

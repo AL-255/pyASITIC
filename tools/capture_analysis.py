@@ -27,6 +27,8 @@ def main():
         ("ring",dict(radius=40,sides=16,width=3,gap=20,metal="M4"),"RING NAME=A:RAD=40:SIDES=16:W=3:GAP=20:METAL=M4"),
         ("capacitor",dict(length=40,width=5,metal="M2",bottom_metal="M1"),"CAPACITOR NAME=A:LEN=40:WID=5:METAL1=M2:METAL2=M1"),
         ("multimetal",dict(length=80,height=70,width=3,spacing=2,turns=1,metal="M5",bottom_metal="M3"),"MMSQUARE NAME=A:LEN=80:WID=70:W=3:S=2:N=1:METAL=M5:EXIT=M3"),
+        ("symmetric_square",dict(length=100,inner_gap=15,width=3,spacing=2,turns=2,metal="M4",secondary_metal="M3"),"SYMSQ NAME=A:LEN=100:ILEN=15:W=3:S=2:N=2:METAL=M4:METAL2=M3"),
+        ("symmetric_polygon",dict(radius=50,sides=6,inner_gap=15,width=3,spacing=2,turns=2,metal="M4",secondary_metal="M3"),"SYMPOLY NAME=A:RAD=50:ILEN=15:SIDES=6:W=3:S=2:N=2:METAL=M4:METAL2=M3"),
     ]):
         with tempfile.TemporaryDirectory(prefix="reasitic-reference-") as directory:
             script = "CELL 1000 1000 1000\nCCELL 1000 1000\n"+command+"\nINDUCTANCE A\nRESIS A\n"

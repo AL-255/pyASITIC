@@ -18,7 +18,7 @@ class ReferenceGeometryTests(unittest.TestCase):
                          spacing=float(f["S"]),radius=float(f["RAD"]),angle=float(f["ORIENT"])*180/3.141592653589793,
                          x=float(f["XORG"]),y=float(f["YORG"]),phase=int(f["PHASE"]),sides=int(f["SIDES"]))
                 family = {"multimetal_square":"multimetal"}.get(fixture["family"],fixture["family"])
-                if family in ("square","polygon","multimetal"):
+                if family in ("square","polygon","multimetal","symmetric_square","symmetric_polygon"):
                     p["turns"] = float(f["N"])
                 if family == "ring":
                     # SAVE prints six significant digits; native keyword angles
@@ -38,6 +38,8 @@ class ReferenceGeometryTests(unittest.TestCase):
                     p["bottom_metal"] = f["EXIT"]
                 if family == "multimetal":
                     p["bottom_metal"] = f["EXIT"]
+                if family in ("symmetric_square","symmetric_polygon"):
+                    p.update(inner_gap=float(f["WID"]),secondary_metal=f["EXIT"])
                 with self.subTest(family=family,name=f["NAME"]):
                     shape = build(family,technology=tech,**p)
                     self.assertEqual(len(shape.segments),len(expected["segments"]))

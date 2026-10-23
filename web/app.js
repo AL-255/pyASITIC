@@ -102,6 +102,7 @@ function fillTechnology(data) {
   fill("#metal",metalOptions,technology.metals.length-1);
   fill("#exit-metal",[["-1","No exit lead"],...metalOptions],-1);
   fill("#bottom-metal",metalOptions,Math.max(0,technology.metals.length-2));
+  fill("#secondary-metal",metalOptions,Math.max(0,technology.metals.length-2));
   fill("#via",technology.vias.map((v,i)=>[String(i),v.name]),0);
   const table=document.createElement("table");
   const head=table.createTHead().insertRow();

@@ -12,7 +12,7 @@ class GdsTests(unittest.TestCase):
     def test_round_trip_all_generators(self):
         import gdstk
         tech=Technology.default()
-        for kind in ("square","polygon","wire","capacitor","via","ring","multimetal"):
+        for kind in ("square","polygon","symmetric_square","symmetric_polygon","wire","capacitor","via","ring","multimetal"):
             with self.subTest(kind=kind),tempfile.TemporaryDirectory() as directory:
                 shape=build(kind,technology=tech,x=19.25,y=-7.5,metal="M4",exit_metal="M3",angle=32)
                 destination=Path(directory)/"layout.gds"
