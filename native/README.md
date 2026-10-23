@@ -142,7 +142,19 @@ sessions and diagnoses six original nonfinite histories. Those complete
 electrical comparisons retain component tolerances; they do not establish
 whole-simulator bitwise equality.
 
-Rebuild the checked-in, stripped `web/numeric.wasm` (113.4 KiB):
+`filament.cpp` follows the original filament interpolation, including all three
+adaptive edge branches, retained complements and weights, asymmetric X/Y spills,
+and unchanged destination Z fields during edge blending. Typed request records
+replace the original ribbon and technology offsets. One bounded call builds a
+whole mesh. `capture_filaments.py` executes the intact original routine at
+`0x0806597c`; its 2,220 records check 19,980 output components in both Python and
+WebAssembly, finite values bit for bit and nonfinite values by classification.
+Cases include arbitrary interpolation indices, nonplanar ribbon corners,
+signed zeros, extreme scales and native invalid sqrt(dot) histories. Production
+solves diagnose nonfinite coordinates explicitly. Source provenance is recorded
+in `filament-source.json`.
+
+Rebuild the checked-in, stripped `web/numeric.wasm` (123.1 KiB):
 
 ```sh
 python tools/build_kernels.py --download-zig

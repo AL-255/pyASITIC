@@ -1,0 +1,8 @@
+{
+  "reference_commit": "63885e808b522bdeba3f254d353afc72e643c761",
+  "sources": {
+    "filaments.cpp": "240111ddb28a5deaaaa9d3c7e87bd5a250ab044d4b68eb52484081084ca46c59",
+    "numerics.cpp": "cedcb774b43abb092a3b30b7a08929b48fd87228e294d494fe28c584b08a0af1"
+  },
+  "adaptation": "SoftFloat extFloat80 operations and explicit original binary64 spills; typed 26-double request records; one bounded batch per mesh; input records unchanged."
+}

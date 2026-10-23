@@ -20,6 +20,8 @@ export async function installNumericalKernels(python, bytes) {
   const spectralTables = new Float64Array(api.memory.buffer, api.spectral_table_buffer(), 2 * (66049 + 1024));
   const spectralDepths = new Float64Array(api.memory.buffer, api.spectral_depth_buffer(), 257);
   const transformerData = new Float64Array(api.memory.buffer, api.transformer_buffer(), 24);
+  const filamentInput = new Float64Array(api.memory.buffer, api.filament_buffer(), 256*26);
+  const filamentOutput = new Float64Array(api.memory.buffer, api.filament_result_buffer(), 256*9);
   function spectralCall(config,output,probe) {
     let c,o;
     try {
@@ -38,6 +40,19 @@ export async function installNumericalKernels(python, bytes) {
     } finally {o?.release();c?.release();}
   }
   python.registerJsModule("_reasitic_numeric", {
+    filaments(input,output) {
+      let a,b;
+      try {
+        a=input.getBuffer("f64");b=output.getBuffer("f64");const n=a.data.length/26;
+        if(!Number.isInteger(n)||n<1||n>256||b.data.length!==n*9)throw new Error("Filament batch dimensions are invalid");
+        for(let i=0;i<n;i++){
+          const p=a.data.subarray(26*i,26*i+26);
+          for(const k of [18,19,20,21,22,23,24,25])if(!Number.isInteger(p[k])||p[k]<0||p[k]>65535)throw new Error("Filament count/index is invalid");
+          if(!p[18]||!p[22]||!p[23]||!p[24]||p[19]>=p[22]||p[20]>=p[23]||p[21]>=p[24])throw new Error("Filament index is outside its mesh");
+        }
+        filamentInput.set(a.data);const status=api.filaments(n);b.data.set(filamentOutput.subarray(0,n*9));return status;
+      } finally {b?.release();a?.release();}
+    },
     transformer_model(buffer,operation) {
       if(![0,1].includes(operation))throw new Error("Transformer operation is invalid");
       const view=buffer.getBuffer("f64");

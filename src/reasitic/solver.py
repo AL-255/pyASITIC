@@ -12,6 +12,7 @@ from functools import lru_cache
 from .inductance import segment_mutual, SELF_CONSTANT
 from .symmetric import inverse_symmetric
 from .linear import inverse_general
+from .filament import record as _filament_record,filament_records
 
 
 @lru_cache(maxsize=32768)
@@ -71,39 +72,18 @@ def discretize(shape,length_step,half_width):
 
 
 def filament(segment,origin,yi,zi,ny,nz,edge_cell,max_width_cells,technology):
-    a,b = segment.inner_start.copy(),segment.inner_end.copy()
-    c,d = segment.outer_start.copy(),segment.outer_end.copy()
-    count = ny
-    width = segment.width/ny
-    if segment.width/edge_cell>max_width_cells:
-        edges = int(.4*ny)
-        middle = max_width_cells-2*edges
-        if edges<1 or middle<1:
-            raise ValueError("Edge mesh requires at least three maximum width cells")
-        def blend(start,end):
-            # The reference helper is sqrt(dot), not Euclidean distance.
-            product = sum(x*y for x,y in zip(start,end))
-            if product<=0:
-                raise ValueError("Native edge mesh has an invalid sqrt(dot) geometry; increase the width cell size")
-            ratio = edges*edge_cell/math.sqrt(product)
-            return [(1-ratio)*start[i]+ratio*end[i] for i in range(3)]
-        if yi<edges:
-            c,d = blend(a,c),blend(b,d)
-            width,count = edge_cell,edges
-        elif yi>max_width_cells-edges-1:
-            a,b = blend(c,a),blend(d,b)
-            yi -= edges+middle
-            width,count = edge_cell,edges
-        else:
-            ca,cb,cc,cd = a.copy(),b.copy(),c.copy(),d.copy()
-            a,b,c,d = blend(ca,cc),blend(cb,cd),blend(cc,ca),blend(cd,cb)
-            yi -= edges
-            width,count = (segment.width-2*edge_cell*edges)/edges,middle
-    v = (yi+.5)/count
-    start = [(1-v)*a[i]+v*c[i]+origin[i] for i in range(2)]
-    end = [(1-v)*b[i]+v*d[i]+origin[i] for i in range(2)]
-    z = technology.metals[segment.metal].thickness/2+a[2]-(zi+1)/(nz+1)
-    return start+[z]+end+[z]+[width,segment.thickness/nz]
+    return _checked_filament(filament_records([_filament_record(segment,origin,yi,zi,ny,nz,edge_cell,max_width_cells,technology)])[0])
+
+
+def _checked_filament(row):
+    if not all(math.isfinite(v) for v in row[:8]):
+        raise ValueError("Native edge mesh has an invalid sqrt(dot) geometry; increase the width cell size")
+    return row[:8]
+
+
+def filament_counts(segment,width_cell,thickness_cell,max_width_cells=9):
+    if segment.nx==-1 and segment.ny==-1:return 3,3
+    return min(max_width_cells,max(1,int(segment.width/width_cell+.5))),max(1,int(segment.thickness/thickness_cell+.5))
 
 
 def solve_impedance(shape,technology,frequency_hz,*,length_cell=1000,width_cell=1000,
@@ -137,20 +117,19 @@ def solve_impedance(shape,technology,frequency_hz,*,length_cell=1000,width_cell=
     conductors = [s for s in meshed.segments if s.metal<metal_count]
     if not conductors:
         raise ValueError("LMAT requires at least one metal segment")
-    filaments,groups = [],[]
+    filament_inputs,metadata,groups = [],[],[]
     for segment in conductors:
-        ny = min(max_width_cells,max(1,int(segment.width/width_cell+.5)))
-        nz = max(1,int(segment.thickness/thickness_cell+.5))
-        if segment.nx==-1 and segment.ny==-1:
-            ny=nz=3
-        if len(filaments)+ny*nz>max_filaments:
+        ny,nz=filament_counts(segment,width_cell,thickness_cell,max_width_cells)
+        if len(filament_inputs)+ny*nz>max_filaments:
             raise ValueError(f"Mesh exceeds {max_filaments} filaments; increase cell sizes")
         indices = []
         for yi in range(ny):
             for zi in range(nz):
-                indices.append(len(filaments))
-                filaments.append((filament(segment,shape.origin,yi,zi,ny,nz,width_cell,max_width_cells,technology),segment.metal,nz))
+                indices.append(len(filament_inputs))
+                filament_inputs.append(_filament_record(segment,shape.origin,yi,zi,ny,nz,width_cell,max_width_cells,technology))
+                metadata.append((segment.metal,nz))
         groups.append(indices)
+    filaments=[(_checked_filament(row),metal,nz) for row,(metal,nz) in zip(filament_records(filament_inputs),metadata)]
     omega = 2*math.pi*frequency_hz
     omega_nh=omega*1e-9
     n = len(filaments)

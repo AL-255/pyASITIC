@@ -75,7 +75,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        suite: [baseline, dependencies, resonance, extended, technologies, fft, matrix, contacts, general, spectral, transformer]
+        suite: [baseline, dependencies, resonance, extended, technologies, fft, matrix, contacts, general, spectral, transformer, filaments]
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
@@ -109,6 +109,9 @@ jobs:
               node tools/check_spectral_kernels.mjs /tmp/reasitic-pyodide/node_modules/pyodide/pyodide.mjs ;;
             transformer)
               node tools/check_transformer.mjs /tmp/reasitic-pyodide/node_modules/pyodide/pyodide.mjs /tmp/reasitic-pyodide/node_modules/jsdom/lib/api.js ;;
+            filaments)
+              node tools/check_filaments.mjs /tmp/reasitic-pyodide/node_modules/pyodide/pyodide.mjs
+              node tools/check_mesh.mjs /tmp/reasitic-pyodide/node_modules/pyodide/pyodide.mjs /tmp/reasitic-pyodide/node_modules/jsdom/lib/api.js ;;
             *) exit 1 ;;
           esac
   deploy:

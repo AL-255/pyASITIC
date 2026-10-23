@@ -11,6 +11,9 @@ let technologyPreset=null,technologyPresets=[];
 const MODEL_NAMES={pi:"Pi",pi2:"Pi2",pi3:"Pi3",pi4:"Pi4",pix:"PiX"};
 const eddyEnabled=()=>!!$("#eddy-mode")?.checked;
 const pending = new Map();
+const MESH_FIELDS={length_cell:"mesh-length",width_cell:"mesh-width",thickness_cell:"mesh-thickness",capacitance_length_cell:"cap-length",capacitance_width_cell:"cap-width"};
+const MESH_PRESETS={coarse:[1000,1000,1000,1000,1000],balanced:[50,3,.5,1000,1000],fine:[25,1,.25,50,10]};
+const meshCache=new Map();
 const fmt = (value, digits=4) => Number(value).toLocaleString(undefined, { maximumSignificantDigits: digits });
 
 function error(message="") { $("#error").hidden = !message; $("#error").textContent = message; }
@@ -20,6 +23,9 @@ function controls() {
   for(const el of document.querySelectorAll(".analysis-panel input,.analysis-panel select"))el.disabled=busy;
   $("#generate").disabled = !ready || busy;
   for (const id of ["simulate", "sweep", "lmat", "capacitance", "pi2", "selfres", "download-gds", "download-project"]) $("#"+id).disabled = !ready || busy || !current;
+  for(const id of ["mesh-check","mesh-fit"])$("#"+id).disabled=!ready||busy||!current;
+  const coupledMesh=$("#mesh-target option[value='calctrans']");coupledMesh.disabled=current?.windings.length!==2;
+  if(coupledMesh.disabled&&$("#mesh-target").value==="calctrans")$("#mesh-target").value="pi2";
   for(const id of ["download-selfres","download-selfres-csv","download-selfres-plot"])$("#"+id).disabled=busy||!selfresResult;
   $("#download-csv").disabled = busy || !sweepRows?.length;
   $("#download-plot").disabled = busy || !sweepRows?.length;
@@ -34,14 +40,25 @@ function controls() {
   for(const id of ["download-transformer","download-transformer-svg","download-transformer-ports"])$("#"+id).disabled=busy||!transformerResult;
   for(const id of ["download-transformer-sweep","download-transformer-plot"])$("#"+id).disabled=busy||!transformerRows.length;
 }
-function request(payload,onProgress=null) {
+async function request(payload,onProgress=null) {
+  if(["lmat","pi2","pi3","pi4","pix","selfres","calctrans"].includes(payload.action)){
+    $("#mesh-target").value=["pi3","pix","selfres"].includes(payload.action)?"pi2":payload.action;
+    const {frequency_hz,first_hz,last_hz,step_hz,eddy,termination_ohm,include_matrices,...geometry}=payload,key=JSON.stringify(geometry);
+    let plan=meshCache.get(key);
+    if(!plan){plan=await request({...payload,action:"mesh",model:payload.action});if(meshCache.size>=8)meshCache.delete(meshCache.keys().next().value);meshCache.set(key,plan);}
+    renderMeshInfo(plan);
+    if(!plan.within_limit)throw Error(`Mesh needs ${plan.filaments} filaments; the browser limit is ${plan.limit}. Use Mesh settings → Fit to 256 filaments, or enter larger cells.`);
+  }
   const id = ++nextId;
   return new Promise((resolve, reject) => { pending.set(id, {resolve,reject,onProgress}); worker.postMessage({id,request:payload}); });
 }
 async function task(callback) {
   if (busy || !ready) return;
   busy = true; controls(); error();
-  try { await callback(); } catch (e) { error(e.message || String(e)); status("Could not complete the operation. Check the message above."); }
+  try { await callback(); } catch (e) {
+    const message=e.message||String(e);error(message);status("Could not complete the operation. Check the message above.");
+    if(/mesh.*(filaments|segments)/i.test(message)){$("#mesh-settings").open=true;$("#mesh-fit").focus();}
+  }
   finally { busy = false; controls(); }
 }
 function definition() {
@@ -50,6 +67,36 @@ function definition() {
   for (const key of Object.keys(values)) if (!["name", "metal", "exit_metal", "bottom_metal", "via"].includes(key)) values[key] = Number(values[key]);
   return {kind,parameters:values,winding:0};
 }
+function meshSettings(){
+  const mesh=Object.fromEntries(Object.entries(MESH_FIELDS).map(([key,id])=>[key,numeric("#"+id)]));
+  if(Object.values(mesh).some(v=>v<=0))throw Error("Mesh cell sizes must be positive.");return mesh;
+}
+function applyMesh(mesh){
+  for(const [key,id]of Object.entries(MESH_FIELDS))$("#"+id).value=String(mesh[key]);
+  const values=Object.keys(MESH_FIELDS).map(key=>mesh[key]);
+  $("#mesh-preset").value=Object.keys(MESH_PRESETS).find(key=>MESH_PRESETS[key].every((v,i)=>v===values[i]))||"custom";
+  meshCache.clear();
+}
+function renderMeshInfo(plan){
+  $("#mesh-feedback").className=plan.within_limit?"muted":"warnings";
+  $("#mesh-feedback").textContent=`${plan.model.toUpperCase()}: ${plan.filaments} / ${plan.limit} filaments · ${plan.segments} conductor segments.${plan.within_limit?" Ready to solve.":" Use Fit to 256 filaments or larger conductor cells."}`;
+}
+function meshPayload(){
+  const model=$("#mesh-target").value;
+  const payload=model==="calctrans"?transformerPayload(numeric("#frequency")*1e9):model==="lmat"?{...currentDefinition,technology:technologyText,mesh:meshSettings()}:modelPayload(model,numeric("#frequency")*1e9);
+  return {...payload,action:"mesh",model};
+}
+function changedMesh(){resetResults();meshCache.clear();error();$("#mesh-feedback").className="muted";$("#mesh-feedback").textContent="Mesh updated. Check the filament count or run an analysis.";status("Mesh settings updated. Check the count or run an analysis.");controls();}
+$("#mesh-preset").addEventListener("change",()=>{
+  const values=MESH_PRESETS[$("#mesh-preset").value];if(!values)return;
+  applyMesh(Object.fromEntries(Object.keys(MESH_FIELDS).map((key,i)=>[key,values[i]])));changedMesh();
+});
+for(const id of Object.values(MESH_FIELDS))$("#"+id).addEventListener("change",()=>{$("#mesh-preset").value="custom";changedMesh();});
+$("#mesh-check").addEventListener("click",()=>task(async()=>{renderMeshInfo(await request(meshPayload()));status("Mesh counted without running the electrical solver.");}));
+$("#mesh-fit").addEventListener("click",()=>task(async()=>{
+  const plan=await request({...meshPayload(),fit:true});applyMesh(plan.mesh);resetResults();renderMeshInfo(plan);
+  status(plan.changed?"Conductor cell sizes increased to fit the filament limit. Run the simulation with this mesh.":"This mesh already fits. Run the simulation with the displayed cell sizes.");
+}));
 function showFields() {
   const kind = $("#kind").value;
   $("#secondary-metal").parentElement.firstChild.nodeValue=kind==="transformer3d"?"Secondary winding metal":"Crossover metal";
@@ -111,6 +158,7 @@ function render(shape) {
   fit();
 }
 function resetResults() {
+  $("#mesh-feedback").className="muted";$("#mesh-feedback").textContent="Check the filament count before solving. Fit coarsens conductor cells; it does not run a simulation.";
   for (const key of ["l","r","q"]) $("#result-"+key).textContent="—";
   resetSweep();
   matrixResult=null; $("#matrix-table").replaceChildren(); $("#lmat-result").textContent="";
@@ -208,10 +256,10 @@ function updateModelControls(clear=true){
   $("#pi2").textContent="Run "+MODEL_NAMES[model];
   $("#model-note").textContent={
     pi:"The supplied ASITIC fast Pi command faults on conductor coils before it produces circuit values. The topology is shown here; numerical fast-Pi results are unavailable in this reference.",
-    pi2:"Distributed filament and layered-substrate model. The diagram shows series L/R and two series RC shunts. Uses the frequency above and CAP/LMAT mesh settings below.",
+    pi2:"Distributed filament and layered-substrate model. The diagram shows series L/R and two series RC shunts. Uses the frequency above and shared mesh settings.",
     pi3:"Original Pi3: the distributed model with an explicit ground structure. Choose the other winding or define a ground strip.",
     pi4:"Original Pi4: solve the device with its pads, subtract the pads’ capacitive contribution, and extract the three-terminal circuit. Define two pad strips and a reference.",
-    pix:"Original PiX extended two-port model. Solves coupled segment voltages and currents, then extracts the three-terminal circuit. Uses the frequency, reference and CAP/LMAT mesh settings below."
+    pix:"Original PiX extended two-port model. Solves coupled segment voltages and currents, then extracts the three-terminal circuit. Uses the frequency, reference and shared mesh settings."
   }[model]+(model==="pi"?"":eddyEnabled()?" Native eddy correction is enabled; convergence diagnostics appear with results.":" Eddy currents are disabled.");
   if(clear)resetModel();controls();
 }
@@ -226,8 +274,7 @@ function modelPayload(model,frequency){
   const ground=mode==="other"?{...currentDefinition,winding:1-(currentDefinition.winding||0)}:mode==="strip"?stripDefinition("model-ground","_ground"):null;
   return {action:model,...currentDefinition,ground,technology:technologyText,frequency_hz:frequency,eddy:eddyEnabled(),
     ...(model==="pi4"?{first_pad:stripDefinition("model-pad1","_pad1"),second_pad:stripDefinition("model-pad2","_pad2")} : {}),
-    mesh:{length_cell:numeric("#mesh-length"),width_cell:numeric("#mesh-width"),thickness_cell:numeric("#mesh-thickness"),
-      capacitance_length_cell:numeric("#cap-length"),capacitance_width_cell:numeric("#cap-width")}};
+    mesh:meshSettings()};
 }
 function renderSweep(rows) {
   const model=sweepContext?.model||$("#sweep-model").value,estimate=model==="estimates",metric=$("#sweep-metric").value;
@@ -413,7 +460,7 @@ function transformerPayload(frequency){
   const ground=mode==="first"?{...currentDefinition,winding:first}:mode==="strip"?stripDefinition("transformer-ground","_ground"):null;
   const termination_ohm=Math.fround(numeric("#transformer-termination")),f=Math.fround(frequency/1e9)*1e9;
   if(!Number.isFinite(termination_ohm)||!Number.isFinite(f)||f<=0)throw Error("Frequency or termination exceeds the native command range.");
-  const mesh=Object.fromEntries(Object.entries({length_cell:numeric("#mesh-length"),width_cell:numeric("#mesh-width"),thickness_cell:numeric("#mesh-thickness"),capacitance_length_cell:numeric("#cap-length"),capacitance_width_cell:numeric("#cap-width")}).map(([k,v])=>[k,Math.fround(v)]));
+  const mesh=Object.fromEntries(Object.entries(meshSettings()).map(([k,v])=>[k,Math.fround(v)]));
   return {action:"calctrans",...currentDefinition,first_winding:first,second_winding:1-first,technology:technologyText,ground,frequency_hz:f,termination_ohm,eddy:eddyEnabled(),mesh};
 }
 const transformerMetrics=[
@@ -526,11 +573,13 @@ $("#download-gds").addEventListener("click",()=>task(async()=>{
   download(Uint8Array.from(atob(result.base64),c=>c.charCodeAt(0)),"application/octet-stream",filename(".gds"));
   status("GDSII exported: metals use index + 1, vias use index + 100, datatype 0; 1 nm grid.");
 }));
-$("#download-project").addEventListener("click",()=>download(JSON.stringify({format:"reasitic-project",version:1,shape:currentDefinition,technology:technologyText},null,2),"application/json",filename(".json")));
+$("#download-project").addEventListener("click",()=>task(async()=>download(JSON.stringify({format:"reasitic-project",version:1,shape:currentDefinition,technology:technologyText,mesh:meshSettings()},null,2),"application/json",filename(".json"))));
 $("#project-file").addEventListener("change",event=>task(async()=>{
   const file=event.target.files[0];if(!file)return;
   const data=JSON.parse(await file.text());
   if(data.format!=="reasitic-project"||data.version!==1||!data.shape) throw new Error("Unsupported project file.");
+  const restoredMesh=data.mesh?Object.fromEntries(Object.keys(MESH_FIELDS).map(key=>[key,Number(data.mesh[key])])):null;
+  if(restoredMesh&&Object.values(restoredMesh).some(v=>!Number.isFinite(v)||v<=0))throw Error("Project mesh cells must be finite and positive.");
   const text=data.technology||"";
   const init=await request({action:"init",technology:text});
   // Verify geometry before replacing the current project.
@@ -538,6 +587,7 @@ $("#project-file").addEventListener("change",event=>task(async()=>{
   technologyText=text;fillTechnology(init);
   $("#kind").value=data.shape.kind;showFields();
   for(const [key,value] of Object.entries(data.shape.parameters)) if(form.elements.namedItem(key))form.elements.namedItem(key).value=String(value);
+  if(restoredMesh)applyMesh(restoredMesh);
   currentDefinition=data.shape;current=restored;render(current);resetResults();status("Project restored. Run analysis on the selected winding.");
   event.target.value="";
 }));

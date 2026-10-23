@@ -8,6 +8,8 @@ Reference checkout: `~/github/asitic-re`, revision recorded in each fixture.
 | `devices.py` | `winding_construction.cpp`, `shape_prompt_transformer.cpp`, `console_geometry.cpp` | Original SAVE records and DC reports for both planar transformer and balun windings; independent combined GDS round-trip |
 | `transformer3d.py` | `transformer3d.cpp`, `shape_creation_mirror.cpp` | Original SAVE/DC fixture plus seven live C++ creator sessions, including fractional turns, phase/orientation metadata and different metal thicknesses; 14 full winding LMAT matrices in CPython/WebAssembly |
 | `precision.py` | `shape_construction.cpp` point/shape rotation | Retained radius/angle arithmetic, asymmetric cosine/sine angle spills, and native midpoint evaluation; exact rotated-wire endpoint doubles from BSAVE and matching unequal-cell mesh dimensions in CPython/WebAssembly |
+| `filament.py`, `native/filament.cpp` | `filaments.cpp`, `numerics.cpp`; original `0x0806597c` | 2,220 intact original records / 19,980 exact finite components or nonfinite classifications in Python and compiled WebAssembly; all adaptive edge branches, arbitrary interpolation indices, asymmetric spills, destination Z preservation, signed zeros and extreme scales |
+| `mesh.py`, `web/app.js` | Native longitudinal subdivision and filament counts from `geometry.cpp`, `filament_setup.cpp` | Exact production-count reuse, Pi4 pad and explicit CALCTRANS winding mesh conventions; actual DOM reproduces 360-filament rejection, fits to 60 and successfully solves Pi2; presets, invalidation and project persistence |
 | `technology.py` | `technology_text.cpp`, `technology_records.cpp` | Sample CMOS technology; additional technology variants remain to validate |
 | `resistance.py` | `resistance.cpp` | Original DC reports for nine families; twelve live C++ cases at five frequencies (1 MHz–100 GHz) |
 | `inductance.py` | `analysis_commands.cpp`, `segment.cpp`, `canonicalize.cpp`, `intersection.cpp`, `parallel.cpp`, `separation.cpp`, `planar.cpp`, `spatial.cpp` | Twelve live C++ INDUCTANCE command reports, including symmetric, nonparallel, stacked and via geometry |
@@ -91,7 +93,8 @@ Outstanding validation: broader rotated/fractional/negative-phase geometry
 fixtures, arbitrary technology files, segment-kernel precision fixtures, real
 browser interaction and rendered layout checks. The current environment has no
 browser connection; WebAssembly runtime execution is tested separately from UI.
-The adaptive edge mesh branch is ported but still needs native fixtures. Its
+The adaptive edge mesh branches have direct original record fixtures; broader
+complete electrical sessions using adaptive edge meshes remain to validate. Their
 original sqrt(dot) normalization can be invalid for some coordinates; Python
 reports that failure explicitly. Current LMAT supports one series shape without
 shunt-segment groups and caps the browser matrix at 256 filaments.
@@ -387,3 +390,14 @@ Original debugger snapshots locate differences in inductive-admittance inputs
 while CAP inputs match exactly in four sampled sessions. Filament construction,
 impedance assembly and eddy arithmetic remain precision work; the strict audit
 is not a passing parity gate yet.
+
+The open mesh panel exposes all five shared cell sizes above the simulation
+panels. Counts run without electrical solves and use the solver's own width/
+thickness count helper plus the same longitudinal clone and pad/reference
+preparation. Browser analyses check this budget before building CAP/LMAT and
+cache it across frequency samples. Explicit fitting doubles conductor cell sizes
+until the mesh fits; CAP cells are preserved. Coarsening cannot remove native
+base segments or forced 3×3 pad/reference filaments, so irreducible cases report
+the required count. No automatic geometry simplification or solver substitution
+is applied. Project version 1 gains optional mesh fields while older projects
+remain loadable.

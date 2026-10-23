@@ -80,6 +80,11 @@ Implemented so far:
   progressive Pi2/Pi3/Pi4 sweeps, sample-to-circuit inspection, plot SVG and CSV
   download. Python runs in a
   module worker using pinned Pyodide 314.0.7; the runtime loads from jsDelivr.
+- Shared mesh settings with coarse/balanced/fine presets, custom conductor and
+  CAP cells, and a filament-count check before electrical solves. “Fit to 256
+  filaments” explicitly coarsens conductor cells while preserving CAP cell
+  settings. Counts include Pi4 pads or both CALCTRANS windings as selected;
+  project downloads preserve all five cell sizes.
 
 Records use binary64 with selected retained-precision intermediates matching the
 reference's x87 arithmetic.
@@ -126,7 +131,7 @@ tests and the same source archive inside the pinned WebAssembly runtime before
 deploying to Pages. No external simulation service is required.
 
 The Pages workflow runs Python core checks, every native potential-reference
-process/frequency group, and eleven WebAssembly groups in parallel. FFT/CAP and
+process/frequency group, and twelve WebAssembly groups in parallel. FFT/CAP and
 SELFRES checks print case progress. Fixture-derived grouping keeps all native
 cases covered; deployment waits for every group and publishes only the current
 main commit. Active validation is retained when another commit is pushed.
