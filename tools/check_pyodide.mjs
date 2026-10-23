@@ -1,6 +1,7 @@
 // Execute the exact Pages source archive in the pinned WebAssembly runtime.
 // Usage: node tools/check_pyodide.mjs /absolute/path/to/pyodide/pyodide.mjs
-// Optional "dependencies" skips creator/Pi baselines; "resonance" runs SELFRES only.
+// Optional baseline/dependencies/resonance select disjoint validation groups.
+// "resonance-rules" runs only the primitive native SELFRES search traces.
 import { readFileSync } from "node:fs";
 import { pathToFileURL } from "node:url";
 import assert from "node:assert/strict";
@@ -16,6 +17,8 @@ py.runPython("from reasitic.bridge import request_json");
 const call=py.globals.get("request_json");
 const dependenciesOnly=process.argv[3]==="dependencies";
 const resonanceOnly=["resonance","resonance-rules"].includes(process.argv[3]);
+const baselineOnly=process.argv[3]==="baseline";
+if(process.argv[3]&&!['dependencies','resonance','resonance-rules','baseline'].includes(process.argv[3]))throw Error("Unknown validation group");
 function request(data,onProgress) {
   const result=JSON.parse(onProgress?call(JSON.stringify(data),onProgress):call(JSON.stringify(data)));
   if(result.error)throw new Error(result.error);
@@ -124,6 +127,7 @@ assert.throws(()=>request({action:"pi"}),/native fast Pi/);
 assert.throws(()=>request({action:"pi3"}),/explicit ground/);
 console.log("16 native Pi3/Pi4 models and explicit fast-Pi limitation passed in WebAssembly, eddy off/on.");
 }
+if(baselineOnly){call.destroy();console.log("Pinned Pyodide baseline checks passed.");process.exit(0);}
 py.runPython(`
 from dataclasses import asdict
 import json,math
@@ -283,6 +287,7 @@ for(const fixture of eddyCases){
 }
 console.log("16 complete native EDDY ON LMAT matrices passed in WebAssembly.");
 }
+if(dependenciesOnly){call.destroy();console.log("Pinned Pyodide dependency checks passed.");process.exit(0);}
 py.runPython(`
 import json,math
 from reasitic.resonance import search_self_resonance
@@ -317,7 +322,8 @@ resonanceProbe.destroy();
 console.log("184 native SELFRES search traces passed in WebAssembly, including strict tolerance, quantization and 101-solve exhaustion.");
 if(process.argv[3]!=="resonance-rules"){
 const resonancePhysicalCases=JSON.parse(readFileSync(new URL("../tests/fixtures/resonance_physical.json",import.meta.url))).cases;
-for(const fixture of resonancePhysicalCases){
+for(const [index,fixture] of resonancePhysicalCases.entries()){
+  console.log(`SELFRES case ${index+1}/${resonancePhysicalCases.length}: ${fixture.process} · ${fixture.kind} · ${fixture.first_hz/1e9}–${fixture.last_hz/1e9} GHz`);
   const progress=[];
   const result=request({action:"selfres",kind:fixture.kind,parameters:fixture.parameters,technology:fixture.technology,ground:fixture.ground,
     eddy:fixture.eddy,mesh:fixture.mesh,first_hz:fixture.first_hz,last_hz:fixture.last_hz,step_hz:fixture.step_hz,differential:fixture.differential},point=>progress.push(JSON.parse(point)));

@@ -1,5 +1,6 @@
 import json
 import math
+import os
 from pathlib import Path
 import unittest
 from reasitic.resonance import search_self_resonance,solve_self_resonance
@@ -46,7 +47,8 @@ class ResonanceTests(unittest.TestCase):
 
     def test_complete_native_distributed_searches(self):
         cases=json.loads((Path(__file__).parent/"fixtures/resonance_physical.json").read_text())["cases"]
-        for case in cases:
+        for index,case in enumerate(cases,1):
+            if os.environ.get("CI"):print(f"SELFRES case {index}/{len(cases)}: {case['process']} · {case['kind']} · differential={case['differential']}",flush=True)
             with self.subTest(kind=case["kind"],process=case["process"],differential=case["differential"]):
                 tech=Technology.from_text(case["technology"])
                 shape=build(case["kind"],technology=tech,**case["parameters"])

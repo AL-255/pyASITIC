@@ -106,6 +106,12 @@ Install `gdstk==1.0.2` to enable the independent GDS reader tests. CI runs those
 tests and the same source archive inside the pinned WebAssembly runtime before
 deploying to Pages. No external simulation service is required.
 
+The Pages workflow runs Python core checks, every native potential-reference
+process/frequency group, and five WebAssembly groups in parallel. FFT/CAP and
+SELFRES checks print case progress. Fixture-derived grouping keeps all native
+cases covered; deployment waits for every group and publishes only the current
+main commit. Active validation is retained when another commit is pushed.
+
 Python API:
 
 ```python

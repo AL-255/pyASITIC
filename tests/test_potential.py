@@ -1,9 +1,24 @@
 import json
 import math
+import os
 from pathlib import Path
 import unittest
 from reasitic import Technology,build
 from reasitic.potential import solve_capacitance,_tables,EPSILON0
+
+
+def cases_for_run():
+    cases=json.loads((Path(__file__).parent/"fixtures/potential.json").read_text())["cases"]
+    process=os.environ.get("REASITIC_POTENTIAL_PROCESS")
+    frequency=os.environ.get("REASITIC_POTENTIAL_FREQUENCY")
+    if process is not None:cases=[c for c in cases if c["process"]==process]
+    if frequency is not None:cases=[c for c in cases if c["frequency_hz"]==float(frequency)]
+    if not cases:raise ValueError("No native potential fixtures match the selected process/frequency")
+    return sorted(cases,key=lambda item:(item["process"],item["frequency_hz"]))
+
+
+def progress(message):
+    if os.environ.get("CI"):print(message,flush=True)
 
 
 class PotentialTests(unittest.TestCase):
@@ -18,8 +33,8 @@ class PotentialTests(unittest.TestCase):
                               length_cell=1e-100,width_cell=1e-100,max_contacts=2)
 
     def test_connected_native_admittance_matrices(self):
-        cases=json.loads((Path(__file__).parent/"fixtures/potential.json").read_text())["cases"]
-        for case in sorted(cases,key=lambda item:(item["process"],item["frequency_hz"])):
+        for case in cases_for_run():
+            progress(f"CAP: {case['process']} {case['frequency_hz']/1e9:g} GHz · {case['kind']} · ground={bool(case['ground'])}")
             with self.subTest(kind=case["kind"],process=case["process"],frequency=case["frequency_hz"],ground=bool(case["ground"])):
                 technology=Technology.from_text(case["technology"])
                 shape=build(case["kind"],technology=technology,**case["parameters"])
@@ -37,8 +52,7 @@ class PotentialTests(unittest.TestCase):
                             self.assertAlmostEqual(value[axis],reference[axis],delta=max(1e-9,abs(reference[axis])*1e-8),msg=f"Pmat {i},{j} component {axis}")
 
     def test_actual_native_fft_cache_samples(self):
-        cases=json.loads((Path(__file__).parent/"fixtures/potential.json").read_text())["cases"]
-        for case in sorted(cases,key=lambda item:(item["process"],item["frequency_hz"])):
+        for case in cases_for_run():
             technology=Technology.from_text(case["technology"])
             depths=[0.]*(len(technology.substrate)+1)
             for i in range(len(technology.substrate)-1,-1,-1):
@@ -48,6 +62,7 @@ class PotentialTests(unittest.TestCase):
             records=tuple((metal.layer,depths[metal.layer]-metal.height,metal.thickness) for metal in technology.metals)
             nx,ny=int(technology.chip["fftx"]),int(technology.chip["ffty"])
             for pair in case["greens"]:
+                progress(f"FFT reference: {case['process']} {case['frequency_hz']/1e9:g} GHz · metal pair {pair['source']},{pair['target']} · {nx}×{ny}")
                 with self.subTest(process=case["process"],frequency=case["frequency_hz"],pair=(pair["source"],pair["target"])):
                     tx,ty,txy=_tables(pair["source"],pair["target"],nx,ny,technology.chip["chipx"],technology.chip["chipy"],records,coefficients,tuple(depths))
                     samples=[(tx[index],reference) for index,reference in pair["x"]]+[(ty[index],reference) for index,reference in pair["y"]]
