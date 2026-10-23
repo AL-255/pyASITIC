@@ -84,14 +84,11 @@ class Shape:
         if abs(angle) <= 1e-10:
             return
         x0, y0, x1, y1 = self.bounds
-        cx, cy = (x0+x1)/2, (y0+y1)/2
+        from .precision import rotate_xy,native_midpoint
+        cx,cy=native_midpoint(x0,x1),native_midpoint(y0,y1)
         for s in self.segments:
             for p in s.points:
-                x, y = p[0]-cx, p[1]-cy
-                radius = math.hypot(x, y)
-                if radius > 1e-10:
-                    theta = math.atan2(y, x)+angle
-                    p[0], p[1] = math.cos(theta)*radius+cx, math.sin(theta)*radius+cy
+                p[0],p[1]=rotate_xy(p[0],p[1],cx,cy,angle)
         x0, y0, *_ = self.bounds
         self.offset(-x0, -y0)
         self.origin[0] += x0

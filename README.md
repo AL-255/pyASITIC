@@ -22,6 +22,10 @@ Implemented so far:
 - No-eddy `LMAT` filament solver with longitudinal and cross-section meshing,
   impedance assembly, inversion/reduction and via corrections. The web app
   displays L, R, series Q and the complex matrix, with full matrix CSV download.
+- Original layered-substrate `CAP` solver: contact discretization, layered
+  spectral Green functions, reflected FFT tables, potential-matrix inversion,
+  and admittance reduction. Includes explicit ground winding selection, total
+  capacitance, substrate equivalent resistance and admittance CSV download.
 - GDSII export with actual via cuts and metal landing pads. Default mapping:
   metal index + 1, via index + 100; datatype 0. Python callers can override it.
   Units are micrometres, with a 1 nm export grid.
@@ -50,6 +54,7 @@ fields, hashes, and the reference revision. Regenerate with:
 python3 tools/capture_reference.py --reference ~/github/asitic-re
 python3 tools/capture_analysis.py --reference ~/github/asitic-re
 python3 tools/capture_transformer3d.py --reference ~/github/asitic-re
+python3 tools/capture_potential.py --reference ~/github/asitic-re
 ```
 
 Install `gdstk==1.0.2` to enable the independent GDS reader tests. CI runs those
@@ -76,7 +81,7 @@ add `--gds coil.gds` to export a layout request. See `src/reasitic/bridge.py`.
 ## Remaining scope
 
 The full objective includes geometry editing/session commands;
-substrate eddy/capacitance algorithms; network, transformer and port metrics;
+substrate eddy-current algorithms; network, transformer and port metrics;
 EM frequency sweeps and optimization. Work will be validated against the reference
 one connected path at a time. No fitted spiral-inductance formula is substituted
 for the original electromagnetic solver.

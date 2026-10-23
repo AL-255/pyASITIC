@@ -35,14 +35,18 @@ for (const fixture of cases) {
   // Keyword angles cross a native binary32 boundary before entering geometry.
   const parameters={...fixture.parameters};
   for (const key of ["gap","angle"]) if(key in parameters) parameters[key]=Math.fround(parameters[key]*Math.PI/180)*180/Math.PI;
-  for(const [frequency_hz,mesh,key] of [[1e9,{},"matrix_1ghz"],[2e9,{length_cell:50,width_cell:3,thickness_cell:.5},"matrix_fine_2ghz"]]) {
+  if(fixture.kind==="wire" && fixture.parameters.angle){
+    const shape=request({action:"build",kind:fixture.kind,parameters});
+    assert.deepEqual(shape.segments.map(segment=>[...segment.start,...segment.end]),fixture.geometry_endpoints,"Native rotated-wire endpoint doubles");
+  }
+  for(const [frequency_hz,mesh,key] of [[1e9,{},"matrix_1ghz"],[2e9,{length_cell:50,width_cell:3,thickness_cell:.5},"matrix_fine_2ghz"],[1e9,{length_cell:20,capacitance_length_cell:50},"matrix_unequal_1ghz"]]) {
     const result=request({action:"lmat",kind:fixture.kind,parameters,frequency_hz,mesh});
     const expected=fixture[key];
-    assert.equal(result.matrix.length,expected.length);
+    assert.equal(result.matrix.length,expected.length,`${fixture.kind} ${key} mesh dimensions`);
     result.matrix.forEach((row,i)=>row.forEach((z,j)=>z.forEach((value,component)=>assert.ok(Math.abs(value-expected[i][j][component])<1e-8,`${fixture.kind} ${key} [${i},${j}]`))));
   }
 }
-console.log("24 reference LMAT matrices passed in WebAssembly.");
+console.log("36 reference LMAT matrices passed in WebAssembly.");
 const cases3d=JSON.parse(readFileSync(new URL("../tests/fixtures/transformer3d.json",import.meta.url))).cases;
 for(const fixture of cases3d){
   for(const [winding,name] of [[0,"P"],[1,"S"]]){
@@ -63,5 +67,17 @@ for(const fixture of cases3d){
   }
 }
 console.log("Seven 3D geometry sessions and 14 winding matrices passed in WebAssembly.");
+const potentialCases=JSON.parse(readFileSync(new URL("../tests/fixtures/potential.json",import.meta.url))).cases;
+for(const fixture of potentialCases){
+  const result=request({action:"capacitance",kind:fixture.kind,parameters:fixture.parameters,technology:fixture.technology,
+    frequency_hz:fixture.frequency_hz,mesh:{length_cell:fixture.length_cell,width_cell:fixture.width_cell},
+    ground:fixture.ground?{kind:"wire",parameters:fixture.ground}:null});
+  assert.equal(result.matrix.length,fixture.matrix.length);
+  result.matrix.forEach((row,i)=>row.forEach((value,j)=>value.forEach((component,k)=>{
+    const expected=fixture.matrix[i][j][k];
+    assert.ok(Math.abs(component-expected)<=Math.max(1e-16,Math.abs(expected)*1e-8),`CAP ${fixture.process} ${fixture.kind} [${i},${j}]`);
+  })));
+}
+console.log("Eight native layered-substrate capacitance matrices passed in WebAssembly.");
 call.destroy();
 console.log("Pinned Pyodide archive smoke test passed.");

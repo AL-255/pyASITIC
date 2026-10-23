@@ -2,7 +2,7 @@ const $ = selector => document.querySelector(selector);
 const form = $("#geometry-form");
 const NS = "http://www.w3.org/2000/svg";
 const COLORS = ["#e8bd65", "#81b4ef", "#b899eb", "#8fd1ae", "#e89971", "#e88fbd", "#64cbd1", "#cecf86"];
-let worker, ready = false, busy = false, nextId = 0, current = null, currentDefinition = null, technology = null, technologyText = "", sweepRows = null, matrixResult = null;
+let worker, ready = false, busy = false, nextId = 0, current = null, currentDefinition = null, technology = null, technologyText = "", sweepRows = null, matrixResult = null, capacitanceResult = null;
 const pending = new Map();
 const fmt = (value, digits=4) => Number(value).toLocaleString(undefined, { maximumSignificantDigits: digits });
 
@@ -10,9 +10,10 @@ function error(message="") { $("#error").hidden = !message; $("#error").textCont
 function status(message) { $("#analysis-status").textContent = message; }
 function controls() {
   $("#generate").disabled = !ready || busy;
-  for (const id of ["simulate", "sweep", "lmat", "download-gds", "download-project"]) $("#"+id).disabled = !ready || busy || !current;
+  for (const id of ["simulate", "sweep", "lmat", "capacitance", "download-gds", "download-project"]) $("#"+id).disabled = !ready || busy || !current;
   $("#download-csv").disabled = busy || !sweepRows;
   $("#download-matrix").disabled = busy || !matrixResult;
+  $("#download-capacitance").disabled = busy || !capacitanceResult;
   $("#active-winding").disabled = busy;
   $("#coupling").disabled = busy || !current || current.windings.length!==2;
 }
@@ -79,6 +80,7 @@ function render(shape) {
   $("#layout-title").replaceChildren(document.createTextNode(shape.name+" "));
   const subtitle = document.createElement("span"); subtitle.textContent = $("#kind").selectedOptions[0].textContent; $("#layout-title").append(subtitle);
   $("#winding-control").hidden=shape.windings.length<2;
+  $("#cap-ground-control").hidden=shape.windings.length<2;
   $("#active-winding").replaceChildren(...shape.windings.map((name,index)=>new Option(name,String(index),false,index===(currentDefinition.winding||0))));
   $("#canvas-caption").textContent=`${fmt(x1-x0)} × ${fmt(y1-y0)} µm · ${shape.windings.length>1?"both windings · ":""}origin (${fmt(shape.origin[0])}, ${fmt(shape.origin[1])})`;
   $("#scale").textContent="Scroll to zoom · drag to pan";
@@ -93,6 +95,7 @@ function resetResults() {
   for (const key of ["l","r","q"]) $("#result-"+key).textContent="—";
   sweepRows=null; $("#sweep-table").replaceChildren(); $("#sweep-chart").hidden=true;
   matrixResult=null; $("#matrix-table").replaceChildren(); $("#lmat-result").textContent="";
+  capacitanceResult=null; $("#capacitance-table").replaceChildren(); $("#capacitance-result").textContent="";
 }
 async function generate() {
   const next = definition();
@@ -203,6 +206,28 @@ $("#download-matrix").addEventListener("click",()=>{
   const rows=["row,column,real_ohm,imag_ohm"];
   matrixResult.matrix.forEach((row,i)=>row.forEach(([real,imag],j)=>rows.push([i,j,real,imag].join(","))));
   download(rows.join("\n"),"text/csv",filename("-impedance.csv"));
+});
+$("#capacitance").addEventListener("click",()=>task(async()=>{
+  status("Generating layered Green tables and solving the contact-potential matrix…");
+  const ground=current.windings.length===2 && $("#cap-ground").checked ? {...currentDefinition,winding:1-(currentDefinition.winding||0)} : null;
+  const result=await request({action:"capacitance",...currentDefinition,ground,technology:technologyText,frequency_hz:numeric("#frequency")*1e9,
+    mesh:{length_cell:numeric("#cap-length"),width_cell:numeric("#cap-width")}});
+  capacitanceResult=result;
+  $("#capacitance-result").textContent=`Total C = ${fmt(result.total_capacitance_f*1e15,6)} fF · Substrate equivalent series R = ${fmt(result.total_resistance_ohm,6)} Ω · ${result.contacts} contacts · ${result.fft_x} × ${result.fft_y} FFT`;
+  const table=document.createElement("table"),head=table.createTHead().insertRow(),limit=Math.min(16,result.matrix.length);
+  for(const title of ["row","column","conductance (S)","susceptance (S)"]){const th=document.createElement("th");th.textContent=title;head.append(th);}
+  const body=table.createTBody();
+  for(let i=0;i<limit;i++) for(let j=0;j<limit;j++){
+    const row=body.insertRow();const [real,imag]=result.matrix[i][j];
+    for(const value of [i,j,real,imag])row.insertCell().textContent=fmt(value,6);
+  }
+  $("#capacitance-table").replaceChildren(table);
+  status(`CAP complete at ${fmt(result.frequency_hz/1e9)} GHz. Showing ${limit} × ${limit}; CSV includes the full matrix. ${ground?"The other winding is grounded.":""}`);
+}));
+$("#download-capacitance").addEventListener("click",()=>{
+  const rows=["row,column,real_siemens,imag_siemens"];
+  capacitanceResult.matrix.forEach((row,i)=>row.forEach(([real,imag],j)=>rows.push([i,j,real,imag].join(","))));
+  download(rows.join("\n"),"text/csv",filename("-capacitance-admittance.csv"));
 });
 $("#download-gds").addEventListener("click",()=>task(async()=>{
   const result=await request({action:"gds",...currentDefinition,technology:technologyText});

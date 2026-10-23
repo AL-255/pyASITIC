@@ -9,6 +9,14 @@ FIXTURES = json.loads((Path(__file__).parent/"fixtures/creators.json").read_text
 
 
 class ReferenceGeometryTests(unittest.TestCase):
+    def test_rotated_wire_binary_endpoints(self):
+        fixtures=json.loads((Path(__file__).parent/"fixtures/analysis.json").read_text())["cases"]
+        case=next(case for case in fixtures if case["kind"]=="wire" and case["parameters"].get("angle"))
+        parameters=dict(case["parameters"])
+        parameters["angle"]=struct.unpack("f",struct.pack("f",math.radians(parameters["angle"])))[0]*180/math.pi
+        shape=build("wire",technology=Technology.default(),**parameters)
+        self.assertEqual([segment.start+segment.end for segment in shape.segments],case["geometry_endpoints"])
+
     def test_original_creator_records(self):
         tech = Technology.default()
         for fixture in FIXTURES:

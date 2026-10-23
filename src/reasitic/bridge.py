@@ -9,6 +9,7 @@ from .inductance import inductance_estimate, coupling_estimate
 from .gds import write_gds, layout_polygons
 from .solver import solve_impedance
 from .devices import build_device, PAIRED_KINDS
+from .potential import solve_capacitance
 
 
 def _technology(request):
@@ -42,12 +43,18 @@ def handle(request):
         mutual,k = coupling_estimate(a,b,tech)
         return dict(mutual_nh=mutual,k=k)
     shape = _shape(request,tech)
+    if action == "capacitance":
+        mesh=request.get("mesh",{})
+        ground=_shape(request["ground"],tech) if request.get("ground") else None
+        return solve_capacitance(shape,tech,float(request.get("frequency_hz",1e9)),ground=ground,
+                                 length_cell=float(mesh.get("length_cell",1000)),width_cell=float(mesh.get("width_cell",1000)))
     if action == "lmat":
         mesh = request.get("mesh",{})
         return solve_impedance(shape,tech,float(request.get("frequency_hz",1e9)),
                                length_cell=float(mesh.get("length_cell",1000)),
                                width_cell=float(mesh.get("width_cell",1000)),
-                               thickness_cell=float(mesh.get("thickness_cell",1000)))
+                               thickness_cell=float(mesh.get("thickness_cell",1000)),
+                               capacitance_length_cell=float(mesh["capacitance_length_cell"]) if "capacitance_length_cell" in mesh else None)
     if action == "build":
         data = shape.to_dict()
         windings = _shapes(request,tech)

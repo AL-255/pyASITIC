@@ -7,10 +7,12 @@ Reference checkout: `~/github/asitic-re`, revision recorded in each fixture.
 | `geometry.py`, `model.py`, `symmetric_geometry.py` | `shape_construction.cpp`, `spiral_construction.cpp`, `winding_construction.cpp`, `composite_geometry.cpp`, `symmetric_construction.cpp` | Original SAVE records for nine creator families, coordinates/layer/width and DC reports |
 | `devices.py` | `winding_construction.cpp`, `shape_prompt_transformer.cpp`, `console_geometry.cpp` | Original SAVE records and DC reports for both planar transformer and balun windings; independent combined GDS round-trip |
 | `transformer3d.py` | `transformer3d.cpp`, `shape_creation_mirror.cpp` | Original SAVE/DC fixture plus seven live C++ creator sessions, including fractional turns, phase/orientation metadata and different metal thicknesses; 14 full winding LMAT matrices in CPython/WebAssembly |
+| `precision.py` | `shape_construction.cpp` point/shape rotation | Retained radius/angle arithmetic, asymmetric cosine/sine angle spills, and native midpoint evaluation; exact rotated-wire endpoint doubles from BSAVE and matching unequal-cell mesh dimensions in CPython/WebAssembly |
 | `technology.py` | `technology_text.cpp`, `technology_records.cpp` | Sample CMOS technology; additional technology variants remain to validate |
 | `resistance.py` | `resistance.cpp` | Original DC reports for nine families; twelve live C++ cases at five frequencies (1 MHz–100 GHz) |
 | `inductance.py` | `analysis_commands.cpp`, `segment.cpp`, `canonicalize.cpp`, `intersection.cpp`, `parallel.cpp`, `separation.cpp`, `planar.cpp`, `spatial.cpp` | Twelve live C++ INDUCTANCE command reports, including symmetric, nonparallel, stacked and via geometry |
-| `solver.py` | `geometry.cpp`, `filament_setup.cpp`, `filaments.cpp`, `impedance.cpp`, `vias.cpp`, `solver.cpp` | 24 complete C++ LMAT matrices, coarse 1 GHz and refined 2 GHz, within 1e-8 Ω per component in both CPython and WebAssembly |
+| `solver.py` | `geometry.cpp`, `filament_setup.cpp`, `filaments.cpp`, `impedance.cpp`, `vias.cpp`, `solver.cpp` | 36 complete C++ LMAT matrices: coarse 1 GHz, refined 2 GHz, and unequal inductive/capacitive length cells; within 1e-8 Ω per component in CPython and WebAssembly |
+| `potential.py` | `potential_tables.cpp`, `potential.cpp`, `contacts.cpp`, `potential_solver.cpp` | Eight CAP sessions across CMOS/BiCMOS: full potential snapshots, folded admittance matrices, and actual cache FFT samples for every metal pair; browser runtime checks cover all eight reduced matrices |
 | `gds.py` | Native ribbon and `layout_export.cpp` via pitch conventions | Independent gdstk round-trip for nine generators, units, coordinates, layer mapping, via counts and cut area |
 | `bridge.py`, `web/worker.js` | New browser interface | Generation, estimates, sweeps and exports exercised in pinned Pyodide WebAssembly runtime |
 
@@ -39,12 +41,18 @@ The case selector's extended-precision 5000-unit translation is reproduced with
 exact rational rounding to a 64-bit binary significand. Rounding both translated
 endpoints to binary64 caused large errors in some refined meshes; the matrix
 fixtures catch that regression.
+The clone's native length threshold tests the smaller inductive/capacitive cell,
+but its ceiling count divides by the inductive cell. Unequal-cell reference
+matrices catch swapping those fields. The symmetric-polygon command fixture
+also records the native default origin (radius + half transition gap), which
+matters to the original translated-basis rounding in fine meshes.
 
 The current web app labels its estimate Q value as
 QLF (the native DC-loss extrapolation), not network quality or HF Q. Inductance
 does not change with frequency in estimate mode. LMAT's separate series Q is
-Im(sum Z)/Re(sum Z). Eddy currents, substrate loss,
-capacitance and resonances are not yet included.
+Im(sum Z)/Re(sum Z). CAP now computes layered-substrate capacitance and substrate
+loss independently. Eddy-current corrections, the combined Pi/Pi2 network, and
+resonance extraction remain pending.
 
 Outstanding validation: broader rotated/fractional/negative-phase geometry
 fixtures, arbitrary technology files, segment-kernel precision fixtures, real
@@ -71,3 +79,23 @@ the segments; the UI reports this when non-default metadata is supplied.
 3D terminals also retain distinct primary-block width/thickness fields used by
 the mutual kernel, separate from the scalar width used by RESIS and LMAT mesh
 setup. Fractional-turn reference sessions detect the missing-field regression.
+
+The CAP port follows the original spectral-transfer recursion and positive-sign,
+unnormalized FFT. Its native .tek rho conversion is ohm-cm × 10000 (ohm-µm).
+An explicit ground argument receives the parser's -1/-1 mesh-count convention;
+it therefore uses the original chip/FFT-derived ground contact cells. Contacts
+retain the original axis-aligned rectangle approximation and integer grid
+quantization, including for polygon segments. The FFT twiddle recurrence and
+butterflies retain a 64-bit binary significand with decimal guard precision;
+ordinary binary64 FFT intermediates contaminated small substrate-loss terms.
+The matrix checks were retained while recovering that rounding behavior.
+
+Potential snapshot comparisons use max(1e-9 Ω, 1e-8 relative) per component;
+reduced admittances use max(1e-16 S, 1e-8 relative). Native snapshots print ten
+significant digits. Actual cached FFT entries are checked separately. This is
+numerical conformance evidence, not bitwise equality or validation for all
+process stacks. FFT grids are limited to powers of two from 2 to 256; contact
+matrices are limited to 256 contacts. Green tables are generated on demand and
+kept in a bounded in-memory cache instead of native cache files. Unfolded
+reduction, non-square FFT storage quirks, unusual process stacks, and native
+invalid-contact histories still need broader independent validation.

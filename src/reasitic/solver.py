@@ -101,7 +101,10 @@ def solve_impedance(shape,technology,frequency_hz,*,length_cell=1000,width_cell=
         capacitance_length_cell = length_cell
     if not math.isfinite(capacitance_length_cell) or capacitance_length_cell<=0:
         raise ValueError("Capacitance length cell must be finite and positive")
-    meshed = discretize(shape,length_cell,capacitance_length_cell)
+    # GeometryDiscretization is {half_width, length_step}: the native clone
+    # tests the smaller limit, but its ceiling count divides by the inductive
+    # length cell (half_width), even when the capacitance cell is different.
+    meshed = discretize(shape,capacitance_length_cell,length_cell)
     metal_count = len(technology.metals)
     conductors = [s for s in meshed.segments if s.metal<metal_count]
     if not conductors:

@@ -6,6 +6,7 @@ import os
 from pathlib import Path
 import re
 import subprocess
+import struct
 import tempfile
 
 
@@ -28,14 +29,15 @@ def main():
         ("capacitor",dict(length=40,width=5,metal="M2",bottom_metal="M1"),"CAPACITOR NAME=A:LEN=40:WID=5:METAL1=M2:METAL2=M1"),
         ("multimetal",dict(length=80,height=70,width=3,spacing=2,turns=1,metal="M5",bottom_metal="M3"),"MMSQUARE NAME=A:LEN=80:WID=70:W=3:S=2:N=1:METAL=M5:EXIT=M3"),
         ("symmetric_square",dict(length=100,inner_gap=15,width=3,spacing=2,turns=2,metal="M4",secondary_metal="M3"),"SYMSQ NAME=A:LEN=100:ILEN=15:W=3:S=2:N=2:METAL=M4:METAL2=M3"),
-        ("symmetric_polygon",dict(radius=50,sides=6,inner_gap=15,width=3,spacing=2,turns=2,metal="M4",secondary_metal="M3"),"SYMPOLY NAME=A:RAD=50:ILEN=15:SIDES=6:W=3:S=2:N=2:METAL=M4:METAL2=M3"),
+        ("symmetric_polygon",dict(radius=50,sides=6,inner_gap=15,width=3,spacing=2,turns=2,metal="M4",secondary_metal="M3",x=57.5,y=57.5),"SYMPOLY NAME=A:RAD=50:ILEN=15:SIDES=6:W=3:S=2:N=2:METAL=M4:METAL2=M3"),
     ]):
         with tempfile.TemporaryDirectory(prefix="reasitic-reference-") as directory:
-            script = "CELL 1000 1000 1000\nCCELL 1000 1000\n"+command+"\nINDUCTANCE A\nRESIS A\n"
+            script = "CELL 1000 1000 1000\nCCELL 1000 1000\n"+command+"\nBSAVE geometry A\nINDUCTANCE A\nRESIS A\n"
             frequencies = [0.001,0.1,1,10,100]
             script += "".join(f"RESISHF A {f}\n" for f in frequencies)
             script += "LMAT A 1 matrix.out\n"
             script += "CELL 50 3 0.5\nCCELL 50 1000\nLMAT A 2 mesh.out\n"
+            script += "CELL 20 1000 1000\nCCELL 50 1000\nLMAT A 1 unequal.out\n"
             Path(directory,"input.asit").write_text(script)
             result = subprocess.run([str(executable),"-g","-t",str(root/"run/tek/CMOS.tek"),"-x","input.asit"],
                                     input="quit\n",text=True,capture_output=True,cwd=directory,timeout=30,start_new_session=True,
@@ -56,7 +58,17 @@ def main():
                             matrix.append([])
                         matrix[i].append([float(parts[2]),float(parts[3])])
                 return matrix
-            cases.append(dict(kind=kind,parameters=params,script=script,stdout=output,matrix_1ghz=read_matrix("matrix.out"),matrix_fine_2ghz=read_matrix("mesh.out"),
+            binary=next(Path(directory).glob("geometry.*")).read_bytes()
+            offset=20
+            if struct.unpack_from("<I",binary,offset)[0]!=0x88:
+                raise ValueError("Invalid native binary shape marker")
+            offset+=4+0xbc
+            segments=[]
+            while struct.unpack_from("<I",binary,offset)[0]==0x89:
+                offset+=4
+                segments.append(list(struct.unpack_from("<6d",binary,offset)))
+                offset+=0xf0
+            cases.append(dict(kind=kind,parameters=params,script=script,stdout=output,geometry_endpoints=segments,matrix_1ghz=read_matrix("matrix.out"),matrix_fine_2ghz=read_matrix("mesh.out"),matrix_unequal_1ghz=read_matrix("unequal.out"),
                               inductance_nh=float(inductance[1]),dc=float(dc[1]),
                               hf=[[float(f)*1e9,float(r.rstrip("."))] for f,r in hf]))
     destination = Path(__file__).resolve().parents[1]/"tests/fixtures/analysis.json"
