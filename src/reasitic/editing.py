@@ -5,7 +5,7 @@ from .paired_geometry import _name
 from .retained_scalar import Real as R
 
 ALIASES={}
-for names in [('MOVE','MV'),('MOVEX','MVX'),('MOVEY','MVY'),('MOVETO','MVTO','SETORIG','SETORIGIN'),('ROTATE','ROT','TURN'),('FLIPV','FLIPVERT','VFLIP','VERTFLIP'),('FLIPH','FLIPHORZ','HFLIP','HORZFLIP'),('FLIP','REVERSE','REV','REORDER'),('COPY','CP','DUPLICATE','DUP'),('RENAME','REN','NEWNAME','NAME'),('BEFRIEND','FRIEND'),('UNFRIEND','DEFRIEND')]:
+for names in [('MOVE','MV'),('MOVEX','MVX'),('MOVEY','MVY'),('MOVETO','MVTO','SETORIG','SETORIGIN'),('ROTATE','ROT','TURN'),('FLIPV','FLIPVERT','VFLIP','VERTFLIP'),('FLIPH','FLIPHORZ','HFLIP','HORZFLIP'),('FLIP','REVERSE','REV','REORDER'),('COPY','CP','DUPLICATE','DUP'),('RENAME','REN','NEWNAME','NAME'),('BEFRIEND','FRIEND'),('UNFRIEND','DEFRIEND'),('PHASE','PH')]:
     ALIASES.update((name,names[0])for name in names)
 
 
@@ -82,6 +82,16 @@ def apply_edits(shapes,technology,edits,*,with_links=False):
             other=winding(op['other'])
             if partners[index]==other and partners[other]==index:partners[index]=partners[other]=None
             else:shape.warnings.append('Error:  Specified spirals are not friends.')
+        elif command=='PHASE':
+            value=op['phase']
+            if isinstance(value,bool):raise ValueError('Phase must be a signed 32-bit integer')
+            try:phase=int(value)
+            except (TypeError,ValueError,OverflowError):raise ValueError('Phase must be a signed 32-bit integer')from None
+            if not -(1<<31)<=phase<(1<<31):raise ValueError('Phase must be a signed 32-bit integer')
+            previous=shape.electrical_phase
+            if phase>=0 and previous<0 or phase<0 and previous>0:
+                for segment in shape.segments:segment.reverse()
+                shape.electrical_phase=phase
         elif command=='ROTATE':shape.rotate(angle_radians(op['angle']),force=True)
         elif command=='FLIPV':shape.reflect(0)
         elif command=='FLIPH':shape.reflect(1)

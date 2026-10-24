@@ -66,6 +66,7 @@ def build_device(kind="square",*,technology=None,**parameters):
     common = dict(p,length=length,height=height,width=width,spacing=spacing,turns=turns,angle=angle,phase=phase,secondary_metal=secondary_metal)
     primary = Shape(primary_name,kind,[x,y],dict(common,metal=metal))
     secondary = Shape(secondary_name,kind,[x,y],dict(common,metal=secondary_metal))
+    primary.electrical_phase=secondary.electrical_phase=int(phase)
     build_3d(primary,secondary,tech)
     if angle or phase<0:
         for winding in (primary,secondary):

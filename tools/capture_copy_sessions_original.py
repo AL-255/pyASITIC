@@ -28,17 +28,17 @@ def jobs():
         mesh=dict(length_cell=1000,width_cell=1000,thickness_cell=1000,capacitance_length_cell=1000,capacitance_width_cell=1000),edits=[dict(command='COPY',winding=0,name='c',metal='M2',x=40,y=40)])
  yield 'via/copied-metal-pi2',primitive,r,'CELL 1000 1000 1000\nCCELL 1000 1000\nEDDY OFF\n'+c['script'],c['stdin'],['A']
 
-def main():
+def main(*,output_name='copy_sessions_original',job_source=jobs,command_source=command,description=None):
  p=argparse.ArgumentParser(description=__doc__);p.add_argument('--reference',type=Path,required=True);p.add_argument('--library-path',required=True);a=p.parse_args();ref=a.reference.resolve();original=ref/'run/asitic.linux.2.2'
  for path,want in((original,ORIGINAL_SHA256),(ref/'run/libs/libstdc++-2-libc6.1-1-2.9.0.so',LEGACY_SHA256)):
   if hashlib.sha256(path.read_bytes()).hexdigest()!=want:raise ValueError('Unexpected original checksum')
  records=[];parents={};cap_reference_failures=[]
  with tempfile.TemporaryDirectory(prefix='pyasitic-original-copy-models-')as directory:
   root=Path(directory);(root/'tap.cpp').write_text(TAP);subprocess.run(['g++','-m32','-O2','-fPIC','-shared','-nostdlib','-fno-builtin',str(root/'tap.cpp'),'/lib/i386-linux-gnu/libc.so.6','-o',str(root/'tap.so')],check=True)
-  for label,parent,r,prefix,stdin,names in jobs():
+  for label,parent,r,prefix,stdin,names in job_source():
    parents[parent.name]=hashlib.sha256(parent.read_bytes()).hexdigest();script=prefix
    for op in r['edits']:
-    script+=command(op,names)
+    script+=command_source(op,names)
     if op['command']=='COPY':names.append(op['name'].upper())
     elif op['command']=='RENAME':names[op['winding']]=op['name'].upper()
    first=names[r['winding']];frequency=format(r['frequency_ghz'],'.17g');snapshot=names[0]if r['kind']=='via'else first;script+=f'GEOM {snapshot}\n';coupled=r['action']=='calctrans'
@@ -62,7 +62,7 @@ def main():
   run=subprocess.run([str(original),'-g','-t','process.tek','-x','input.asit'],cwd=work,env=dict(os.environ,LD_LIBRARY_PATH=a.library_path),input=via['stdin'],capture_output=True,text=True,start_new_session=True,timeout=120)
   if run.returncode or'Total Capacitance =  -nan'not in run.stdout or'Total Resistance =  -nan'not in run.stdout:raise RuntimeError('Unexpected converted-VIA CAP reference outcome: '+run.stdout[-1500:]+run.stderr[-1000:])
   cap_reference_failures.append(dict(label=via['label'],request=r,script=script,stdin=via['stdin'],returncode=run.returncode,stdout=run.stdout,stderr=run.stderr));print('via/copied-metal CAP reference native NaN captured',flush=True)
- result=dict(original_sha256=ORIGINAL_SHA256,legacy_sha256=LEGACY_SHA256,parents=parents,pi_gdb_commands=PI_COMMANDS,coupled_gdb_commands=COUPLED_COMMANDS,geometry_observer=SNAPSHOT,tap=TAP,reference='Unchanged original full COPY/RENAME/BEFRIEND/spatial edits followed by Pi2/CALCTRANS/2PORT, with selected copied windings in multi-object scenes, including a VIA copied onto a conductor metal. Read-only completed geometry snapshot, model/scattering/resonance/node observers and nonnumerical sprintf observer. Literal original CLI CAP with the unconverted VIA reference returns NaN totals and is retained separately. All selected outcomes retained.',cases=records,cap_reference_failures=cap_reference_failures)
- with gzip.GzipFile(str(ROOT/'tests/fixtures/copy_sessions_original.json.gz'),'wb',mtime=0)as out:out.write((json.dumps(result,separators=(',',':'),allow_nan=False)+'\n').encode())
+ result=dict(original_sha256=ORIGINAL_SHA256,legacy_sha256=LEGACY_SHA256,parents=parents,pi_gdb_commands=PI_COMMANDS,coupled_gdb_commands=COUPLED_COMMANDS,geometry_observer=SNAPSHOT,tap=TAP,reference=description or 'Unchanged original full COPY/RENAME/BEFRIEND/spatial edits followed by Pi2/CALCTRANS/2PORT, with selected copied windings in multi-object scenes, including a VIA copied onto a conductor metal. Read-only completed geometry snapshot, model/scattering/resonance/node observers and nonnumerical sprintf observer. Literal original CLI CAP with the unconverted VIA reference returns NaN totals and is retained separately. All selected outcomes retained.',cases=records,cap_reference_failures=cap_reference_failures)
+ with gzip.GzipFile(str(ROOT/'tests/fixtures'/f'{output_name}.json.gz'),'wb',mtime=0)as out:out.write((json.dumps(result,separators=(',',':'),allow_nan=False)+'\n').encode())
 
 if __name__=='__main__':main()

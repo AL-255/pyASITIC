@@ -296,7 +296,7 @@ def build(kind="square", *, technology=None, native_keyword=False, native_intera
         phase=int(phase)
         if phase not in(-1,1):raise ValueError('Interactive VIA phase must be +1 or -1')
         p['phase']=phase
-    if (kind=='wire'and(native_keyword or native_interactive))or(native_keyword and kind in('square','symmetric_square','symmetric_polygon','multimetal')):
+    if (kind=='wire'and(native_keyword or native_interactive))or(native_keyword and kind in('square','polygon','ring','symmetric_square','symmetric_polygon','multimetal')):
         if not -(1<<31)<=phase<(1<<31):raise ValueError('Phase exceeds the native integer range')
         phase=int(phase)
         if native_keyword:phase=phase or 1
@@ -309,6 +309,7 @@ def build(kind="square", *, technology=None, native_keyword=False, native_intera
     exit_value = p.get("exit_metal", -1)
     exit_metal = -1 if str(exit_value) in ("-1","none","") else tech.metal_index(exit_value)
     shape = Shape(name,kind,[num("x",0),num("y",0)],p)
+    shape.electrical_phase=int(phase)
     shape.warnings.extend(interactive_warnings)
     radians = angle if native_interactive else math.radians(angle)
     if native_keyword:

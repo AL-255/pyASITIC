@@ -261,6 +261,23 @@ Implemented so far:
   the unconverted standalone VIA retains the original fault diagnostic. CAP's
   original NaN totals with that VIA as a reference are retained as a diagnostic.
 
+- PHASE / PH replays the original sign predicate and reverses segment endpoints
+  while retaining segment order. Repeated signs preserve the stored state;
+  switching a negative phase to zero produces the native sticky zero state.
+  Creator forms preserve signed integer keyword phases across project reload
+  and regeneration, including polygon/ring zero-to-positive normalization.
+  All 320 captured states / 98,190 XYZ stores across 20 creator modes and
+  6 complete phased
+  Pi2/CALCTRANS sessions retain original coordinates and model outputs. The
+  standalone interactive capacitor's uninitialized initial native phase word
+  is represented by its observed positive predicate, without inventing its
+  address value; subsequent specified phase stores are compared exactly.
+- ERASE remains unfinished. The read-only erasure capture retains all 210
+  selected native states, including empty scenes and a stale friend pointer
+  that later refers to a new COPY at a reused descriptor address. Run
+  `python tools/audit_erase_lifetimes_original.py` to verify the evidence; this
+  is an audit of the native capture and does not assert Python ERASE support.
+
 Records use binary64 with selected retained-precision intermediates matching the
 reference's x87 arithmetic.
 Universal bitwise numerical equality is not yet established. Original saved geometry fixtures are

@@ -181,7 +181,7 @@ function showFields(loaded=currentDefinition) {
     form.elements.namedItem("width").min=interactive?"1e-10":"0.001";
     if(interactive&&symmetric&&technology?.metals[Number(form.elements.namedItem("metal").value)]?.minimum_spacing)form.elements.namedItem("spacing").removeAttribute("min");
     else form.elements.namedItem("spacing").min=interactive?"1e-10":"0";
-    for(const key of radial?["angle"]:["angle","phase"]){const input=form.elements.namedItem(key);input.closest("label").hidden=interactive;input.disabled=interactive;}
+    for(const key of ["angle","phase"]){const input=form.elements.namedItem(key);input.closest("label").hidden=interactive;input.disabled=interactive;}
     $("#ring-input-note").textContent=symmetric?(interactive?"Original interactive input keeps full precision and floors turns first. Transition-gap bounds and warnings follow the process minima. Orientation and phase are zero.":"Original keyword input snaps to 0.1 µm. Explicit transition gaps use the keyword clearance test."):interactive?"Original interactive input keeps full precision. Inner-opening expansion and turn limits follow the prompt rules; orientation is zero and phase is positive.":"Original keyword input snaps to 0.1 µm. Inner dimensions expand before turns are rounded down.";
   }else form.elements.namedItem("spacing").min="0";
   const angle=form.elements.namedItem("angle");
@@ -211,6 +211,8 @@ function svgElement(tag,attributes={},text) {
 }
 function showEditFields(){
   const command=$("#edit-command").value,copy=command==="COPY",position=copy&&$("#edit-metal").value!==""&&!$("#edit-keep-origin").checked;
+  $("#edit-phase-field").hidden=command!=="PHASE";$("#edit-phase-note").hidden=command!=="PHASE";
+  $("#edit-phase-note").textContent=current?.electrical_phase===0?"Native phase state is zero; PHASE leaves directions unchanged.":`Electrical phase state: ${current?.electrical_phase??1}. PHASE reverses segment endpoints when the sign changes; the segment list keeps its order.`;
   $("#edit-name-field").hidden=!["COPY","RENAME"].includes(command);$("#edit-other-field").hidden=!["BEFRIEND","UNFRIEND"].includes(command);
   $("#edit-metal-field").hidden=!copy;$("#edit-origin-field").hidden=!copy||$("#edit-metal").value==="";
   $("#edit-x-field").hidden=!["MOVE","MOVETO","MOVEX","MOVEY","ROTATE"].includes(command)&&!position;$("#edit-y-field").hidden=!["MOVE","MOVETO"].includes(command)&&!position;
@@ -224,10 +226,11 @@ function otherWinding(){
   return Number.isInteger(selected)&&selected>=0&&selected<current.windings.length&&selected!==first?selected:first===0?1:0;
 }
 function renderEditHistory(){
+  showEditFields();
   const edits=currentDefinition?.edits||[];
   $("#edit-status").textContent=edits.length?`${edits.length} layout edit${edits.length===1?"":"s"}. Regenerating keeps this history; Reset edits restores the generated layout.`:"No layout edits.";
   $("#edit-history").replaceChildren(...edits.map(edit=>{
-    const row=document.createElement("li"),values=["name","metal","other","x","y","angle"].filter(key=>key in edit).map(key=>`${key}=${key==="other"?current.windings[edit[key]]:edit[key]}`);
+    const row=document.createElement("li"),values=["name","metal","other","x","y","angle","phase"].filter(key=>key in edit).map(key=>`${key}=${key==="other"?current.windings[edit[key]]:edit[key]}`);
     row.textContent=`${edit.command} · ${current.windings[edit.winding??0]}${values.length?" · "+values.join(", "):""}`;return row;
   }));
   const first=currentDefinition?.winding||0,partner=current?.partners?.[first];
@@ -247,6 +250,10 @@ $("#edit-apply").addEventListener("click",()=>task(async()=>{
   if(["MOVE","MOVETO"].includes(command))edit.y=numeric("#edit-y");
   if(command==="MOVEY")edit.y=numeric("#edit-x");
   if(command==="ROTATE")edit.angle=numeric("#edit-x");
+  if(command==="PHASE"){
+    if(!$("#edit-phase").value.trim())throw Error("Enter a signed 32-bit phase integer.");
+    edit.phase=numeric("#edit-phase");
+  }
   if(["COPY","RENAME"].includes(command))edit.name=$("#edit-name").value;
   if(["BEFRIEND","UNFRIEND"].includes(command))edit.other=Number($("#edit-other").value);
   if(command==="COPY"&&$("#edit-metal").value!==""){
@@ -781,7 +788,7 @@ $("#project-file").addEventListener("change",event=>task(async()=>{
   const radialDefaults=["polygon","ring"].includes(data.shape.kind)?{name:restored.name,radius:50,sides:16,width:5,spacing:2,turns:2,gap:20,metal:technology.metals.length-1,angle:0,phase:1,x:0,y:0}:{};
   const restoredParameters=data.shape.kind==="wire"?{name:restored.name,length:100,width:5,metal:technology.metals.length-1,angle:0,phase:1,x:0,y:restored.parameters.y??0,...data.shape.parameters}:{...symmetricDefaults,...multimetalDefaults,...primitiveDefaults,...pairedDefaults,...rectangularDefaults,...radialDefaults,...data.shape.parameters};
   if(data.shape.kind==="via")for(const key of ["nx","ny"])restoredParameters[key]=restored.parameters[key]??restored.segments[0][key];
-  for(const [key,value] of Object.entries(restoredParameters))restoreFormParameter(key,key==="phase"&&(data.shape.kind==="wire"||symmetric||multimetal||primitive||paired||data.shape.kind==="square")?((restored.parameters.phase??value)<0?-1:1):value);
+  for(const [key,value] of Object.entries(restoredParameters))restoreFormParameter(key,key==="phase"?(restored.electrical_phase??restored.parameters.phase??value):value);
   if(restoredMesh)applyMesh(restoredMesh);
   $("#mesh-auto-fit").checked=data.mesh_auto_fit===true;
   currentDefinition=data.shape;current=edited;showFields(data.shape);render(current);resetResults();status("Project restored. Run analysis on the selected winding.");

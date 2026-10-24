@@ -18,6 +18,7 @@ def _name(value):
 def construct(kind,tech,configs,parameters=None):
     shapes=[Shape(c['name'],kind,[c['x'],c['y']],dict(parameters or {},turns=c['turns']))for c in configs]
     for s,c in zip(shapes,configs):
+        s.electrical_phase=int(c['phase'])
         if kind=='transformer':_square(s,tech,c['metal'],c['exit_metal'],c['length'],c['height'],c['width'],c['spacing'],c['turns'],c['angle'],c['phase'])
         else:symmetric_square(s,tech,c['metal'],c['exit_metal'],c['length'],c['height'],c['width'],c['spacing'],c['turns'],c['angle'],c['phase'])
     primary,secondary=shapes;p,q=configs

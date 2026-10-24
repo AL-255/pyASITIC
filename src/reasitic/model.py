@@ -57,6 +57,7 @@ class Shape:
     parameters: dict
     segments: list[Segment] = field(default_factory=list)
     warnings: list[str] = field(default_factory=list)
+    electrical_phase: int = 1
 
     @property
     def bounds(self):
