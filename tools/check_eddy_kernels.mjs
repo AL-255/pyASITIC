@@ -67,6 +67,7 @@ for case in json.loads(fixture_text)["cases"]:
   sig,exponent=struct.unpack('<QH',bytes.fromhex(c['extended_bits']))
   expected=float(Fraction(sig)*Fraction(2)**((exponent&0x7fff)-16383-63)*(-1 if exponent&0x8000 else 1))
   assert struct.pack('<d',value.value)==struct.pack('<d',expected)
+  assert struct.pack('<IIH',*value.retained_value.words()).hex()==c['extended_bits'],('Original retained Green return',case['session_index'])
   assert value.observations==c['observations']
   points=zlib.decompress(base64.b64decode(c['points_zlib_base64']))
   assert struct.pack('<d',value.last_point)==points[-8:]

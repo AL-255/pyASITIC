@@ -16,6 +16,12 @@ static u8 heap[1024*1024];static unsigned heap_used;
 extern "C" void* probe_allocate(unsigned n){unsigned size=(n+15)&~15u;if(size>sizeof(heap)-heap_used)return nullptr;void* p=heap+heap_used;heap_used+=size?size:16;return p;}
 extern "C" void probe_release(void*){}
 static unsigned warnings;extern "C" void probe_status(const char*){warnings++;}
+// Separate instruction audit: enter the original exponent sequence with its
+// saved extended operand and original stack frame. No FP instruction changes.
+extern "C" long double probe_exp_sequence(long double);
+asm(".text\n.global probe_exp_sequence\nprobe_exp_sequence:\n"
+    "push %ebp\nmov %esp,%ebp\nsub $0x2c,%esp\npush %ebx\n"
+    "fldt 8(%ebp)\nfstpt -0x2c(%ebp)\nmov $0x080949b8,%eax\njmp *%eax\n");
 static void boundary(unsigned address,unsigned destination){u8* p=reinterpret_cast<u8*>(address);p[0]=0xe9;*reinterpret_cast<unsigned*>(p+1)=destination-address-5;}
 extern "C" int probe_main(int argc,char** argv){
  if(argc!=4)return 8;
@@ -44,7 +50,7 @@ extern "C" int probe_main(int argc,char** argv){
  if(read(fd,&n,4)!=4||n<1||n>65536)return 21;
  unsigned short before;asm volatile("fnstcw %0":"=m"(before));write(1,&before,2);
  for(unsigned i=0;i<n;i++){
-  unsigned mode;if(read(fd,&mode,4)!=4||mode>13)return 22;
+  unsigned mode;if(read(fd,&mode,4)!=4||mode>14)return 22;
   double p[8];unsigned used=0;while(used<sizeof(p)){int got=read(fd,reinterpret_cast<u8*>(p)+used,sizeof(p)-used);if(got<=0)return 23;used+=got;}
   *reinterpret_cast<double*>(0x80ceb40)=p[2];*reinterpret_cast<double*>(0x80ceb48)=p[3];*reinterpret_cast<double*>(0x80ceb50)=p[4];
   *reinterpret_cast<double*>(0x80ceb58)=p[5];*reinterpret_cast<double*>(0x80ceb60)=p[1];*reinterpret_cast<double*>(0x80ceb68)=p[6];
@@ -54,7 +60,8 @@ extern "C" int probe_main(int argc,char** argv){
   if(mode>=3&&mode<=5){const unsigned addresses[]={0x8093eb8,0x80937cc,0x8093b34};scalar=reinterpret_cast<long double(*)(double,double)>(addresses[mode-3])(p[0],p[1]);}
   if(mode==6||mode==7)scalar=reinterpret_cast<long double(*)(const double*)>(mode==6?0x80948d0:0x8094958)(p);
   if(mode>=8&&mode<=11){const unsigned addresses[]={0x1dbd0,0x1d6fc,0x1daf4,0x1d618};const C z{p[0],p[1]};out=reinterpret_cast<C(*)(const C&)>(0x30000000+addresses[mode-8])(z);}
-  if(mode>=12){long double x=p[0];if(p[7]==3)x=x*(long double)p[1];if(mode==12)asm("fcos":"=t"(scalar):"0"(x));else asm("fsin":"=t"(scalar):"0"(x));}
+  if(mode==12||mode==13){long double x=p[0];if(p[7]==3)x=x*(long double)p[1];if(mode==12)asm("fcos":"=t"(scalar):"0"(x));else asm("fsin":"=t"(scalar):"0"(x));}
+  if(mode==14){union {long double value;struct {unsigned low,high;unsigned short exponent;} words;} x{};x.words={unsigned(p[0]),unsigned(p[1]),(unsigned short)p[2]};scalar=probe_exp_sequence(x.value);}
   if((mode>=3&&mode<=7)||mode>=12)out.re=scalar;
   write(1,&out,16);write(1,&scalar,10);
  }

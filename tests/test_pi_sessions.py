@@ -1,4 +1,4 @@
-"""Complete portable Pi2 regressions at actual original CLI output stores."""
+"""Every captured complete Pi session at actual original CLI output stores."""
 from fractions import Fraction
 import json
 import math
@@ -9,19 +9,31 @@ from reasitic.bridge import handle
 from reasitic.network_metrics import PI_KEYS
 
 
-class OriginalPi2SessionTests(unittest.TestCase):
-    def test_original_square_session_bits(self):
-        self.session(1)
-
-    def test_original_polygon_session_bits(self):
-        self.session(3)
-
-    def session(self,index):
+class OriginalPiSessionTests(unittest.TestCase):
+    @classmethod
+    def setUpClass(cls):
         root=Path(__file__).parent/'fixtures'
-        cases=json.loads((root/'pi_sessions_original.json').read_text())['cases']
-        session,c=next((i,c)for i,c in enumerate(cases)if c['fixture']=='network'and c['index']==index)
+        cls.cases=json.loads((root/'pi_sessions_original.json').read_text())['cases']
         metrics=json.loads((root/'network_metrics_original.json').read_text())['cases']
-        captured=next(c for c in metrics if c.get('session_index')==session and c['input'][2:4]==[0,0])
+        cls.metrics={c['session_index']:c for c in metrics if 'session_index'in c and c['input'][2:4]==[0,0]}
+        assert len(cls.cases)==41 and len(cls.metrics)==41
+        assert {c['fixture']for c in cls.cases}=={'network','network_eddy','pi_models','pi_models_eddy','pix','gf180_network'}
+
+    def fixture(self,name):
+        selected=[(i,c)for i,c in enumerate(self.cases)if c['fixture']==name]
+        self.assertTrue(selected)
+        for session,c in selected:
+            with self.subTest(session=session,index=c['index']):self.session(session,c)
+
+    def test_original_pi2(self):self.fixture('network')
+    def test_original_pi2_eddy(self):self.fixture('network_eddy')
+    def test_original_pi3_pi4(self):self.fixture('pi_models')
+    def test_original_pi3_pi4_eddy(self):self.fixture('pi_models_eddy')
+    def test_original_pix(self):self.fixture('pix')
+    def test_original_gf180(self):self.fixture('gf180_network')
+
+    def session(self,session,c):
+        before=repr(c);captured=self.metrics[session]
         r=handle(c['request']);y=r['admittance_matrix']
         actual=[v for z in(y[1][1],y[1][0],y[0][1],y[0][0])for v in z]
         self.assertEqual([struct.pack('<d',v).hex()for v in actual],c['model']['Y'])
@@ -35,5 +47,9 @@ class OriginalPi2SessionTests(unittest.TestCase):
         actual=b''.join(struct.pack('<dd',*z)for row in r['scattering_matrix']for z in row)
         self.assertEqual(actual,raw[160:224])
         significand,exponent=struct.unpack('<QH',bytes.fromhex(c['resonance']['extended_bits']))
-        expected=float(Fraction(significand)*Fraction(2)**((exponent&0x7fff)-16383-63)*(-1 if exponent&0x8000 else 1))
-        self.assertEqual(struct.pack('<d',r['pi']['resonant_frequency_hz']),struct.pack('<d',expected))
+        if exponent&0x7fff==0x7fff:self.assertIsNone(r['pi']['resonant_frequency_hz'])
+        else:
+            expected=float(Fraction(significand)*Fraction(2)**(((exponent&0x7fff)or 1)-16383-63)*(-1 if exponent&0x8000 else 1))
+            if not significand:expected=math.copysign(0.,-1 if exponent&0x8000 else 1)
+            self.assertEqual(struct.pack('<d',r['pi']['resonant_frequency_hz']),struct.pack('<d',expected))
+        self.assertEqual(repr(c),before,'Original request changed')

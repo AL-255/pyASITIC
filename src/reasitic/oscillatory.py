@@ -1,7 +1,7 @@
 """ASITIC QUADPACK weighted, Chebyshev and oscillatory integration.
 
 Direct port of recomp_cpp/src/oscillatory.cpp, retaining its explicit binary64
-stores and using Decimal guard precision for live extended intermediates.
+stores and rounding every retained operation to the original significand.
 """
 from dataclasses import dataclass,field
 import math
@@ -81,7 +81,7 @@ def weighted_rule(function,weight,a,b):
     out.ascendant=float(asc)
     raw=abs((_d(k)-_d(g))*_d(half))
     out.error=float(raw)
-    if asc and raw:
+    if asc!=0 and raw!=0:
         power=error_power(float(raw*200/_d(out.ascendant)))
         out.error=float(_d(min(power,1.0))*_d(out.ascendant))
     if _d(TINY)/(50*_d(EPSILON))<out.absolute:

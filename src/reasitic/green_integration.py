@@ -4,11 +4,10 @@ Ports green_integration.cpp using the directly ported DQAGIE/DQAWFE routines.
 Partial results and convergence statuses remain visible to the caller.
 """
 from dataclasses import dataclass,field
-from fractions import Fraction
 from array import array
 import math
-from .green import GreenLayers,oscillating_kernel,reflection_kernel,MU0,_guard,_d
-from .inductance import _round_extended
+from .green import GreenLayers,oscillating_kernel,reflection_kernel,MU0,_guard
+from .retained_scalar import Real as _d
 from .quadrature import integrate_infinite
 from .oscillatory import integrate_fourier
 
@@ -47,6 +46,13 @@ class GreenIntegralResult:
     intervals:int=0
     cycles:int=0
     cycle_statuses:list=field(default_factory=list)
+    _retained_value=None
+
+    @property
+    def retained_value(self):
+        # Physical eddy stamps consume the Green helper's ST0 return before
+        # their final binary64 store. Preserve that value alongside public .value.
+        return self._retained_value if self._retained_value is not None else _d(self.value)
 
 
 @_guard
@@ -72,8 +78,10 @@ def green_integral(frequency,separation,height,z_offset,state,*,observer=None):
         if not status:
             state.history[:]=output[10:13]
             cycles=int(output[9])
-            return GreenIntegralResult(output[0],output[1],output[2],int(output[3]),int(output[4]),int(output[5]),output[7],
-                                       "DQAWFE" if cycles else "DQAGIE",int(output[8]),cycles,[int(v) for v in output[2032:2032+cycles]])
+            result=GreenIntegralResult(output[0],output[1],output[2],int(output[3]),int(output[4]),int(output[5]),output[7],
+                                      "DQAWFE" if cycles else "DQAGIE",int(output[8]),cycles,[int(v) for v in output[2032:2032+cycles]])
+            result._retained_value=(-_d(result.integral)*_d(MU0))*_d(frequency)
+            return result
     observations=0
     last_point=0.0
     def kernel(k):
@@ -100,10 +108,8 @@ def green_integral(frequency,separation,height,z_offset,state,*,observer=None):
                                  limit=500,cycle_limit=1000,moment_rows=50,history=state.history)
         method="DQAWFE"
         intervals,cycles,cycle_statuses=0,result.cycles,result.cycle_statuses
-    if math.isfinite(result.integral):
-        scaled=_round_extended(-Fraction(result.integral)*Fraction(MU0))
-        value=float(_round_extended(scaled*Fraction(frequency)))
-    else:
-        value=float((-_d(result.integral)*_d(MU0))*_d(frequency))
-    return GreenIntegralResult(value,result.integral,result.error,result.status,result.evaluations,observations,last_point,
+    retained=(-_d(result.integral)*_d(MU0))*_d(frequency)
+    output=GreenIntegralResult(float(retained),result.integral,result.error,result.status,result.evaluations,observations,last_point,
                                method,intervals,cycles,cycle_statuses)
+    output._retained_value=retained
+    return output

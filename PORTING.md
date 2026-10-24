@@ -33,7 +33,7 @@ Reference checkout: `~/github/asitic-re`, revision recorded in each fixture.
 | `network.py` eddy integration | `combined_network.cpp`, `extended_analysis.cpp` | Eight additional PI2 and eight PI3/PI4 sessions with EDDY ON, compared using native precise Y/S outputs and printed metrics |
 | `resonance.py` | `analysis_commands.cpp`, `network.cpp` | 184 direct native search traces and 12 complete SELFRES SLOW sessions: reversed bounds, differential excitation, native device reference, refined unequal meshes, CMOS/BiCMOS, joined capacitor geometry and layered eddy correction; streamed JSON/WebAssembly progress |
 | `extended.py`, `linear.py` | `extended_node.cpp`, `extended_twoport.cpp`, `general.cpp`, `node_equations.cpp` | 68 native extended-node cases, including noncontiguous native strides, exact finite column stamps and systems beyond the 64-column LU panel boundary |
-| `symmetric.py`, `native/matrix_*.cpp`, `native/soft_real.hpp` | Original ZSYTF2 `0x0809bcf8` / ZSYTRI `0x08095bf8`; `symmetric.cpp`, `complex.cpp`, `blocked.cpp` | 44 directly verified original factor/inverse cases, exact compiled pivots and output bits, tiny/huge scales, signed zeros, partial singularity; complete original factor/inverse digests for 128/256-entry systems including two-entry pivots; four original dense Pi2 sessions at 189 filaments / 63 contacts; portable Python factors and six eigen rotations retain component checks |
+| `symmetric.py`, `native/matrix_*.cpp`, `native/soft_real.hpp` | Original ZSYTF2 `0x0809bcf8` / ZSYTRI `0x08095bf8`; `symmetric.cpp`, `complex.cpp`, `blocked.cpp` | 44 directly verified original factor/inverse cases, exact Python/compiled pivots and output bits, tiny/huge scales, signed zeros, partial singularity; complete original factor/inverse digests for 128/256-entry systems including two-entry pivots; four original dense Pi2 sessions at 189 filaments / 63 contacts; six separate C++-reference eigen rotations retain component checks |
 | `parallel.py`, `solver.py` | `parallel.cpp`, `separation.cpp`, `numerics.cpp`, `impedance.cpp` | 175 native self-integral/cross-section/separation/parallel/full-segment probes; retained filament self-impedance diagonals in complete PiX sessions |
 | `mutual_geometry.py`, `mutual_kernel.py`, `native/mutual*.cpp`, `native/retained_math.cpp` | `segment.cpp`, `canonicalize.cpp`, `intersection.cpp`, `parallel.cpp`, `separation.cpp`, `numerics.cpp`, `planar.cpp`, `spatial.cpp`, `x87.hpp` | 2,561 intact original scalar/pair outputs, including 426 independently captured threshold/degeneracy cases; exact Python and compiled binary64 outputs, statuses and warning presence; 2,094 actual original mesh pairs feed 23 exact complete upper assemblies; 2,683 separately labeled compiled native-instruction stores; twelve finite eddy-off and three eddy-on coupled sessions exact at raw SI output boundaries |
 | `extended.py` PiX pipeline | `potential_solver.cpp`, `extended_twoport.cpp`, `extended_node.cpp`, `console_analysis.cpp` | Ten complete PIX sessions across CMOS/BiCMOS, wires, square/polygon coils, vias, joined capacitors and multimetal windings; unfolded CAP, final LMAT, node vectors, full-precision Pi/ZIN reports, direct port Y for all ten and six native 2PORTX Y/S exports |
@@ -336,7 +336,7 @@ step. A compiled 80-bit path supports up to 514 node unknowns and retains the
 network matrix-vector accumulation order. Direct original-machine-code
 fixtures check 33 cases / 2,571,696 components, including complete large-system
 digests, singular statuses, signed zeros and nonfinite classifications. The
-portable path retains Decimal guard precision and component-tolerance checks.
+portable path rounds each retained operation to the original significand.
 Whole-simulator bitwise equivalence remains unproven: remaining stamping/reduction,
 broader spectral inputs and process/geometry coverage still require work.
 
@@ -542,7 +542,7 @@ coordinates/cross sections. Python and compiled paths require exact finite bits
 presence. Hardware exception flags and NaN payload equivalence remain outside
 the public API; the separately recorded raw instruction differences remain open.
 
-The Python CI runner can partition core discovery into four round-robin groups.
+The Python CI runner partitions core discovery into eight round-robin groups.
 Planning verifies a complete disjoint set of unique test IDs and records each
 group's digest. Each runner re-discovers its group with GDS validation installed
 and requires that digest before execution. Local unsharded discovery still runs
@@ -580,10 +580,42 @@ samples before the ny+1 FFT consumer reads them. Nonfinite tanh/cosh arguments
 retain the captured original classifications. The bounded table cache uses
 packed configuration bytes to distinguish signed-zero inputs.
 
-Python now checks all 1,728 original scalar requests and all 33 whole tables
-against unchanged finite words/digests and nonfinite classes. Complete square
-and polygon Pi2 regressions additionally require exact raw Y/model/S and
-resonance stores. A diagnostic audit improved complete portable session parity
-from 23/41 to 32/41 without losing an earlier match. Nine portable sessions still
-differ; the compiled path continues to require all 41. This does not establish
-universal binary equivalence.
+Python checks all 1,728 original scalar requests and all 33 whole tables
+against unchanged finite words/digests and nonfinite classes. The complete
+original-session gate additionally requires every raw Y/model/S and resonance
+store across all 41 captured Pi2/Pi3/Pi4/PiX sessions in both implementations.
+The earlier separate square/polygon PiX tests are included in that full gate.
+These checks do not establish universal binary equivalence.
+
+`node_math.py` mirrors `native/node.cpp`: folded CAP accumulation, both branch
+differences, two retained right-hand sides, the native general solve and final
+determinant/divisions. The original product reads column-major branch records
+as row-major data, so the Python driver transposes that input before the dot
+products. All 54 captured folded-node boundaries now have strict Python and
+compiled gates, including asymmetric 128/256-node systems and actual coupled
+session inputs. Caller matrices must remain unchanged.
+
+Symmetric factor/inverse arithmetic now uses the same retained scalar for
+complex magnitudes, square roots, eigen rotations, pivot weights and dot sums.
+The existing 44 original fixtures require exact Python factors/inverses; the
+complete 128-dominant and 256-dominant/paired digests have separate tests. The
+original workspace, one/two-entry pivot paths and store order are preserved.
+
+Portable QUADPACK operations and the discarded Green warm-up samples retain
+every original scalar rounding. Reflection decay preserves the FLDL2E,
+FRNDINT, F2XM1 and FSCALE reduction. Green results keep their public binary64
+value and a separate retained return consumed by physical eddy stamps. Rounding
+that return before the length/frequency products changes otherwise matching
+circuits. Python now checks all 165 original raw extended Green returns, every
+one of 74,726 callback points, and all 19 complete physical matrix stamps.
+All 15 finite original coupled sessions also require their raw SI Y/Z/model
+stores; the six original invalid histories retain their bounded diagnostics.
+
+A separate 418-case instruction audit enters the unchanged exponent sequence
+at `0x080949b8` with supplied 80-bit operands. Binary64 outputs, nonfinite
+classes and extended exponent ranges match, including normal/subnormal and
+overflow boundaries. Five finite raw returns differ by one retained bit;
+`python tools/audit_exp_original.py --raw` deliberately fails until those match.
+These instruction differences remain open alongside the previously recorded
+trig, extreme-power and mutual intermediates. They are not excluded from the
+complete consumed Green-return or electrical-session gates.

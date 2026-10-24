@@ -12,10 +12,13 @@ from functools import wraps
 import math
 from .precision import _trig,_decimal
 from .inductance import _round_extended
+from .retained_scalar import Real
+from .x87_math import exp_retained,log_retained
 
 FACTOR=float.fromhex("0x1.08ef67ae4dd49p-17")
 MU0=float.fromhex("0x1.515370f99f6cbp-20")
 TWO_PI=float.fromhex("0x1.921fb54442d18p+2")
+_DECAY_CUTOFF=log_retained(float.fromhex("0x1.fffffep127"))
 
 
 @dataclass(frozen=True)
@@ -245,7 +248,7 @@ def oscillating_kernel(k,frequency,layers,height,separation):
 @_guard
 def reflection_kernel(k,height):
     # The original callback discards reflection/cosine and returns only exp.
-    kh=_d(k)*_d(height)
-    if kh>=_d(float.fromhex("0x1.fffffep127")).ln():
+    kh=Real(k)*Real(height)
+    if kh>=_DECAY_CUTOFF:
         return 0.0
-    return float((-kh).exp())
+    return float(exp_retained(-kh))

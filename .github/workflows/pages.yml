@@ -21,7 +21,7 @@ jobs:
       - uses: actions/setup-python@v5
         with:
           python-version: '3.12'
-      - name: Plan every Python check with complete disjoint core shards
+      - name: Plan every Python check with eight complete disjoint core shards
         id: plan
         run: python tools/run_python_checks.py plan >> "$GITHUB_OUTPUT"
       - run: python tools/build_site.py
@@ -37,7 +37,7 @@ jobs:
     name: Python · core ${{ matrix.shard }} / ${{ matrix.shards }}
     needs: build
     runs-on: ubuntu-latest
-    timeout-minutes: 30
+    timeout-minutes: 40
     strategy:
       fail-fast: false
       matrix: ${{ fromJSON(needs.build.outputs.core_matrix) }}

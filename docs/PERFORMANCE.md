@@ -236,7 +236,7 @@ that output to the same browser benchmark tool.
 Accuracy gates include 83 FFT/reflected-grid cases with 17,342 exact output
 components and 20,014 exact cosh/tanh cases from the actual original binary.
 Matrix gates cover 44 original cases plus complete 128/256-entry factor/inverse
-digests, and four complete original dense Pi2 sessions.
+digests in Python and WebAssembly, and four complete original dense Pi2 sessions.
 Full CAP, Pi2/Pi3/Pi4/PiX, eddy and resonance fixtures retain their existing
 tolerances. Exact agreement of these kernels does not establish universal
 bitwise agreement of the whole simulator. Contact gates now compare 41 original
@@ -259,3 +259,29 @@ Another 88 groups / 3,556 components compare the intact original CAP coefficient
 loop with both Python and compiled implementations. Finite bits and nonfinite
 classifications match; source helpers must restore depth bytes. These extend
 the checked boundaries without establishing universal electrical parity.
+
+Both implementations now require exact complete outputs for all 41 captured
+Pi sessions and all 15 finite coupled sessions. The Python folded-node gate
+checks all 54 original boundaries, including asymmetric systems up to 256
+nodes. Portable Green integration checks all 165 retained returns and every
+callback point, followed by all 19 physical eddy stamps. These gates preserve
+the raw return until the original physical-matrix store; an early Python float
+conversion loses bits even when the standalone binary64 integral matches.
+
+The expanded core suite runs in eight complete disjoint groups. Large symmetric
+matrix cases are separate tests so their original digests can run in parallel;
+every test ID remains required before deployment. This changes validation
+scheduling, not the webpage's accelerated solver.
+
+Portable retained rounding now quantizes dyadic sums/products with integer
+shifts, while general rational divisions retain the existing path. A local
+100,000-product rounding benchmark changed from 0.308 s to 0.180 s; 20,025
+wide-exponent and boundary cases matched the previous exact quantizer. This is
+a scalar microbenchmark, not a whole-simulation speedup. Original electrical
+and matrix gates remain required for the optimized implementation.
+
+The additional exponent instruction audit matches all 418 binary64 outputs and
+extended range classifications. Its separate `--raw` mode still reports five
+one-bit extended differences. The existing strict extreme-power and raw-trig
+audits also remain open; matching the checked electrical sessions is not a
+claim of universal instruction or simulator parity.

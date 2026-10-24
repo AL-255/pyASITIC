@@ -8,9 +8,9 @@ from decimal import Decimal,localcontext
 from array import array
 import copy
 import math
-from .solver import discretize,solve_impedance,_sum_complex
-from .potential import solve_capacitance,_divide
-from .linear import factor_general,solve_general,matrix_vector
+from .solver import discretize,solve_impedance
+from .potential import solve_capacitance
+from .node_math import folded as _retained_node
 from .network_metrics import impedance as _metric_impedance,extract as _metric_extract,scattering as _metric_scattering
 
 try:
@@ -27,18 +27,6 @@ def _pairs(matrix):
     return [[[z.real,z.imag] for z in row] for row in matrix]
 
 
-def _matvec(matrix,vector):
-    return matrix_vector(matrix,vector)
-
-
-def _factor(matrix):
-    return factor_general(matrix)
-
-
-def _solve(factor,pivots,rhs):
-    return solve_general(factor,pivots,rhs)
-
-
 def solve_node_equations(capacitance,inductance):
     """Folded CAP and branch admittance matrices to native y11/y12/y21/y22."""
     n=len(capacitance)
@@ -53,25 +41,7 @@ def solve_node_equations(capacitance,inductance):
         cap=[[complex(output[2*(j*n+i)],output[2*(j*n+i)+1]) for j in range(n)] for i in range(n)]
         ports={key:complex(output[2*n*n+2*i],output[2*n*n+2*i+1]) for i,key in enumerate(("y11","y12","y21","y22"))}
         return ports,cap
-    cap=[[_sum_complex(row) if i==j else -value for j,value in enumerate(row)] for i,row in enumerate(capacitance)]
-    difference=[[inductance[i][j]-(inductance[i][j-1] if j else 0j) for j in range(n)] for i in range(n)]
-    difference=[[difference[i][j]-(difference[i-1][j] if i else 0j) for j in range(n)] for i in range(n)]
-    factor,pivots=_factor([[cap[i][j]+difference[i][j] for j in range(n)] for i in range(n)])
-    def run(drive,bias):
-        rhs=_matvec(inductance,bias)
-        rhs=[rhs[i]-(rhs[i-1] if i else 0j)+drive[i] for i in range(n)]
-        rhs=_solve(factor,pivots,rhs)
-        first=rhs[0]
-        voltage=[rhs[i]-(rhs[i+1] if i+1<n else 0j)-bias[i] for i in range(n)]
-        return first,-_matvec(inductance,voltage)[-1]
-    a,c=run([1+0j]+[0j]*(n-1),[0j]*n)
-    b,d=run([0j]*n,[0j]*(n-1)+[1+0j])
-    with localcontext() as context:
-        context.prec=25
-        ar,ai,dr,di,cr,ci,br,bi=(Decimal.from_float(v) for z in (a,d,c,b) for v in (z.real,z.imag))
-        determinant=complex(float((ar*dr-ai*di)-(cr*br-ci*bi)),float((dr*ai+ar*di)-(br*ci+cr*bi)))
-    offdiag=_divide(-b,a)
-    return dict(y11=_divide(determinant,a),y12=offdiag,y21=offdiag,y22=_divide(1+0j,a)),cap
+    return _retained_node(capacitance,inductance)
 
 
 def two_port_impedance(y,*,differential=False,port=1):

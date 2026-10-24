@@ -1,11 +1,12 @@
 """ASITIC's QUADPACK infinite-interval rule and adaptive extrapolation.
 
 Direct port of recomp_cpp/src/quadrature.cpp (DQK15I, DQPSRT, DQELG,
-DQAGIE). Binary64 stores are explicit; Decimal guard precision retains the
-source's unspilled intermediates. Fourier/oscillatory integration is separate.
+DQAGIE). Binary64 stores are explicit; each retained operation rounds to the
+original significand. Fourier/oscillatory integration is separate.
 """
 from dataclasses import dataclass
-from decimal import Decimal,localcontext
+from decimal import localcontext
+from .retained_scalar import Real as _d
 from functools import wraps
 import math
 import sys
@@ -22,10 +23,6 @@ def _guard(function):
             context.prec=25
             return function(*args,**kwargs)
     return call
-
-
-def _d(value):
-    return Decimal.from_float(value) if isinstance(value,float) else Decimal(value)
 
 
 def error_power(value):
@@ -186,7 +183,7 @@ def infinite_rule(function,bound,direction,a,b):
     out.ascendant,out.absolute=float(asc),float(_d(half)*_d(out.absolute))
     raw=abs((_d(k)-_d(g))*_d(half))
     out.error=float(raw)
-    if asc and raw:
+    if asc!=0 and raw!=0:
         ratio=float(raw*200/_d(out.ascendant))
         out.error=float(_d(min(error_power(ratio),1.0))*_d(out.ascendant))
     if _d(TINY)/(50*_d(EPSILON))<out.absolute:

@@ -9,6 +9,7 @@ import sys
 import unittest
 
 ROOT=Path(__file__).resolve().parents[1]
+CORE_SHARDS=8
 
 
 def flatten(suite):
@@ -47,10 +48,10 @@ def main():
         groups=sorted({(c["process"],c["frequency_hz"]) for c in cases})
         if not groups:raise ValueError("No native potential fixture groups")
         print("potential_matrix="+json.dumps(dict(include=[dict(process=p,frequency=f,label=f"{p} {f/1e9:g} GHz") for p,f in groups]),separators=(",",":")))
-        core=discover('core');parts=[select(core,i,4)for i in range(1,5)]
+        core=discover('core');parts=[select(core,i,CORE_SHARDS)for i in range(1,CORE_SHARDS+1)]
         expected=Counter(t.id()for t in core);actual=Counter(t.id()for part in parts for t in part)
         if any(n!=1 for n in expected.values())or expected!=actual or any(not part for part in parts):raise ValueError('Core shards must partition every discovered test exactly once')
-        print('core_matrix='+json.dumps(dict(include=[dict(shard=i,shards=4,ids_sha=ids_digest(part))for i,part in enumerate(parts,1)]),separators=(',',':')))
+        print('core_matrix='+json.dumps(dict(include=[dict(shard=i,shards=CORE_SHARDS,ids_sha=ids_digest(part))for i,part in enumerate(parts,1)]),separators=(',',':')))
         return
     if args.group=="potential":
         if args.process is None or args.frequency is None:parser.error("Potential group requires --process and --frequency")

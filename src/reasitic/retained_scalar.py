@@ -28,6 +28,22 @@ def _round(value):
         return value
     sign = -1 if value < 0 else 1
     value = abs(value)
+    denominator=value.denominator
+    if not(denominator&(denominator-1)):
+        # Binary operands and their sums/products are dyadic. Quantize their
+        # integer numerator directly instead of dividing two Fractions first.
+        # Division/log inputs with other denominators use the general path.
+        numerator=value.numerator;bits=numerator.bit_length()
+        power=denominator.bit_length()-1;e=bits-1-power
+        if e>16383:return None
+        shift=max(e-63,-16445);drop=power+shift
+        if drop>bits:return Fraction(0)
+        if drop>0:
+            q=numerator>>drop;remainder=numerator-(q<<drop);half=1<<(drop-1)
+            if remainder>half or(remainder==half and q&1):q+=1
+        else:q=numerator<<-drop
+        if e==16383 and q>=1<<64:return None
+        return sign*q*_power(shift)
     e = _exponent(value)
     if e > 16383:
         return None

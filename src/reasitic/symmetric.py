@@ -2,9 +2,10 @@
 
 The original solver supplies n workspace cells, selecting unblocked ZSYTF2
 for every size. This ports its one/two-pivot paths, eigen rotations and ZSYTRI.
-Binary64 records use Decimal guard precision for retained intermediate values.
+Every retained operation rounds to the original 64-bit significand; stores
+to binary64 remain explicit.
 """
-from decimal import Decimal
+from .retained_scalar import Real as _d
 from array import array
 import math
 from .green import _guard,legacy_divide
@@ -33,7 +34,6 @@ def _compiled(matrix,n,invert):
     return result,[int(v) for v in values[2*n*n:]]
 
 
-def _d(value):return Decimal.from_float(value)
 def _e(z):return _d(z.real),_d(z.imag)
 def _spill(z):return complex(float(z[0]),float(z[1]))
 def _mul(a,b):return a[0]*b[0]-a[1]*b[1],a[1]*b[0]+a[0]*b[1]
@@ -164,7 +164,7 @@ def factor_symmetric_upper(matrix):
 
 
 def _dot(x,y):
-    real=imag=Decimal(0)
+    real=imag=_d(0.)
     for a,b in zip(x,y):
         pr,pi=_product(a,b);real+=pr;imag+=pi
     return _spill((real,imag))

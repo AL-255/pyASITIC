@@ -1,41 +1,15 @@
 import json
-import math
 import struct
-from fractions import Fraction
 from pathlib import Path
 import unittest
 from reasitic.extended import stamp_extended_node_columns,solve_extended_node_equations,solve_pix
 from reasitic import Technology,build
 from reasitic.bridge import handle
-from reasitic.network_metrics import PI_KEYS
 
 
 class ExtendedTests(unittest.TestCase):
-    def test_intact_original_polygon_pix_bits(self):
-        self.check_original_pix(5)
-
-    def test_intact_original_square_pix_bits(self):
-        self.check_original_pix(4)
-
-    def check_original_pix(self,index):
-        cases=json.loads((Path(__file__).parent/'fixtures/pi_sessions_original.json').read_text())['cases']
-        session,c=next((i,c)for i,c in enumerate(cases)if c['fixture']=='pix' and c['index']==index)
-        r=handle(c['request']);y=r['admittance_matrix']
-        actual=[v for z in (y[1][1],y[1][0],y[0][1],y[0][0])for v in z]
-        self.assertEqual([struct.pack('<d',v).hex()for v in actual],c['model']['Y'])
-        actual=[r['frequency_hz'],*[r['pi'][k]for k in PI_KEYS]]
-        for value,bits in zip(actual,c['model']['M']):
-            expected=struct.unpack('<d',bytes.fromhex(bits))[0]
-            if math.isfinite(expected):self.assertEqual(struct.pack('<d',value).hex(),bits)
-            else:self.assertIsNone(value)
-        metrics=json.loads((Path(__file__).parent/'fixtures/network_metrics_original.json').read_text())['cases']
-        captured=next(c for c in metrics if c.get('session_index')==session and c['input'][2:4]==[0,0])
-        raw=bytes.fromhex(captured['output_bits']);expected=[raw[8*k:8*k+8].hex()for k in range(20,28)]
-        self.assertEqual([struct.pack('<d',v).hex()for row in r['scattering_matrix']for z in row for v in z],expected)
-        significand,exponent=struct.unpack('<QH',bytes.fromhex(c['resonance']['extended_bits']))
-        expected=float(Fraction(significand)*Fraction(2)**((exponent&0x7fff)-16383-63))
-        self.assertEqual(struct.pack('<d',r['pi']['resonant_frequency_hz']),struct.pack('<d',expected))
-
+    # Every raw PiX Y/model/S/resonance record, including the earlier separate
+    # square/polygon cases, is covered by test_pi_sessions's complete gate.
     def test_native_column_stamps_and_node_solutions(self):
         cases=json.loads((Path(__file__).parent/"fixtures/extended_nodes.json").read_text())["cases"]
         for case in cases:

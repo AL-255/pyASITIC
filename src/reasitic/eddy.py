@@ -1,7 +1,8 @@
 """Native ASITIC eddy-current square packing and segment folding (eddy.cpp)."""
 import math
 from array import array
-from .green import GreenLayers,_guard,_d
+from .green import GreenLayers,_guard
+from .retained_scalar import Real as _d
 from .green_integration import GreenIntegrationState,green_integral
 
 try:
@@ -181,7 +182,7 @@ def add_eddy(matrix,shape,technology,frequency,mode,warnings):
         result=green_integral(f,separation,height,width,state)
         if result.status:
             warnings.append(f"ASITIC {result.method} did not converge (status {result.status}); native partial result retained")
-        return result.value
+        return result.retained_value
     info=dict(mode=mode,kernel=state.kernel,layers=technology.eddy_layers.copy())
     if shape.kind=="square" and mode==1:
         p=shape.parameters
