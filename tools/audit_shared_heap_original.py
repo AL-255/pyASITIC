@@ -79,13 +79,15 @@ def normalized_errors(errors):
     return result
 
 
-def compare(case,*,invert=False,capacitance=None,impedance=None):
+def compare(case,*,invert=False,capacitance=None,impedance=None,heap=None,contact_addresses=None):
     result=dict(label=case['label'],cache_mode=case['cache_mode'],allocations_checked=0,events_checked=0,stores_checked=0,faults_checked=0,cache_boundaries=0,cache_words_checked=0,cap_input_words_checked=0,ind_input_words_checked=0,cap_words_checked=0,ind_words_checked=0,predicted_cache_errors=[],differences=[])
-    states=case['allocator_states'];heap=Heap(states[0]);via=case['via'];memory=None;records=via_records(case)
+    states=case['allocator_states'];heap=Heap(next(state for state in states if state['label']=='scope'))if heap is None else heap;via=case['via'];memory=None;records=via_records(case)
     external={}
-    for i,group in enumerate(case['contact_groups']):
-        external[f'contact_group.{i}']=group['address']
-        external.update((f'contact.{i}.{j}',address)for j,address in enumerate(group['contacts']))
+    if contact_addresses is None:
+        for i,group in enumerate(case['contact_groups']):
+            external[f'contact_group.{i}']=group['address']
+            external.update((f'contact.{i}.{j}',address)for j,address in enumerate(group['contacts']))
+    else:external.update(contact_addresses)
     external['geometry.descriptor']=via['shape_address'];external.update((f'geometry.segment.{i}',address)for i,address in enumerate(via['segment_addresses']))
     addresses=external.copy();n=via['matrix']['size']
     plan=iter(combined_network_storage([len(g['contacts'])for g in case['contact_groups']],n,case['matrices']['ind_full']['size'],len(via['indices']),clone_segments=len(via['segments'])))

@@ -1,8 +1,9 @@
-"""Native storage lifetimes from folded CAP through the first node solve.
+"""Native contact/cache and combined-network storage lifetimes.
 
 This describes allocation/free order, not physical heap placement. It is not
-yet used to allow out-of-range via writes. The reference paths are
-potential_solver.cpp, solver.cpp, filament_setup.cpp and combined_network.cpp /
+yet used to allow out-of-range via writes. The reference paths are contacts.cpp,
+potential_cache.cpp, potential_tables.cpp, potential_solver.cpp, solver.cpp,
+filament_setup.cpp and combined_network.cpp /
 later_analysis.cpp. The current plan covers successful inverse branches,
 eddy disabled, and independent segment chains (no secondary groups).
 """
@@ -15,6 +16,48 @@ class StorageEvent:
     name: str
     size: int = 0
     allocator: str = 'array'
+
+
+def capacitance_prelude_storage(contact_counts,metals,substrates,fft_x,*,cache_mode,
+                                file_bytes=304,buffer_bytes=4096):
+    """Contact construction and successful/missing-cache storage lifetimes.
+
+    Follows contacts.cpp, potential_cache.cpp and the allocated FFT scratch
+    path. The malloc FILE/buffer lifetimes follow i386 glibc libio. FILE size
+    and buffering are explicit ABI/filesystem inputs, not geometry cases.
+    Cache modes are a valid disk cache, a missing disk cache, an already-current
+    in-memory cache, or disabled disk caching. Invalid/truncated headers and
+    allocation/I/O failures are not described by this successful-path plan.
+    """
+    counts=tuple(contact_counts)
+    values=(*counts,metals,substrates,fft_x,file_bytes,buffer_bytes)
+    if not counts or any(isinstance(v,bool)or not isinstance(v,int)or v<1 for v in values):
+        raise ValueError('Invalid CAP prelude dimensions or storage sizes')
+    if cache_mode not in ('warm','cold','memory','disabled'):raise ValueError('Unknown native cache mode')
+    events=[]
+    def allocate(name,size,allocator='array'):events.append(StorageEvent('allocate',name,size,allocator))
+    def free(name,allocator='array'):events.append(StorageEvent('free',name,0,allocator))
+    for i,count in enumerate(counts):
+        allocate(f'contact_group.{i}',0x88,'scalar')
+        # Each contact is prepended; final list order reverses allocation order.
+        for j in reversed(range(count)):allocate(f'contact.{i}.{j}',0x3c,'scalar')
+    if cache_mode=='memory':return events
+    if cache_mode!='disabled':
+        allocate('cache.reader.file',file_bytes,'malloc')
+        if cache_mode=='warm':
+            allocate('cache.header.substrates',40*substrates);allocate('cache.header.metals',236*metals)
+            allocate('cache.reader.buffer',buffer_bytes,'malloc')
+            free('cache.header.substrates');free('cache.header.metals')
+            free('cache.reader.buffer','malloc')
+        free('cache.reader.file','malloc')
+        if cache_mode=='warm':return events
+    for first in range(metals):
+        for second in range(first,metals):
+            name=f'cache.fft.{first}.{second}';allocate(name,32*fft_x);free(name)
+    if cache_mode=='cold':
+        allocate('cache.writer.file',file_bytes,'malloc');allocate('cache.writer.buffer',buffer_bytes,'malloc')
+        free('cache.writer.buffer','malloc');free('cache.writer.file','malloc')
+    return events
 
 
 def combined_network_storage(contact_counts,conductors,filaments,vias,*,clone_segments=None):

@@ -1,5 +1,11 @@
 # Storage lifetimes toward native trailing-via behavior
 
+The subsequent [contact/cache prelude port](CAP_PRELUDE.md) now begins before
+contact construction and carries the predicted heap through the numerical
+stages. Its separate 130-run comparison checks 20,609 events without resetting
+the heap at this document's later CAP boundary. Earlier observations below
+remain unchanged.
+
 `allocation_plan.py` now ports the allocation/free sequence from folded CAP
 through the first combined-network node solve. It **does not place objects at
 physical heap addresses**, permit trailing-via simulations, or resolve the

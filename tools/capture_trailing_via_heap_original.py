@@ -109,14 +109,14 @@ def jobs():
             yield dict(label=c['label'],parent=parent,request=c['request'],script=c['script'],stdin=c['stdin'],variant='existing')
 
 
-def main(*,commands=COMMANDS,fixture_name="trailing_via_heap_original.json.gz",extra_metadata=None):
+def main(*,commands=COMMANDS,fixture_name="trailing_via_heap_original.json.gz",extra_metadata=None,job_factory=None):
     p=argparse.ArgumentParser(description=__doc__);p.add_argument('--reference',type=Path,required=True);p.add_argument('--library-path',required=True);p.add_argument('--limit',type=int);a=p.parse_args();original=a.reference/'run/asitic.linux.2.2'
     for path,digest in((original,ORIGINAL_SHA256),(a.reference/'run/libs/libstdc++-2-libc6.1-1-2.9.0.so',LEGACY_SHA256)):
         assert hashlib.sha256(path.read_bytes()).hexdigest()==digest
     cases=[];prior=ROOT/'tests/fixtures/trailing_via_heap_mixed_cache_original.json.gz';parents={prior.name:hashlib.sha256(prior.read_bytes()).hexdigest()}
     def manifest(values):return {name:dict(size=len(data),sha256=hashlib.sha256(data).hexdigest())for name,data in sorted(values.items())}
     with tempfile.TemporaryDirectory(prefix='pyasitic-trailing-heap-')as directory:
-        for ordinal,c in enumerate(jobs()):
+        for ordinal,c in enumerate((jobs if job_factory is None else job_factory)()):
             if a.limit is not None and ordinal>=a.limit:break
             parent=c.pop('parent');parents[parent.name]=hashlib.sha256(parent.read_bytes()).hexdigest();case_root=Path(directory)/str(ordinal);case_root.mkdir();cold_cache={}
             for mode in('cold','warm'):

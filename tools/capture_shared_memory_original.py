@@ -29,7 +29,7 @@ def project(fixture):
             state['full_heap_manifest']=[dict(address=address,size=len(data),sha256=hashlib.sha256(data).hexdigest())for address,data in full]
             ranges=[(chunk['address'],chunk['address']+16)for chunk in state['chunks']]
             if state['tcache_address']:ranges.append((state['tcache_address'],state['tcache_address']+384))
-            if state['label']!='scope':
+            if state['label']in ('via_entry','node'):
                 ranges.extend((cell['address'],cell['address']+16)for cell in via['cells'])
                 n=via['matrix']['size']
                 for matrix in (case['matrices']['cap_output'],via['matrix']):ranges.append((matrix['data'],matrix['data']+16*n*n))
