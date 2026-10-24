@@ -362,6 +362,13 @@ to its native allocator abort. The strict comparison retains unresolved
 reused-stack bytes and remains nonzero. All 134 jobs remain required; this
 development replay is not deployed as a claim of complete binary fidelity.
 
+An independent [Linux i386 signal-frame model](docs/SIGNAL_FRAMES.md) now
+matches all 130 observed deliveries across the same 134 histories, including
+complete stacks, handler registers/masks and FP state. Four native histories
+fault before delivery and remain explicit. This verifies the signal-writing
+component; the continuing command replay still needs its interrupted CPU
+state derived and retains all 912 required stack-word differences.
+
 Records use binary64 with selected retained-precision intermediates matching the
 reference's x87 arithmetic. The [native logarithm audit](docs/LOGARITHM_AUDIT.md)
 adds 8,182 instruction cases and 10,327 multiplier cases with complete request
