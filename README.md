@@ -190,6 +190,14 @@ main commit. Active validation is retained when another commit is pushed.
 
 Python API:
 
+The webpage's GHz inputs follow the original command parser: read a double,
+multiply by 1e9 with retained precision, then store binary32 Hz. For example,
+`0.1234567` GHz is solved at `123456704` Hz. Plots and CSV exports use the
+computed frequency. JSON requests can select this boundary with
+`frequency_ghz` (or `first_ghz` / `last_ghz` / `step_ghz` for searches);
+these fields take precedence over their Hz counterparts. Typed Python solver
+arguments and JSON `*_hz` fields preserve their existing binary64 SI behavior.
+
 ```python
 from reasitic import Technology, build, inductance_estimate, resistance_hf, write_gds
 from pathlib import Path

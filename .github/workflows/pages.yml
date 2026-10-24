@@ -128,7 +128,8 @@ jobs:
             metrics)
               node tools/check_assembly_geometry.mjs /tmp/reasitic-pyodide/node_modules/pyodide/pyodide.mjs
               node tools/check_network_metrics.mjs /tmp/reasitic-pyodide/node_modules/pyodide/pyodide.mjs
-              node tools/check_pi_sessions.mjs /tmp/reasitic-pyodide/node_modules/pyodide/pyodide.mjs ;;
+              node tools/check_pi_sessions.mjs /tmp/reasitic-pyodide/node_modules/pyodide/pyodide.mjs
+              node tools/check_frequency_inputs.mjs /tmp/reasitic-pyodide/node_modules/pyodide/pyodide.mjs /tmp/reasitic-pyodide/node_modules/jsdom/lib/api.js ;;
             *) exit 1 ;;
           esac
   deploy:

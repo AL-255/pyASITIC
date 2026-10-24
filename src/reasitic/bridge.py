@@ -16,6 +16,14 @@ from .extended import solve_pix
 from .transformer import solve_transformer
 from .mesh import mesh_information
 from .presets import list_presets,load_preset,identify
+from .command_numbers import frequency_ghz
+
+
+def _frequency(request,prefix='frequency',default=1e9):
+    ghz=prefix+'_ghz'
+    if ghz in request:return frequency_ghz(request[ghz])
+    hz=prefix+'_hz'
+    return float(request.get(hz,default))if prefix=='frequency'else float(request[hz])
 
 
 def _technology(request):
@@ -65,7 +73,7 @@ def handle(request,*,progress=None):
         ground=_shape(request["ground"],tech) if request.get("ground") else None
         mesh=request.get("mesh",{})
         if action=="mesh":return mesh_information(first,tech,mesh,model="calctrans",second=second,ground=ground,fit=bool(request.get("fit",False)))
-        return solve_transformer(first,second,tech,float(request.get("frequency_hz",1e9)),ground=ground,
+        return solve_transformer(first,second,tech,_frequency(request),ground=ground,
             termination_ohm=float(request.get("termination_ohm",0)),eddy=request.get("eddy",False),include_matrices=bool(request.get("include_matrices",False)),
             **{key:float(mesh.get(key,1000)) for key in ("length_cell","width_cell","thickness_cell","capacitance_length_cell","capacitance_width_cell")})
     shape = _shape(request,tech)
@@ -75,7 +83,7 @@ def handle(request,*,progress=None):
     if action=="selfres":
         mesh=request.get("mesh",{})
         ground=_shape(request["ground"],tech) if request.get("ground") else None
-        return solve_self_resonance(shape,tech,float(request["first_hz"]),float(request["last_hz"]),float(request["step_hz"]),
+        return solve_self_resonance(shape,tech,_frequency(request,'first'),_frequency(request,'last'),_frequency(request,'step'),
             ground=ground,differential=bool(request.get("differential",False)),fast=bool(request.get("fast",False)),eddy=request.get("eddy",False),
             observer=(lambda point:progress(json.dumps(point,allow_nan=False))) if progress is not None else None,
             **{key:float(mesh.get(key,1000)) for key in ("length_cell","width_cell","thickness_cell","capacitance_length_cell","capacitance_width_cell")})
@@ -87,16 +95,16 @@ def handle(request,*,progress=None):
         pads={"first_pad":_shape(request["first_pad"],tech),"second_pad":_shape(request["second_pad"],tech)} if action=="pi4" else {}
         solver={"pi2":solve_pi2,"pi3":solve_pi3,"pi4":solve_pi4,"pix":solve_pix}[action]
         diagnostics={"include_matrices":bool(request.get("include_matrices",False))} if action=="pix" else {}
-        return solver(shape,tech,float(request.get("frequency_hz",1e9)),ground=ground,eddy=request.get("eddy",False),**pads,**diagnostics,
+        return solver(shape,tech,_frequency(request),ground=ground,eddy=request.get("eddy",False),**pads,**diagnostics,
                          **{key:float(mesh.get(key,1000)) for key in ("length_cell","width_cell","thickness_cell","capacitance_length_cell","capacitance_width_cell")})
     if action == "capacitance":
         mesh=request.get("mesh",{})
         ground=_shape(request["ground"],tech) if request.get("ground") else None
-        return solve_capacitance(shape,tech,float(request.get("frequency_hz",1e9)),ground=ground,
+        return solve_capacitance(shape,tech,_frequency(request),ground=ground,
                                  length_cell=float(mesh.get("length_cell",1000)),width_cell=float(mesh.get("width_cell",1000)))
     if action == "lmat":
         mesh = request.get("mesh",{})
-        return solve_impedance(shape,tech,float(request.get("frequency_hz",1e9)),
+        return solve_impedance(shape,tech,_frequency(request),
                                eddy=request.get("eddy",False),
                                length_cell=float(mesh.get("length_cell",1000)),
                                width_cell=float(mesh.get("width_cell",1000)),
@@ -114,7 +122,7 @@ def handle(request,*,progress=None):
         data["dc_ohm"] = resistance_dc(shape,tech)
         return data
     if action == "simulate":
-        frequency = float(request.get("frequency_hz",1e9))
+        frequency = _frequency(request)
         inductance = inductance_estimate(shape,tech)
         dc = resistance_dc(shape,tech)
         hf = resistance_hf(shape,tech,frequency)
@@ -123,7 +131,7 @@ def handle(request,*,progress=None):
                     frequency_hz=frequency,method="ASITIC INDUCTANCE / RESIS / RESISHF / QLF estimates",
                     warnings=list(dict.fromkeys(shape.warnings)))
     if action == "sweep":
-        first,last = float(request["first_hz"]),float(request["last_hz"])
+        first,last = _frequency(request,'first'),_frequency(request,'last')
         count = int(request.get("count",31))
         if not all(math.isfinite(v) for v in (first,last)) or not 0<first<last or not 2<=count<=201:
             raise ValueError("Sweep needs 0 < start < stop and 2–201 points")

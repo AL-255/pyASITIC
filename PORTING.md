@@ -619,3 +619,29 @@ overflow boundaries. Five finite raw returns differ by one retained bit;
 These instruction differences remain open alongside the previously recorded
 trig, extreme-power and mutual intermediates. They are not excluded from the
 complete consumed Green-return or electrical-session gates.
+
+External frequency inputs now have a separate command-number boundary.
+`command_runtime.cpp` type 5 reads binary64 GHz, multiplies by its default 1e9
+scale in retained arithmetic, then stores binary32 Hz. `command_numbers.py`
+implements that direct store without an intermediate binary64 rounding. The
+webpage preserves the original GHz number through the worker request; JSON
+`frequency_ghz` takes precedence over `frequency_hz`. SELFRES parses its bounds
+and step once, preserving the original binary64 search iterations. Typed SI
+solver calls and requests containing only Hz fields remain unchanged.
+
+Seventeen complete sessions captured from the unchanged original parser check
+every Y/model store and resonance classification, including neighboring GHz
+inputs around binary32-Hz halfway boundaries. Three additional original
+CALCTRANS sessions require every raw SI Y/Z/model store. Both Python and
+WebAssembly require exact finite output bits. Actual webpage handlers additionally check
+fractional and halfway textbox values, Pi2/coupled sweeps, computed-frequency
+plot bounds/CSV exports, CAP/LMAT/estimate requests and SELFRES bounds. This
+does not establish parity for every other command-number or creator boundary.
+
+The fractional coupled gate exposed a portable via-stamp resistance store
+that previously relied on Decimal guard precision. `vias.py` now follows
+`native/vias.cpp` operation by operation with retained division, logarithm,
+frequency products and final matrix additions. All 1,214 existing original
+via records now require exact finite binary64 bits in Python too, including
+signed zero; nonfinite outputs retain their classifications. No fixture
+outputs or tolerances were loosened.

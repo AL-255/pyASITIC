@@ -13,11 +13,9 @@ class ViaTests(unittest.TestCase):
         for i,(actual,case) in enumerate(zip(stamp(rows),cases)):
             for value,bits in zip((actual.real,actual.imag),case["output_bits"]):
                 expected=struct.unpack("<d",bytes.fromhex(bits))[0]
-                # Portable guard precision is a fallback; compiled browser tests
-                # require exact bits for every component of these same cases.
                 if math.isnan(expected):self.assertTrue(math.isnan(value),str(i))
                 elif math.isinf(expected):self.assertEqual(value,expected,str(i))
-                else:self.assertAlmostEqual(value,expected,delta=4*math.ulp(expected),msg=str(i))
+                else:self.assertEqual(struct.pack('<d',value).hex(),bits,str(i))
 
     def test_height_threshold_and_invalid_counts(self):
         self.assertFalse(active_height(0.,1e-10))

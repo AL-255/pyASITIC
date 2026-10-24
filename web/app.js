@@ -14,6 +14,8 @@ const pending = new Map();
 const MESH_FIELDS={length_cell:"mesh-length",width_cell:"mesh-width",thickness_cell:"mesh-thickness",capacitance_length_cell:"cap-length",capacitance_width_cell:"cap-width"};
 const MESH_PRESETS={coarse:[1000,1000,1000,1000,1000],balanced:[50,3,.5,1000,1000],fine:[25,1,.25,50,10]};
 const meshCache=new Map();
+const frequencyFields=(hz,ghz=hz/1e9)=>({frequency_hz:hz,frequency_ghz:ghz});
+function frequencyInput(){const ghz=numeric("#frequency");return frequencyFields(ghz*1e9,ghz);}
 const fmt = (value, digits=4) => Number(value).toLocaleString(undefined, { maximumSignificantDigits: digits });
 
 function error(message="") { $("#error").hidden = !message; $("#error").textContent = message; }
@@ -43,7 +45,7 @@ function controls() {
 async function request(payload,onProgress=null) {
   if(["lmat","pi2","pi3","pi4","pix","selfres","calctrans"].includes(payload.action)){
     $("#mesh-target").value=["pi3","pix","selfres"].includes(payload.action)?"pi2":payload.action;
-    const {frequency_hz,first_hz,last_hz,step_hz,eddy,termination_ohm,include_matrices,...geometry}=payload,key=JSON.stringify(geometry);
+    const {frequency_hz,frequency_ghz,first_hz,first_ghz,last_hz,last_ghz,step_hz,step_ghz,eddy,termination_ohm,include_matrices,...geometry}=payload,key=JSON.stringify(geometry);
     let plan=meshCache.get(key);
     if(!plan){plan=await request({...payload,action:"mesh",model:payload.action});if(meshCache.size>=8)meshCache.delete(meshCache.keys().next().value);meshCache.set(key,plan);}
     renderMeshInfo(plan);
@@ -83,7 +85,8 @@ function renderMeshInfo(plan){
 }
 function meshPayload(){
   const model=$("#mesh-target").value;
-  const payload=model==="calctrans"?transformerPayload(numeric("#frequency")*1e9):model==="lmat"?{...currentDefinition,technology:technologyText,mesh:meshSettings()}:modelPayload(model,numeric("#frequency")*1e9);
+  const ghz=numeric("#frequency");
+  const payload=model==="calctrans"?transformerPayload(ghz*1e9,ghz):model==="lmat"?{...currentDefinition,technology:technologyText,mesh:meshSettings()}:modelPayload(model,ghz*1e9,ghz);
   return {...payload,action:"mesh",model};
 }
 function changedMesh(){resetResults();meshCache.clear();error();$("#mesh-feedback").className="muted";$("#mesh-feedback").textContent="Mesh updated. Check the filament count or run an analysis.";status("Mesh settings updated. Check the count or run an analysis.");controls();}
@@ -267,12 +270,12 @@ function stripDefinition(prefix,suffix){
   return {kind:"wire",parameters:{name:current.name.slice(0,55)+suffix,metal:$("#"+prefix+"-metal").value,
     length:numeric("#"+prefix+"-length"),width:numeric("#"+prefix+"-width"),x:numeric("#"+prefix+"-x"),y:numeric("#"+prefix+"-y")}};
 }
-function modelPayload(model,frequency){
+function modelPayload(model,frequency,ghz=frequency/1e9){
   const mode=$("#model-ground-mode").value;
   if(model==="pi3"&&mode==="none")throw new Error("Choose a ground strip or the other winding for Pi3.");
   if(mode==="other" && current.windings.length!==2)throw new Error("This layout has no other winding; choose a ground strip.");
   const ground=mode==="other"?{...currentDefinition,winding:1-(currentDefinition.winding||0)}:mode==="strip"?stripDefinition("model-ground","_ground"):null;
-  return {action:model,...currentDefinition,ground,technology:technologyText,frequency_hz:frequency,eddy:eddyEnabled(),
+  return {action:model,...currentDefinition,ground,technology:technologyText,...frequencyFields(frequency,ghz),eddy:eddyEnabled(),
     ...(model==="pi4"?{first_pad:stripDefinition("model-pad1","_pad1"),second_pad:stripDefinition("model-pad2","_pad2")} : {}),
     mesh:meshSettings()};
 }
@@ -314,28 +317,31 @@ form.addEventListener("input",()=>{if(current)status("Parameters changed. Genera
 $("#fit").addEventListener("click",fit);
 $("#simulate").addEventListener("click",()=>task(async()=>{
   status("Running ASITIC estimates…");
-  const result=await request({action:"simulate",...currentDefinition,technology:technologyText,frequency_hz:numeric("#frequency")*1e9});
+  const result=await request({action:"simulate",...currentDefinition,technology:technologyText,...frequencyInput()});
   $("#result-l").textContent=fmt(result.inductance_nh,6)+" nH";
   $("#result-r").textContent=fmt(result.hf_ohm,6)+" Ω";
   $("#result-q").textContent=fmt(result.qlf,6);
   status(`Complete at ${fmt(result.frequency_hz/1e9)} GHz. ${result.warnings.join(" ")}`);
 }));
 $("#sweep").addEventListener("click",()=>task(async()=>{
-  const first=numeric("#sweep-first")*1e9,last=numeric("#sweep-last")*1e9,count=numeric("#sweep-count"),model=$("#sweep-model").value;
+  const firstGHz=numeric("#sweep-first"),lastGHz=numeric("#sweep-last"),first=firstGHz*1e9,last=lastGHz*1e9,count=numeric("#sweep-count"),model=$("#sweep-model").value;
   if(!(first>0&&last>first&&Number.isInteger(count)&&count>=2&&count<=101))throw new Error("Sweep needs 0 < start < stop and 2–101 points.");
   const log=$("#sweep-scale").value==="log";
-  const base=model==="estimates"?{action:"simulate",...currentDefinition,technology:technologyText}:modelPayload(model,first);
+  const base=model==="estimates"?{action:"simulate",...currentDefinition,technology:technologyText}:modelPayload(model,first,firstGHz);
   sweepRows=[];sweepModels=[];sweepContext={model,firstHz:first,lastHz:last,eddy:model!=="estimates"&&base.eddy};
   for(let i=0;i<count;i++){
     const f=log?first*(last/first)**(i/(count-1)):first+(last-first)*i/(count-1);
     status(`Running ${model==="estimates"?"conductor estimates":MODEL_NAMES[model]} sweep: ${i+1} / ${count} · ${fmt(f/1e9)} GHz…`);
-    const result=await request({...base,frequency_hz:f});
-    if(model==="estimates")sweepRows.push({frequency_hz:f,inductance_nh:result.inductance_nh,resistance_ohm:result.hf_ohm,q:result.qlf});
+    const ghz=i===0?firstGHz:i===count-1?lastGHz:f/1e9;
+    const result=await request({...base,...frequencyFields(f,ghz)});
+    if(model==="estimates")sweepRows.push({frequency_hz:result.frequency_hz,inductance_nh:result.inductance_nh,resistance_ohm:result.hf_ohm,q:result.qlf});
     else {
       const p=result.pi;
-      sweepRows.push({frequency_hz:f,inductance_nh:p.inductance_h===null?null:p.inductance_h*1e9,resistance_ohm:p.resistance_ohm,q:p.q_first});
+      sweepRows.push({frequency_hz:result.frequency_hz,inductance_nh:p.inductance_h===null?null:p.inductance_h*1e9,resistance_ohm:p.resistance_ohm,q:p.q_first});
       sweepModels.push(result);
     }
+    sweepContext.firstHz=sweepRows[0].frequency_hz;
+    sweepContext.lastHz=i===count-1?result.frequency_hz:last;
     renderSweep(sweepRows);
   }
   if(sweepModels.length){$("#frequency").value=String(sweepRows[0].frequency_hz/1e9);renderModelResult(sweepModels[0],model);}
@@ -363,12 +369,12 @@ $("#eddy-mode")?.addEventListener("change",()=>{
   updateModelControls();resetSweep();resetSelfres();resetTransformer();matrixResult=null;$("#matrix-table").replaceChildren();$("#lmat-result").textContent="";controls();
 });
 $("#selfres").addEventListener("click",()=>task(async()=>{
-  const first=numeric("#selfres-first")*1e9,last=numeric("#selfres-last")*1e9,step=numeric("#selfres-step")*1e9;
+  const firstGHz=numeric("#selfres-first"),lastGHz=numeric("#selfres-last"),stepGHz=numeric("#selfres-step"),first=firstGHz*1e9,last=lastGHz*1e9,step=stepGHz*1e9;
   if(!(first>0&&last>0&&step>0))throw new Error("Enter positive SELFRES bounds and resolution.");
-  const base=modelPayload("pi2",first),useModel=$("#selfres-reference").value==="model";
+  const base=modelPayload("pi2",first,firstGHz),useModel=$("#selfres-reference").value==="model";
   if(useModel&&!base.ground)throw new Error("Choose a ground strip or the other winding in the model reference settings below.");
   resetSelfres();status("Searching self-resonance with repeated distributed network solves…");
-  const result=await request({...base,action:"selfres",first_hz:first,last_hz:last,step_hz:step,ground:useModel?base.ground:null,differential:$("#selfres-mode").value==="differential"},point=>{
+  const result=await request({...base,action:"selfres",first_hz:first,first_ghz:firstGHz,last_hz:last,last_ghz:lastGHz,step_hz:step,step_ghz:stepGHz,ground:useModel?base.ground:null,differential:$("#selfres-mode").value==="differential"},point=>{
     selfresTrace.push(point);renderSelfres(selfresTrace);
     $("#selfres-result").textContent=`Sample ${point.iteration} · ${fmt(point.frequency_hz/1e9,7)} GHz · Input reactance ${fmt(point.imaginary_impedance_ohm,7)} Ω`;
     status(`SELFRES sample ${point.iteration}: ${fmt(point.frequency_hz/1e9,6)} GHz…`);
@@ -401,7 +407,7 @@ $("#sweep-chart").addEventListener("click",event=>inspectSweepPoint(event,true))
 $("#sweep-chart").addEventListener("keydown",event=>{if(event.key==="Enter"||event.key===" "){event.preventDefault();inspectSweepPoint(event,true);}});
 $("#lmat").addEventListener("click",()=>task(async()=>{
   status("Assembling and solving filament impedance matrix…");
-  const result=await request({action:"lmat",...currentDefinition,technology:technologyText,frequency_hz:numeric("#frequency")*1e9,eddy:eddyEnabled(),
+  const result=await request({action:"lmat",...currentDefinition,technology:technologyText,...frequencyInput(),eddy:eddyEnabled(),
     mesh:{length_cell:numeric("#mesh-length"),width_cell:numeric("#mesh-width"),thickness_cell:numeric("#mesh-thickness")}});
   matrixResult=result;
   $("#lmat-result").textContent=`L = ${fmt(result.inductance_h*1e9,6)} nH · R = ${fmt(result.resistance_ohm,6)} Ω · Series Q = ${fmt(result.series_q,6)} · ${result.filaments} filaments / ${result.segments} metal segments · Native eddy ${result.eddy?"on":"off"}`;
@@ -424,7 +430,7 @@ $("#download-matrix").addEventListener("click",()=>{
 $("#capacitance").addEventListener("click",()=>task(async()=>{
   status("Generating layered Green tables and solving the contact-potential matrix…");
   const ground=current.windings.length===2 && $("#cap-ground").checked ? {...currentDefinition,winding:1-(currentDefinition.winding||0)} : null;
-  const result=await request({action:"capacitance",...currentDefinition,ground,technology:technologyText,frequency_hz:numeric("#frequency")*1e9,
+  const result=await request({action:"capacitance",...currentDefinition,ground,technology:technologyText,...frequencyInput(),
     mesh:{length_cell:numeric("#cap-length"),width_cell:numeric("#cap-width")}});
   capacitanceResult=result;
   $("#capacitance-result").textContent=`Total C = ${fmt(result.total_capacitance_f*1e15,6)} fF · Substrate equivalent series R = ${fmt(result.total_resistance_ohm,6)} Ω · ${result.contacts} contacts · ${result.fft_x} × ${result.fft_y} FFT`;
@@ -454,14 +460,14 @@ function resetTransformer(){
   $("#transformer-result").textContent="";$("#transformer-diagnostics").hidden=true;$("#transformer-metrics").replaceChildren();
   $("#transformer-circuit").innerHTML=transformerSVG();updateTransformerControls();renderTransformerSweep();
 }
-function transformerPayload(frequency){
+function transformerPayload(frequency,ghz=frequency/1e9){
   if(current?.windings.length!==2)throw Error("Choose a layout with two windings for CALCTRANS.");
   const first=currentDefinition.winding||0,mode=$("#transformer-ground-mode").value;
   const ground=mode==="first"?{...currentDefinition,winding:first}:mode==="strip"?stripDefinition("transformer-ground","_ground"):null;
-  const termination_ohm=Math.fround(numeric("#transformer-termination")),f=Math.fround(frequency/1e9)*1e9;
+  const termination_ohm=Math.fround(numeric("#transformer-termination")),f=frequency;
   if(!Number.isFinite(termination_ohm)||!Number.isFinite(f)||f<=0)throw Error("Frequency or termination exceeds the native command range.");
   const mesh=Object.fromEntries(Object.entries(meshSettings()).map(([k,v])=>[k,Math.fround(v)]));
-  return {action:"calctrans",...currentDefinition,first_winding:first,second_winding:1-first,technology:technologyText,ground,frequency_hz:f,termination_ohm,eddy:eddyEnabled(),mesh};
+  return {action:"calctrans",...currentDefinition,first_winding:first,second_winding:1-first,technology:technologyText,ground,...frequencyFields(f,ghz),termination_ohm,eddy:eddyEnabled(),mesh};
 }
 const transformerMetrics=[
   ["First inductance","first_inductance_h",1e9,"nH"],["Second inductance","second_inductance_h",1e9,"nH"],
@@ -482,19 +488,20 @@ function renderTransformerSweep(){
   $("#transformer-chart").innerHTML=sweepSVG(transformerRows,$("#transformer-sweep-metric").value,{model:"CALCTRANS",scale:$("#sweep-scale").value,...(transformerRange||{})});
 }
 $("#transformer-run").addEventListener("click",()=>task(async()=>{
-  const payload=transformerPayload(numeric("#frequency")*1e9);resetTransformer();status("Solving both windings with CALCTRANS…");
+  const ghz=numeric("#frequency"),payload=transformerPayload(ghz*1e9,ghz);resetTransformer();status("Solving both windings with CALCTRANS…");
   renderTransformerResult(await request(payload),payload);status("Coupled model complete. Values are specific to the displayed frequency.");
 }));
 $("#transformer-sweep").addEventListener("click",()=>task(async()=>{
-  const first=numeric("#sweep-first")*1e9,last=numeric("#sweep-last")*1e9,count=numeric("#sweep-count"),log=$("#sweep-scale").value==="log";
+  const firstGHz=numeric("#sweep-first"),lastGHz=numeric("#sweep-last"),first=firstGHz*1e9,last=lastGHz*1e9,count=numeric("#sweep-count"),log=$("#sweep-scale").value==="log";
   if(!(first>0&&last>first&&Number.isInteger(count)&&count>=2&&count<=101))throw Error("Sweep needs 0 < start < stop and 2–101 points.");
   resetTransformer();
-  transformerRange={firstHz:Math.fround(first/1e9)*1e9,lastHz:Math.fround(last/1e9)*1e9};
+  transformerRange={firstHz:first,lastHz:last};
   for(let i=0;i<count;i++){
-    const frequency=log?first*(last/first)**(i/(count-1)):first+(last-first)*i/(count-1),payload=transformerPayload(frequency);
+    const frequency=log?first*(last/first)**(i/(count-1)):first+(last-first)*i/(count-1),ghz=i===0?firstGHz:i===count-1?lastGHz:frequency/1e9,payload=transformerPayload(frequency,ghz);
     status(`CALCTRANS sweep: ${i+1} / ${count} · ${fmt(payload.frequency_hz/1e9)} GHz…`);
     const result=await request(payload),m=result.model,scaled=(key)=>m[key]===null?null:m[key]*1e9;
-    transformerSamples.push({result,payload});transformerRows.push({frequency_hz:result.frequency_hz,first_inductance_nh:scaled("first_inductance_h"),second_inductance_nh:scaled("second_inductance_h"),mutual_nh:scaled("mutual_h"),coupling:m.coupling,first_resistance_ohm:m.first_resistance_ohm,second_resistance_ohm:m.second_resistance_ohm,ground_resistance_ohm:m.ground_resistance_ohm});renderTransformerSweep();
+    transformerSamples.push({result,payload});transformerRows.push({frequency_hz:result.frequency_hz,first_inductance_nh:scaled("first_inductance_h"),second_inductance_nh:scaled("second_inductance_h"),mutual_nh:scaled("mutual_h"),coupling:m.coupling,first_resistance_ohm:m.first_resistance_ohm,second_resistance_ohm:m.second_resistance_ohm,ground_resistance_ohm:m.ground_resistance_ohm});
+    transformerRange={firstHz:transformerRows[0].frequency_hz,lastHz:i===count-1?result.frequency_hz:last};renderTransformerSweep();
   }
   const firstSample=transformerSamples[0];$("#frequency").value=String(firstSample.result.frequency_hz/1e9);renderTransformerResult(firstSample.result,firstSample.payload);status(`${count}-point CALCTRANS sweep plotted. Select a sample to inspect its coupled model.`);
 }));
@@ -524,7 +531,7 @@ $("#download-transformer-plot").addEventListener("click",()=>download($("#transf
 $("#pi2").addEventListener("click",()=>task(async()=>{
   const model=$("#pi-model").value;
   status(`Running ${MODEL_NAMES[model]} with the selected reference, pads and mesh…`);
-  const result=await request(modelPayload(model,numeric("#frequency")*1e9));
+  const ghz=numeric("#frequency"),result=await request(modelPayload(model,ghz*1e9,ghz));
   renderModelResult(result,model);
   status(`${MODEL_NAMES[model]} complete. Component values are specific to this frequency; resonance is a narrowband estimate. ${result.warnings.join(" ")}`);
 }));
