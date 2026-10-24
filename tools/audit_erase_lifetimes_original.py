@@ -21,4 +21,4 @@ erased=get(0,'A')['address'];assert get(5,'B')['partner_address']==erased and ge
 assert get(6,'B')['origin_bits']!=get(5,'B')['origin_bits']
 assert get(7,'D')['address']==erased and get(7,'B')['partner']=='D'
 assert get(8,'D')['origin_bits']!=get(7,'D')['origin_bits']
-print('Native ERASE evidence verified: all 210 states retained, empty scenes, mutual/self links, stale freed link, descriptor reuse and subsequent moved copy. Python ERASE remains unimplemented; this audit makes no runtime-equivalence claim.')
+print('Native ERASE evidence verified: all 210 states retained, empty scenes, mutual/self links, stale freed link, descriptor reuse and subsequent moved copy. Runtime equivalence is checked separately by test_erase_original and check_erase_original.mjs.')

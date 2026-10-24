@@ -28,7 +28,7 @@ def jobs():
         mesh=dict(length_cell=1000,width_cell=1000,thickness_cell=1000,capacitance_length_cell=1000,capacitance_width_cell=1000),edits=[dict(command='COPY',winding=0,name='c',metal='M2',x=40,y=40)])
  yield 'via/copied-metal-pi2',primitive,r,'CELL 1000 1000 1000\nCCELL 1000 1000\nEDDY OFF\n'+c['script'],c['stdin'],['A']
 
-def main(*,output_name='copy_sessions_original',job_source=jobs,command_source=command,description=None):
+def main(*,output_name='copy_sessions_original',job_source=jobs,command_source=command,description=None,capture_cap_reference=True):
  p=argparse.ArgumentParser(description=__doc__);p.add_argument('--reference',type=Path,required=True);p.add_argument('--library-path',required=True);a=p.parse_args();ref=a.reference.resolve();original=ref/'run/asitic.linux.2.2'
  for path,want in((original,ORIGINAL_SHA256),(ref/'run/libs/libstdc++-2-libc6.1-1-2.9.0.so',LEGACY_SHA256)):
   if hashlib.sha256(path.read_bytes()).hexdigest()!=want:raise ValueError('Unexpected original checksum')
@@ -41,6 +41,7 @@ def main(*,output_name='copy_sessions_original',job_source=jobs,command_source=c
     script+=command_source(op,names)
     if op['command']=='COPY':names.append(op['name'].upper())
     elif op['command']=='RENAME':names[op['winding']]=op['name'].upper()
+    elif op['command']=='ERASE'and len(op.get('windings',[]))<=10:names[:]=[name for i,name in enumerate(names)if i not in op['windings']]
    first=names[r['winding']];frequency=format(r['frequency_ghz'],'.17g');snapshot=names[0]if r['kind']=='via'else first;script+=f'GEOM {snapshot}\n';coupled=r['action']=='calctrans'
    if coupled:
     second=names[r['second_winding']];script+=f'CALCTRANS {first} {second} {frequency}\n2PORTTRANS {first} {second} {frequency} {frequency} 1 S RECT s.out\n'
@@ -56,12 +57,13 @@ def main(*,output_name='copy_sessions_original',job_source=jobs,command_source=c
    if coupled:
     data=(work/'transformer-raw.out').read_bytes();raw['raw_output_bits']=[data[i:i+8].hex()for i in range(0,len(data),8)]
    records.append(dict(label=label,request=r,script=script,stdin=stdin,stdout=run.stdout,stderr=run.stderr,**raw));print(label,'captured',flush=True)
-  via=next(c for c in records if c['label']=='via/copied-metal-pi2');r=copy.deepcopy(via['request']);r.update(action='capacitance',mesh=dict(length_cell=1000,width_cell=1000),ground={k:copy.deepcopy(r[k])for k in('kind','parameters','edits','native_interactive')});r['ground']['winding']=0
-  script=via['script'].split('GEOM',1)[0]+'CAP C 1.23456789 A\n';work=root/'cap-reference';work.mkdir()
-  for name,value in(('process.tek',r['technology']),('input.asit',script)):(work/name).write_text(value)
-  run=subprocess.run([str(original),'-g','-t','process.tek','-x','input.asit'],cwd=work,env=dict(os.environ,LD_LIBRARY_PATH=a.library_path),input=via['stdin'],capture_output=True,text=True,start_new_session=True,timeout=120)
-  if run.returncode or'Total Capacitance =  -nan'not in run.stdout or'Total Resistance =  -nan'not in run.stdout:raise RuntimeError('Unexpected converted-VIA CAP reference outcome: '+run.stdout[-1500:]+run.stderr[-1000:])
-  cap_reference_failures.append(dict(label=via['label'],request=r,script=script,stdin=via['stdin'],returncode=run.returncode,stdout=run.stdout,stderr=run.stderr));print('via/copied-metal CAP reference native NaN captured',flush=True)
+  if capture_cap_reference:
+   via=next(c for c in records if c['label']=='via/copied-metal-pi2');r=copy.deepcopy(via['request']);r.update(action='capacitance',mesh=dict(length_cell=1000,width_cell=1000),ground={k:copy.deepcopy(r[k])for k in('kind','parameters','edits','native_interactive')});r['ground']['winding']=0
+   script=via['script'].split('GEOM',1)[0]+'CAP C 1.23456789 A\n';work=root/'cap-reference';work.mkdir()
+   for name,value in(('process.tek',r['technology']),('input.asit',script)):(work/name).write_text(value)
+   run=subprocess.run([str(original),'-g','-t','process.tek','-x','input.asit'],cwd=work,env=dict(os.environ,LD_LIBRARY_PATH=a.library_path),input=via['stdin'],capture_output=True,text=True,start_new_session=True,timeout=120)
+   if run.returncode or'Total Capacitance =  -nan'not in run.stdout or'Total Resistance =  -nan'not in run.stdout:raise RuntimeError('Unexpected converted-VIA CAP reference outcome: '+run.stdout[-1500:]+run.stderr[-1000:])
+   cap_reference_failures.append(dict(label=via['label'],request=r,script=script,stdin=via['stdin'],returncode=run.returncode,stdout=run.stdout,stderr=run.stderr));print('via/copied-metal CAP reference native NaN captured',flush=True)
  result=dict(original_sha256=ORIGINAL_SHA256,legacy_sha256=LEGACY_SHA256,parents=parents,pi_gdb_commands=PI_COMMANDS,coupled_gdb_commands=COUPLED_COMMANDS,geometry_observer=SNAPSHOT,tap=TAP,reference=description or 'Unchanged original full COPY/RENAME/BEFRIEND/spatial edits followed by Pi2/CALCTRANS/2PORT, with selected copied windings in multi-object scenes, including a VIA copied onto a conductor metal. Read-only completed geometry snapshot, model/scattering/resonance/node observers and nonnumerical sprintf observer. Literal original CLI CAP with the unconverted VIA reference returns NaN totals and is retained separately. All selected outcomes retained.',cases=records,cap_reference_failures=cap_reference_failures)
  with gzip.GzipFile(str(ROOT/'tests/fixtures'/f'{output_name}.json.gz'),'wb',mtime=0)as out:out.write((json.dumps(result,separators=(',',':'),allow_nan=False)+'\n').encode())
 

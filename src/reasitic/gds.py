@@ -68,8 +68,6 @@ def write_gds(shapes, technology, layer_map=None):
     """
     if not isinstance(shapes,(list,tuple)):
         shapes = [shapes]
-    if not shapes:
-        raise ValueError("No shapes to export")
     # Bundled foundry presets can specify their drawn GDS layers in <chip>.
     # Explicit caller mappings retain precedence, including per-layer datatypes.
     layer_map = {**{m.name:int(technology.chip["gds_"+m.name.lower()]) for m in technology.metals+technology.vias

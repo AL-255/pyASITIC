@@ -19,3 +19,4 @@
 .geometry-note{font-size:11px;margin:0 5px 24px;max-width:850px}
 
 #mesh-settings{scroll-margin-top:20px}#mesh-recovery{margin:0 0 20px}.simulation-controls{flex-wrap:wrap}
+.layout-edits select[multiple]{height:auto;min-height:96px}

@@ -39,7 +39,7 @@ def main(*,output_name='phase_erase_original',job_source=jobs,description=None):
     script+=command(op,names)+'WHO\n'
     if op['command']=='COPY':names.append(op['name'].upper())
     elif op['command']=='RENAME':names[op['winding']]=op['name'].upper()
-    elif op['command']=='ERASE':names=[name for i,name in enumerate(names)if i not in op['windings']]
+    elif op['command']=='ERASE'and not op.get('expect_rejection',False):names=[name for i,name in enumerate(names)if i not in op['windings']]
    work=Path(directory)/str(len(records));work.mkdir()
    for name,value in(('process.tek',c['technology']),('input.asit',script),('answers.txt',c['stdin']),('capture.gdb',COMMANDS)):(work/name).write_text(value)
    run=subprocess.run(['gdb','-q','-batch','-x','capture.gdb',str(original)],cwd=work,env=dict(os.environ,LD_LIBRARY_PATH=a.library_path),capture_output=True,text=True,start_new_session=True,timeout=120)

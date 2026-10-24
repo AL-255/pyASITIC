@@ -51,6 +51,10 @@ def _technology(request):
 
 def _shape(request,tech,*,shapes=None,reset_missing=False):
     if shapes is None:shapes = _shapes(request,tech)
+    if not shapes:raise ValueError('No windings remain; undo ERASE or reset edits before analysis')
+    if reset_missing and request.get('select_name'):
+        selected=next((s for s in shapes if s.name==request['select_name']),None)
+        if selected is not None:return selected
     index = int(request.get("winding",0))
     if not 0<=index<len(shapes):
         if reset_missing:index=0
@@ -107,6 +111,8 @@ def handle(request,*,progress=None):
             max_width_cells=maximum_width_cells(mesh.get("max_width_cells",500)),
             **{key:float(mesh.get(key,1000)) for key in ("length_cell","width_cell","thickness_cell","capacitance_length_cell","capacitance_width_cell")})
     windings,partners=_shapes(request,tech,with_links=True)if action=='build'else(None,None)
+    if action=='build'and not windings:
+        return dict(name='',kind=request.get('kind','square'),origin=[0.,0.],parameters=windings.generator_parameters,segments=[],warnings=[],electrical_phase=0,bounds=[0.,0.,0.,0.],length=0.,area=0.,metal_area=0.,dc_ohm=0.,windings=[],partners=[],dangling_partners=[],winding=0,polygons=[],history_targets=windings.history_targets)
     shape = _shape(request,tech,shapes=windings,reset_missing=action=='build'and bool(request.get('reset_missing_winding',False)))
     if shape.kind=='via'and not any(s.metal<len(tech.metals)for s in shape.segments)and(action=='pi2'or(action=='mesh'and request.get('model','pi2')=='pi2')):
         raise ValueError('The original standalone VIA Pi2 analysis faults before producing a model; add conductor geometry')
@@ -150,6 +156,8 @@ def handle(request,*,progress=None):
         data = shape.to_dict()
         data["windings"] = [w.name for w in windings]
         data['partners']=partners
+        data['dangling_partners']=windings.dangling_partners
+        data['history_targets']=windings.history_targets
         data['winding']=next(i for i,w in enumerate(windings)if w is shape)
         # Render exactly the polygons exported to GDS, including individual cuts.
         if sum(s.nx*s.ny for w in windings for s in w.segments) > 100000:

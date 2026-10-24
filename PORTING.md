@@ -10,6 +10,7 @@ Reference checkout: `~/github/asitic-re`, revision recorded in each fixture.
 | `precision.py` | `shape_construction.cpp` point/shape rotation | Retained radius/angle arithmetic, asymmetric cosine/sine angle spills, and native midpoint evaluation; exact rotated-wire endpoint doubles from BSAVE and matching unequal-cell mesh dimensions in CPython/WebAssembly |
 | `filament.py`, `native/filament.cpp` | `filaments.cpp`, `numerics.cpp`; original `0x0806597c` | 2,220 intact original records / 19,980 exact finite components or nonfinite classifications in Python and compiled WebAssembly; all adaptive edge branches, arbitrary interpolation indices, asymmetric spills, destination Z preservation, signed zeros and extreme scales |
 | `mesh_counts.py`, `mesh.py`, `web/app.js` | Native longitudinal subdivision and filament counts from `geometry.cpp`, `filament_setup.cpp` | Original default MAXNW=500 and retained divide/FISTPL/clamp rules; 2,116 exact primitive integer stores and six unchanged complete CLI histories with all 3,364 filament constructions, five bitwise finite LMAT reports and one native invalid-case diagnostic. Pi4/CALCTRANS counts, actual DOM 480-filament rejection and fit to 60/Pi2; presets, MAXNW validation and legacy/new project persistence |
+| `editing.py`, `scene_heap.py`, `bridge.py`, erasure UI | `console_commands.cpp`, `geometry.cpp`, `geometry_edit.cpp`; original WHO dispatcher snapshots and `0xbc`/`0xf0` allocations | 736 original PHASE/ERASE/reuse states / 843,264 exact XYZ stores, origins/materials/links, seven wire pool sizes and mixed-size polygon/balun reuse; duplicate-argument native SIGSEGV diagnostic; independent GDS including empty cells; four complete Pi2/CALCTRANS model/Y/S/node sessions. A geometry-only allocator reproduces the captured reference glibc reuse rules; arbitrary process-heap histories remain unverified |
 | `technology.py` | `technology_text.cpp`, `technology_records.cpp` | Original coordinate-height words from 41 actual CLI sessions across CMOS/BiCMOS/GF180; retained cumulative depths, separate nominal bottom distance and two-store geometry heights; broader reader commands remain to validate |
 | `resistance.py` | `resistance.cpp` | Original DC reports for nine families; twelve live C++ cases at five frequencies (1 MHz–100 GHz) |
 | `inductance.py`, `conductor_metrics.py`, `native/conductor_metrics.cpp` | `analysis_commands.cpp`, `resistance.cpp`, `segment.cpp`, shared mutual sources; original `0x0804ce78` / DC `0x0804eedc` | 56 intact-original INDUCTANCE/Q histories, 654 exact consumed records, 56 L / 392 QLF binary64 stores and 392 raw DC returns; all self operands/log arguments exact, complete compiled batch and actual estimate/plot/CSV handlers. Four pair binary64 stores and seven raw L returns remain unresolved under the separate strict intermediate audit |
@@ -101,10 +102,13 @@ to initialize; validation asserts that the backend is active. The portable Pytho
 fallback and compiled path have separate exact kernel checks. See
 [docs/PERFORMANCE.md](docs/PERFORMANCE.md) for timings and remaining bottlenecks.
 
-Outstanding validation: broader rotated/fractional/negative-phase geometry
-fixtures, arbitrary technology files, segment-kernel precision fixtures, real
-browser interaction and rendered layout checks. The current environment has no
-browser connection; WebAssembly runtime execution is tested separately from UI.
+Outstanding validation includes arbitrary technology files, broader complete
+command histories, and unresolved intermediate-precision comparisons. Exact
+creator and editing fixtures cover the rotations, fractional inputs and phases
+listed above; they do not establish universal parity. Headless Chrome now checks
+the actual worker, original post-ERASE Y/S output bits, project/GDS downloads,
+empty-scene undo and desktop/mobile layouts. Its HTTP server serves the pinned
+Pyodide dependency locally; full hosted/CDN operation is verified separately.
 The adaptive edge mesh branches have direct original record fixtures; broader
 complete electrical sessions using adaptive edge meshes remain to validate. Their
 original sqrt(dot) normalization can be invalid for some coordinates; Python

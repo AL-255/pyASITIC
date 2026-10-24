@@ -77,13 +77,18 @@ jobs:
       - name: Native FFT and CAP references with live case progress
         run: python -u tools/run_python_checks.py potential --process '${{ matrix.process }}' --frequency '${{ matrix.frequency }}'
   wasm:
-    name: WebAssembly · ${{ matrix.suite }}
+    name: WebAssembly · ${{ matrix.suite }} ${{ matrix.shard }}
     runs-on: ubuntu-latest
     timeout-minutes: 30
     strategy:
       fail-fast: false
       matrix:
         suite: [baseline, dependencies, resonance, extended, technologies, fft, matrix, contacts, general, spectral, transformer, filaments, mutual, eddy, metrics]
+        include:
+          - {suite: erasure, shard: 1, shards: 4}
+          - {suite: erasure, shard: 2, shards: 4}
+          - {suite: erasure, shard: 3, shards: 4}
+          - {suite: erasure, shard: 4, shards: 4}
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
@@ -97,6 +102,8 @@ jobs:
       - name: Run pinned WebAssembly validation group
         env:
           SUITE: ${{ matrix.suite }}
+          SHARD: ${{ matrix.shard }}
+          SHARDS: ${{ matrix.shards }}
         run: |
           case "$SUITE" in
             baseline|dependencies|resonance)
@@ -125,6 +132,8 @@ jobs:
               node tools/check_copy_links_original.mjs /tmp/reasitic-pyodide/node_modules/pyodide/pyodide.mjs /tmp/reasitic-pyodide/node_modules/jsdom/lib/api.js
               node tools/check_phase_original.mjs /tmp/reasitic-pyodide/node_modules/pyodide/pyodide.mjs /tmp/reasitic-pyodide/node_modules/jsdom/lib/api.js
               node tools/check_transformer3d_original.mjs /tmp/reasitic-pyodide/node_modules/pyodide/pyodide.mjs /tmp/reasitic-pyodide/node_modules/jsdom/lib/api.js ;;
+            erasure)
+              node tools/check_erase_original.mjs /tmp/reasitic-pyodide/node_modules/pyodide/pyodide.mjs /tmp/reasitic-pyodide/node_modules/jsdom/lib/api.js "$SHARD" "$SHARDS" ;;
             filaments)
               node tools/check_filaments.mjs /tmp/reasitic-pyodide/node_modules/pyodide/pyodide.mjs
               node tools/check_mesh.mjs /tmp/reasitic-pyodide/node_modules/pyodide/pyodide.mjs /tmp/reasitic-pyodide/node_modules/jsdom/lib/api.js
@@ -157,9 +166,30 @@ jobs:
               node tools/check_frequency_inputs.mjs /tmp/reasitic-pyodide/node_modules/pyodide/pyodide.mjs /tmp/reasitic-pyodide/node_modules/jsdom/lib/api.js ;;
             *) exit 1 ;;
           esac
+  chrome:
+    name: Chrome · worker, erasure, downloads and responsive layout
+    needs: build
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - run: python tools/build_site.py
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+      - run: npm install --prefix /tmp/reasitic-chrome pyodide@314.0.7
+      - run: node tools/check_erase_chrome.mjs /tmp/reasitic-chrome/node_modules/pyodide /tmp/reasitic-rendered
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: Chrome rendering and downloads
+          path: /tmp/reasitic-rendered
   deploy:
     name: Deploy validated Pages
-    needs: [build, python-core, kernel-build, python-tables, wasm]
+    needs: [build, python-core, kernel-build, python-tables, wasm, chrome]
     runs-on: ubuntu-latest
     timeout-minutes: 10
     concurrency:

@@ -274,11 +274,21 @@ Implemented so far:
   standalone interactive capacitor's uninitialized initial native phase word
   is represented by its observed positive predicate, without inventing its
   address value; subsequent specified phase stores are compared exactly.
-- ERASE remains unfinished. The read-only erasure capture retains all 210
-  selected native states, including empty scenes and a stale friend pointer
-  that later refers to a new COPY at a reused descriptor address. Run
-  `python tools/audit_erase_lifetimes_original.py` to verify the evidence; this
-  is an audit of the native capture and does not assert Python ERASE support.
+- ERASE / DEL / DELETE / RM removes a resolved winding list using the native
+  outgoing-peer clearing behavior. Descriptor identities survive erasure and
+  reuse, including stale friend links and mixed-size allocation histories.
+  The geometry arena follows the reference [glibc 2.39 cache, bin, split and
+  coalescing rules](https://github.com/bminor/glibc/blob/glibc-2.39/malloc/malloc.c).
+  All 736 captured scenes / 843,264 XYZ stores match, including polygon and
+  balun allocation stress and the native parser's rejection of more than ten
+  ERASE arguments. The repeated-descriptor native fault is an explicit API
+  diagnostic. Four complete post-erasure Pi2/CALCTRANS sessions match raw model,
+  Y/S and coupled-node outputs. Empty scenes support GDS/project downloads,
+  regeneration, undo/reset and preservation of omitted generator defaults.
+  Real Chrome checks additionally verify worker execution, original Y/S bits,
+  actual downloads and responsive empty-scene rendering with locally served
+  pinned Pyodide. The geometry-only arena is not a full native process-heap
+  emulator; broader allocator-dependent command histories remain unverified.
 
 Records use binary64 with selected retained-precision intermediates matching the
 reference's x87 arithmetic.
