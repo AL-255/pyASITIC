@@ -88,8 +88,10 @@ validation.
 upper symmetric factor/inverse, BLAS operations, eigen rotations and spill order.
 `soft_real.hpp` replaces each retained `long double` operation with SoftFloat's
 80-bit operation, including square root. Source revision and hashes are recorded
-in `matrix-source.json`. A fixed 256-entry matrix limit matches the browser's
-filament limit. Calls copy column-major Python records into separate bounded
+in `matrix-source.json`. Internal symmetric/assembly/sum buffers support 512
+entries, with capacity exported to the Python/JS wrappers. The browser's
+filament budget remains 256; the larger buffers also cover native comparison
+and explicitly budgeted library systems. Calls copy column-major Python records into separate bounded
 storage and return the original pivots. The inverse reconstructs its defined
 upper triangle into the full symmetric result, as the Python API requires.
 
@@ -101,6 +103,12 @@ full inverse reconstruction and input immutability. Four dense Pi2 sessions also
 compare full native Y/S outputs at 1, 5 and 20 GHz. The portable Python matrix
 fallback retains its existing component-tolerance checks; this is not a claim of
 universal bitwise parity of that fallback or of the complete simulator.
+
+`symmetric_wide_original.json` adds complete original factor/inverse digests at
+288, 384 and 512 entries, including two-entry pivots and stride canaries. The
+original probe's backing was enlarged without changing any native numerical
+instruction. Earlier fixtures remain unchanged. The kernel module remains
+bounded; its static linear memory is now 35 MiB (previously 28.1875 MiB).
 
 `contact.cpp` follows the original contact-potential routine's subtraction
 order, extended intermediates and binary64 stores. Its complex division uses

@@ -1,6 +1,7 @@
 #pragma once
 #include "soft_real.hpp"
 namespace asitic{
+inline constexpr int numerical_matrix_capacity=512;
 struct ComplexValue{double real,imag;};
 struct ComplexMatrixView{ComplexValue* data;int stride;ComplexValue& at(int r,int c)const{return data[c*stride+r];}};
 namespace lapack{

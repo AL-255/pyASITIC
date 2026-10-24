@@ -33,8 +33,8 @@ extern "C" int probe_main(int argc,char** argv){
  for(unsigned i=0;i<h->phnum;i++)if(ph[i].type==1){if(ph[i].offset+ph[i].filesz>size||ph[i].vaddr+ph[i].memsz>0x42000)return 15;u8* to=reinterpret_cast<u8*>(0x30000000+ph[i].vaddr);for(unsigned j=0;j<ph[i].filesz;j++)to[j]=file[ph[i].offset+j];}
  const unsigned bindings[][2]={{0x80d797c,0x1d618},{0x80d7994,0x1d3c0},{0x80d79ec,0x1daf4},{0x80d7a28,0x1d6fc},{0x80d7a50,0x1d4cc},{0x80d7aa0,0x1dbd0},{0x80d7af4,0x1d45c}};
  for(const auto& b:bindings)*reinterpret_cast<unsigned*>(b[0])=0x30000000+b[1];
- int n=atoi(argv[3]),stride=atoi(argv[4]);if(n<1||n>256||stride<n||n*stride>66048||argc!=6)return 20;
- static C data[66048],work[256],saved[66048];static int pivots[256];
+ int n=atoi(argv[3]),stride=atoi(argv[4]);if(n<1||n>512||stride<n||n*stride>263168||argc!=6)return 20;
+ static C data[263168],work[512],saved[263168];static int pivots[512];
  fd=open(argv[5],0);if(fd<0)return 21;unsigned used=0,expected=n*stride*sizeof(C);
  while(used<expected){int got=read(fd,reinterpret_cast<u8*>(data)+used,expected-used);if(got<=0)return 22;used+=got;}close(fd);
  for(int i=0;i<n*stride;i++)saved[i]=data[i];

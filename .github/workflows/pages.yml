@@ -83,7 +83,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        suite: [baseline, dependencies, resonance, extended, technologies, fft, matrix, contacts, general, spectral, transformer, composition, splitting, storage, heap, mappings, shared, filaments, mutual, eddy, metrics]
+        suite: [baseline, dependencies, resonance, extended, technologies, fft, matrix, contacts, general, spectral, transformer, composition, splitting, storage, heap, mappings, shared, inductive, filaments, mutual, eddy, metrics]
         include:
           - {suite: erasure, shard: 1, shards: 4}
           - {suite: erasure, shard: 2, shards: 4}
@@ -146,6 +146,8 @@ jobs:
               node tools/check_mapping_heap_original.mjs /tmp/reasitic-pyodide/node_modules/pyodide/pyodide.mjs ;;
             shared)
               node tools/check_shared_heap_original.mjs /tmp/reasitic-pyodide/node_modules/pyodide/pyodide.mjs ;;
+            inductive)
+              node tools/check_pre_via_original.mjs /tmp/reasitic-pyodide/node_modules/pyodide/pyodide.mjs ;;
             erasure)
               node tools/check_erase_original.mjs /tmp/reasitic-pyodide/node_modules/pyodide/pyodide.mjs /tmp/reasitic-pyodide/node_modules/jsdom/lib/api.js "$SHARD" "$SHARDS" ;;
             filaments)

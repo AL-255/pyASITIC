@@ -5,7 +5,8 @@
 #include "retained_math.hpp"
 namespace {
 using R=SoftReal;using C=asitic::ComplexValue;using asitic::x87::binary64;
-static double wires[256*10],mutual[256*255/2];static C matrix[256*256];
+constexpr int capacity=asitic::numerical_matrix_capacity;
+static double wires[capacity*10],mutual[capacity*(capacity-1)/2];static C matrix[capacity*capacity];
 C self(const double* p,double omega){
  const double* a=p+2;
  const R dx=R(a[3])-a[0],dy=R(a[4])-a[1],dz=R(a[5])-a[2];
@@ -23,7 +24,7 @@ extern "C" __attribute__((export_name("impedance_wire_buffer"))) unsigned impeda
 extern "C" __attribute__((export_name("impedance_mutual_buffer"))) unsigned impedance_mutual_buffer(){return reinterpret_cast<unsigned>(mutual);}
 extern "C" __attribute__((export_name("impedance_matrix_buffer"))) unsigned impedance_matrix_buffer(){return reinterpret_cast<unsigned>(matrix);}
 extern "C" __attribute__((export_name("impedance_assemble"))) int impedance_assemble(int n,double frequency){
- if(n<1||n>256)return -1;
+ if(n<1||n>capacity)return -1;
  const double omega=binary64(R(0x1.12e0be826d695p-30)*R(binary64(R(0x1.921fb54442d18p+2)*R(frequency))));
  int pair=0;
  for(int i=0;i<n;i++){

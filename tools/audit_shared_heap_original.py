@@ -54,6 +54,22 @@ def ported_capacitance(case):
     return result
 
 
+def ported_impedance(case):
+    """Use the same pre-via preparation as the production LMAT/Pi solver."""
+    from reasitic.bridge import _shapes,_mesh
+    from reasitic.solver import discretize,prepare_impedance
+    from reasitic.network import _join_for_pads
+    request=case['request'];technology=Technology.from_text(request['technology'])
+    shapes=_shapes(request,technology);mesh=_mesh(request,technology)
+    if request['action']=='pi2':shape=discretize(shapes[request['winding']],mesh['capacitance_length_cell'],mesh['length_cell'])
+    else:
+        first,second=(discretize(shapes[request[key]],mesh['capacitance_length_cell'],mesh['length_cell'])for key in ('first_winding','second_winding'))
+        second.segments.reverse();shape=_join_for_pads(first,second)
+    # Native comparison includes larger systems. The normal solver/website
+    # budget stays at 256; this explicit diagnostic budget is independent.
+    return prepare_impedance(shape,technology,_frequency(request),width_cell=mesh['width_cell'],thickness_cell=mesh['thickness_cell'],max_width_cells=mesh.get('max_width_cells',500),max_filaments=512,discretized=True,eddy=request.get('eddy',False))
+
+
 def normalized_errors(errors):
     result=[]
     for error in errors:
@@ -63,8 +79,8 @@ def normalized_errors(errors):
     return result
 
 
-def compare(case,*,invert=False,capacitance=None):
-    result=dict(label=case['label'],cache_mode=case['cache_mode'],allocations_checked=0,events_checked=0,stores_checked=0,faults_checked=0,cache_boundaries=0,cache_words_checked=0,cap_input_words_checked=0,cap_words_checked=0,ind_words_checked=0,predicted_cache_errors=[],differences=[])
+def compare(case,*,invert=False,capacitance=None,impedance=None):
+    result=dict(label=case['label'],cache_mode=case['cache_mode'],allocations_checked=0,events_checked=0,stores_checked=0,faults_checked=0,cache_boundaries=0,cache_words_checked=0,cap_input_words_checked=0,ind_input_words_checked=0,cap_words_checked=0,ind_words_checked=0,predicted_cache_errors=[],differences=[])
     states=case['allocator_states'];heap=Heap(states[0]);via=case['via'];memory=None;records=via_records(case)
     external={}
     for i,group in enumerate(case['contact_groups']):
@@ -120,6 +136,13 @@ def compare(case,*,invert=False,capacitance=None):
                     actual=memory.read(addresses['cap.output'],16*n*n);result['cap_input_words_checked']+=len(actual)//8
                     for offset in range(0,len(actual),8):
                         if actual[offset:offset+8]!=original[offset:offset+8]:result['differences'].append(dict(kind='cap-input-word',offset=offset,actual=actual[offset:offset+8].hex(),original=original[offset:offset+8].hex()))
+                if impedance is not None:
+                    view=ComplexView(memory,addresses['ind.output'],n,via['matrix']['stride']);original=memory.read(addresses['ind.output'],16*n*n)
+                    for j in range(n):
+                        for i in range(n):view.set(i,j,impedance[i][j])
+                    actual=memory.read(addresses['ind.output'],16*n*n);result['ind_input_words_checked']+=len(actual)//8
+                    for offset in range(0,len(actual),8):
+                        if actual[offset:offset+8]!=original[offset:offset+8]:result['differences'].append(dict(kind='ind-input-word',offset=offset,actual=actual[offset:offset+8].hex(),original=original[offset:offset+8].hex()))
             result['differences'].extend(state_differences(heap,state))
             if memory is not None:
                 result['cache_boundaries']+=1
@@ -143,13 +166,14 @@ def compare(case,*,invert=False,capacitance=None):
 
 
 def main():
-    parser=argparse.ArgumentParser(description=__doc__);parser.add_argument('--fixture',type=Path,default=ROOT/'tests/fixtures/shared_heap_original.json.gz');parser.add_argument('--inverse',action='store_true');parser.add_argument('--ported-cap',action='store_true');parser.add_argument('--output',type=Path);options=parser.parse_args()
+    parser=argparse.ArgumentParser(description=__doc__);parser.add_argument('--fixture',type=Path,default=ROOT/'tests/fixtures/shared_heap_original.json.gz');parser.add_argument('--inverse',action='store_true');parser.add_argument('--ported-cap',action='store_true');parser.add_argument('--ported-ind',action='store_true');parser.add_argument('--output',type=Path);options=parser.parse_args()
     fixture=json.loads(gzip.decompress(options.fixture.read_bytes()));results=[]
     for case in fixture['cases']:
         cap=ported_capacitance(case)if options.ported_cap else None
-        results.append(compare(case,invert=options.inverse,capacitance=cap))
-        if options.ported_cap:print(case['label']+'/'+case['cache_mode']+': '+str(len(results[-1]['differences']))+' differences',flush=True)
-    report={key:sum(case[key]for case in results)for key in ('allocations_checked','events_checked','stores_checked','faults_checked','cache_boundaries','cache_words_checked','cap_input_words_checked','cap_words_checked','ind_words_checked')}
+        prepared=ported_impedance(case)if options.ported_ind else None
+        results.append(compare(case,invert=options.inverse,capacitance=cap,impedance=None if prepared is None else prepared.reduced_z))
+        if options.ported_cap or options.ported_ind:print(case['label']+'/'+case['cache_mode']+': '+str(len(results[-1]['differences']))+' differences',flush=True)
+    report={key:sum(case[key]for case in results)for key in ('allocations_checked','events_checked','stores_checked','faults_checked','cache_boundaries','cache_words_checked','cap_input_words_checked','ind_input_words_checked','cap_words_checked','ind_words_checked')}
     report.update(cases=len(results),predicted_cache_errors=sum(len(case['predicted_cache_errors'])for case in results),differences=sum(len(case['differences'])for case in results),results=results)
     if options.output:options.output.write_text(json.dumps(report,indent=2)+'\n')
     print(json.dumps({key:value for key,value in report.items()if key!='results'},separators=(',',':')))

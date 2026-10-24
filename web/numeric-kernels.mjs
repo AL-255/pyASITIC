@@ -8,9 +8,11 @@ export async function installNumericalKernels(python, bytes) {
   }
   const { instance } = await WebAssembly.instantiate(bytes);
   const api = instance.exports;
+  const matrixCapacity=api.matrix_capacity();
+  if(!Number.isInteger(matrixCapacity)||matrixCapacity<1||matrixCapacity>1024)throw new Error("Compiled matrix capacity is invalid");
   const storage = new Float64Array(api.memory.buffer, api.buffer(), 2 * 66049);
-  const matrix = new Float64Array(api.memory.buffer, api.matrix_buffer(), 2 * 256 * 256);
-  const pivots = new Int32Array(api.memory.buffer, api.pivots_buffer(), 256);
+  const matrix = new Float64Array(api.memory.buffer, api.matrix_buffer(), 2 * matrixCapacity * matrixCapacity);
+  const pivots = new Int32Array(api.memory.buffer, api.pivots_buffer(), matrixCapacity);
   const contactConfig = new Float64Array(api.memory.buffer, api.contact_config_buffer(), 4096);
   const contactTables = new Float64Array(api.memory.buffer, api.contact_table_buffer(), 2 * (66049 + 1024));
   const generalMatrix = new Float64Array(api.memory.buffer, api.general_buffer(), 2 * 514 * 514);
@@ -22,9 +24,9 @@ export async function installNumericalKernels(python, bytes) {
   const transformerData = new Float64Array(api.memory.buffer, api.transformer_buffer(), 24);
   const networkMetricInput = new Float64Array(api.memory.buffer, api.network_metric_buffer(), 256*26);
   const networkMetricOutput = new Float64Array(api.memory.buffer, api.network_metric_result_buffer(), 256*42);
-  const impedanceWires = new Float64Array(api.memory.buffer, api.impedance_wire_buffer(), 256*10);
-  const impedanceMutual = new Float64Array(api.memory.buffer, api.impedance_mutual_buffer(), 256*255/2);
-  const impedanceMatrix = new Float64Array(api.memory.buffer, api.impedance_matrix_buffer(), 2*256*256);
+  const impedanceWires = new Float64Array(api.memory.buffer, api.impedance_wire_buffer(), matrixCapacity*10);
+  const impedanceMutual = new Float64Array(api.memory.buffer, api.impedance_mutual_buffer(), matrixCapacity*(matrixCapacity-1)/2);
+  const impedanceMatrix = new Float64Array(api.memory.buffer, api.impedance_matrix_buffer(), 2*matrixCapacity*matrixCapacity);
   const conductorResistance = new Float64Array(api.memory.buffer, api.conductor_resistance_buffer(), 20000*12);
   const conductorResistanceOutput = new Float64Array(api.memory.buffer, api.conductor_resistance_result_buffer(), 4);
   const geometryMetrics = new Float64Array(api.memory.buffer, api.geometry_metrics_buffer(), 20000*7);
@@ -70,6 +72,7 @@ export async function installNumericalKernels(python, bytes) {
     } finally {o?.release();c?.release();}
   }
   python.registerJsModule("_reasitic_numeric", {
+    matrix_capacity(){return matrixCapacity;},
     symmetric_geometry(config,output) {
       let c,o;
       try {
@@ -96,7 +99,7 @@ export async function installNumericalKernels(python, bytes) {
       let w,p,o;
       try {
         w=wires.getBuffer("f64");p=mutual.getBuffer("f64");o=output.getBuffer("f64");const n=w.data.length/10;
-        if(!Number.isInteger(n)||n<1||n>256||p.data.length!==n*(n-1)/2||o.data.length!==2*n*n)throw new Error("Filament assembly dimensions are invalid");
+        if(!Number.isInteger(n)||n<1||n>matrixCapacity||p.data.length!==n*(n-1)/2||o.data.length!==2*n*n)throw new Error("Filament assembly dimensions are invalid");
         for(let i=0;i<n;i++)if(!Number.isInteger(w.data[10*i+1])||w.data[10*i+1]<1||w.data[10*i+1]>2147483647)throw new Error("Filament thickness count is invalid");
         impedanceWires.set(w.data);impedanceMutual.set(p.data);const status=api.impedance_assemble(n,frequency);
         if(!status)o.data.set(impedanceMatrix.subarray(0,2*n*n));return status;
@@ -295,13 +298,13 @@ export async function installNumericalKernels(python, bytes) {
       let a,b;
       try {
         a=input.getBuffer("f64");b=output.getBuffer("f64");
-        if(a.data.length%2||a.data.length>2*256*256||b.data.length!==2)throw new Error("Complex sum buffer dimensions are invalid");
+        if(a.data.length%2||a.data.length>2*matrixCapacity*matrixCapacity||b.data.length!==2)throw new Error("Complex sum buffer dimensions are invalid");
         matrix.set(a.data);const status=api.complex_sum(a.data.length/2);
         b.data.set(matrix.subarray(0,2));return status;
       } finally { b?.release();a?.release(); }
     },
     symmetric(buffer, n, invert) {
-      if (!Number.isInteger(n) || n < 1 || n > 256) throw new Error("Symmetric matrix dimension is out of range");
+      if (!Number.isInteger(n) || n < 1 || n > matrixCapacity) throw new Error("Symmetric matrix dimension is out of range");
       const view = buffer.getBuffer("f64");
       try {
         const count = 2 * n * n;

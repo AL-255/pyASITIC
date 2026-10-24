@@ -10,6 +10,7 @@ from array import array
 import math
 from .green import _guard,legacy_divide
 from .linear import _product,_scale,_update
+from .numeric_limits import MATRIX_CAPACITY
 
 try:
     from _reasitic_numeric import symmetric as _compiled_symmetric
@@ -120,7 +121,7 @@ def _rotate(x,y,c,s):
 @_guard
 def factor_symmetric_upper(matrix):
     n=_validate(matrix)
-    if _compiled_symmetric is not None and n<=256:return _compiled(matrix,n,False)
+    if _compiled_symmetric is not None and n<=MATRIX_CAPACITY:return _compiled(matrix,n,False)
     a=[row.copy() for row in matrix];pivots=[0]*n;k=n-1
     alpha=_d(float.fromhex("0x1.47e0f66afed07p-1"))
     while k>=0:
@@ -185,7 +186,7 @@ def _multiply_upper(a,n,x):
 def inverse_symmetric(matrix):
     """Native ZSYTRF(n-cell workspace) + ZSYTRI, with full symmetric output."""
     n=_validate(matrix)
-    if _compiled_symmetric is not None and n<=256:return _compiled(matrix,n,True)[0]
+    if _compiled_symmetric is not None and n<=MATRIX_CAPACITY:return _compiled(matrix,n,True)[0]
     a,pivots=factor_symmetric_upper(matrix);n=len(a);k=0
     while k<n:
         step=1

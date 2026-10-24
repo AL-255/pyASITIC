@@ -2,6 +2,7 @@
 import {readFileSync} from "node:fs";
 import {pathToFileURL} from "node:url";
 import assert from "node:assert/strict";
+import{createHash}from'node:crypto';
 import {installNumericalKernels} from "../web/numeric-kernels.mjs";
 const {loadPyodide}=await import(pathToFileURL(process.argv[2]).href),py=await loadPyodide();
 py.unpackArchive(new Uint8Array(readFileSync(new URL("../dist/reasitic.zip",import.meta.url))),"zip");
@@ -9,7 +10,9 @@ await installNumericalKernels(py,readFileSync(new URL("../dist/numeric.wasm",imp
 py.runPython(`
 import json,hashlib,struct,math
 from reasitic.symmetric import factor_symmetric_upper,inverse_symmetric,_compiled_symmetric
+from reasitic.numeric_limits import MATRIX_CAPACITY
 assert _compiled_symmetric is not None
+assert MATRIX_CAPACITY==512
 def digest(a):
     return hashlib.sha256(b"".join(struct.pack("<dd",a[i][j].real,a[i][j].imag) for i in range(len(a)) for j in range(i,len(a)))).hexdigest()
 def matrix_probe(payload):
@@ -63,8 +66,13 @@ for(const c of small.cases){
   }
 }
 console.log(`${small.cases.length} original-binary symmetric cases passed (${components} exact upper-triangle components, pivots and singular classification).`);
-const large=JSON.parse(readFileSync(new URL("../tests/fixtures/symmetric_large.json",import.meta.url)));
-for(const c of large.cases){
+const largeBytes=readFileSync(new URL("../tests/fixtures/symmetric_large.json",import.meta.url)),large=JSON.parse(largeBytes);
+const wide=JSON.parse(readFileSync(new URL('../tests/fixtures/symmetric_wide_original.json',import.meta.url)));
+assert.equal(wide.parent_sha256,createHash('sha256').update(largeBytes).digest('hex'));
+assert.equal(wide.original_sha256,small.original_verification.original_sha256);
+assert.equal(wide.legacy_sha256,small.original_verification.legacy_sha256);
+assert.equal(wide.probe_source,readFileSync(new URL('./original_symmetric_probe.cpp',import.meta.url),'utf8'));
+for(const c of [...large.cases,...wide.cases]){
   const actual=JSON.parse(probe(JSON.stringify(c)));
   assert.deepEqual(actual.P,c.P,`Original ${c.n} ${c.kind} pivots`);
   for(const key of ["input_sha256","factor_sha256","inverse_sha256"])assert.equal(actual[key],c[key],`Original ${c.n} ${c.kind} ${key}`);
@@ -73,6 +81,11 @@ for(const c of large.cases){
 }
 // The Python wrapper rejects invalid inputs before entering the bounded kernel.
 py.runPython(`
+from array import array
+for n in (0,513):
+    try:_compiled_symmetric(array('d'),n,1)
+    except Exception:pass
+    else:raise AssertionError('Compiled matrix capacity bound was bypassed')
 for a in ([],[[1j,0j]],[[complex(float("nan"),0)]],[[complex(float("inf"),0)]]):
     for function in (factor_symmetric_upper,inverse_symmetric):
         try:function(a)

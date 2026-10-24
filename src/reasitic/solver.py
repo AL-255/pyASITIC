@@ -8,6 +8,7 @@ import copy
 import math
 import struct
 from functools import lru_cache
+from dataclasses import dataclass
 from .inductance import segment_mutual
 from .symmetric import inverse_symmetric
 from .linear import inverse_general
@@ -97,17 +98,25 @@ def filament_counts(segment,width_cell,thickness_cell,max_width_cells=500):
     return _native_counts(segment.width,segment.thickness,width_cell,thickness_cell,max_width_cells,segment.nx,segment.ny)
 
 
-def solve_impedance(shape,technology,frequency_hz,*,length_cell=1000,width_cell=1000,
-                    thickness_cell=1000,max_width_cells=500,capacitance_length_cell=None,max_filaments=256,
-                    admittance=False,discretized=False,eddy=False,include_diagonal=False):
-    """Return the reduced segment impedance matrix, total L/R/Q and mesh size.
+@dataclass
+class ImpedanceSystem:
+    meshed: object
+    groups: list
+    full: list
+    reduced_y: list
+    reduced_z: list
+    warnings: list
+    eddy_details: object
+    filaments: int
 
-    Cells are in micrometres; frequency is in Hz. Returns ohms and henries.
-    Includes the reference's via correction. Eddy mode 1 follows native EDDY ON:
-    packed square stamping or segment folding for other shape types.
-    `admittance=True` returns the branch matrix in siemens instead of ohms;
-    scalar L/R/Q still describe total series impedance. `discretized=True`
-    accepts the already cloned geometry used by the combined PI2 driver.
+
+def prepare_impedance(shape,technology,frequency_hz,*,length_cell=1000,width_cell=1000,
+                      thickness_cell=1000,max_width_cells=500,capacitance_length_cell=None,
+                      max_filaments=256,discretized=False,eddy=False):
+    """Assemble, invert and reduce the original filament system before vias.
+
+    This is the shared preparation used by solve_impedance. The returned
+    reduced impedance includes native eddy correction but no via stores.
     """
     values = (frequency_hz,length_cell,width_cell,thickness_cell)
     if not all(math.isfinite(v) and v>0 for v in values):
@@ -140,7 +149,6 @@ def solve_impedance(shape,technology,frequency_hz,*,length_cell=1000,width_cell=
                 metadata.append((segment.metal,nz))
         groups.append(indices)
     filaments=[(_checked_filament(row),metal,nz) for row,(metal,nz) in zip(filament_records(filament_inputs),metadata)]
-    omega = 2*math.pi*frequency_hz
     n = len(filaments)
     warnings = []
     native=mesh_mutual(b"".join(struct.pack("=8d",*wire) for wire,_,_ in filaments));pair=0;pairs=[]
@@ -162,6 +170,29 @@ def solve_impedance(shape,technology,frequency_hz,*,length_cell=1000,width_cell=
     if eddy:
         from .eddy import add_eddy
         eddy_details=add_eddy(reduced_z,meshed,technology,frequency_hz,int(eddy),warnings)
+    return ImpedanceSystem(meshed,groups,full,reduced_y,reduced_z,warnings,eddy_details,n)
+
+
+def solve_impedance(shape,technology,frequency_hz,*,length_cell=1000,width_cell=1000,
+                    thickness_cell=1000,max_width_cells=500,capacitance_length_cell=None,max_filaments=256,
+                    admittance=False,discretized=False,eddy=False,include_diagonal=False):
+    """Return the reduced segment impedance matrix, total L/R/Q and mesh size.
+
+    Cells are in micrometres; frequency is in Hz. Returns ohms and henries.
+    Includes the reference's via correction. Eddy mode 1 follows native EDDY ON:
+    packed square stamping or segment folding for other shape types.
+    `admittance=True` returns the branch matrix in siemens instead of ohms;
+    scalar L/R/Q still describe total series impedance. `discretized=True`
+    accepts the already cloned geometry used by the combined PI2 driver.
+    """
+    prepared=prepare_impedance(shape,technology,frequency_hz,length_cell=length_cell,width_cell=width_cell,
+        thickness_cell=thickness_cell,max_width_cells=max_width_cells,capacitance_length_cell=capacitance_length_cell,
+        max_filaments=max_filaments,discretized=discretized,eddy=eddy)
+    meshed,groups,full=prepared.meshed,prepared.groups,prepared.full
+    reduced_y,reduced_z=prepared.reduced_y,prepared.reduced_z
+    warnings,eddy_details,n=prepared.warnings,prepared.eddy_details,prepared.filaments
+    metal_count=len(technology.metals)
+    omega=2*math.pi*frequency_hz
     group = 0
     for s in meshed.segments:
         if s.metal<metal_count:
@@ -193,7 +224,7 @@ def solve_impedance(shape,technology,frequency_hz,*,length_cell=1000,width_cell=
     data = dict(matrix=[[[z.real,z.imag] for z in row] for row in result],
                 resistance_ohm=total.real,inductance_h=total.imag/omega,
                 series_q=total.imag/total.real if total.real else None,
-                frequency_hz=frequency_hz,filaments=n,segments=len(conductors),
+                frequency_hz=frequency_hz,filaments=n,segments=len(groups),
                 warnings=list(dict.fromkeys(warnings)),eddy=bool(eddy))
     if eddy_details is not None:
         data["eddy_details"]=eddy_details

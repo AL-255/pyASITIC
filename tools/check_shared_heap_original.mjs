@@ -18,7 +18,7 @@ from test_shared_heap_original import SharedHeapTests
 assert unittest.TextTestRunner(verbosity=2).run(unittest.defaultTestLoader.loadTestsFromTestCase(SharedHeapTests)).wasSuccessful()
 `);
 const status=py.runPython(`
-sys.argv=['audit_shared_heap_original','--inverse','--ported-cap','--output','/shared/audit.json']
+sys.argv=['audit_shared_heap_original','--inverse','--ported-cap',*(['--ported-ind']if ${process.argv.includes('--ported-ind')?'True':'False'} else []),'--output','/shared/audit.json']
 from audit_shared_heap_original import main
 status=0
 try:main()
@@ -26,4 +26,5 @@ except SystemExit as error:status=error.code
 status
 `);
 process.exitCode=Number(status);
-if(process.argv[3])writeFileSync(process.argv[3],py.FS.readFile('/shared/audit.json'));
+const outputPath=process.argv.slice(3).find(value=>!value.startsWith('--'));
+if(outputPath)writeFileSync(outputPath,py.FS.readFile('/shared/audit.json'));

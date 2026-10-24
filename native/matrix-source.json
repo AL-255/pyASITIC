@@ -4,5 +4,5 @@
     "complex.cpp": "e8ce078533619766e600b9d547fd366ae66d9b9e7ef824e2db35e2a1abb75078",
     "symmetric.cpp": "7dab27d8bb1c098f973c277a0250b6a0195f8c299a71c63d7a1aee87a40655ac"
   },
-  "adaptation": "Original loop, pivot and store order; long double replaced by software 80-bit SoftReal, runtime error boundary retained, fixed bounded matrix storage."
+  "adaptation": "Original loop, pivot and store order; long double replaced by software 80-bit SoftReal, runtime error boundary retained. Fixed bounded storage supports 512 entries internally; the browser mesh budget remains 256. Capacity is exported to the Python/JS wrappers rather than inferred from an input case."
 }

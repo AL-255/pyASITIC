@@ -4,6 +4,7 @@ from decimal import Decimal, localcontext
 from fractions import Fraction
 import math
 from .retained_scalar import Real as R
+from .numeric_limits import MATRIX_CAPACITY
 
 try:
     from _reasitic_numeric import impedance_assemble as _compiled_assembly
@@ -44,7 +45,7 @@ def assemble(wires,metadata,pairs,frequency):
     n=len(wires)
     if n<1 or len(metadata)!=n or len(pairs)!=n*(n-1)//2:
         raise ValueError("Invalid filament assembly dimensions")
-    if _compiled_assembly is not None and n<=256:
+    if _compiled_assembly is not None and n<=MATRIX_CAPACITY:
         data=array("d",(v for wire,(sheet,nz) in zip(wires,metadata) for v in (sheet,nz,*wire)))
         values=array("d",pairs);output=array("d",[0.])*(2*n*n)
         if _compiled_assembly(data,values,output,frequency):raise ValueError("Invalid filament assembly configuration")

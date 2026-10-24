@@ -1,5 +1,9 @@
 # Shared numerical bytes and native cache behavior
 
+The subsequent [pre-via parity check](PRE_VIA_PARITY.md) now regenerates both
+CAP and the pre-via inductive matrix, matching all 130 selected observations.
+The original component mode and its native-input checks remain available.
+
 The development port now has sparse guest byte memory, complex matrix views
 that can alias the same bytes, the original via load/store sequence, and
 byte-backed tcache control, links and keys. This extends
