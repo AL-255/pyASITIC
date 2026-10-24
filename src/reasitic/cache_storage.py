@@ -10,6 +10,8 @@ import hashlib,struct
 from .prelude_storage import table_storage,complex_bytes
 from .fft import _fft,_transform_grid
 from .file_buffer_storage import FileBytes,read_buffer,write_buffer
+from .memory import ComplexArray
+from .table_kernel import layer_coefficients
 
 
 def initial_regions(inputs):
@@ -29,6 +31,25 @@ class CacheStorage:
 
     def index(self,source,target):return source*self.metals-source*(source-1)//2+target-source
     def address(self,name,index):return self.memory.u32(self.inputs['arrays'][name]['pointer_address']+4*index)
+    def __call__(self,source,target):
+        index=self.index(source,target);nx,ny=self.nx,self.ny
+        return tuple(ComplexArray(self.memory,self.address(name,index),count)for name,count in (('x',2*nx),('y',2*ny),('xy',max((nx+1)*(ny+1),nx*(nx+1)+ny+1))))
+
+    def can_batch(self,address,size):
+        # Rectangular contact reads can go beyond declared XY storage. Keep
+        # those reads literal, including any aliases with the output matrix.
+        if self.nx!=self.ny:return False
+        count=self.metals*(self.metals+1)//2
+        for group in self.inputs['arrays'].values():
+            ranges=[(group['pointer_address'],4*count)]
+            ranges.extend((self.memory.u32(group['pointer_address']+4*i),group['size'])for i in range(count))
+            if any(start<address+size and address<start+length for start,length in ranges):return False
+        return True
+
+    def write_coefficients(self):
+        """Native CAP stores these before opening/generating a cache file."""
+        values=layer_coefficients(self.technology.substrate,self.frequency)
+        self.memory.write(self.inputs['coefficient_address'],complex_bytes(values))
     def _get(self,address,index):return complex(*struct.unpack('<2d',self.memory.read(address+16*index,16)))
     def _set(self,address,index,value):self.memory.write(address+16*index,struct.pack('<2d',value.real,value.imag))
     def _vector(self,address,count):return [self._get(address,i)for i in range(count)]

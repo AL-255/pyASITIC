@@ -78,13 +78,16 @@ def _cached_contact_groups(config):
 
 def solve_capacitance(shape,technology,frequency_hz,*,ground=None,length_cell=1000,width_cell=1000,
                       fft_x=None,fft_y=None,unfolded=False,max_contacts=256,include_potential=False,force_ground_mesh=True,
-                      observe_storage=None):
+                      observe_storage=None,table_provider=None,potential_view=None):
     """Original contact-potential matrix inversion and folded/unfolded reduction.
 
     Returned matrix is a complex admittance in siemens. `unfolded` preserves
     native node admittances; the default returns the folded branch convention.
     `observe_storage` receives immutable final buffer values before cleanup,
     for the shared-memory port; no captured value enters the calculation.
+    A supplied table provider reads the existing guest cache. `potential_view`
+    receives the original matrix stores; batching requires disjoint source
+    storage so a store cannot change a later table or pointer read.
     """
     nx=int(technology.chip.get("fftx",128) if fft_x is None else fft_x)
     ny=int(technology.chip.get("ffty",128) if fft_y is None else fft_y)
@@ -117,18 +120,24 @@ def solve_capacitance(shape,technology,frequency_hz,*,ground=None,length_cell=10
     records=tuple((m.layer,float(Real(depths[m.layer])-m.height),m.thickness) for m in technology.metals)
     packed={}
     def get_table(low,high):
+        if table_provider is not None:return table_provider(low,high)
         pair=low,high
         if pair not in packed:packed[pair]=_tables(*pair,nx,ny,width,height,records,coefficients,tuple(depths))
         return packed[pair]
-    full=contact_matrix(contacts,nx,ny,width,height,records,coefficients,depths,get_table)
+    batch=table_provider is None or(potential_view is not None and getattr(table_provider,'can_batch',lambda *args:False)(potential_view.address,16*len(contacts)**2))
+    full=contact_matrix(contacts,nx,ny,width,height,records,coefficients,depths,get_table)if batch else None
     if full is None:
         full=[];zero_terms={}
-        for a in contacts:
+        for i,a in enumerate(contacts):
             row=[]
-            for b in contacts:
+            for j,b in enumerate(contacts):
                 pair=min(a.metal,b.metal),max(a.metal,b.metal)
                 row.append(_contact_potential(a,b,nx,ny,width,height,records,coefficients,depths,get_table(*pair),zero_terms))
+                if potential_view is not None:potential_view.set(i,j,row[-1])
             full.append(row)
+    elif potential_view is not None:
+        for i,row in enumerate(full):
+            for j,value in enumerate(row):potential_view.set(i,j,value)
     admittance=inverse(full)
     def observe(name,matrix):
         if observe_storage is not None:observe_storage(name,tuple(tuple(row)for row in matrix))

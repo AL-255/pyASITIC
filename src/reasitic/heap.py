@@ -161,6 +161,12 @@ class Heap:
         if self._header_memory is not None and memory is not self._header_memory:raise ValueError('Cache and header stores must share memory')
         if isinstance(key,bool)or not isinstance(key,int)or not 0<=key<=0xffffffff:raise ValueError('The i386 tcache key must be an unsigned 32-bit integer')
 
+    def require_cache_memory(self,memory,key):
+        """Check a continuing producer without refreshing any guest bytes."""
+        self._validate_cache_memory(memory,key)
+        active=self._cache_memory if self._cache_memory is not None else self._cache_write_memory
+        if active is not memory or key!=self._cache_key:raise ValueError('Continuation requires the existing cache memory and key')
+
     def _write_cache_control(self,index):
         chain=self._tcache[index];memory=self._cache_write_memory
         memory.put_u16(self.cache_address+2*index,len(chain))

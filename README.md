@@ -323,6 +323,14 @@ final table digests unchanged but correctly fails physical-walk checks. The
 older incomplete-context `libio` audit remains nonzero and required; startup,
 allocator byte decisions and joining the later numerical history remain open.
 
+The [continuous driver replay](docs/DRIVER_HISTORY.md) now carries the same
+heap/memory through CAP and LMAT to node input, without a CAP-entry reset.
+Live cache reads correct the rectangular CAP discrepancy, and native freed
+matrix observations correct lower-triangle storage. All 134 selected histories
+remain in the stronger comparison, including no-via wires. Complete later
+heaps and bounded numerical frees are now independent observations; missing
+heap stores remain strict failures in a new required CI suite.
+
 Records use binary64 with selected retained-precision intermediates matching the
 reference's x87 arithmetic. The [native logarithm audit](docs/LOGARITHM_AUDIT.md)
 adds 8,182 instruction cases and 10,327 multiplier cases with complete request

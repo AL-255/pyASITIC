@@ -29,6 +29,10 @@ stores. [Shared cache storage](CACHE_STORAGE.md) now reproduces all selected
 table stores and the rectangular overflow from explicit earlier cache inputs.
 Joining that earlier memory to this numerical replay still requires the
 remaining allocator byte history and source process-startup allocations.
+The later [continuous driver replay](DRIVER_HISTORY.md) now connects the same
+earlier memory through this numerical stage, with live cache reads and no
+CAP-entry reset. It adds complete-heap and bounded freed-matrix comparisons;
+those stronger checks still expose missing heap stores.
 
 The complete initial bytes matter: name padding left untouched in a contact
 group can later become an allocator validation word after reuse. Supplying

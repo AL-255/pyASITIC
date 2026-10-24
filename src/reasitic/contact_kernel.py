@@ -1,5 +1,6 @@
 """Batch transport for the original retained contact-potential arithmetic."""
 from array import array
+from .memory import ComplexArray
 
 try:
     from _reasitic_numeric import contact_pair as _compiled_contact_pair
@@ -20,6 +21,9 @@ def contact_matrix(contacts,nx,ny,width,height,records,coefficients,depths,get_t
     for i,low in enumerate(metals):
         for high in metals[i:]:
             config[6],config[7]=low,high
-            tables=array("d",(v for table in get_table(low,high) for z in table for v in (z.real,z.imag)))
+            tables=array('d')
+            for table in get_table(low,high):
+                if isinstance(table,ComplexArray):tables.frombytes(table.binary64_bytes())
+                else:tables.extend(v for z in table for v in (z.real,z.imag))
             if _compiled_contact_pair(config,tables,result):raise ValueError("Invalid contact-potential kernel configuration")
     return [[complex(result[2*(i*n+j)],result[2*(i*n+j)+1]) for j in range(n)] for i in range(n)]

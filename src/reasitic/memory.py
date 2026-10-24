@@ -70,6 +70,20 @@ class Memory:
     def put_u16(self,address,value):self.write(address,struct.pack('<H',value))
 
 
+class ComplexArray:
+    """A native complex pointer with an explicit transport iteration extent.
+
+    Indexed loads use signed pointer arithmetic, without clipping to that
+    extent. Iteration is bounded for batch transports; direct native reads
+    may alias neighboring objects, or raise mapping/initialization faults.
+    """
+    def __init__(self,memory,address,count):self.memory,self.address,self.count=memory,address,count
+    def __len__(self):return self.count
+    def __getitem__(self,index):return complex(*struct.unpack('<2d',self.memory.read(self.address+16*index,16)))
+    def __iter__(self):return (self[i]for i in range(self.count))
+    def binary64_bytes(self):return self.memory.read(self.address,16*self.count)
+
+
 class ComplexView:
     """The original column-major 16-byte complex matrix addressing rule.
 

@@ -107,3 +107,9 @@ allocator decisions reading potentially corrupted shared headers, continuous
 integration with CAP/LMAT numerical memory, secondary geometry groups and
 later command cleanup. Known arithmetic and JOIN/UNJOIN discrepancies remain
 unfinished; these component results do not establish whole-program parity.
+
+The subsequent [continuous driver replay](DRIVER_HISTORY.md) now passes this
+same source-produced memory through CAP/LMAT and the first node input. CAP
+reads live cache storage after its matrix allocation, exposing and correcting
+the rectangular isolated-table discrepancy. Its new complete-heap comparison
+keeps the remaining stores visible as strict failures.

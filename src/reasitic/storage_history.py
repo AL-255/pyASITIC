@@ -22,20 +22,25 @@ def symmetric_inverse_storage(matrix,prefix):
 
 class StorageHistory:
     def __init__(self,heap,addresses,*,initial_regions,key,contacts,capacitance,impedance,
-                 technology,mesh,geometry_addresses,via_records,termination_boundary=None,termination_ohm=0,inverse_storage=None,geometry_shape_address=None):
-        self.heap=heap;self.memory=Memory(heap.address_space);self.addresses=addresses
+                 technology,mesh,geometry_addresses,via_records,termination_boundary=None,termination_ohm=0,inverse_storage=None,geometry_shape_address=None,memory=None,capacitance_producer=None):
+        if memory is not None:
+            if initial_regions:raise ValueError('A continuous history cannot seed replacement memory')
+            heap.require_cache_memory(memory,key)
+        self.heap=heap;self.memory=Memory(heap.address_space)if memory is None else memory;self.addresses=addresses
         if impedance.full_y is None:raise ValueError('Storage history requires retained full inverse data')
         self.contacts=contacts;self.capacitance=capacitance;self.impedance=impedance
+        self.capacitance_producer=capacitance_producer
         self.technology=technology;self.mesh=mesh;self.geometry_addresses=geometry_addresses;self.via_records=via_records
         self.termination_boundary=termination_boundary;self.cap_written=False;self.sizes={}
         self.termination_ohm=termination_ohm
         self.inverse_storage={}if inverse_storage is None else inverse_storage
-        for address,data in initial_regions:self.memory.write(address,data)
-        heap.observe_cache_stores(self.memory,key)
-        write_prepared(self.memory,contacts,addresses)
-        for segment,address in zip(impedance.meshed.segments,geometry_addresses):
-            self.memory.write(address,struct.pack('<d',segment.start[0]))
-        if geometry_shape_address is not None and contacts:self.memory.write(geometry_shape_address,contacts[0].name)
+        if memory is None:
+            for address,data in initial_regions:self.memory.write(address,data)
+            heap.observe_cache_stores(self.memory,key)
+            write_prepared(self.memory,contacts,addresses)
+            for segment,address in zip(impedance.meshed.segments,geometry_addresses):
+                self.memory.write(address,struct.pack('<d',segment.start[0]))
+            if geometry_shape_address is not None and contacts:self.memory.write(geometry_shape_address,contacts[0].name)
 
     def matrix(self,name,values):
         ComplexView(self.memory,self.addresses[name],len(values)).write(values)
@@ -47,7 +52,8 @@ class StorageHistory:
         name=event.name;allocate=event.action=='allocate'
         if not self.cap_written and name.startswith('contact'):
             for buffer,matrix in self.capacitance.items():self.matrix(buffer,matrix)
-            number_contacts(self.memory,self.contacts,self.addresses);number_groups(self.memory,self.contacts,self.addresses)
+            if self.capacitance_producer is None:
+                number_contacts(self.memory,self.contacts,self.addresses);number_groups(self.memory,self.contacts,self.addresses)
             self.cap_written=True
         if allocate and name=='ind.extra_segments'and self.termination_boundary is not None:
             from .retained_scalar import Real as R
@@ -68,6 +74,9 @@ class StorageHistory:
             self.integers('ind.width_counts',[y for y,z in counts]);self.integers('ind.thickness_counts',[z for y,z in counts])
         if allocate and name=='ind.reduced_inverse.work':self.matrix('ind.output',self.impedance.reduced_y)
         if not allocate:
+            # With no vias/eddy and admittance output, native LMAT reduces
+            # directly to Y and skips both small-matrix inverse wrappers.
+            if name=='ind.full'and not self.via_records:self.matrix('ind.output',self.impedance.reduced_y)
             # Native factor/inverse routines fill pivots and overwrite scratch
             # elements. Do not pretend that constructor zeros are final values.
             if name.endswith(('.pivots','.work','.inverse_work')):
@@ -78,7 +87,9 @@ class StorageHistory:
                     else:self.memory.write(self.addresses[name],b''.join(struct.pack('<2d',z.real,z.imag)for z in values))
             if name=='ind.full_inverse.inverse_work':
                 p=self.impedance;n=p.filaments
-                self.matrix('ind.full',[[p.full_y[i][j]if i<=j else p.full[i][j]for j in range(n)]for i in range(n)])
+                # Native assembly writes only the upper triangle; the
+                # constructor's lower-triangle zeros survive this inverse.
+                self.matrix('ind.full',[[p.full_y[i][j]if i<=j else 0j for j in range(n)]for i in range(n)])
             if name=='ind.reduced_inverse.inverse_work':self.matrix('ind.output',self.impedance.reduced_z)
             if name=='ind.final_inverse.inverse_work':self.matrix('ind.output',self.final_y)
 
@@ -88,6 +99,11 @@ class StorageHistory:
         complex_vector=(name in ('cap.full','cap.reduced','cap.folded','cap.output','ind.full','ind.zero_temporary','ind.output')
                         or name.endswith(('.work','.inverse_work')))
         if complex_vector:self.memory.zero(address,event.size)
+        if name=='cap.full'and self.capacitance_producer is not None:
+            number_contacts(self.memory,self.contacts,self.addresses)
+            view=ComplexView(self.memory,address,sum(len(group.contacts)for group in self.contacts))
+            self.capacitance.update(self.capacitance_producer(view))
+        if name=='cap.reduced'and self.capacitance_producer is not None:number_groups(self.memory,self.contacts,self.addresses)
 
     def begin_stamps(self):
         metal_count=len(self.technology.metals)

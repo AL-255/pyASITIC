@@ -68,6 +68,8 @@ def compare(case,*,return_state=False,include_prelude=True,observe_headers=False
         prefix,heap,contacts=prelude(case,heap=heap,return_state=True);result['prefix']=prefix;differences.extend(prefix['differences'])
         addresses={**geometry.addresses,**contacts}
     else:addresses=geometry.addresses
+    addresses['geometry.descriptor']=first
+    addresses.update((f'geometry.segment.{i}',address)for i,address in enumerate(geometry.segments(first)))
     if return_state:return result,heap,addresses,memory
     return result
 

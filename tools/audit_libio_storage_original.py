@@ -36,6 +36,7 @@ def compare(case,*,return_state=False,cache_files=None):
         if (event.action,event.allocator)!=(native['kind'],native['allocator']):result['differences'].append(dict(kind='interface',index=index));break
         if not prepared and name.startswith('cache.'):
             write_prepared(memory,contacts,addresses);prepared=True
+            if cache is not None and 'coefficient_address'in case['cache_inputs']:cache.write_coefficients()
         if event.action=='allocate':
             if event.size!=native['request']:result['differences'].append(dict(kind='request',index=index));break
             if cache is not None and name.startswith('cache.fft.'):
