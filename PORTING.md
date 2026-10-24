@@ -20,6 +20,7 @@ Reference checkout: `~/github/asitic-re`, revision recorded in each fixture.
 | `geometry.py` square/via emission, `model.py`, `precision.py` | `spiral_construction.cpp`, `shape_construction.cpp`, `geometry.cpp`; original square `0x08056670` | 126 complete original creators / 14,742 exact XYZ stores plus origins, widths, metal/thickness and defined via counts; keyword/interactive inputs, quarter-turn boundaries, rotations, reverse phase and exits; four complete original Pi2 electrical sessions and independent GDS readback |
 | `symmetric_geometry.py`, `native/symmetric_geometry.cpp`, symmetric keyword inputs | `symmetric_construction.cpp`, `shape_prompt_symmetric.cpp`; original square `0x08059854` / polygon `0x0805a45c` | 114 original creators / 60,804 exact XYZ stores plus origins/widths/metals/thickness/via counts; whole-turn and maximum-turn cases, rotations, integer phase, odd/fractional sides, crossover history, defaults and binary64 interactive construction; eight complete Pi2/2PORT sessions, independent GDS and actual form/project/download checks in both runtimes |
 | `geometry.py` multi-metal stacking and keyword input | `composite_geometry.cpp`, shared square/reflect/translate/parser sources; original `0x0805af5c` | 180 original creators / 56,214 exact XYZ stores plus origin/width/metal/thickness; fractional and maximum turns, two to five metals, rotations, phase, defaults and binary64 interactive construction; independent GDS, four full Pi2/2PORT sessions, three invalid stack transcripts and actual form/project/export handlers in Python/Pyodide |
+| `geometry.py` capacitor/VIA modes, `web/app.js` numeric input serialization | `console_geometry.cpp`, `shape_construction.cpp`, `shape_prompts.cpp`, `shape_creation_primitives.cpp`, `command_runtime.cpp`; original wire `0x08057998`, via `0x08057b78`, join `0x08078890` | 84 original creators / 2,520 exact XYZ stores and origin bits; plate dimension/default/metal/rotation modes, interactive VIA counts/phase/retries and independent GDS cuts; four complete capacitor Pi2/2PORT sessions and 32 raw via resistance returns in both runtimes; 64 native VIA keyword rejections and the standalone Pi2 fault retained |
 | `contact_geometry.py`, `potential.py` | `contacts.cpp`; original preparation `0x08053580` / builder `0x08053a1c` | 50 original setups / 280 builder calls / 338 physical-bound and integer-grid records in Python and WebAssembly; retained placement, native counts/order, parser-forced reference mesh and original thin-wire grid/zero-area histories |
 | `potential.py` | `potential_tables.cpp`, `potential.cpp`, `contacts.cpp`, `potential_solver.cpp` | Eight CAP sessions across CMOS/BiCMOS: full potential snapshots, folded admittance matrices, and actual cache FFT samples for every metal pair; browser runtime checks cover all eight reduced matrices |
 | `contact_math.py`, `native/contact.cpp` | Original `0x080901c0`; `potential.cpp`, legacy complex DSO | All 41 captured contact matrices / 264,844 components exact in Python and WebAssembly: finite bits including signed zeros, nonfinite classes and both complete 256-contact digests; input table hashes and metadata immutability; ordered zero-term reuse checked across process/frequency edits |
@@ -904,3 +905,50 @@ Three same/reversed-metal stacks retain original diagnostic transcripts and a
 bounded public error. Source correspondence is in `native/multimetal-source.json`.
 Inner-hole keyword adapters and exhaustive prompt-state/parser boundary coverage
 remain unverified; this does not establish whole-simulator equivalence.
+
+
+### Capacitor plates, working VIA input and original failed paths
+
+`CAPACITOR` creates each plate independently with `build_wire_shape`, then joins
+the second plate using the retained origin difference. Native keyword input
+accepts either length or width, copying a missing dimension after parsing;
+default Y is the parsed plate width, the default bottom metal is the penultimate
+process metal, and phase is always positive even if an unused PHASE key is
+present. Native interactive dimensions/origins retain binary64 input. Its degree
+prompt stores the entered angle as radians, exactly like the observed WIRE
+prompt; projects identify this quirk before regeneration uses keyword degrees.
+Same-metal plate pairs remain permitted in the native modes because the original
+accepts them and can produce a model with some nonfinite metrics. Their raw
+finite model stores and nonfinite classifications remain required.
+
+The working VIA path is interactive. It uses integer scanning for counts and
+phase, unsnapped origin coordinates, and explicit ±1 direction. Captures retain
+fractional integer inputs and invalid-count/phase retries. The original command
+inventory marks VIA's keyword argument as type 11, but the parser implements only
+types 0..10. All 64 intact-original keyword histories therefore fail with
+`Unknown argument type` before the VIA shape parser or constructor runs. The
+public native-keyword mode preserves this failure; the webpage generates VIA
+arrays through the working interactive mode. No command table or numerical
+instruction was patched to manufacture a working keyword path.
+
+All 84 original creators / 2,520 XYZ stores also require exact origin bits,
+scalar widths, layer indices, conductor thicknesses and via counts; uninitialized
+via thickness fields are excluded explicitly. Independent GDS readback checks
+plate polygons, via layers/counts and every cut coordinate. Original same-metal
+capacitor behavior, both missing/zero dimension errors, all VIA keyword errors,
+and the original standalone VIA Pi2 signal-11 transcript remain in fixtures.
+The latter produces a bounded public diagnostic before attempting a model.
+Four complete capacitor Pi2/2PORT sessions check every captured Y/model/S/
+resonance store, including eddy and raw-radian interactive input, with public
+nulls only for original nonfinite outputs. Another four standalone VIA histories
+check all 32 original raw retained RESIS/RESISHF returns and final scalar bits in
+both runtimes. Source correspondence is in `native/primitive-source.json`.
+
+The shared request and project encoder preserves negative-zero numeric input as
+an accepted numeric string instead of allowing JavaScript JSON serialization to
+replace it with positive zero. A captured VIA origin requires the original sign
+bit through actual form regeneration, project save/open and GDS requests.
+Typed input conventions remain intact. The browser's via-count bound remains
+1–1000; these fixtures do not claim unrestricted original sizes, exhaustive
+prompt/descriptor histories, a functioning original VIA keyword path, or
+whole-simulator equivalence.

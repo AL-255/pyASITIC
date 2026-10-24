@@ -41,10 +41,10 @@ def _shape(request,tech):
 def _shapes(request,tech):
     kind=request.get('kind','square').lower();parameters=dict(request.get('parameters',{}))
     if request.get('native_keyword',False):
-        if kind not in('ring','square','polygon','wire','symmetric_square','symmetric_polygon','multimetal'):raise ValueError('Native keyword input mode currently supports ring, square, polygon, symmetric/multi-metal coils and wire geometry')
+        if kind not in('ring','square','polygon','wire','symmetric_square','symmetric_polygon','multimetal','capacitor','via'):raise ValueError('Native keyword input mode currently supports ring, square, polygon, symmetric/multi-metal coils, wire and capacitor geometry')
         parameters['native_keyword']=True
     if request.get('native_interactive',False):
-        if kind!='wire':raise ValueError('Native interactive input mode currently supports wire geometry')
+        if kind not in('wire','capacitor','via'):raise ValueError('Native interactive input mode currently supports wire, capacitor and via geometry')
         parameters['native_interactive']=True
     return build_device(kind,technology=tech,**parameters)
 
@@ -84,6 +84,8 @@ def handle(request,*,progress=None):
             termination_ohm=float(request.get("termination_ohm",0)),eddy=request.get("eddy",False),include_matrices=bool(request.get("include_matrices",False)),
             **{key:float(mesh.get(key,1000)) for key in ("length_cell","width_cell","thickness_cell","capacitance_length_cell","capacitance_width_cell")})
     shape = _shape(request,tech)
+    if shape.kind=='via'and(action=='pi2'or(action=='mesh'and request.get('model','pi2')=='pi2')):
+        raise ValueError('The original standalone VIA Pi2 analysis faults before producing a model; add conductor geometry')
     if action=="mesh":
         pads={key:_shape(request[key],tech) for key in ("first_pad","second_pad") if request.get(key)}
         return mesh_information(shape,tech,request.get("mesh",{}),model=request.get("model","pi2"),fit=bool(request.get("fit",False)),**pads)

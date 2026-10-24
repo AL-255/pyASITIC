@@ -144,6 +144,12 @@ Implemented so far:
   creators / 56,214 XYZ stores match in Python and Pyodide, with independent GDS
   readback. Four complete Pi2/2PORT sessions preserve every captured electrical
   output, including native nonfinite resonance and three invalid-stack histories.
+- Capacitor keyword/interactive modes and working interactive VIA inputs match
+  84 original creators / 2,520 XYZ stores and origin bits, with independent GDS
+  readback. Four complete capacitor Pi2/2PORT models and 32 retained via
+  resistance returns match, including original nonfinite metric classes.
+  The broken original VIA keyword command and standalone VIA Pi2 fault retain
+  explicit diagnostics; signed-zero input survives request/project round-trips.
 - Browser preview, pan/zoom, process-file import, project save/open, conductor
   estimates, selectable L/R/Q frequency plots, linear/log frequency scales,
   progressive Pi2/Pi3/Pi4 sweeps, sample-to-circuit inspection, plot SVG and CSV

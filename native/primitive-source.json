@@ -1,0 +1,20 @@
+{
+  "reference_commit": "63885e808b522bdeba3f254d353afc72e643c761",
+  "source_sha256": {
+    "src/console_geometry.cpp": "dbcebd085a18ea5a508c6ff859fe4827e74eb14f1b0d978a9e4777cbd1de9654",
+    "src/shape_construction.cpp": "cfa061f327ed4d29c232602f64a38f8dbab7dc587ee9d69cf2e9686b8b66008d",
+    "src/geometry.cpp": "23885f0c700e9a29301a0be31036d080acfd4c8d8e9011cc5eb4584277b6939d",
+    "src/shape_prompts.cpp": "47f649244bf36d534d32d7953c8fa87f80f9cd0c5ffee959cf9c7fa065b2b0f1",
+    "src/shape_creation_primitives.cpp": "507929880bda9db93856a614d24863f1c08151b07a2b2efdc5ddba2cb594a333",
+    "src/command_runtime.cpp": "1c7c8a432588c9c27f1e384ef38c07dd881e38ce3fcad1e29fa2cbe89d403878",
+    "tests/command_inventory.json": "a8c9134d876090c69df4742afd6ab5f0911f79ebc7c8767381d2311834cd1ac3"
+  },
+  "original_entries": {
+    "wire": "0x08057998",
+    "via": "0x08057b78",
+    "join": "0x08078890",
+    "resis": "0x0804eedc",
+    "resishf": "0x0804d70c"
+  },
+  "adaptation": "CAPACITOR constructs each plate independently with the original wire rotation/origin stores, then applies the retained join translation. Native keyword mode preserves one-dimension duplication, width-derived Y default, default metals, snapped lengths and angle stores; native interactive mode preserves raw dimensions/origins and the original raw-radian orientation quirk. Working interactive VIA preserves integer truncation, phase and all defined construction fields; uninitialized thickness fields remain excluded. The original VIA keyword command-table type 11 is unsupported before its shape parser executes, so all 64 captured keyword histories retain a bounded rejection rather than a fabricated keyword creator. Standalone VIA Pi2 signal-11 behavior is an explicit diagnostic. All 84 creators / 2520 XYZ stores, origin bits, scalar widths/metals/defined thickness/counts, four complete capacitor Pi2/2PORT sessions and all 32 raw via resistance returns are required in Python and Pyodide. Numeric signed-zero request/project inputs survive the browser JSON boundary using accepted numeric strings. Browser counts remain bounded to 1..1000; exhaustive parser histories and unrestricted original size ranges are not claimed."
+}

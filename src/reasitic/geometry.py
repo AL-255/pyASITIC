@@ -158,6 +158,15 @@ def _wire(shape,tech,metal,length,width,angle,phase):
     if phase<0:shape.segments[0].reverse()
 
 
+def _capacitor(shape,tech,metal,bottom,length,width,angle):
+    origin=shape.origin.copy()
+    _wire(shape,tech,metal,length,width,angle,1)
+    second=Shape('.',shape.kind,origin,dict(shape.parameters))
+    _wire(second,tech,bottom,length,width,angle,1)
+    second.offset(R(second.origin[0])-R(shape.origin[0]),R(second.origin[1])-R(shape.origin[1]))
+    shape.segments.extend(second.segments)
+
+
 def _polygon(shape, tech, metal, radius, sides, width, spacing, turns, angle):
     from .polygon import vertices
     for row in vertices(radius,sides,width,spacing,turns,angle):
@@ -176,11 +185,13 @@ def build(kind="square", *, technology=None, native_keyword=False, native_intera
     `length` / `height` are outer square dimensions; `radius` is the native
     polygon vertex radius. Fractional turns are truncated to 1/sides, as ASITIC
     does. Origin is a separate translation and is never folded into segments.
-    For rings, squares, polygon spirals, symmetric/multi-metal coils and wires, native_keyword=True applies the
-    original parser's default 0.1 um snap grid and binary32 angle stores. Typed
-    calls retain binary64 dimensions and ordinary degree inputs. For WIRE,
+    For rings, squares, polygons, symmetric/multi-metal coils, wires and
+    capacitors, native_keyword=True applies the original parser's default 0.1 um snap grid and binary32 angle stores. Typed
+    calls retain binary64 dimensions and ordinary degree inputs. For WIRE/CAPACITOR,
     native_interactive=True preserves the original interactive raw-radian
-    orientation quirk and unsnapped binary64 dimensions.
+    orientation quirk and unsnapped binary64 dimensions. VIA supports the
+    original interactive counts/origin/phase; its native keyword command fails
+    before creation because the original command table requests argument type 11.
     """
     tech = technology or Technology.default()
     kind = kind.lower()
@@ -188,11 +199,16 @@ def build(kind="square", *, technology=None, native_keyword=False, native_intera
         raise ValueError(f"Unsupported generator: {kind}")
     p = dict(parameters)
     if native_keyword and native_interactive:raise ValueError('Choose one native input mode')
-    if native_interactive and kind!='wire':raise ValueError('Native interactive input mode currently supports wire geometry')
+    if native_interactive and kind not in('wire','capacitor','via'):raise ValueError('Native interactive input mode currently supports wire, capacitor and via geometry')
+    if native_keyword and kind=='via':raise ValueError('The original VIA keyword command fails with Unknown argument type; use native_interactive input mode')
     if native_keyword:
-        if kind not in('ring','square','polygon','wire','symmetric_square','symmetric_polygon','multimetal'):raise ValueError('Native keyword input mode currently supports ring, square, polygon, symmetric/multi-metal coils and wire geometry')
+        if kind not in('ring','square','polygon','wire','symmetric_square','symmetric_polygon','multimetal','capacitor'):raise ValueError('Native keyword input mode currently supports ring, square, polygon, symmetric/multi-metal coils, wire and capacitor geometry')
         from .command_numbers import length_um,binary32
-        if kind=='wire':
+        if kind=='capacitor':
+            if 'length'not in p and 'width'not in p:raise ValueError('CAPACITOR requires length or width')
+            fields=(('length',p.get('length',p.get('width'))),('width',p.get('width',p.get('length'))),('x',0))
+            p.setdefault('bottom_metal',len(tech.metals)-2)
+        elif kind=='wire':
             fields=(('length',100),('width',5),('x',0))
         elif kind in('symmetric_square','symmetric_polygon'):
             dimension='length'if kind=='symmetric_square'else'radius'
@@ -205,7 +221,7 @@ def build(kind="square", *, technology=None, native_keyword=False, native_intera
             if kind=='polygon':fields+=(('spacing',2),)
         for key,default in fields:
             p[key]=length_um(p.get(key,default),grid_size=.1)
-        if kind=='wire':p['y']=length_um(p['y'],grid_size=.1)if'y'in p else p['width']
+        if kind in('wire','capacitor'):p['y']=length_um(p['y'],grid_size=.1)if'y'in p else p['width']
         if kind in('square','polygon','symmetric_square','symmetric_polygon','multimetal'):
             p['turns']=binary32(float(p.get('turns',2)))
         if kind=='square':p.setdefault('exit_metal',len(tech.metals)-2)
@@ -218,6 +234,7 @@ def build(kind="square", *, technology=None, native_keyword=False, native_intera
             side=float(p.get('sides',16))
             if not math.isfinite(side)or not -(1<<31)<=side<(1<<31):raise ValueError('Sides exceed the native integer range')
             p['sides']=int(side)if kind=='symmetric_polygon'else 4
+    if native_interactive and kind=='via':p['angle']=0.
     def num(key, default):
         value = float(p.get(key, default))
         if not math.isfinite(value):
@@ -236,13 +253,19 @@ def build(kind="square", *, technology=None, native_keyword=False, native_intera
     angle = num("angle",0)
     if abs(angle) > 360:
         raise ValueError("Orientation must be between −360 and 360 "+("native radians"if native_interactive else"degrees"))
-    if kind=='wire'and(native_keyword or native_interactive)and min(length,width)<1e-10:
-        raise ValueError('Wire dimensions too small after native input conversion')
+    if kind in('wire','capacitor')and(native_keyword or native_interactive)and min(length,width)<1e-10:
+        raise ValueError(('Capacitor plate'if kind=='capacitor'else'Wire')+' dimensions too small after native input conversion')
     if width <= 0 or min(length,height,radius) <= 0 or spacing < 0:
         raise ValueError("Dimensions must be positive and spacing nonnegative")
     if max(width,length,height,radius) > 1e6:
         raise ValueError("Dimensions must not exceed 1,000,000 µm")
-    phase = num("phase",1)
+    phase = 1 if kind=='capacitor'and(native_keyword or native_interactive)else num("phase",1)
+    if kind=='capacitor'and(native_keyword or native_interactive):p['phase']=1
+    if native_interactive and kind=='via':
+        if not -(1<<31)<=phase<(1<<31):raise ValueError('Phase exceeds the native integer range')
+        phase=int(phase)
+        if phase not in(-1,1):raise ValueError('Interactive VIA phase must be +1 or -1')
+        p['phase']=phase
     if (kind=='wire'and(native_keyword or native_interactive))or(native_keyword and kind in('symmetric_square','symmetric_polygon','multimetal')):
         if not -(1<<31)<=phase<(1<<31):raise ValueError('Phase exceeds the native integer range')
         phase=int(phase)
@@ -250,8 +273,8 @@ def build(kind="square", *, technology=None, native_keyword=False, native_intera
         if native_interactive and phase not in(-1,1):raise ValueError('Interactive WIRE phase must be +1 or -1')
         p['phase']=phase
     if native_interactive:
-        if max(length,width)>min(float(tech.chip.get('chipx',512)),float(tech.chip.get('chipy',512))):raise ValueError('Interactive WIRE dimensions exceed chip size')
-        if not 0<=num('x',0)<=float(tech.chip.get('chipx',512))or not 0<=num('y',0)<=float(tech.chip.get('chipy',512)):raise ValueError('Interactive WIRE origin falls outside chip boundary')
+        if kind in('wire','capacitor')and max(length,width)>min(float(tech.chip.get('chipx',512)),float(tech.chip.get('chipy',512))):raise ValueError(f'Interactive {kind.upper()} dimensions exceed chip size')
+        if not 0<=num('x',0)<=float(tech.chip.get('chipx',512))or not 0<=num('y',0)<=float(tech.chip.get('chipy',512)):raise ValueError(f'Interactive {kind.upper()} origin falls outside chip boundary')
     metal = tech.metal_index(p.get("metal", len(tech.metals)-1))
     exit_value = p.get("exit_metal", -1)
     exit_metal = -1 if str(exit_value) in ("-1","none","") else tech.metal_index(exit_value)
@@ -332,17 +355,11 @@ def build(kind="square", *, technology=None, native_keyword=False, native_intera
                 _multimetal(shape,tech,metal,bottom,length,height,width,spacing,turns,radians,phase)
             else:_square(shape,tech,metal,exit_metal,length,height,width,spacing,turns,radians,phase)
     elif kind in ("wire","capacitor"):
-        _wire(shape,tech,metal,length,width,radians,phase if kind=='wire'else 1)
-        if kind == "capacitor":
-            bottom = tech.metal_index(p.get("bottom_metal",max(0,metal-1)))
-            if bottom == metal:
-                raise ValueError("Capacitor plates must use distinct metals")
-            second = copy.deepcopy(shape.segments[0])
-            m = tech.metals[bottom]
-            second.metal,second.thickness = bottom,m.thickness
-            for point in second.points:
-                point[2] = m.geometry_height
-            shape.segments.append(second)
+        if kind=="wire":_wire(shape,tech,metal,length,width,radians,phase)
+        else:
+            bottom=tech.metal_index(p.get("bottom_metal",max(0,metal-1)))
+            if bottom==metal and not(native_keyword or native_interactive):raise ValueError("Capacitor plates must use distinct metals")
+            _capacitor(shape,tech,metal,bottom,length,width,radians)
     elif kind == "ring":
         gap = num("gap",20)
         if not 0 <= abs(gap) <= 360:
@@ -357,6 +374,9 @@ def build(kind="square", *, technology=None, native_keyword=False, native_intera
     else:
         index = tech.via_index(p.get("via",0))
         nx,ny = num("nx",2),num("ny",2)
+        if native_interactive:
+            if not all(-(1<<31)<=v<(1<<31)for v in(nx,ny)):raise ValueError('Via counts exceed the native integer range')
+            nx,ny=int(nx),int(ny);p['nx'],p['ny']=nx,ny
         if nx != int(nx) or ny != int(ny) or not 1 <= nx <= 1000 or not 1 <= ny <= 1000:
             raise ValueError("Via counts must be integers from 1 to 1000")
         shape.segments.append(_via(tech,index,int(nx),int(ny)))

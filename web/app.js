@@ -1,5 +1,7 @@
 import { circuitSVG,sweepSVG,transformerSVG } from "./analysis-views.mjs";
 const $ = selector => document.querySelector(selector);
+// Numeric fields accept strings at the Python boundary; keep signed-zero input lossless.
+const inputJSON=(value,space)=>JSON.stringify(value,(_key,v)=>Object.is(v,-0)?"-0":v,space);
 const form = $("#geometry-form");
 const NS = "http://www.w3.org/2000/svg";
 const COLORS = ["#e8bd65", "#81b4ef", "#b899eb", "#8fd1ae", "#e89971", "#e88fbd", "#64cbd1", "#cecf86"];
@@ -45,14 +47,14 @@ function controls() {
 async function request(payload,onProgress=null) {
   if(["lmat","pi2","pi3","pi4","pix","selfres","calctrans"].includes(payload.action)){
     $("#mesh-target").value=["pi3","pix","selfres"].includes(payload.action)?"pi2":payload.action;
-    const {frequency_hz,frequency_ghz,first_hz,first_ghz,last_hz,last_ghz,step_hz,step_ghz,eddy,termination_ohm,include_matrices,...geometry}=payload,key=JSON.stringify(geometry);
+    const {frequency_hz,frequency_ghz,first_hz,first_ghz,last_hz,last_ghz,step_hz,step_ghz,eddy,termination_ohm,include_matrices,...geometry}=payload,key=inputJSON(geometry);
     let plan=meshCache.get(key);
     if(!plan){plan=await request({...payload,action:"mesh",model:payload.action});if(meshCache.size>=8)meshCache.delete(meshCache.keys().next().value);meshCache.set(key,plan);}
     renderMeshInfo(plan);
     if(!plan.within_limit)throw Error(`Mesh needs ${plan.filaments} filaments; the browser limit is ${plan.limit}. Use Mesh settings → Fit to 256 filaments, or enter larger cells.`);
   }
   const id = ++nextId;
-  return new Promise((resolve, reject) => { pending.set(id, {resolve,reject,onProgress}); worker.postMessage({id,request:payload}); });
+  return new Promise((resolve, reject) => { pending.set(id, {resolve,reject,onProgress}); worker.postMessage({id,request:JSON.parse(inputJSON(payload))}); });
 }
 async function task(callback) {
   if (busy || !ready) return;
@@ -72,13 +74,13 @@ function definition() {
     for(const key of ["inner_gap","x","y"])
       if(!(key in currentDefinition.parameters)&&Number(values[key])===Number(current.parameters[key]))delete values[key];
   }
-  return {kind,parameters:values,winding:0,...(["ring","square","polygon","wire","symmetric_square","symmetric_polygon","multimetal"].includes(kind)?{native_keyword:true}:{})};
+  return {kind,parameters:values,winding:0,...(["ring","square","polygon","wire","symmetric_square","symmetric_polygon","multimetal","capacitor"].includes(kind)?{native_keyword:true}:kind==="via"?{native_interactive:true}:{})};
 }
 function restoreFormParameter(key,value){
   const input=form.elements.namedItem(key);if(!input)return;
   const layers=key==="via"?technology.vias:["metal","exit_metal","bottom_metal","secondary_metal"].includes(key)?technology.metals:null;
   const index=layers?.findIndex(layer=>layer.name.toUpperCase()===String(value).toUpperCase())??-1;
-  input.value=String(index>=0?index:value);
+  input.value=index>=0?String(index):Object.is(value,-0)?"-0":String(value);
 }
 function meshSettings(){
   const mesh=Object.fromEntries(Object.entries(MESH_FIELDS).map(([key,id])=>[key,numeric("#"+id)]));
@@ -113,8 +115,8 @@ $("#mesh-fit").addEventListener("click",()=>task(async()=>{
 }));
 function showFields(loaded=currentDefinition) {
   const kind = $("#kind").value;
-  $("#ring-input-note").hidden=!["ring","square","polygon","wire","symmetric_square","symmetric_polygon","multimetal"].includes(kind);
-  $("#ring-input-note").textContent=kind==="wire"&&loaded?.native_interactive?"Loaded interactive WIRE angles are stored as radians. Generate layout uses degrees and the ASITIC 0.1 µm grid.":"Square, polygon, ring, symmetric coil, multi-metal coil and wire dimensions and origins snap to the ASITIC 0.1 µm grid.";
+  $("#ring-input-note").hidden=!["ring","square","polygon","wire","symmetric_square","symmetric_polygon","multimetal","capacitor","via"].includes(kind);
+  $("#ring-input-note").textContent=kind==="via"?"Via origins keep the entered precision. Counts are whole numbers.":["wire","capacitor"].includes(kind)&&loaded?.native_interactive?`Loaded interactive ${kind==="wire"?"WIRE":"CAPACITOR"} angles are stored as radians. Generate layout uses degrees and the ASITIC 0.1 µm grid.`:"Coil, wire and capacitor dimensions and origins snap to the ASITIC 0.1 µm grid.";
   $("#secondary-metal").parentElement.firstChild.nodeValue=kind==="transformer3d"?"Secondary winding metal":"Crossover metal";
   for (const label of form.querySelectorAll("[data-kinds]")) {
     const visible = label.dataset.kinds.split(" ").includes(kind);
@@ -595,7 +597,7 @@ $("#download-gds").addEventListener("click",()=>task(async()=>{
   download(Uint8Array.from(atob(result.base64),c=>c.charCodeAt(0)),"application/octet-stream",filename(".gds"));
   status("GDSII exported: metals use index + 1, vias use index + 100, datatype 0; 1 nm grid.");
 }));
-$("#download-project").addEventListener("click",()=>task(async()=>download(JSON.stringify({format:"reasitic-project",version:1,shape:currentDefinition,technology:technologyText,mesh:meshSettings()},null,2),"application/json",filename(".json"))));
+$("#download-project").addEventListener("click",()=>task(async()=>download(inputJSON({format:"reasitic-project",version:1,shape:currentDefinition,technology:technologyText,mesh:meshSettings()},2),"application/json",filename(".json"))));
 $("#project-file").addEventListener("change",event=>task(async()=>{
   const file=event.target.files[0];if(!file)return;
   const data=JSON.parse(await file.text());
@@ -614,8 +616,13 @@ $("#project-file").addEventListener("change",event=>task(async()=>{
   const multimetal=data.shape.kind==="multimetal";
   const multimetalDefaults=multimetal?{name:restored.name,length:100,height:data.shape.parameters.length??100,width:5,spacing:2,turns:2,
     metal:technology.metals.length-1,bottom_metal:restored.parameters.bottom_metal??0,angle:0,phase:1,x:0,y:0}:{};
-  const restoredParameters=data.shape.kind==="wire"?{name:restored.name,length:100,width:5,metal:technology.metals.length-1,angle:0,phase:1,x:0,y:restored.parameters.y??0,...data.shape.parameters}:{...symmetricDefaults,...multimetalDefaults,...data.shape.parameters};
-  for(const [key,value] of Object.entries(restoredParameters))restoreFormParameter(key,key==="phase"&&(data.shape.kind==="wire"||symmetric||multimetal)?((restored.parameters.phase??value)<0?-1:1):value);
+  const primitive=["capacitor","via"].includes(data.shape.kind),plate=data.shape.kind==="capacitor";
+  const primitiveDefaults=primitive?{name:restored.name,length:plate?(data.shape.parameters.length??(data.shape.native_keyword?data.shape.parameters.width:undefined)??100):100,
+    width:plate?(data.shape.parameters.width??(data.shape.native_keyword?data.shape.parameters.length:undefined)??5):5,metal:technology.metals.length-1,
+    bottom_metal:restored.segments[1]?.metal??Math.max(0,technology.metals.length-2),via:0,nx:2,ny:2,angle:0,phase:1,x:0,y:restored.parameters.y??0}:{};
+  const restoredParameters=data.shape.kind==="wire"?{name:restored.name,length:100,width:5,metal:technology.metals.length-1,angle:0,phase:1,x:0,y:restored.parameters.y??0,...data.shape.parameters}:{...symmetricDefaults,...multimetalDefaults,...primitiveDefaults,...data.shape.parameters};
+  if(data.shape.kind==="via")for(const key of ["nx","ny"])restoredParameters[key]=restored.parameters[key]??restored.segments[0][key];
+  for(const [key,value] of Object.entries(restoredParameters))restoreFormParameter(key,key==="phase"&&(data.shape.kind==="wire"||symmetric||multimetal||primitive)?((restored.parameters.phase??value)<0?-1:1):value);
   if(restoredMesh)applyMesh(restoredMesh);
   currentDefinition=data.shape;current=restored;render(current);resetResults();status("Project restored. Run analysis on the selected winding.");
   event.target.value="";
