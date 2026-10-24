@@ -292,6 +292,14 @@ Implemented so far:
   pinned Pyodide. The geometry-only arena is not a full native process-heap
   emulator; broader allocator-dependent command histories remain unverified.
 
+Development [geometry storage replay](docs/GEOMETRY_STORAGE.md) now derives
+clone/COPY/JOIN addresses and complete records from earlier process state.
+All 140 native observations match 2,750 allocation/free events, 1,017,272
+geometry bytes and 91,440 string-pool bytes in Python and packaged WebAssembly.
+The same allocator continues through contact/cache preparation. Integrating
+those earlier bytes with the numerical history and fixing the remaining exact
+parity failures are still required; production trailing-via guards stay enabled.
+
 Records use binary64 with selected retained-precision intermediates matching the
 reference's x87 arithmetic. The [native logarithm audit](docs/LOGARITHM_AUDIT.md)
 adds 8,182 instruction cases and 10,327 multiplier cases with complete request

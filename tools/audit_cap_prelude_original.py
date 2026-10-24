@@ -25,8 +25,8 @@ def dimensions(case):
 
 
 def compare(case,*,return_state=False,heap=None):
-    states=case['allocator_states'];initial=states[0];final=next(s for s in states if s['label']=='scope')
-    assert initial['label']=='contacts_entry';counts,metals,substrates,nx=dimensions(case);abi=initial['io_abi']
+    states=case['allocator_states'];initial=next(s for s in states if s['label']=='contacts_entry');final=next(s for s in states if s['label']=='scope')
+    counts,metals,substrates,nx=dimensions(case);abi=initial['io_abi']
     file_bytes=abi['file_plus']+abi['lock']+abi['wide_data']
     block=abi['filesystem_block_size'];buffer_bytes=min(abi['buffer_default'],block)if block>0 else abi['buffer_default']
     plan=capacitance_prelude_storage(counts,metals,substrates,nx,cache_mode=case.get('prelude_cache_mode',case['cache_mode']),file_bytes=file_bytes,buffer_bytes=buffer_bytes)

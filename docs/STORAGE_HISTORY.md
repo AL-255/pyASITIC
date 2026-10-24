@@ -20,6 +20,12 @@ Its complete preexisting mapped arena bytes, process tcache key and preexisting
 geometry addresses are component-test inputs. Earlier process/scene/cache
 history has not yet been derived.
 
+The separate [geometry storage replay](GEOMETRY_STORAGE.md) now derives clone
+and coupled JOIN addresses and full records from driver-entry state, then
+continues the same allocator through contact/cache preparation. It does not
+yet join that earlier byte memory to this numerical replay: intervening
+cache-file/libio/FFT writes remain to be generated.
+
 The complete initial bytes matter: name padding left untouched in a contact
 group can later become an allocator validation word after reuse. Supplying
 only free chunks left two reads unknown; the comparator reported those reads
