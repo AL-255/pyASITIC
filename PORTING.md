@@ -20,6 +20,7 @@ Reference checkout: `~/github/asitic-re`, revision recorded in each fixture.
 | `geometry.py` square/via emission, `model.py`, `precision.py` | `spiral_construction.cpp`, `shape_construction.cpp`, `geometry.cpp`; original square `0x08056670` | 126 complete original creators / 14,742 exact XYZ stores plus origins, widths, metal/thickness and defined via counts; keyword/interactive inputs, quarter-turn boundaries, rotations, reverse phase and exits; four complete original Pi2 electrical sessions and independent GDS readback |
 | `symmetric_geometry.py`, `native/symmetric_geometry.cpp`, symmetric keyword inputs | `symmetric_construction.cpp`, `shape_prompt_symmetric.cpp`; original square `0x08059854` / polygon `0x0805a45c` | 114 original creators / 60,804 exact XYZ stores plus origins/widths/metals/thickness/via counts; whole-turn and maximum-turn cases, rotations, integer phase, odd/fractional sides, crossover history, defaults and binary64 interactive construction; eight complete Pi2/2PORT sessions, independent GDS and actual form/project/download checks in both runtimes |
 | `geometry.py` multi-metal stacking and keyword input | `composite_geometry.cpp`, shared square/reflect/translate/parser sources; original `0x0805af5c` | 180 original creators / 56,214 exact XYZ stores plus origin/width/metal/thickness; fractional and maximum turns, two to five metals, rotations, phase, defaults and binary64 interactive construction; independent GDS, four full Pi2/2PORT sessions, three invalid stack transcripts and actual form/project/export handlers in Python/Pyodide |
+| `rectangular_inputs.py`, rectangular native input modes | `shape_prompts.cpp`, `shape_creation_commands.cpp`, original square `0x08056670` / MMSQUARE `0x0805af5c` | 134 intact-original inner-dimension creators / 45,072 exact XYZ stores plus descriptor/origin/scalar fields; keyword precedence, phase and fractional-turn boundaries, both native acquisition modes, signed inner axes, 18 existing outer prompt histories, independent GDS and four complete Pi2/2PORT sessions; actual form/project/input-mode/GDS/model/download handlers in both runtimes |
 | `geometry.py` capacitor/VIA modes, `web/app.js` numeric input serialization | `console_geometry.cpp`, `shape_construction.cpp`, `shape_prompts.cpp`, `shape_creation_primitives.cpp`, `command_runtime.cpp`; original wire `0x08057998`, via `0x08057b78`, join `0x08078890` | 84 original creators / 2,520 exact XYZ stores and origin bits; plate dimension/default/metal/rotation modes, interactive VIA counts/phase/retries and independent GDS cuts; four complete capacitor Pi2/2PORT sessions and 32 raw via resistance returns in both runtimes; 64 native VIA keyword rejections and the standalone Pi2 fault retained |
 | `contact_geometry.py`, `potential.py` | `contacts.cpp`; original preparation `0x08053580` / builder `0x08053a1c` | 50 original setups / 280 builder calls / 338 physical-bound and integer-grid records in Python and WebAssembly; retained placement, native counts/order, parser-forced reference mesh and original thin-wire grid/zero-area histories |
 | `potential.py` | `potential_tables.cpp`, `potential.cpp`, `contacts.cpp`, `potential_solver.cpp` | Eight CAP sessions across CMOS/BiCMOS: full potential snapshots, folded admittance matrices, and actual cache FFT samples for every metal pair; browser runtime checks cover all eight reduced matrices |
@@ -903,8 +904,9 @@ quarter-turn infinite resonance is preserved in the fixture and maps to `null`
 through the existing public JSON contract; finite outputs retain exact checks.
 Three same/reversed-metal stacks retain original diagnostic transcripts and a
 bounded public error. Source correspondence is in `native/multimetal-source.json`.
-Inner-hole keyword adapters and exhaustive prompt-state/parser boundary coverage
-remain unverified; this does not establish whole-simulator equivalence.
+Inner-opening input is covered separately below. Exhaustive prompt-state/parser
+boundary coverage remains unverified; this does not establish whole-simulator
+equivalence.
 
 
 ### Capacitor plates, working VIA input and original failed paths
@@ -1055,3 +1057,49 @@ regeneration tool now references the already-used `geometry_height` field, so
 correspondence is in `native/transformer3d-source.json`. These cases do not prove
 all scan/prompt histories, alternate floating-point control modes, nonfinite
 input handling, native fault/NaN-payload emulation or whole-simulator equivalence.
+
+
+### Inner-opening dimensions and rectangular input modes
+
+Square and MMSQUARE inputs now accept `inner_length` / `inner_height`, mapping
+to the original ILEN/IWID descriptor path when outer `length` is absent. A
+missing inner height copies the inner length; an outer height (WID) does not
+replace IWID. An explicit outer length (LEN) takes precedence over inner values.
+The derived outer length and height remain available in the resulting shape's
+parameters, while project requests preserve the entered inner fields.
+
+The keyword adapter parses/snaps input lengths exactly as type 7, stores raw
+turns as binary32, then expands the dimensions before quantizing turns. Whole
+turns produce a doubled integer count; the retained fractional value, its
+binary64 1e-10 bias and truncating integer conversion select the quarter-turn
+axis increments. Both coil families use this shared keyword expansion. The
+interactive prompt keeps binary64 dimensions and quantizes the turns first.
+Interactive square expansion retains its own product/addition order. Interactive
+MMSQUARE uses only whole turns for each independent X/Y expansion, so fractional
+input can differ substantially from the same keyword values. The prompt checks
+turn capacity against its sentinel dimension before expansion; it does not
+reapply an outer-dimension capacity afterward. Captured small-opening histories
+require this behavior. Interactive width/spacing and origins preserve their
+original prompt bounds; orientation and phase are fixed at zero/+1.
+
+Native keyword inner axes can be zero or negative when the derived outer
+geometry and turn limit remain valid. Eight such intact-original histories are
+retained and remain creatable/exportable. Native square phase now uses the
+original truncating integer parser and zero-to-positive default, matching the
+already-ported multi-metal behavior. The separate typed API preserves prior
+outer-dimension conventions; typed inner dimensions use the keyword expansion
+formula with unsnapped binary64 inputs unless a native input mode is selected.
+
+All 134 new unchanged-original histories / 45,072 XYZ stores require exact
+parsed descriptor dimensions/width/spacing/turns/phase, output origins, scalar
+widths, conductor thicknesses, metal indices and defined via counts. Another
+18 existing intact-original outer prompt histories now exercise explicit native
+interactive mode. Independent GDS readers check every conductor polygon and via
+layer/count. Four full original Pi2/2PORT sessions require every finite Y/model/S
+and resonance word, retaining nonfinite classifications. Input-mode selectors
+and hidden-field exclusion are exercised through real Pyodide and actual DOM
+generation, project save/reload, GDS export, circuit display and JSON downloads.
+The browser can generate both original paths directly, rather than requiring an
+imported interactive project. Uninitialized original fields, unrestricted size
+ranges, all malformed/partial scans and exhaustive prompt states remain outside
+these claims. Source correspondence is in `native/rectangular-input-source.json`.

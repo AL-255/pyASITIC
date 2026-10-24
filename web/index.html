@@ -20,11 +20,14 @@
       <p class="muted intro">From winding parameters to a physical layout.</p>
       <form id="geometry-form">
         <label>Generator<select name="kind" id="kind"><option value="square">Square spiral</option><option value="polygon">Polygon spiral</option><option value="symmetric_square">Symmetric square</option><option value="symmetric_polygon">Symmetric polygon</option><option value="multimetal">Multi-metal square</option><option value="transformer">Planar transformer</option><option value="transformer3d">3D mirror transformer</option><option value="balun">Balun</option><option value="ring">Polygon ring</option><option value="wire">Straight wire</option><option value="capacitor">Capacitor plates</option><option value="via">Via array</option></select></label>
+        <div class="field-pair rectangular-inputs" data-kinds="square multimetal"><label>Dimensions from<select id="dimension-mode"><option value="outer">Outer edges</option><option value="inner">Inner opening</option></select></label><label>ASITIC input mode<select id="rectangular-input-mode"><option value="keyword">Keyword · 0.1 µm grid</option><option value="interactive">Interactive · full precision</option></select></label></div>
         <label>Shape name<input name="name" value="L1" required maxlength="79"></label>
         <div class="field-pair" data-kinds="transformer transformer3d"><label>Primary name <span>optional</span><input name="primary_name" maxlength="79"></label><label>Secondary name <span>optional</span><input name="secondary_name" maxlength="79"></label></div>
         <div class="field-pair">
           <label data-kinds="square multimetal wire capacitor symmetric_square transformer balun transformer3d">Length <span>µm</span><input name="length" type="number" value="100" min="0.001" step="any" required></label>
           <label data-kinds="square multimetal transformer transformer3d">Height <span>µm</span><input name="height" type="number" value="100" min="0.001" step="any" required></label>
+          <label data-kinds="square multimetal">Inner length <span>µm</span><input name="inner_length" type="number" value="30" min="0.001" step="any" required></label>
+          <label data-kinds="square multimetal">Inner height <span>µm</span><input name="inner_height" type="number" value="30" min="0.001" step="any" required></label>
           <label data-kinds="polygon ring symmetric_polygon">Radius <span>µm</span><input name="radius" type="number" value="50" min="0.001" step="any" required></label>
           <label data-kinds="polygon ring symmetric_polygon">Sides<input name="sides" type="number" value="8" min="3" max="1024" step="1" required></label>
         </div>

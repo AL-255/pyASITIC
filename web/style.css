@@ -11,3 +11,5 @@
 
 #transformer-circuit svg,#transformer-chart svg{display:block;width:100%;height:auto;margin:12px 0}#transformer-metrics table{margin:12px 0}
 #mesh-settings{border:1px solid #3c4a55;border-radius:6px;padding:16px;margin:20px 0;background:#14202a}#mesh-settings summary{font-size:14px;color:var(--accent)}#mesh-settings .method-note{margin:0 0 16px}.mesh-grid{display:grid;grid-template-columns:repeat(3,minmax(125px,1fr));gap:0 14px}#mesh-settings .sweep-controls label{flex-basis:240px;width:240px}#mesh-feedback{font:12px/1.8 var(--mono);margin-bottom:0}@media(max-width:1050px){.mesh-grid{grid-template-columns:1fr 1fr}}@media(max-width:420px){.mesh-grid{grid-template-columns:1fr}}
+
+.rectangular-inputs{grid-template-columns:minmax(0,1fr);grid-column:1/-1}.rectangular-inputs select{min-width:0}

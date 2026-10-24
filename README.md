@@ -163,6 +163,11 @@ Implemented so far:
   GDS readback checks both windings. Twelve original LMAT matrices match every
   output bit, including eddy. Six native coupled histories return NaNs or crash;
   the webpage reports their invalid planar contacts explicitly.
+- Square and multi-metal coils can be sized from their inner opening or outer
+  edges, with selectable original keyword/grid or interactive/full-precision
+  input. All 134 new original creators / 45,072 XYZ stores and four complete
+  Pi2/2PORT sessions match, including the original fractional-turn expansion
+  differences. Projects preserve both input mode and dimension choice.
 - Browser preview, pan/zoom, process-file import, project save/open, conductor
   estimates, selectable L/R/Q frequency plots, linear/log frequency scales,
   progressive Pi2/Pi3/Pi4 sweeps, sample-to-circuit inspection, plot SVG and CSV

@@ -182,9 +182,12 @@ def _ring(shape, tech, metal, radius, sides, width, gap, angle):
 def build(kind="square", *, technology=None, native_keyword=False, native_interactive=False, **parameters):
     """Build a shape using micrometre dimensions and degree orientation/gap.
 
-    `length` / `height` are outer square dimensions; `radius` is the native
+    `length` / `height` are outer square dimensions; without `length`,
+    `inner_length` / `inner_height` use the original inner-opening expansion.
+    `radius` is the native
     polygon vertex radius. Fractional turns are truncated to 1/sides, as ASITIC
-    does. Origin is a separate translation and is never folded into segments.
+    does. Native interactive square/multi-metal input retains prompt precision
+    and turn bounds. Origin is a separate translation and is never folded into segments.
     For rings, squares, polygons, symmetric/multi-metal coils, wires and
     capacitors, native_keyword=True applies the original parser's default 0.1 um snap grid and binary32 angle stores. Typed
     calls retain binary64 dimensions and ordinary degree inputs. For WIRE/CAPACITOR,
@@ -199,7 +202,10 @@ def build(kind="square", *, technology=None, native_keyword=False, native_intera
         raise ValueError(f"Unsupported generator: {kind}")
     p = dict(parameters)
     if native_keyword and native_interactive:raise ValueError('Choose one native input mode')
-    if native_interactive and kind not in('wire','capacitor','via'):raise ValueError('Native interactive input mode currently supports wire, capacitor and via geometry')
+    if native_interactive and kind not in('wire','capacitor','via','square','multimetal'):raise ValueError('Native interactive input mode currently supports wire, capacitor, via, square and multi-metal geometry')
+    rectangular=kind in('square','multimetal')
+    inner=rectangular and 'inner_length'in p and 'length'not in p
+    if rectangular and 'inner_height'in p and 'inner_length'not in p and 'length'not in p:raise ValueError('An inner height requires inner_length')
     if native_keyword and kind=='via':raise ValueError('The original VIA keyword command fails with Unknown argument type; use native_interactive input mode')
     if native_keyword:
         if kind not in('ring','square','polygon','wire','symmetric_square','symmetric_polygon','multimetal','capacitor'):raise ValueError('Native keyword input mode currently supports ring, square, polygon, symmetric/multi-metal coils, wire and capacitor geometry')
@@ -215,7 +221,7 @@ def build(kind="square", *, technology=None, native_keyword=False, native_intera
             fields=((dimension,100 if kind=='symmetric_square'else 50),('width',5),('spacing',2))
             fields+=tuple((key,p[key])for key in('inner_gap','x','y')if key in p)
         elif kind in('square','multimetal'):
-            fields=(('length',100),('height',p.get('length',100)),('width',5),('spacing',2),('x',0),('y',0))
+            fields=((('inner_length',p['inner_length']),('inner_height',p.get('inner_height',p['inner_length'])))if inner else(('length',100),('height',p.get('length',100))))+(('width',5),('spacing',2),('x',0),('y',0))
         else:
             fields=(('radius',50),('width',5),('x',0),('y',0))
             if kind=='polygon':fields+=(('spacing',2),)
@@ -234,6 +240,18 @@ def build(kind="square", *, technology=None, native_keyword=False, native_intera
             side=float(p.get('sides',16))
             if not math.isfinite(side)or not -(1<<31)<=side<(1<<31):raise ValueError('Sides exceed the native integer range')
             p['sides']=int(side)if kind=='symmetric_polygon'else 4
+    if native_interactive and rectangular:
+        for key,value in [('angle',0.),('phase',1)]:p[key]=value
+        p.setdefault('exit_metal',-1)
+        from .paired_geometry import _name
+        p['name']=_name(p.get('name','L1'))
+        first=float(p.get('inner_length'if inner else'length',100));second=float(p.get('inner_height'if inner else'height',first))
+        chip=min(float(tech.chip.get('chipx',512)),float(tech.chip.get('chipy',512)))
+        if not all(math.isfinite(v)and 1e-10<=v<=chip for v in(first,second)):raise ValueError('Interactive spiral input dimensions exceed chip bounds')
+        if not all(math.isfinite(float(p.get(k,d)))and 1e-10<=float(p.get(k,d))<=min(first,second)for k,d in [('width',5),('spacing',2)]):raise ValueError('Interactive winding width/spacing exceed input dimensions')
+    if inner:
+        from .rectangular_inputs import expand_inner
+        expand_inner(p,interactive=native_interactive,multimetal=kind=='multimetal')
     if native_interactive and kind=='via':p['angle']=0.
     def num(key, default):
         value = float(p.get(key, default))
@@ -266,7 +284,7 @@ def build(kind="square", *, technology=None, native_keyword=False, native_intera
         phase=int(phase)
         if phase not in(-1,1):raise ValueError('Interactive VIA phase must be +1 or -1')
         p['phase']=phase
-    if (kind=='wire'and(native_keyword or native_interactive))or(native_keyword and kind in('symmetric_square','symmetric_polygon','multimetal')):
+    if (kind=='wire'and(native_keyword or native_interactive))or(native_keyword and kind in('square','symmetric_square','symmetric_polygon','multimetal')):
         if not -(1<<31)<=phase<(1<<31):raise ValueError('Phase exceeds the native integer range')
         phase=int(phase)
         if native_keyword:phase=phase or 1
@@ -322,7 +340,13 @@ def build(kind="square", *, technology=None, native_keyword=False, native_intera
         raw_turns = num("turns",2)
         if raw_turns <= 0:
             raise ValueError("Turns must be positive")
-        if native_keyword and kind in('square','multimetal'):
+        if native_interactive and rectangular and raw_turns<1:raise ValueError('Interactive spirals need at least 1 turn')
+        if native_interactive and rectangular:
+            from .command_numbers import quantize_turns
+            dimension=R(1e15 if inner else min(length,height))
+            native_maximum=((dimension+R(spacing))/(R(width)+R(spacing)))*R(.5)
+            maximum=float(quantize_turns(native_maximum,4,keyword=False))
+        elif native_keyword and kind in('square','multimetal'):
             denominator=R(spacing)+R(width)
             native_maximum=(((R(spacing)+R(length))/denominator+(R(spacing)+R(height))/denominator)*R(.25))
             whole=math.floor(native_maximum.value)
@@ -340,7 +364,7 @@ def build(kind="square", *, technology=None, native_keyword=False, native_intera
             maximum = math.floor(maximum*count)/count
         if raw_turns > maximum:
             raise ValueError(f"Dimensions support at most {float(maximum):g} turns")
-        turns = float(quantize_turns(raw_turns,count,keyword=native_keyword))if kind=="polygon"else math.floor(raw_turns*count)/count
+        turns = float(quantize_turns(raw_turns,count,keyword=native_keyword))if kind=='polygon'or(native_interactive and rectangular)else math.floor(raw_turns*count)/count
         if turns <= 0 or turns*count > 20000:
             raise ValueError("Turn count must produce 1–20000 segments")
         if turns != raw_turns:

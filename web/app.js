@@ -68,6 +68,8 @@ async function task(callback) {
 function definition() {
   const values = Object.fromEntries(new FormData(form));
   const kind = values.kind; delete values.kind;
+  const rectangular=["square","multimetal"].includes(kind),inner=rectangular&&$("#dimension-mode").value==="inner";
+  for(const key of inner?["length","height"]:["inner_length","inner_height"])delete values[key];
   for(const key of ["primary_name","secondary_name"])if(!values[key])delete values[key];
   for (const key of Object.keys(values)) if (!["name", "primary_name", "secondary_name", "metal", "exit_metal", "bottom_metal", "via"].includes(key)) values[key] = Number(values[key]);
   if(["symmetric_square","symmetric_polygon"].includes(kind)&&currentDefinition?.kind===kind&&currentDefinition.native_keyword){
@@ -77,6 +79,7 @@ function definition() {
   }
   if(kind==="balun"&&currentDefinition?.kind===kind&&currentDefinition.native_keyword&&!("secondary_metal" in currentDefinition.parameters)
       &&Number(values.secondary_metal)===Number(current.parameters.secondary_metal))delete values.secondary_metal;
+  if(rectangular&&$("#rectangular-input-mode").value==="interactive")return {kind,parameters:values,winding:0,native_interactive:true};
   return {kind,parameters:values,winding:0,...(["ring","square","polygon","wire","symmetric_square","symmetric_polygon","multimetal","capacitor","transformer","balun"].includes(kind)?{native_keyword:true}:["via","transformer3d"].includes(kind)?{native_interactive:true}:{})};
 }
 function restoreFormParameter(key,value){
@@ -130,6 +133,18 @@ function showFields(loaded=currentDefinition) {
     label.hidden = !visible;
     for (const input of label.querySelectorAll("input,select")) input.disabled = !visible;
   }
+  const rectangular=["square","multimetal"].includes(kind),inner=rectangular&&$("#dimension-mode").value==="inner",interactive=rectangular&&$("#rectangular-input-mode").value==="interactive";
+  for(const key of ["inner_length","inner_height",...(rectangular?["length","height"]:[])]){
+    const input=form.elements.namedItem(key),hidden=key.startsWith("inner_")?!inner:inner;
+    input.closest("label").hidden=hidden;input.disabled=hidden;if(key.startsWith("inner_")&&!interactive)input.removeAttribute("min");else input.min=interactive?"1e-10":"0.001";
+  }
+  if(rectangular){
+    form.elements.namedItem("turns").min=interactive?"1":"0.0625";
+    form.elements.namedItem("width").min=interactive?"1e-10":"0.001";
+    form.elements.namedItem("spacing").min=interactive?"1e-10":"0";
+    for(const key of ["angle","phase"]){const input=form.elements.namedItem(key);input.closest("label").hidden=interactive;input.disabled=interactive;}
+    $("#ring-input-note").textContent=interactive?"Original interactive input keeps full precision. Inner-opening expansion and turn limits follow the prompt rules; orientation is zero and phase is positive.":"Original keyword input snaps to 0.1 µm. Inner dimensions expand before turns are rounded down.";
+  }else form.elements.namedItem("spacing").min="0";
 }
 function svgElement(tag,attributes={},text) {
   const el = document.createElementNS(NS,tag);
@@ -318,6 +333,7 @@ function renderSweep(rows) {
   $("#sweep-table").replaceChildren(table);
 }
 form.addEventListener("submit",event=>{event.preventDefault();task(generate);});
+for(const id of ["dimension-mode","rectangular-input-mode"])$("#"+id).addEventListener("change",()=>{showFields();if(current)status("Dimension settings changed. Generate layout to apply them.");});
 $("#kind").addEventListener("change",()=>{
   const kind=$("#kind").value;
   if(kind==="balun" && Number(form.elements.turns.value)<3)form.elements.turns.value="3";
@@ -616,7 +632,9 @@ $("#project-file").addEventListener("change",event=>task(async()=>{
   // Verify geometry before replacing the current project.
   const restored=await request({action:"build",...data.shape,technology:text});
   technologyText=text;fillTechnology(init);
-  $("#kind").value=data.shape.kind;showFields(data.shape);
+  $("#kind").value=data.shape.kind;
+  $("#dimension-mode").value=["square","multimetal"].includes(data.shape.kind)&&!("length"in data.shape.parameters)&&"inner_length"in data.shape.parameters?"inner":"outer";
+  $("#rectangular-input-mode").value=data.shape.native_interactive?"interactive":"keyword";showFields(data.shape);
   const symmetric=["symmetric_square","symmetric_polygon"].includes(data.shape.kind);
   const symmetricDefaults=symmetric?{name:restored.name,length:100,radius:50,width:5,spacing:2,turns:2,sides:16,inner_gap:restored.parameters.inner_gap??((restored.parameters.width??5)+(restored.parameters.spacing??2)),
     metal:technology.metals.length-1,secondary_metal:restored.parameters.secondary_metal??Math.max(0,(restored.segments.find(s=>s.metal<technology.metals.length)?.metal??technology.metals.length-1)-1),angle:0,phase:1,x:restored.origin[0],y:restored.origin[1]}:{};
@@ -632,9 +650,13 @@ $("#project-file").addEventListener("change",event=>task(async()=>{
     width:3,secondary_width:data.shape.parameters.width??3,spacing:data.shape.kind==="transformer3d"?8:2,turns:data.shape.kind==="balun"?3:data.shape.kind==="transformer3d"?2:1.5,
     secondary_turns:data.shape.parameters.turns??1.5,metal:technology.metals.length-1,exit_metal:restored.parameters.exit_metal??-1,
     secondary_metal:restored.parameters.secondary_metal??Math.max(0,technology.metals.length-2),angle:0,phase:1,x:0,y:0}:{};
-  const restoredParameters=data.shape.kind==="wire"?{name:restored.name,length:100,width:5,metal:technology.metals.length-1,angle:0,phase:1,x:0,y:restored.parameters.y??0,...data.shape.parameters}:{...symmetricDefaults,...multimetalDefaults,...primitiveDefaults,...pairedDefaults,...data.shape.parameters};
+  const rectangularDefaults=["square","multimetal"].includes(data.shape.kind)?{name:restored.name,length:restored.parameters.length??100,height:restored.parameters.height??restored.parameters.length??100,
+    inner_length:data.shape.parameters.inner_length??30,inner_height:data.shape.parameters.inner_height??data.shape.parameters.inner_length??30,
+    width:5,spacing:2,turns:2,metal:technology.metals.length-1,exit_metal:restored.parameters.exit_metal??-1,
+    bottom_metal:restored.parameters.bottom_metal??0,angle:0,phase:1,x:0,y:0}:{};
+  const restoredParameters=data.shape.kind==="wire"?{name:restored.name,length:100,width:5,metal:technology.metals.length-1,angle:0,phase:1,x:0,y:restored.parameters.y??0,...data.shape.parameters}:{...symmetricDefaults,...multimetalDefaults,...primitiveDefaults,...pairedDefaults,...rectangularDefaults,...data.shape.parameters};
   if(data.shape.kind==="via")for(const key of ["nx","ny"])restoredParameters[key]=restored.parameters[key]??restored.segments[0][key];
-  for(const [key,value] of Object.entries(restoredParameters))restoreFormParameter(key,key==="phase"&&(data.shape.kind==="wire"||symmetric||multimetal||primitive||paired)?((restored.parameters.phase??value)<0?-1:1):value);
+  for(const [key,value] of Object.entries(restoredParameters))restoreFormParameter(key,key==="phase"&&(data.shape.kind==="wire"||symmetric||multimetal||primitive||paired||data.shape.kind==="square")?((restored.parameters.phase??value)<0?-1:1):value);
   if(restoredMesh)applyMesh(restoredMesh);
   currentDefinition=data.shape;current=restored;render(current);resetResults();status("Project restored. Run analysis on the selected winding.");
   event.target.value="";

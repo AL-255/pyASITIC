@@ -1,0 +1,17 @@
+{
+  "reference_commit": "63885e808b522bdeba3f254d353afc72e643c761",
+  "source_sha256": {
+    "src/shape_prompts.cpp": "47f649244bf36d534d32d7953c8fa87f80f9cd0c5ffee959cf9c7fa065b2b0f1",
+    "src/shape_creation_commands.cpp": "08f00e9e90033792880f9173470ed07ef2879fa37f2d4048ca2751944ce77365",
+    "src/geometry.cpp": "23885f0c700e9a29301a0be31036d080acfd4c8d8e9011cc5eb4584277b6939d",
+    "src/shape_construction.cpp": "cfa061f327ed4d29c232602f64a38f8dbab7dc587ee9d69cf2e9686b8b66008d",
+    "src/spiral_construction.cpp": "ed4eac77ce39dea4a92b55f97bde9b1a1bdf122a7e4f62e73fabf6a61be1a404",
+    "src/composite_geometry.cpp": "1ec856be68f6585da6f618c528136037848cb014d05e70d4b7bbcd76ceacb719",
+    "src/command_runtime.cpp": "1c7c8a432588c9c27f1e384ef38c07dd881e38ce3fcad1e29fa2cbe89d403878"
+  },
+  "original_entries": {
+    "square": "0x08056670",
+    "multimetal": "0x0805af5c"
+  },
+  "adaptation": "Original ILEN/IWID rectangular descriptor expansion before shared exact square/MMSQUARE construction. Keyword lengths preserve native F32/grid stores and expansion uses raw F32 turns before quarter-turn quantization; LEN takes precedence and WID is ignored in inner mode. Interactive dimensions retain F64 and prompt validation, turns quantize before expansion, and MMSQUARE uses whole-turn X/Y expressions independently. Input mode remains selectable in the webpage and projects; unused hidden dimensions are excluded. Native square integer phase now follows the shared original parser. Valid native keyword zero/negative inner-axis cases are retained when expanded dimensions and capacity remain valid. All 134 intact-original creators / 45072 XYZ stores plus origins/scalars/metals/conductor-thickness/via counts, 18 existing outer prompt histories, independent GDS, and four complete raw Pi2/2PORT/resonance sessions are required in Python and compiled Pyodide. No numerical instructions, descriptors, allocation hooks or reference outputs are embedded in runtime. Unwritten original fields, unrestricted size ranges and exhaustive malformed-input/prompt histories remain outside the verified scope."
+}
