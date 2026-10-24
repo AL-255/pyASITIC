@@ -300,6 +300,13 @@ The same allocator continues through contact/cache preparation. Integrating
 those earlier bytes with the numerical history and fixing the remaining exact
 parity failures are still required; production trailing-via guards stay enabled.
 
+[Pre-CAP storage](docs/PRELUDE_STORAGE.md) additionally reproduces all 975 FFT
+scratch arrays and 130 stream buffers in the 130 selected native histories:
+4,526,080 bytes match exactly in the compiled browser backend. Four added small
+square/rectangular histories match in portable Python too. FILE/header records
+and other intervening stores still need integration before the earlier and
+later byte histories can run continuously.
+
 Records use binary64 with selected retained-precision intermediates matching the
 reference's x87 arithmetic. The [native logarithm audit](docs/LOGARITHM_AUDIT.md)
 adds 8,182 instruction cases and 10,327 multiplier cases with complete request

@@ -124,8 +124,8 @@ def main(*,commands=COMMANDS,fixture_name="trailing_via_heap_original.json.gz",e
                 cache={}if mode=='cold'else cold_cache.copy();initial.update(cache)
                 for name,value in initial.items():(work/name).write_bytes(value)
                 env=dict(os.environ,LD_LIBRARY_PATH=a.library_path,TERM='dumb',INPUTRC='/dev/null')
-                plain=subprocess.run([str(original),'-g','-t','process.tek','-x','input.asit'],cwd=work,env=env,input=c['stdin'],capture_output=True,text=True,start_new_session=True,timeout=180)
-                scattering=(work/'s.out').read_text()if(work/'s.out').exists()else None
+                plain=subprocess.run([str(original),'-g','-t','process.tek','-x','input.asit'],cwd=work,env=env,input=c['stdin'],capture_output=True,text=True,encoding='utf-8',errors='surrogateescape',start_new_session=True,timeout=180)
+                scattering=(work/'s.out').read_text(encoding='utf-8',errors='surrogateescape')if(work/'s.out').exists()else None
                 produced_cache={p.name:p.read_bytes()for p in work.glob('*.dat')}
                 if mode=='cold':cold_cache=produced_cache.copy()
                 # Restore exactly the same files in the same cwd before GDB.
@@ -134,7 +134,7 @@ def main(*,commands=COMMANDS,fixture_name="trailing_via_heap_original.json.gz",e
                     if path.is_file()and path.name not in initial:path.unlink()
                 for name,value in initial.items():(work/name).write_bytes(value)
                 assert {p.name:hashlib.sha256(p.read_bytes()).hexdigest()for p in work.iterdir()if p.is_file()}=={name:hashlib.sha256(value).hexdigest()for name,value in initial.items()}
-                run=subprocess.run(['gdb','-q','-batch','-x','capture.gdb',str(original)],cwd=work,env=env,capture_output=True,text=True,start_new_session=True,timeout=180)
+                run=subprocess.run(['gdb','-q','-batch','-x','capture.gdb',str(original)],cwd=work,env=env,capture_output=True,text=True,encoding='utf-8',errors='surrogateescape',start_new_session=True,timeout=180)
                 if run.returncode or not(work/'heap.json').exists()or'Python Exception'in run.stderr:raise RuntimeError(c['label']+'/'+mode+run.stdout[-1800:]+run.stderr[-1800:])
                 result=json.loads((work/'heap.json').read_text());cases.append(dict(c,cache_mode=mode,initial_cache=manifest(cache),cache_after_plain=manifest(produced_cache),initial_files=manifest(initial),stdout=run.stdout,stderr=run.stderr,plain=dict(returncode=plain.returncode,stdout=plain.stdout,stderr=plain.stderr,scattering_text=scattering),**result))
                 print(c['label'],mode,'events',len(result['events']),'node',result['node']['size']if result['node']else None,'signal',result['signal'],'plain',plain.returncode,flush=True)

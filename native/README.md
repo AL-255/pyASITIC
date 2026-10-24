@@ -169,6 +169,13 @@ implementations inside the same module. One Python call produces a metal pair's
 complete X, Y and combined tables; no per-sample Python/JavaScript calls are
 needed. The bounded storage supports the application's 2–256 power-of-two grids.
 
+Optional storage diagnostics copy the final grid FFT workspace through the
+read-only `fft_scratch_buffer` export. The existing transform produces those
+bytes; neither the butterflies nor the table outputs change. Complete native
+pre-CAP comparisons cover 975 workspaces and 130 stream buffers across all
+130 selected histories. Four added square/rectangular observations also match
+the portable path. See [pre-CAP storage](../docs/PRELUDE_STORAGE.md).
+
 `capture_original_spectral.py` executes intact original transfer, regional and
 table-generation routines. Only allocation, deletion and status boundaries are
 replaced. Its 1,728 regional/transfer calls and 33 complete tables check 556,434

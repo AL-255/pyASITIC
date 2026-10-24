@@ -54,8 +54,8 @@ export async function installNumericalKernels(python, bytes) {
   const eddyMatrix = new Float64Array(api.memory.buffer, api.eddy_matrix_buffer(), 2*256*256);
   const eddyInfo = new Float64Array(api.memory.buffer, api.eddy_info_buffer(), 32);
   const eddySquare = new Float64Array(api.memory.buffer, api.eddy_square_buffer(), 256*256);
-  function spectralCall(config,output,probe) {
-    let c,o;
+  function spectralCall(config,output,probe,scratch) {
+    let c,o,s;
     try {
       c=config.getBuffer("f64");o=output.getBuffer("f64");
       const [version,nx,ny,nm,nl]=c.data;
@@ -64,12 +64,14 @@ export async function installNumericalKernels(python, bytes) {
         throw new Error("Spectral configuration is invalid");
       const cells=Math.max((nx+1)*(ny+1),nx*(nx+1)+ny+1),count=probe?nl+3:4*nx+4*ny+2*cells;
       if(o.data.length!==count)throw new Error("Spectral output length is invalid");
+      if(scratch){s=scratch.getBuffer("f64");if(probe||s.data.length!==4*nx)throw new Error("Spectral workspace length is invalid");}
       spectralConfig.set(c.data);
       const status=probe?api.spectral_probe(...probe):api.spectral_tables();
       if(probe){o.data.set(spectralTables.subarray(0,2));o.data.set(spectralDepths.subarray(0,nl+1),2);}
       else o.data.set(spectralTables.subarray(0,count));
+      if(s)s.data.set(new Float64Array(api.memory.buffer,api.fft_scratch_buffer(),4*nx));
       return status;
-    } finally {o?.release();c?.release();}
+    } finally {s?.release();o?.release();c?.release();}
   }
   python.registerJsModule("_reasitic_numeric", {
     matrix_capacity(){return matrixCapacity;},
@@ -252,7 +254,7 @@ export async function installNumericalKernels(python, bytes) {
         const status=api.layer_coefficients();view.data.set(spectralConfig.subarray(0,view.data.length));return status;
       } finally {view.release();}
     },
-    spectral_tables: (config,output) => spectralCall(config,output),
+    spectral_tables: (config,output,scratch) => spectralCall(config,output,undefined,scratch),
     spectral_probe: (config,output,...args) => spectralCall(config,output,args),
     tanh_argument: (k,a,b) => api.tanh_argument(k,a,b),
     cosh_argument: (k,a,b,rounded) => api.cosh_argument(k,a,b,rounded),
@@ -316,18 +318,21 @@ export async function installNumericalKernels(python, bytes) {
         return status;
       } finally { view.release(); }
     },
-    transform(buffer, nx, ny) {
+    transform(buffer, nx, ny, scratch) {
       if (!Number.isInteger(nx) || !Number.isInteger(ny)) throw new Error("FFT dimensions must be integers");
       if (!nx && !ny) return;
       const view = buffer.getBuffer("f64");
+      let s;
       try {
         const required = ny ? (nx + 1) * (ny + 1) : nx;
         if (view.data.length < required * 2 || view.data.length > storage.length) throw new Error("FFT buffer length is invalid");
+        if(scratch){s=scratch.getBuffer("f64");if(!ny||s.data.length!==4*nx)throw new Error("FFT workspace length is invalid");}
         storage.set(view.data);
         const status = ny ? api.grid(nx, ny) : api.fft(nx);
         if (status) throw new Error("FFT dimensions exceed the supported power-of-two range");
         view.data.set(storage.subarray(0, view.data.length));
-      } finally { view.release(); }
+        if(s)s.data.set(new Float64Array(api.memory.buffer,api.fft_scratch_buffer(),4*nx));
+      } finally { s?.release();view.release(); }
     }
   });
 }

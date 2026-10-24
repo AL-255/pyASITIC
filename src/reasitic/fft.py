@@ -19,9 +19,12 @@ except ImportError:
 _FFT_EXACT=Context(prec=2048)
 
 
-def _compiled(values,nx,ny=0):
+def _compiled(values,nx,ny=0,observe_storage=None):
     data=array("d",(part for z in values for part in (z.real,z.imag)))
-    _compiled_transform(data,nx,ny)
+    if observe_storage is None:_compiled_transform(data,nx,ny)
+    else:
+        scratch=array('d',[0.])*(4*nx);_compiled_transform(data,nx,ny,scratch)
+        observe_storage(tuple(complex(scratch[i],scratch[i+1])for i in range(0,len(scratch),2)))
     values[:]=[complex(data[i],data[i+1]) for i in range(0,len(data),2)]
 
 
@@ -169,9 +172,9 @@ def _fft(values):
 
 
 
-def _transform_grid(grid,nx,ny):
+def _transform_grid(grid,nx,ny,*,observe_storage=None):
     if _compiled_transform is not None:
-        _compiled(grid,nx,ny);return
+        _compiled(grid,nx,ny,observe_storage);return
     stride=ny+1
     for x in range(nx+1):
         scratch=[grid[x*stride+y] for y in range(ny+1)]
@@ -185,3 +188,4 @@ def _transform_grid(grid,nx,ny):
         _fft(scratch)
         for x in range(nx+1):
             grid[x*stride+y]=scratch[x]
+    if observe_storage is not None:observe_storage(tuple(scratch))

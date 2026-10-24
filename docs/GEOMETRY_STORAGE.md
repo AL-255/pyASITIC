@@ -81,8 +81,9 @@ node tools/check_geometry_storage_original.mjs /path/to/pyodide.mjs /tmp/geometr
 
 The new comparison derives geometry owners earlier, but the existing
 [numerical storage history](STORAGE_HISTORY.md) still starts byte memory at
-CAP entry. The intervening cache-file/libio/FFT stores must be generated before
-those byte histories can be joined without a captured-state reset. Earlier
+CAP entry. [Pre-CAP storage](PRELUDE_STORAGE.md) now generates the FFT scratch
+and stream-buffer bytes. FILE/header records and other intervening stores must
+also be generated before those byte histories can be joined without a reset. Earlier
 scene/process construction also remains an input. Non-cache arena metadata
 still uses logical decisions, rather than arbitrary byte-corruption handling.
 

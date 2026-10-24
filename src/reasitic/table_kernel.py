@@ -50,11 +50,16 @@ def configuration(source,target,nx,ny,width,height,records,coefficients,depths):
     return result
 
 
-def generate_tables(source,target,nx,ny,width,height,records,coefficients,depths):
+def generate_tables(source,target,nx,ny,width,height,records,coefficients,depths,*,include_storage=False):
     if _compiled_tables is None or max(len(records),len(coefficients))>256:return None
     config=configuration(source,target,nx,ny,width,height,records,coefficients,depths)
     count=2*nx+2*ny+max((nx+1)*(ny+1),nx*(nx+1)+ny+1)
     output=array("d",[0.0])*(2*count)
-    if _compiled_tables(config,output):raise ValueError("Invalid spectral table configuration")
+    if include_storage:
+        scratch=array('d',[0.])*(4*nx);status=_compiled_tables(config,output,scratch)
+    else:status=_compiled_tables(config,output)
+    if status:raise ValueError("Invalid spectral table configuration")
     values=[complex(output[i],output[i+1]) for i in range(0,len(output),2)]
-    return values[:2*nx],values[2*nx:2*nx+2*ny],values[2*nx+2*ny:]
+    result=values[:2*nx],values[2*nx:2*nx+2*ny],values[2*nx+2*ny:]
+    if include_storage:return(*result,tuple(complex(scratch[i],scratch[i+1])for i in range(0,len(scratch),2)))
+    return result

@@ -44,6 +44,9 @@ static void fft(C* a,int n){
  }
 }
 __attribute__((export_name("buffer"))) uintptr_t get_buffer(void){return (uintptr_t)buffer;}
+// Read-only transport of the last grid transform's complete native workspace.
+// Axis transforms operate directly on their caller's array and leave it intact.
+__attribute__((export_name("fft_scratch_buffer"))) uintptr_t get_fft_scratch_buffer(void){return (uintptr_t)scratch;}
 __attribute__((export_name("fft"))) int run_fft(int n){if(n<0||n>512||(n&&(n&(n-1))))return -1;plan();fft(buffer,n);return 0;}
 void retained_fft(C* values,int n){plan();fft(values,n);}
 void retained_grid(C* values,int nx,int ny);
