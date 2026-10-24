@@ -337,6 +337,16 @@ including previously differing unused fields. The 6,461 remaining heap-word
 differences are confined to traced stdout/log buffers and remain required
 failures; numerical and pre-free-buffer comparisons still match exactly.
 
+The subsequent [source console replay](docs/CONSOLE_STORAGE.md) adds earlier
+stream bindings and generates the original status/warning/progress messages.
+All 134 independently recaptured histories now match 3,681 console calls and
+every one of 19,456,000 compared later heap words, alongside all numerical and
+cache checks. Expected message text never seeds runtime memory. The earlier
+incomplete-context gates remain required and nonzero, and six changed native
+plain-process exit outcomes are recorded explicitly. Startup, other branches,
+full cleanup and known arithmetic differences remain unfinished; this is not
+whole-program equivalence or a deployed trailing-via change.
+
 Records use binary64 with selected retained-precision intermediates matching the
 reference's x87 arithmetic. The [native logarithm audit](docs/LOGARITHM_AUDIT.md)
 adds 8,182 instruction cases and 10,327 multiplier cases with complete request

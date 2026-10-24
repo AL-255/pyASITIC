@@ -8,8 +8,8 @@ from capture_cache_storage_original import expand_files
 from project_prelude_storage_original import expand_case
 
 
-def compare(fixture,entry,*,return_state=False):
-    case=expand_case(fixture,entry);result,heap,addresses,memory=prelude(case,return_state=True,cache_files=tuple(expand_files(fixture,case)))
+def compare(fixture,entry,*,return_state=False,console=None):
+    case=expand_case(fixture,entry);result,heap,addresses,memory=prelude(case,return_state=True,cache_files=tuple(expand_files(fixture,case)),console=console)
     result.update(tables_checked=0,table_bytes_checked=0)
     for record in case['cache_outputs']:
         group=case['cache_inputs']['arrays'][record['name']]

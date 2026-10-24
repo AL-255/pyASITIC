@@ -37,7 +37,7 @@ def expand_case(fixture,entry):
     return case
 
 
-def main(*,fixture_name='driver_history_original.json.gz',parent_name='cache_storage_original.json.gz',job_factory=None):
+def main(*,fixture_name='driver_history_original.json.gz',parent_name='cache_storage_original.json.gz',job_factory=None,observer=OBSERVER,command_builder=commands,extra_metadata=None):
     parser=argparse.ArgumentParser(add_help=False);parser.add_argument('--full-output',type=Path)
     options,remaining=parser.parse_known_args();sys.argv=[sys.argv[0],*remaining]
     root=cache.libio.prelude.geometry.arena.lifetime.ROOT;files={};heaps={}
@@ -54,10 +54,10 @@ def main(*,fixture_name='driver_history_original.json.gz',parent_name='cache_sto
         for state in case['allocator_states']:
             for region in state['memory_regions']:region.update(pages(bytes.fromhex(region.pop('data')),heaps))
         return case
-    cache.libio.prelude.geometry.arena.main(observer=OBSERVER,fixture_name=fixture_name,command_builder=commands,job_factory=job_factory,case_transform=project_case,
+    cache.libio.prelude.geometry.arena.main(observer=observer,fixture_name=fixture_name,command_builder=command_builder,job_factory=job_factory,case_transform=project_case,
         finalize_metadata=lambda:dict(cache_file_pages=files,driver_heap_pages=heaps),
         extra_metadata=dict(driver_history_parent_sha256=hashlib.sha256((root/'tests/fixtures'/parent_name).read_bytes()).hexdigest(),
-            driver_history_reference='All selected unchanged histories and outcomes. Earlier driver/cache inputs and every pre-free prelude buffer remain. At every allocator boundary read the complete mapped heap and tcache key; observe every bounded numerical array immediately before original delete[]. Complete heap/file pages are losslessly deduplicated as each case finishes, with no target selection. No inferior instruction, function return, memory store or allocation result is changed. Later boundary heaps and workspace bytes are comparison outputs only.'))
+            driver_history_reference='All selected unchanged histories and outcomes. Earlier driver/cache inputs and every pre-free prelude buffer remain. At every allocator boundary read the complete mapped heap and tcache key; observe every bounded numerical array immediately before original delete[]. Complete heap/file pages are losslessly deduplicated as each case finishes, with no target selection. No inferior instruction, function return, memory store or allocation result is changed. Later boundary heaps and workspace bytes are comparison outputs only.',**(extra_metadata or {})))
     path=root/'tests/fixtures'/fixture_name;raw=path.read_bytes()
     if options.full_output:options.full_output.write_bytes(raw)
     fixture=cache.libio.prelude.project(json.loads(gzip.decompress(raw)),hashlib.sha256(raw).hexdigest())

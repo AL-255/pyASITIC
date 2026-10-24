@@ -119,6 +119,14 @@ refreshing them from observations. The remaining words are all in the two
 traced stdout/log buffers. Both strict commands still exit nonzero; these
 discrepancies are not accepted outputs.
 
+The later [console-storage experiment](CONSOLE_STORAGE.md) independently
+recaptures every one of these 134 histories with earlier stream bindings and
+separate native console-call observations. Source-generated console stores
+then resolve every full-heap difference in that stronger experiment, with no
+buffer exclusions or later-byte refreshes. These older fixtures and their
+unaugmented required gate are retained, including all missing-context failures
+and the distinct plain-process outcomes documented there.
+
 ```sh
 PYTHONPATH=src python tools/capture_driver_history_original.py --debug-directory /tmp/debug/usr/lib/debug --reference /path/to/asitic-re --library-path /path/to/native-libraries --full-output /tmp/driver-history-full.json.gz
 PYTHONPATH=src python tools/capture_driver_history_extended_original.py --debug-directory /tmp/debug/usr/lib/debug --reference /path/to/asitic-re --library-path /path/to/native-libraries --full-output /tmp/driver-history-extra-full.json.gz

@@ -17,10 +17,12 @@ from audit_allocator_original import state_differences
 from project_prelude_storage_original import expand_case
 
 
-def compare(case,*,return_state=False,cache_files=None):
+def compare(case,*,return_state=False,cache_files=None,console=None):
     from reasitic.cache_storage import CacheStorage,initial_regions
     cached=cache_files is not None
-    before,heap,addresses,memory=geometry(case,return_state=True,include_prelude=False,observe_headers=True,initial_regions=initial_regions(case['cache_inputs'])if cached else())
+    console_regions=console.initial_regions(tuple((r['address'],bytes.fromhex(r['data']))for r in case['setup_context']['memory_regions']))if console is not None else()
+    regions=tuple(initial_regions(case['cache_inputs'])if cached else())+console_regions
+    before,heap,addresses,memory=geometry(case,return_state=True,include_prelude=False,observe_headers=True,initial_regions=regions)
     result=dict(label=case['label'],cache_mode=case['cache_mode'],geometry=before,events_checked=0,allocations_checked=0,file_records_checked=0,header_arrays_checked=0,workspaces_checked=0,file_buffers_checked=0,bytes_checked=0,unknown_bytes=0,differences=list(before['differences']))
     if result['differences']:return result
     initial=next(s for s in case['allocator_states']if s['label']=='contacts_entry')
@@ -30,6 +32,8 @@ def compare(case,*,return_state=False,cache_files=None):
     inputs=case['libio_inputs'];files=FileStorage(memory,inputs)
     technology=Technology.from_text(case['request']['technology']);frequency=_frequency(case['request']);contacts=ported_records(case);prepared=False
     cache=CacheStorage(memory,case['cache_inputs'],technology,frequency,cache_files)if cached else None
+    if console is not None:
+        console.bind(memory);console.position['setup_events']=before['events_checked'];console.begin_capacitance(frequency)
     if len(plan)!=len(case['prefix_events']):result['differences'].append(dict(kind='event-count',actual=len(plan),original=len(case['prefix_events'])))
     for index,(event,native)in enumerate(zip(plan,case['prefix_events'])):
         name=event.name
@@ -37,10 +41,13 @@ def compare(case,*,return_state=False,cache_files=None):
         if not prepared and name.startswith('cache.'):
             write_prepared(memory,contacts,addresses);prepared=True
             if cache is not None and 'coefficient_address'in case['cache_inputs']:cache.write_coefficients()
+            if console is not None:console.contacts_ready(sum(counts))
         if event.action=='allocate':
             if event.size!=native['request']:result['differences'].append(dict(kind='request',index=index));break
             if cache is not None and name.startswith('cache.fft.'):
+                if console is not None:console.begin_table()
                 source,target=map(int,name.split('.')[-2:]);cache.begin(source,target)
+                if console is not None:console.table_ready()
             address=heap.malloc(event.size);addresses[name]=address;result['allocations_checked']+=1
             if name.endswith('.file'):files.initialize(address)
             if name=='cache.reader.buffer':
@@ -55,6 +62,8 @@ def compare(case,*,return_state=False,cache_files=None):
                 header=cache.input_file(matches[0]['name'])if cache is not None else bytes.fromhex(matches[0]['header'])
                 copy_cache_headers(memory,addresses['cache.header.substrates'],addresses['cache.header.metals'],header,substrates,metals)
                 if cache is not None:cache.load(matches[0]['name'])
+            if name=='cache.writer.buffer'and console is not None:
+                console.position['prefix_events']=index+1;console.warning('Writing data...')
         else:
             address=addresses[name]
             if name.endswith('.file'):
@@ -83,9 +92,11 @@ def compare(case,*,return_state=False,cache_files=None):
                 result['bytes_checked']+=size
                 if actual!=expected[offset:offset+size]:result['differences'].append(dict(kind='bytes',name=name,offset=offset,actual=actual.hex(),original=expected[offset:offset+size].hex()))
             heap.free(address)
+            if name=='cache.reader.file'and case['cache_mode']=='cold'and console is not None:console.position['prefix_events']=index+1;console.missing_cache()
             if cache is not None and name.startswith('cache.fft.'):cache.finish()
         if address!=native['address']:result['differences'].append(dict(kind='address',index=index,name=name,actual=address,original=native['address']))
         result['events_checked']+=1
+        if console is not None:console.position['prefix_events']=result['events_checked']
     result['differences'].extend(state_differences(heap,next(s for s in case['allocator_states']if s['label']=='scope'),memory=memory if cached else None))
     if return_state:return result,heap,addresses,memory
     return result

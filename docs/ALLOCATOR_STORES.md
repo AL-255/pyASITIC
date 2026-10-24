@@ -68,6 +68,13 @@ They remain in the complete-heap comparison: the required `driverhist` gate
 still exits nonzero. Matching allocator and numerical bytes does not authorize
 excluding those buffers or deploying this development branch.
 
+The subsequent [console-storage replay](CONSOLE_STORAGE.md) generates those
+message writes from source templates and earlier stream inputs, and compares
+all 134 independently recaptured histories with zero full-heap differences.
+The older 6,461-word failure remains required for these captures, whose
+earlier stream bindings are missing. No old output or selected failure was
+deleted to produce the newer result.
+
 ```sh
 PYTHONPATH=src:tests python -m unittest test_driver_history_original test_heap_original test_mapping_heap_original test_shared_heap_original test_geometry_storage_original test_cache_storage_original test_libio_storage_original -v
 python tools/build_site.py

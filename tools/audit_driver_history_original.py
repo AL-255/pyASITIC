@@ -8,9 +8,9 @@ from audit_storage_history_original import compare as numerical
 from capture_driver_history_original import expand_case
 
 
-def compare(fixture,entry,*,return_state=False):
-    context=cache(fixture,entry,return_state=True)
-    result,heap,addresses,memory=numerical(expand_case(fixture,entry),context=context,return_state=True)
+def compare(fixture,entry,*,return_state=False,console=None):
+    context=cache(fixture,entry,return_state=True,console=console)
+    result,heap,addresses,memory=numerical(expand_case(fixture,entry),context=context,return_state=True,console=console)
     result['driver']=context[0]
     if return_state:return result,heap,addresses,memory
     return result

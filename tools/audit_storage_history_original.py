@@ -15,7 +15,7 @@ from audit_shared_heap_original import ported_impedance,via_records,seed,normali
 from audit_allocator_original import state_differences
 
 
-def compare(case,initial_regions=(),*,context=None,return_state=False):
+def compare(case,initial_regions=(),*,context=None,return_state=False,console=None):
     memory=None
     if context is None:prefix,heap,addresses=prelude(case,return_state=True)
     else:
@@ -92,6 +92,8 @@ def compare(case,initial_regions=(),*,context=None,return_state=False):
     for event_index,event in enumerate(case['events']):
         if event['kind']in ('allocate','free'):
             expected=next(plan);assert (expected.action,expected.allocator)==(event['kind'],event['allocator'])
+            if console is not None:
+                console.position['events']=event_index;console.before_numerical(expected,prepared.filaments,bool(records))
             history.before(expected)
             if expected.action=='allocate':
                 assert expected.size==event['request']
@@ -110,6 +112,8 @@ def compare(case,initial_regions=(),*,context=None,return_state=False):
                 except UnknownMemory as error:
                     result['differences'].append(dict(kind='unknown-allocator-read',name=expected.name,address=error.address));break
             result['events_checked']+=1
+            if console is not None:
+                console.position['events']=event_index+1;console.after_numerical(expected)
         elif event['kind']=='via_entry':
             if context is not None:
                 if addresses['geometry.descriptor']!=case['via']['shape_address']:result['differences'].append(dict(kind='via-shape-owner',actual=addresses['geometry.descriptor'],original=case['via']['shape_address']))
