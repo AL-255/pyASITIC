@@ -199,7 +199,9 @@ Implemented so far:
   and 538 direct threshold, extreme and NaN-payload cases match their actual
   original output stores in both backends. Both areas use stored segment
   widths and include vias. GDS continues to use the original ribbon edges.
-- Shared mesh settings start with the Python API’s coarse preset
+- Mesh settings are available beside the model controls and from mesh-limit
+  errors, with keyboard focus on the presets. Shared mesh settings start with
+  the Python API’s coarse preset
   (1000 µm). Coarse/balanced/fine presets, custom conductor and
   CAP cells, the original MAXNW width-division cap (default 500), and a
   filament-count check before electrical solves. “Fit to 256 filaments” explicitly coarsens conductor cells while preserving CAP cell

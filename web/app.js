@@ -21,11 +21,12 @@ const frequencyFields=(hz,ghz=hz/1e9)=>({frequency_hz:hz,frequency_ghz:ghz});
 function frequencyInput(){const ghz=numeric("#frequency");return frequencyFields(ghz*1e9,ghz);}
 const fmt = (value, digits=4) => Number(value).toLocaleString(undefined, { maximumSignificantDigits: digits });
 
-function error(message="") { $("#error").hidden = !message; $("#error").textContent = message; }
+function error(message="") { $("#error").hidden = !message; $("#error").textContent = message; $("#mesh-recovery").hidden=true; }
 function status(message) { $("#analysis-status").textContent = message; }
 function controls() {
   for(const el of document.querySelectorAll(".technology input,.technology select,.technology button"))el.disabled=!ready||busy;
   for(const el of document.querySelectorAll(".analysis-panel input,.analysis-panel select"))el.disabled=busy;
+  for(const el of document.querySelectorAll("[data-open-mesh]"))el.disabled=busy;
   for(const el of document.querySelectorAll(".layout-edits input,.layout-edits select,.layout-edits button"))el.disabled=!ready||busy||!current;
   for(const id of["edit-undo","edit-reset"])$("#"+id).disabled=!ready||busy||!currentDefinition?.edits?.length;
   $("#generate").disabled = !ready || busy;
@@ -86,7 +87,7 @@ async function task(callback) {
   try { await callback(); } catch (e) {
     const message=e.message||String(e);error(message);status("Could not complete the operation. Check the message above.");
     meshFailure=/mesh.*(filaments|segments)/i.test(message);
-    if(meshFailure)$("#mesh-settings").open=true;
+    if(meshFailure){$("#mesh-settings").open=true;$("#mesh-recovery").hidden=false;}
   }
   finally { busy = false; controls();if(meshFailure)$("#mesh-fit").focus(); }
 }
@@ -142,6 +143,13 @@ function meshPayload(){
   const payload=model==="calctrans"?transformerPayload(ghz*1e9,ghz):model==="lmat"?{...currentDefinition,technology:technologyText,...meshInputs()}:modelPayload(model,ghz*1e9,ghz);
   return {...payload,action:"mesh",model};
 }
+for(const button of document.querySelectorAll("[data-open-mesh]"))button.addEventListener("click",()=>{
+  const model=button.dataset.openMesh==="model"?$("#pi-model").value:button.dataset.openMesh;
+  if(model)$("#mesh-target").value=["pi3","pix","selfres","pi"].includes(model)?"pi2":model;
+  $("#mesh-settings").open=true;
+  $("#mesh-settings").scrollIntoView?.({block:"start",behavior:"smooth"});
+  $("#mesh-preset").focus({preventScroll:true});
+});
 function changedMesh(){resetResults();meshCache.clear();error();$("#mesh-feedback").className="muted";$("#mesh-feedback").textContent="Mesh updated. Check the filament count or run an analysis.";status("Mesh settings updated. Check the count or run an analysis.");controls();}
 $("#mesh-preset").addEventListener("change",()=>{
   const values=MESH_PRESETS[$("#mesh-preset").value];if(!values)return;

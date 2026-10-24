@@ -17,3 +17,5 @@
 .rectangular-inputs{grid-template-columns:minmax(0,1fr);grid-column:1/-1}.rectangular-inputs select{min-width:0}
 
 .geometry-note{font-size:11px;margin:0 5px 24px;max-width:850px}
+
+#mesh-settings{scroll-margin-top:20px}#mesh-recovery{margin:0 0 20px}.simulation-controls{flex-wrap:wrap}

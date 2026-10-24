@@ -35,6 +35,11 @@ async function click(id,expectedError=false){assert.equal($(id).disabled,false,i
 async function change(id,value){$(id).value=value;$(id).dispatchEvent(new w.Event("change"));await idle();}
 async function restore(project){Object.defineProperty($("#project-file"),"files",{configurable:true,value:[{text:async()=>JSON.stringify(project)}]});$("#project-file").dispatchEvent(new w.Event("change"));await idle();}
 await idle();assert.equal($("#mesh-settings").open,true);assert.equal($("#mesh-max-width").value,"500");assert.equal($("#mesh-auto-fit").checked,false,"Mesh resolution changes require opting in");
+assert.equal($("#mesh-recovery").hidden,true);
+$("#mesh-settings").open=false;
+await change("#pi-model","pi4");await click("#model-mesh-settings");
+assert.equal($("#mesh-settings").open,true);assert.equal($("#mesh-target").value,"pi4");assert.equal(w.document.activeElement.id,"mesh-preset");
+await change("#pi-model","pi2");await click("#model-mesh-settings");assert.equal($("#mesh-target").value,"pi2");
 for(const id of["mesh-length","mesh-width","mesh-thickness","cap-length","cap-width"]){
  assert.equal(w.document.querySelectorAll("#"+id).length,1,"One shared cell field");
  assert.equal($("#"+id).value,"1000","Start with the Python solver's coarse cell defaults");
@@ -50,7 +55,10 @@ await restore(project);assert.equal($("#error").hidden,true,$("#error").textCont
 const prior=requests.filter(r=>r.action==="pi2").length;
 $("#mesh-settings").open=false;
 await click("#pi2",true);assert.equal(w.document.activeElement.id,"mesh-fit","Mesh recovery must receive focus after controls are enabled");assert.match($("#error").textContent,/480 filaments/);assert.equal(requests.filter(r=>r.action==="pi2").length,prior,"Over-budget mesh must stop before expensive CAP/LMAT solves");assert.equal($("#mesh-settings").open,true);
+assert.equal($("#mesh-recovery").hidden,false);$("#mesh-settings").open=false;
+await click("#mesh-recovery",true);assert.equal($("#mesh-settings").open,true);assert.equal(w.document.activeElement.id,"mesh-preset");
 await click("#mesh-fit");assert.equal($("#mesh-length").value,"40");assert.equal($("#mesh-width").value,"1");assert.equal($("#mesh-thickness").value,"1");assert.match($("#mesh-feedback").textContent,/60 \/ 256 filaments/);
+assert.equal($("#mesh-recovery").hidden,true,"Successful recovery clears the shortcut with its error");
 assert.equal($("#cap-length").value,"1000");assert.equal($("#cap-width").value,"1000","Filament fitting preserves CAP cell settings");
 await click("#pi2");assert.equal(w.meshState().pi2Result.filaments,60);assert.equal($("#download-pi2").disabled,false);
 await change("#mesh-width","2");assert.equal($("#download-pi2").disabled,true,"Changed cells must invalidate exported results");
@@ -60,6 +68,7 @@ await click("#download-project");const saved=JSON.parse(await downloads.at(-1).t
 await change("#mesh-preset","fine");assert.equal($("#mesh-width").value,"1");await restore(saved);assert.equal($("#mesh-width").value,"1000");assert.equal($("#mesh-preset").value,"coarse");
 await change("#mesh-target","pi4");await click("#mesh-check");assert.match($("#mesh-feedback").textContent,/19 \/ 256 filaments/);
 await change("#mesh-width","0");await click("#mesh-check",true);assert.match($("#error").textContent,/positive/);
+assert.equal($("#mesh-recovery").hidden,true,"Field validation is separate from filament-limit recovery");
 await change("#mesh-preset","coarse");assert.equal($("#error").hidden,true,"Changing the mesh clears the stale failure message");
 await restore({...project,shape:{kind:"wire",parameters:{name:"Wide",length:40,width:20,metal:"M5",x:40,y:40}},mesh:{...project.mesh,length_cell:1000,width_cell:1,thickness_cell:1000,max_width_cells:2147483647}});
 await change("#mesh-target","lmat");await click("#mesh-check");assert.match($("#mesh-feedback").textContent,/20 \/ 256 filaments/);
