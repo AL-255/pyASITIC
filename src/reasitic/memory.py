@@ -84,3 +84,9 @@ class ComplexView:
     def cell_address(self,row,column):return self.address+16*(column*self.stride+row)
     def get(self,row,column):return complex(*struct.unpack('<2d',self.memory.read(self.cell_address(row,column),16)))
     def set(self,row,column,value):self.memory.write(self.cell_address(row,column),struct.pack('<2d',value.real,value.imag))
+    def write(self,matrix):
+        """Store a complete square matrix in native column-major order."""
+        if len(matrix)!=self.size or any(len(row)!=self.size for row in matrix):
+            raise ValueError('Guest matrix dimensions must match its view')
+        for column in range(self.size):
+            for row in range(self.size):self.set(row,column,matrix[row][column])

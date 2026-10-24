@@ -10,6 +10,8 @@ address table selected by geometry.
 This is another producer for the shared guest memory under development. It is
 not yet connected to production electrical solves. The normal trailing-via
 guard and every existing numerical/allocator release gate remain enabled.
+The subsequent [complete CAP storage check](CAP_STORAGE.md) also regenerates
+the four numerical buffers before cleanup at their predicted allocations.
 
 ## Store semantics
 

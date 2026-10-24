@@ -77,11 +77,14 @@ def _cached_contact_groups(config):
 
 
 def solve_capacitance(shape,technology,frequency_hz,*,ground=None,length_cell=1000,width_cell=1000,
-                      fft_x=None,fft_y=None,unfolded=False,max_contacts=256,include_potential=False,force_ground_mesh=True):
+                      fft_x=None,fft_y=None,unfolded=False,max_contacts=256,include_potential=False,force_ground_mesh=True,
+                      observe_storage=None):
     """Original contact-potential matrix inversion and folded/unfolded reduction.
 
     Returned matrix is a complex admittance in siemens. `unfolded` preserves
     native node admittances; the default returns the folded branch convention.
+    `observe_storage` receives immutable final buffer values before cleanup,
+    for the shared-memory port; no captured value enters the calculation.
     """
     nx=int(technology.chip.get("fftx",128) if fft_x is None else fft_x)
     ny=int(technology.chip.get("ffty",128) if fft_y is None else fft_y)
@@ -127,6 +130,9 @@ def solve_capacitance(shape,technology,frequency_hz,*,ground=None,length_cell=10
                 row.append(_contact_potential(a,b,nx,ny,width,height,records,coefficients,depths,get_table(*pair),zero_terms))
             full.append(row)
     admittance=inverse(full)
+    def observe(name,matrix):
+        if observe_storage is not None:observe_storage(name,tuple(tuple(row)for row in matrix))
+    observe('cap.full',admittance)
     total=_sum_complex(z for row in admittance[:len(contacts)-second_count] for z in row[:len(contacts)-second_count])
     if total==0:
         raise ValueError('Original CAP reduction is nonfinite (zero total admittance); review the reference geometry and contact mesh')
@@ -138,6 +144,7 @@ def solve_capacitance(shape,technology,frequency_hz,*,ground=None,length_cell=10
         indices.append(list(range(offset,offset+len(group))))
         offset+=len(group)
     reduced=[[_sum_complex(admittance[i][j] for i in rows for j in columns) for columns in indices] for rows in indices]
+    observe('cap.reduced',reduced)
     if unfolded:
         result=[row[:len(groups)-second_count] for row in reduced[:len(groups)-second_count]]
     else:
@@ -146,7 +153,9 @@ def solve_capacitance(shape,technology,frequency_hz,*,ground=None,length_cell=10
             for row in range(len(groups)-1):
                 for k in range(1,second_count+1):
                     result[row][row]+=result[row][len(groups)-k]
+        observe('cap.folded',result)
         result=[row[:len(groups)-second_count] for row in result[:len(groups)-second_count]]
+    observe('cap.output',result)
     data=dict(matrix=[[[z.real,z.imag] for z in row] for row in result],total_capacitance_f=total_c,
               total_resistance_ohm=impedance.real,frequency_hz=frequency_hz,contacts=len(contacts),segments=device_groups,
               fft_x=nx,fft_y=ny,unfolded=unfolded)
