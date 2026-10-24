@@ -14,10 +14,11 @@ from .network import solve_pi2,solve_pi3,solve_pi4
 from .resonance import solve_self_resonance
 from .extended import solve_pix
 from .transformer import solve_transformer
-from .mesh import mesh_information
+from .mesh import mesh_information,MESH_KEYS
 from .mesh_counts import maximum_width_cells
+from .retained_scalar import Real
 from .presets import list_presets,load_preset,identify
-from .command_numbers import frequency_ghz
+from .command_numbers import frequency_ghz,mesh_cell_um
 from .conductor_metrics import retained_estimates,qlf as extrapolated_q
 
 
@@ -26,6 +27,21 @@ def _frequency(request,prefix='frequency',default=1e9):
     if ghz in request:return frequency_ghz(request[ghz])
     hz=prefix+'_hz'
     return float(request.get(hz,default))if prefix=='frequency'else float(request[hz])
+
+
+def _mesh(request,technology):
+    """Positive fields as default CELL/CCELL commands; typed SI stays separate."""
+    mesh=dict(request.get('mesh',{}))
+    if request.get('native_mesh',False):
+        for key in MESH_KEYS:
+            if key in mesh:mesh[key]=mesh_cell_um(mesh[key])
+        # CCELL raises both contact cells to the larger native FFT pitch.
+        x=Real(technology.chip.get('chipx',1000))/Real(int(technology.chip.get('fftx',128)))
+        y=Real(technology.chip.get('chipy',1000))/Real(int(technology.chip.get('ffty',128)))
+        cap_keys=('length_cell','width_cell')if request.get('action')=='capacitance'else('capacitance_length_cell','capacitance_width_cell')
+        for key in cap_keys:
+            if key in mesh and(Real(mesh[key])<x or Real(mesh[key])<y):mesh[key]=float(x if y<x else y)
+    return mesh
 
 
 def _technology(request):
@@ -82,7 +98,7 @@ def handle(request,*,progress=None):
                 raise ValueError("CALCTRANS requires two windings or explicit first and second definitions")
             first,second=windings[i],windings[j]
         ground=_shape(request["ground"],tech) if request.get("ground") else None
-        mesh=request.get("mesh",{})
+        mesh=_mesh(request,tech)
         if action=="mesh":return mesh_information(first,tech,mesh,model="calctrans",second=second,ground=ground,fit=bool(request.get("fit",False)))
         return solve_transformer(first,second,tech,_frequency(request),ground=ground,
             termination_ohm=float(request.get("termination_ohm",0)),eddy=request.get("eddy",False),include_matrices=bool(request.get("include_matrices",False)),
@@ -93,9 +109,9 @@ def handle(request,*,progress=None):
         raise ValueError('The original standalone VIA Pi2 analysis faults before producing a model; add conductor geometry')
     if action=="mesh":
         pads={key:_shape(request[key],tech) for key in ("first_pad","second_pad") if request.get(key)}
-        return mesh_information(shape,tech,request.get("mesh",{}),model=request.get("model","pi2"),fit=bool(request.get("fit",False)),**pads)
+        return mesh_information(shape,tech,_mesh(request,tech),model=request.get("model","pi2"),fit=bool(request.get("fit",False)),**pads)
     if action=="selfres":
-        mesh=request.get("mesh",{})
+        mesh=_mesh(request,tech)
         ground=_shape(request["ground"],tech) if request.get("ground") else None
         return solve_self_resonance(shape,tech,_frequency(request,'first'),_frequency(request,'last'),_frequency(request,'step'),
             ground=ground,differential=bool(request.get("differential",False)),fast=bool(request.get("fast",False)),eddy=request.get("eddy",False),
@@ -105,7 +121,7 @@ def handle(request,*,progress=None):
     if action in ("pi","pi2","pi3","pi4","pix"):
         if action=="pi":
             raise ValueError("The native fast Pi command faults on conductor coils before producing a model. Pi2, Pi3 and Pi4 use the working distributed solver.")
-        mesh=request.get("mesh",{})
+        mesh=_mesh(request,tech)
         ground=_shape(request["ground"],tech) if request.get("ground") else None
         pads={"first_pad":_shape(request["first_pad"],tech),"second_pad":_shape(request["second_pad"],tech)} if action=="pi4" else {}
         solver={"pi2":solve_pi2,"pi3":solve_pi3,"pi4":solve_pi4,"pix":solve_pix}[action]
@@ -114,12 +130,12 @@ def handle(request,*,progress=None):
                          max_width_cells=maximum_width_cells(mesh.get("max_width_cells",500)),
                          **{key:float(mesh.get(key,1000)) for key in ("length_cell","width_cell","thickness_cell","capacitance_length_cell","capacitance_width_cell")})
     if action == "capacitance":
-        mesh=request.get("mesh",{})
+        mesh=_mesh(request,tech)
         ground=_shape(request["ground"],tech) if request.get("ground") else None
         return solve_capacitance(shape,tech,_frequency(request),ground=ground,
                                  length_cell=float(mesh.get("length_cell",1000)),width_cell=float(mesh.get("width_cell",1000)))
     if action == "lmat":
-        mesh = request.get("mesh",{})
+        mesh = _mesh(request,tech)
         return solve_impedance(shape,tech,_frequency(request),
                                eddy=request.get("eddy",False),
                                length_cell=float(mesh.get("length_cell",1000)),

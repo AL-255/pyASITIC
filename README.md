@@ -208,6 +208,10 @@ Implemented so far:
   count rounding matches 2,116 captured primitive cases; six complete original
   CLI runs verify MAXNW, filament stores and LMAT reports (five finite reports
   match bit for bit; the native invalid MAXNW=1 case remains a diagnostic).
+  Webpage meshes also follow the original 0.1 µm input snap and CCELL grid-pitch
+  minimum. Six fractional-mesh histories, including 200 filaments, match the
+  original LMAT/Pi2/Y/S outputs exactly. Retained summation preserves native
+  double rounding after each term and runs as a compiled browser batch.
 
 Records use binary64 with selected retained-precision intermediates matching the
 reference's x87 arithmetic.

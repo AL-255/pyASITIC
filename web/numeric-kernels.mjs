@@ -291,6 +291,15 @@ export async function installNumericalKernels(python, bytes) {
         return status;
       } finally { o?.release();t?.release();c?.release(); }
     },
+    complex_sum(input,output) {
+      let a,b;
+      try {
+        a=input.getBuffer("f64");b=output.getBuffer("f64");
+        if(a.data.length%2||a.data.length>2*256*256||b.data.length!==2)throw new Error("Complex sum buffer dimensions are invalid");
+        matrix.set(a.data);const status=api.complex_sum(a.data.length/2);
+        b.data.set(matrix.subarray(0,2));return status;
+      } finally { b?.release();a?.release(); }
+    },
     symmetric(buffer, n, invert) {
       if (!Number.isInteger(n) || n < 1 || n > 256) throw new Error("Symmetric matrix dimension is out of range");
       const view = buffer.getBuffer("f64");

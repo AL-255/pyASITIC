@@ -17,6 +17,7 @@ from .vias import stamp as stamp_vias,active_height as active_via_height
 from .impedance import assemble as assemble_impedance,self_impedance as _filament_self_impedance
 from .mesh_counts import counts as _native_counts,maximum_width_cells
 from .retained_scalar import Real
+from .reduction import sum_complex as _sum_complex
 
 
 @lru_cache(maxsize=32768)
@@ -27,14 +28,6 @@ def _filament_mutual(record):
     warnings=[]
     value=segment_mutual(values[:8],values[8:],warnings)
     return value,tuple(warnings)
-
-
-def _sum_complex(values):
-    # Native real/imaginary accumulators spill after every term. Python 3.14's
-    # builtin complex sum uses a different accumulation algorithm.
-    real=imag=0.0
-    for z in values:real+=z.real;imag+=z.imag
-    return complex(real,imag)
 
 
 def inverse(matrix):

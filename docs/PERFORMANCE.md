@@ -322,3 +322,23 @@ not fresh-browser or full-solve timings. The corrected arithmetic costs more;
 the earlier outputs differed from the original binary at many captured stores.
 The sequential per-release protocol and every sample are preserved in
 [the resistance measurement](benchmarks/2026-10-24-resistance.json).
+
+
+A 2026-10-24 check additionally uses the captured 200-filament wire history:
+40 × 20 µm on M5, origin (40,40), 1 GHz, eddy off, CMOS 512-µm chip and
+128-square FFT, conductor inputs 1000 / 0.100000001 / 1000 µm and 1000-µm
+CAP inputs. After Pyodide/kernel initialization, the complete JSON Pi2 request
+measured approximately 1.42 s with empty caches and 0.53 s on repetition using
+Node 24.19.0 / Pyodide 314.0.7 on the development host. These timings include
+table generation on the first request, matrix solves, extraction and JSON
+transport, but exclude runtime download and plot rendering. Every captured
+finite LMAT/Pi2/Y/S result is checked against the original binary. Matrix
+reduction now runs as one compiled batch with native retained additions and
+binary64 spills after each term; it does not use direct binary64 summation.
+
+The full portable Python reference checks are substantially slower than the
+shipped compiled runtime. A previous hosted CI shard reached its 40-minute
+limit during the 256-square inverse check after earlier checks had passed.
+Core jobs now allow 60 minutes while preserving all discovered checks and their
+SHA-bound, disjoint eight-shard plan. This changes the verification deadline,
+not simulation limits or numerical tolerances.

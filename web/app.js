@@ -98,6 +98,7 @@ function validateMesh(mesh){
   if(Object.entries(mesh).some(([key,v])=>key!=="max_width_cells"&&(!Number.isFinite(v)||v<=0)))throw Error("Mesh cell sizes must be finite and positive.");
   if(!Number.isInteger(mesh.max_width_cells)||mesh.max_width_cells<1||mesh.max_width_cells>2147483647)throw Error("MAXNW must be an integer from 1 to 2147483647.");
 }
+function meshInputs(mesh=meshSettings()){return {mesh,native_mesh:true};}
 function applyMesh(mesh){
   mesh={max_width_cells:500,...mesh};
   for(const [key,id]of Object.entries(MESH_FIELDS))$("#"+id).value=String(mesh[key]);
@@ -106,13 +107,15 @@ function applyMesh(mesh){
   meshCache.clear();
 }
 function renderMeshInfo(plan){
+  const cellLabels={length_cell:"length",width_cell:"width",thickness_cell:"thickness",capacitance_length_cell:"CAP length",capacitance_width_cell:"CAP width"};
+  const adjusted=Object.entries(cellLabels).filter(([key])=>key in plan.mesh&&plan.mesh[key]!==Number($("#"+MESH_FIELDS[key]).value)).map(([key,label])=>`${label} ${fmt(plan.mesh[key],8)} µm`);
   $("#mesh-feedback").className=plan.within_limit?"muted":"warnings";
-  $("#mesh-feedback").textContent=`${plan.model.toUpperCase()}: ${plan.filaments} / ${plan.limit} filaments · ${plan.segments} conductor segments.${plan.within_limit?" Ready to solve.":" Use Fit to 256 filaments or larger conductor cells."}`;
+  $("#mesh-feedback").textContent=`${plan.model.toUpperCase()}: ${plan.filaments} / ${plan.limit} filaments · ${plan.segments} conductor segments.${plan.within_limit?" Ready to solve.":" Use Fit to 256 filaments or larger conductor cells."}${adjusted.length?" Effective cells: "+adjusted.join(", ")+".":""}`;
 }
 function meshPayload(){
   const model=$("#mesh-target").value;
   const ghz=numeric("#frequency");
-  const payload=model==="calctrans"?transformerPayload(ghz*1e9,ghz):model==="lmat"?{...currentDefinition,technology:technologyText,mesh:meshSettings()}:modelPayload(model,ghz*1e9,ghz);
+  const payload=model==="calctrans"?transformerPayload(ghz*1e9,ghz):model==="lmat"?{...currentDefinition,technology:technologyText,...meshInputs()}:modelPayload(model,ghz*1e9,ghz);
   return {...payload,action:"mesh",model};
 }
 function changedMesh(){resetResults();meshCache.clear();error();$("#mesh-feedback").className="muted";$("#mesh-feedback").textContent="Mesh updated. Check the filament count or run an analysis.";status("Mesh settings updated. Check the count or run an analysis.");controls();}
@@ -328,7 +331,7 @@ function modelPayload(model,frequency,ghz=frequency/1e9){
   const ground=mode==="other"?{...currentDefinition,winding:1-(currentDefinition.winding||0)}:mode==="strip"?stripDefinition("model-ground","_ground"):null;
   return {action:model,...currentDefinition,ground,technology:technologyText,...frequencyFields(frequency,ghz),eddy:eddyEnabled(),
     ...(model==="pi4"?{first_pad:stripDefinition("model-pad1","_pad1"),second_pad:stripDefinition("model-pad2","_pad2")} : {}),
-    mesh:meshSettings()};
+    ...meshInputs()};
 }
 function renderSweep(rows) {
   const model=sweepContext?.model||$("#sweep-model").value,estimate=model==="estimates",metric=$("#sweep-metric").value;
@@ -461,7 +464,7 @@ $("#sweep-chart").addEventListener("keydown",event=>{if(event.key==="Enter"||eve
 $("#lmat").addEventListener("click",()=>task(async()=>{
   status("Assembling and solving filament impedance matrix…");
   const result=await request({action:"lmat",...currentDefinition,technology:technologyText,...frequencyInput(),eddy:eddyEnabled(),
-    mesh:{length_cell:numeric("#mesh-length"),width_cell:numeric("#mesh-width"),thickness_cell:numeric("#mesh-thickness"),max_width_cells:meshSettings().max_width_cells}});
+    ...meshInputs({length_cell:numeric("#mesh-length"),width_cell:numeric("#mesh-width"),thickness_cell:numeric("#mesh-thickness"),max_width_cells:meshSettings().max_width_cells})});
   matrixResult=result;
   $("#lmat-result").textContent=`L = ${fmt(result.inductance_h*1e9,6)} nH · R = ${fmt(result.resistance_ohm,6)} Ω · Series Q = ${fmt(result.series_q,6)} · ${result.filaments} filaments / ${result.segments} metal segments · Native eddy ${result.eddy?"on":"off"}`;
   const table=document.createElement("table"),head=table.createTHead().insertRow(),limit=Math.min(16,result.matrix.length);
@@ -484,7 +487,7 @@ $("#capacitance").addEventListener("click",()=>task(async()=>{
   status("Generating layered Green tables and solving the contact-potential matrix…");
   const ground=current.windings.length===2 && $("#cap-ground").checked ? {...currentDefinition,winding:1-(currentDefinition.winding||0)} : null;
   const result=await request({action:"capacitance",...currentDefinition,ground,technology:technologyText,...frequencyInput(),
-    mesh:{length_cell:numeric("#cap-length"),width_cell:numeric("#cap-width")}});
+    ...meshInputs({length_cell:numeric("#cap-length"),width_cell:numeric("#cap-width")})});
   capacitanceResult=result;
   $("#capacitance-result").textContent=`Total C = ${fmt(result.total_capacitance_f*1e15,6)} fF · Substrate equivalent series R = ${fmt(result.total_resistance_ohm,6)} Ω · ${result.contacts} contacts · ${result.fft_x} × ${result.fft_y} FFT`;
   const table=document.createElement("table"),head=table.createTHead().insertRow(),limit=Math.min(16,result.matrix.length);
@@ -519,8 +522,8 @@ function transformerPayload(frequency,ghz=frequency/1e9){
   const ground=mode==="first"?{...currentDefinition,winding:first}:mode==="strip"?stripDefinition("transformer-ground","_ground"):null;
   const termination_ohm=Math.fround(numeric("#transformer-termination")),f=frequency;
   if(!Number.isFinite(termination_ohm)||!Number.isFinite(f)||f<=0)throw Error("Frequency or termination exceeds the native command range.");
-  const mesh=Object.fromEntries(Object.entries(meshSettings()).map(([k,v])=>[k,k==="max_width_cells"?v:Math.fround(v)]));
-  return {action:"calctrans",...currentDefinition,first_winding:first,second_winding:1-first,technology:technologyText,ground,...frequencyFields(f,ghz),termination_ohm,eddy:eddyEnabled(),mesh};
+  const mesh=meshSettings();
+  return {action:"calctrans",...currentDefinition,first_winding:first,second_winding:1-first,technology:technologyText,ground,...frequencyFields(f,ghz),termination_ohm,eddy:eddyEnabled(),...meshInputs(mesh)};
 }
 const transformerMetrics=[
   ["First inductance","first_inductance_h",1e9,"nH"],["Second inductance","second_inductance_h",1e9,"nH"],
@@ -633,7 +636,7 @@ $("#download-gds").addEventListener("click",()=>task(async()=>{
   download(Uint8Array.from(atob(result.base64),c=>c.charCodeAt(0)),"application/octet-stream",filename(".gds"));
   status("GDSII exported: metals use index + 1, vias use index + 100, datatype 0; 1 nm grid.");
 }));
-$("#download-project").addEventListener("click",()=>task(async()=>download(inputJSON({format:"reasitic-project",version:1,shape:currentDefinition,technology:technologyText,mesh:meshSettings()},2),"application/json",filename(".json"))));
+$("#download-project").addEventListener("click",()=>task(async()=>download(inputJSON({format:"reasitic-project",version:1,shape:currentDefinition,technology:technologyText,...meshInputs()},2),"application/json",filename(".json"))));
 $("#project-file").addEventListener("change",event=>task(async()=>{
   const file=event.target.files[0];if(!file)return;
   const data=JSON.parse(await file.text());

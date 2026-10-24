@@ -29,6 +29,15 @@ def frequency_ghz(value):
     return result
 
 
+def mesh_cell_um(value):
+    """Positive CELL/CCELL input: type 7 with the default 0.1 µm snap."""
+    value=float(value)
+    if not math.isfinite(value)or value<=0:raise ValueError('Mesh cell sizes must be finite and positive')
+    result=length_um(value,grid_size=.1)
+    if not math.isfinite(result)or result<=0:raise ValueError('Mesh cell size is outside the positive native command range after grid snapping')
+    return result
+
+
 def length_um(value,*,grid_size=None):
     """Type 7 in micrometres, with an optional native retained grid snap."""
     value=float(value)

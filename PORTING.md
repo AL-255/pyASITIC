@@ -1445,3 +1445,38 @@ Y/S model. Array shape/count checks, immutable transport inputs and rejected-cal
 recovery are required. No fixture data or original output lookup is used by the
 runtime. These captures do not prove arbitrary geometry, NaN encoding, FPU flag,
 parser or whole-simulator equality.
+
+
+Mesh input and reduction now follow the original command boundaries.
+`native_mesh: true` parses positive CELL/CCELL fields using type 7, including
+retained micrometre scaling, the initial binary32 store, the default 0.1 µm
+snap, and its final binary32 store. CCELL then raises each contact cell to
+the larger retained chip-dimension/FFT-size pitch and stores binary64.
+MAXNW remains an integer. All webpage analysis/preflight requests select this
+mode; entered decimals survive project downloads, and the count feedback shows
+effective cells. Direct Python calls and JSON requests without the flag retain
+the existing unsnapped binary64 mesh boundary. This covers the default snap
+state; arbitrary SNAP/GRID command histories remain separate stateful work.
+
+`mesh_inputs_original.json.gz` records six unchanged original CELL/CCELL
+histories, including neighboring length/count thresholds, contact clamping,
+and a 200-filament mesh. Read-only observers retain all 30 effective cell
+words, count stores, 87,148 constructed filament records, original upper
+impedance assembly, ZSYTF2 factors/pivots, ZSYTRI inverses, reduced cells,
+and complete LMAT/Pi2/Y/S/resonance outputs. The native assembly, factor and
+inverse were already exact for the 200-filament case. Its reduction exposed
+another missing arithmetic boundary: FLDL/FADDL/FSTPL after **each** term can
+double-round differently from direct binary64 addition. The old reduced real
+word was `ce180c6defc41140`; the original and corrected word is
+`d1180c6defc41140`. No output corrections or case-specific runtime data are used.
+
+`reduction.py` applies those operations in portable Python. The browser batches
+up to 65,536 complex terms through the same retained arithmetic in the existing
+matrix buffer. This avoids Python calls per term. Six full original finite
+LMAT and Pi2 histories require exact finite stores in both runtimes;
+`audit_mesh_input_assembly.mjs` separately checks every assembly/factor/inverse/
+reduction store. Both are required in CI. The compiled boundary additionally
+checks empty/maximum buffers, immutable inputs, rejected-call output safety
+and recovery. Regenerate all captured stages with
+`tools/capture_mesh_inputs_original.py --reference ... --library-path ...`;
+it invokes the separate read-only inverse-stage capturer after the CLI captures.

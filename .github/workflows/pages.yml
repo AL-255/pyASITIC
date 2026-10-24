@@ -37,7 +37,9 @@ jobs:
     name: Python · core ${{ matrix.shard }} / ${{ matrix.shards }}
     needs: build
     runs-on: ubuntu-latest
-    timeout-minutes: 40
+    # A complete 256x256 portable inverse plus its shard exceeded 40 minutes
+    # on a hosted runner; retain every check and allow it to finish.
+    timeout-minutes: 60
     strategy:
       fail-fast: false
       matrix: ${{ fromJSON(needs.build.outputs.core_matrix) }}
@@ -121,7 +123,9 @@ jobs:
               node tools/check_transformer3d_original.mjs /tmp/reasitic-pyodide/node_modules/pyodide/pyodide.mjs /tmp/reasitic-pyodide/node_modules/jsdom/lib/api.js ;;
             filaments)
               node tools/check_filaments.mjs /tmp/reasitic-pyodide/node_modules/pyodide/pyodide.mjs
-              node tools/check_mesh.mjs /tmp/reasitic-pyodide/node_modules/pyodide/pyodide.mjs /tmp/reasitic-pyodide/node_modules/jsdom/lib/api.js ;;
+              node tools/check_mesh.mjs /tmp/reasitic-pyodide/node_modules/pyodide/pyodide.mjs /tmp/reasitic-pyodide/node_modules/jsdom/lib/api.js
+              node tools/check_mesh_inputs_original.mjs /tmp/reasitic-pyodide/node_modules/pyodide/pyodide.mjs /tmp/reasitic-pyodide/node_modules/jsdom/lib/api.js
+              node tools/audit_mesh_input_assembly.mjs /tmp/reasitic-pyodide/node_modules/pyodide/pyodide.mjs ;;
             mutual)
               node tools/check_mutual_kernels.mjs /tmp/reasitic-pyodide/node_modules/pyodide/pyodide.mjs
               node tools/check_vias.mjs /tmp/reasitic-pyodide/node_modules/pyodide/pyodide.mjs ;;
