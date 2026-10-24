@@ -11,7 +11,7 @@ def _integer(value):
     return result if -(1<<31)<=result<(1<<31)else -(1<<31)
 
 
-def groups(shape,technology,nx,ny,width,height,length_step,width_step,max_contacts,contact,*,observe=None):
+def groups(shape,technology,nx,ny,width,height,length_step,width_step,max_contacts,contact,*,observe=None,observe_group=None):
     result=[];contact_count=0;pitch=R(max(width,height))/R(min(nx,ny))
     for s in shape.segments:
         if s.metal>=len(technology.metals):continue
@@ -35,6 +35,7 @@ def groups(shape,technology,nx,ny,width,height,length_step,width_step,max_contac
         while across>0 and R(s.width)/R(across)<pitch:across-=1
         while along>0 and length/R(along)<pitch:along-=1
         across,along=max(across,1),max(along,1)
+        if observe_group is not None:observe_group((x0,x1,y0,y1),(across,along),s.metal)
         contact_count+=across*along
         if contact_count>max_contacts:raise ValueError('Capacitance mesh exceeds the contact limit; increase contact cell sizes')
         dx,dy=R(x1)-R(x0),R(y1)-R(y0);length=(dx*dx+dy*dy).sqrt()

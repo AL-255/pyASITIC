@@ -59,6 +59,10 @@ class Memory:
                 if not any(self._pages[page][1]):del self._pages[page]
             address+=count
 
+    def write_unknown(self,address,size):
+        """Store an unknown source value, retaining normal mapping checks."""
+        self._check(address,size);self.forget(address,size)
+
     def zero(self,address,size):self.write(address,b'\0'*size)
     def u32(self,address):return struct.unpack('<I',self.read(address,4))[0]
     def put_u32(self,address,value):self.write(address,struct.pack('<I',value&0xffffffff))

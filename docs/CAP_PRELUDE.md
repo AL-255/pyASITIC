@@ -7,6 +7,10 @@ heap and contact owners then continue through the
 experiment no longer needs to initialize allocator state or contact addresses
 at that later boundary.
 
+The subsequent [contact-storage comparison](CONTACT_STORAGE.md) now generates
+the initialized group/contact bytes at those predicted addresses and their
+later matrix numbering stores, checking all 130 histories at both stages.
+
 This remains development work. Allocator state **before contact preparation**,
 preexisting geometry/cache-table objects and otherwise unknown heap bytes at
 via entry are still captured test preconditions. The production trailing-via
