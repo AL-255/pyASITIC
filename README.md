@@ -117,8 +117,14 @@ Implemented so far:
 - Polygon spirals retain native radial decrement, angle spills, vertex stores
   and recentering. Forty-two complete original creators check 12,288 XY
   components exactly in Python and WebAssembly, including fractional turns,
-  3–32 sides and positive/negative rotations. Longitudinal meshing preserves
-  the original copy branch and independently normalized ribbon edges.
+  3–32 sides and positive/negative rotations. Another 77 complete original
+  keyword/interactive cases check 34,758 XYZ stores and independent GDS exports.
+  Webpage polygons now use original grid/angle parsing, binary32 turn input and
+  retained side-based truncation; typed dimensions remain unsnapped binary64.
+  Six complete polygon Pi2 sessions match every Y/model/S/resonance store in
+  Python and WebAssembly, including fractional turn boundaries and eddy.
+  Longitudinal meshing preserves the original copy branch and independently
+  normalized ribbon edges.
 - Browser preview, pan/zoom, process-file import, project save/open, conductor
   estimates, selectable L/R/Q frequency plots, linear/log frequency scales,
   progressive Pi2/Pi3/Pi4 sweeps, sample-to-circuit inspection, plot SVG and CSV

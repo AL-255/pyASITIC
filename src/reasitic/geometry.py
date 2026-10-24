@@ -147,8 +147,8 @@ def build(kind="square", *, technology=None, native_keyword=False, **parameters)
     `length` / `height` are outer square dimensions; `radius` is the native
     polygon vertex radius. Fractional turns are truncated to 1/sides, as ASITIC
     does. Origin is a separate translation and is never folded into segments.
-    For rings and squares, native_keyword=True applies the original parser's
-    default 0.1 um snap grid and binary32 degree/radian stores. Other typed
+    For rings, squares and polygon spirals, native_keyword=True applies the
+    original parser's default 0.1 um snap grid and binary32 angle stores. Typed
     calls retain binary64 dimensions and ordinary degree inputs.
     """
     tech = technology or Technology.default()
@@ -157,14 +157,18 @@ def build(kind="square", *, technology=None, native_keyword=False, **parameters)
         raise ValueError(f"Unsupported generator: {kind}")
     p = dict(parameters)
     if native_keyword:
-        if kind not in('ring','square'):raise ValueError('Native keyword input mode currently supports ring and square geometry')
+        if kind not in('ring','square','polygon'):raise ValueError('Native keyword input mode currently supports ring, square and polygon geometry')
         from .command_numbers import length_um,binary32
-        fields=(('radius',50),('width',5),('x',0),('y',0))if kind=='ring'else(('length',100),('height',p.get('length',100)),('width',5),('spacing',2),('x',0),('y',0))
+        if kind=='square':
+            fields=(('length',100),('height',p.get('length',100)),('width',5),('spacing',2),('x',0),('y',0))
+        else:
+            fields=(('radius',50),('width',5),('x',0),('y',0))
+            if kind=='polygon':fields+=(('spacing',2),)
         for key,default in fields:
             p[key]=length_um(p.get(key,default),grid_size=.1)
-        if kind=='square':
+        if kind in('square','polygon'):
             p['turns']=binary32(float(p.get('turns',2)))
-            p.setdefault('exit_metal',len(tech.metals)-2)
+        if kind=='square':p.setdefault('exit_metal',len(tech.metals)-2)
     def num(key, default):
         value = float(p.get(key, default))
         if not math.isfinite(value):
@@ -239,12 +243,19 @@ def build(kind="square", *, technology=None, native_keyword=False, **parameters)
             whole=math.floor(native_maximum.value)
             product=float((native_maximum-R(whole))*R(4))
             maximum=float(R(math.floor(product))/R(4)+R(whole))
+        elif kind=='polygon':
+            from .command_numbers import quantize_turns
+            from .polygon import PI,_trig
+            if native_keyword and R(radius)*R(2)>R(min(float(tech.chip.get('chipx',512)),float(tech.chip.get('chipy',512)))):
+                raise ValueError('Spiral dimensions exceed chip dimension')
+            native_maximum=(_trig(R(PI)/R(sides),True)*R(radius))/(R(spacing)+R(width))
+            maximum=quantize_turns(native_maximum,sides,keyword=native_keyword)
         else:
             maximum = ((spacing+length)/(spacing+width)+(spacing+height)/(spacing+width))/4 if count==4 and kind!="polygon" else math.cos(math.pi/count)*radius/(spacing+width)
             maximum = math.floor(maximum*count)/count
         if raw_turns > maximum:
-            raise ValueError(f"Dimensions support at most {maximum:g} turns")
-        turns = math.floor(raw_turns*count)/count
+            raise ValueError(f"Dimensions support at most {float(maximum):g} turns")
+        turns = float(quantize_turns(raw_turns,count,keyword=native_keyword))if kind=="polygon"else math.floor(raw_turns*count)/count
         if turns <= 0 or turns*count > 20000:
             raise ValueError("Turn count must produce 1–20000 segments")
         if turns != raw_turns:

@@ -50,3 +50,15 @@ def angle_radians(value):
     n=Real(value);whole=float(math.floor((n/Real(360.)).value))
     degrees=binary32(n-Real(whole)*Real(360.)if n>0 else Real(whole)*Real(360.)+n if n<0 else Real(0.))
     return binary32(Real(degrees)*Real(float.fromhex('0x1.1df46a2529d39p-6')))
+
+
+def quantize_turns(value,sides,*,keyword=True):
+    """Native whole/fraction truncation, retaining the final add/divide.
+
+    Keyword parsing reloads the binary64 fractional product before floor;
+    interactive creation writes that spill but floors the live operand.
+    """
+    n=Real(value);count=Real(sides);whole=math.floor(n.value)
+    product=(n-Real(whole))*count
+    if keyword:product=Real(float(product))
+    return Real(math.floor(product.value))/count+Real(whole)

@@ -658,13 +658,13 @@ gap zero/full-turn cases and negative orientations. Three additional original
 ring electrical sessions require every raw Y/model/S store and the finite
 resonance return in both Python and WebAssembly, with eddy off/on.
 
-New webpage ring and square definitions set `native_keyword=true`. This applies original
+New webpage ring, square and polygon definitions set `native_keyword=true`. This applies original
 type-7 length scaling, binary32 stores and the default binary64 0.1 um snap
 grid, plus both type-10 angle stores and the original asymmetric negative wrap.
 Direct typed dimensions remain binary64 and unsnapped unless this flag is
 selected. The flag is preserved through simulation, GDS and saved projects;
 other creator keyword boundaries remain separate work. Existing projects keep
-their stored input mode when loaded; newly generated webpage rings/squares select the
+their stored input mode when loaded; newly generated webpage rings/squares/polygons select the
 native keyword boundary. Actual DOM tests independently decode downloaded
 GDS coordinates against the original rows and compare the downloaded Pi model
 against original electrical stores. Project form restoration also resolves
@@ -705,3 +705,31 @@ caller receives fresh list containers. Frequency and substrate coefficients
 do not participate in this geometry calculation. Original record replay and
 tests of origin/endpoint edits, forced reference counts, changed limits and
 caller mutation protect the reuse boundary.
+
+
+Polygon keyword creation now uses the original type-7 dimension/origin stores,
+default snap grid, type-4 binary32 turns and type-10 angle conversion. The
+maximum-turn calculation retains the original cosine/division and quantizes
+whole and fractional parts separately. Keyword quantization reloads the
+binary64 fractional-product spill; interactive creation writes that spill but
+floors the live retained operand. The same distinction applies to requested
+turns. Multiplying the entire binary64 turn count by the side count had rounded
+some values upward across an integer boundary: the original interactive
+three-sided `1.3333333333333333` input produces three segments, while that shortcut
+produced four. Typed polygon dimensions/angles remain unsnapped binary64/degree
+inputs, but their turn truncation now follows the original interactive path.
+
+All 77 new unchanged-original SPIRAL captures require all 34,758 XYZ stores,
+widths, thicknesses, metals and origins through both private parsed creation
+and public builds. Cases cover 3–32 sides, negative/positive angles, phase
+invariance, omitted defaults, 18 near-fraction keyword inputs and full-binary64
+interactive dimensions. Independent gdstk decoding checks every conductor's
+GDS coordinates/layers on the 1 nm grid. Three invalid native histories preserve
+the original maximum-turn/chip-dimension diagnostics, including binary32 turn
+input rounding above a non-binary64-exact maximum. Six complete original
+polygon Pi2/2PORT SLOW sessions require every raw Y/model/S bit and finite
+resonance return in Python and compiled WebAssembly, including eddy, fractional
+GHz input, negative angles and both interactive turn boundaries. Actual DOM
+checks cover new native form definitions, named layers, saved input mode,
+independently decoded downloaded GDS, and native/typed Pi2 JSON downloads.
+Other creator input boundaries and whole-simulator equivalence remain open.
