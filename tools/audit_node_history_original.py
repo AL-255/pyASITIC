@@ -14,9 +14,10 @@ from audit_allocator_original import state_differences
 from capture_node_history_original import expand_case
 
 
-def compare(fixture,entry,*,return_state=False):
-    console=ConsoleStorage(entry['console_inputs']);console.position['post_events']=0
-    before,heap,addresses,memory=driver(fixture,entry,return_state=True,console=console)
+def compare(fixture,entry,*,return_state=False,console=None,initial_regions=()):
+    if console is None:console=ConsoleStorage(entry['console_inputs'])
+    console.position['post_events']=0
+    before,heap,addresses,memory=driver(fixture,entry,return_state=True,console=console,initial_regions=initial_regions)
     result=dict(label=entry['label'],cache_mode=entry['cache_mode'],before=before,differences=list(before['differences']),events_checked=0,allocations_checked=0,buffers_checked=0,buffer_bytes_checked=0,heap_boundaries_checked=0,heap_words_checked=0,unknown_heap_bytes=0,port_words_checked=0,console_calls_checked=0,faults_checked=0)
     case=expand_case(fixture,entry)
     def check(address,native,kind,**identity):

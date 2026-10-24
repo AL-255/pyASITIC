@@ -38,7 +38,11 @@ class ConsoleStorage:
     def _write(self,name,data):
         stream=self.inputs['streams'].get(name)
         if stream is None:raise ValueError('Console emitter requires an open '+name+' stream')
-        memory=self.memory;address=stream['address']
+        self.write_stream(stream['address'],data)
+
+    def write_stream(self,address,data):
+        """The same flushed narrow stream path, including the input log."""
+        memory=self.memory
         flags,rp,re,rb,wb,wp,we,bb,be=struct.unpack('<9I',memory.read(address,36))
         if flags&0x20a or not flags&0x800 or not bb or not bb<be or not bb<=wp<=be or (rp,re,rb,wb,we)!=(bb,bb,bb,bb,be):
             raise ValueError('Unsupported console FILE buffering state')

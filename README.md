@@ -355,6 +355,13 @@ heap words. The earlier native fault is preserved. Plain runs still expose
 later allocator aborts; outer parser cleanup, following commands and exit
 remain unfinished alongside the other fidelity work.
 
+The next [command continuation](docs/COMMAND_TRANSITION.md) now parses the
+following direct-script command and constructs its port file in the same
+memory. It also follows the damaged rectangular script through prompt input
+to its native allocator abort. The strict comparison retains unresolved
+reused-stack bytes and remains nonzero. All 134 jobs remain required; this
+development replay is not deployed as a claim of complete binary fidelity.
+
 Records use binary64 with selected retained-precision intermediates matching the
 reference's x87 arithmetic. The [native logarithm audit](docs/LOGARITHM_AUDIT.md)
 adds 8,182 instruction cases and 10,327 multiplier cases with complete request

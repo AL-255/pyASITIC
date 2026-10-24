@@ -118,12 +118,13 @@ class Heap:
         self._header_memory=None
 
     def observe_header_stores(self,memory):
-        """Trace actual chunk head/footer stores, without backing header reads.
+        """Trace chunk stores and validate physical headers when freeing.
 
         Unlike a snapshot refresh, only source operations which store a word
         write it. Old headers inside a merged chunk remain as native bytes.
-        Bin links share the same memory; corruption-aware header decisions
-        remain separate work.
+        Bin links share the same memory. Free validates the actual size and
+        following header before merging; changed chunk extents and broader
+        corruption-aware allocation decisions remain separate work.
         """
         if memory.address_space is not self.address_space:raise ValueError('Header stores need the heap address space')
         if self._header_memory is not None:raise ValueError('Header observation is already active')
@@ -467,8 +468,22 @@ class Heap:
             return
         if p not in self.chunks:raise ValueError('Unknown allocation')
         size=self.chunks[p].size
+        memory=self._header_memory
+        if memory is not None:
+            actual=memory.u32(p+4)&~7
+            if p%16!=8 or p>((-actual)&0xffffffff):raise HeapCorruption('free(): invalid pointer')
+            if actual<16 or actual%16:raise HeapCorruption('free(): invalid size')
+            if actual!=size:raise NotImplementedError('Free of a changed physical chunk extent is not implemented')
         self._cache_check_free(p,size)
         if self._cache_has_space(size):self._cache_put(p,size);return
+        if memory is not None:
+            following=p+size;next_word=memory.u32(following+4)
+            if size>self.max_fast:
+                if p==self.top:raise HeapCorruption('double free or corruption (top)')
+                if not self.flags&2 and following>=self.top+(memory.u32(self.top+4)&~7):raise HeapCorruption('double free or corruption (out)')
+                if not next_word&1:raise HeapCorruption('double free or corruption (!prev)')
+            if next_word<=8 or(next_word&~7)>=self.system_mem:
+                raise HeapCorruption('free(): invalid next size ('+('fast'if size<=self.max_fast else'normal')+')')
         if size<=self.max_fast:
             chain=self.fastbins[(size>>3)-2];following=chain[0]if chain else 0
             if following==p:raise HeapCorruption('Native fastbin double free')

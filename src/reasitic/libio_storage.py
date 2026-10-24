@@ -25,7 +25,7 @@ class FileStorage:
         field=self.abi[layout]['fields'][name];size=field['size']
         self.memory.write(address+field['offset'],(value&((1<<(8*size))-1)).to_bytes(size,'little'))
 
-    def initialize(self,address):
+    def initialize(self,address,*,list_head=None):
         m=self.memory;plus=self.abi['plus']['size'];wide=address+plus+self.abi['lock_size']
         self._put(address,'file','_lock',address+plus)
         self._put(address,'file','_flags',MAGIC)
@@ -39,7 +39,7 @@ class FileStorage:
         self._put(address,'plus','vtable',self.abi['file_jumps'])
         self._put(address,'file','_offset',-1)
         self._put(address,'file','_flags',MAGIC|CLOSED|0x80)
-        self._put(address,'file','_chain',self.abi['list_head'])
+        self._put(address,'file','_chain',self.abi['list_head']if list_head is None else list_head)
         self._put(address,'file','_fileno',-1)
 
     def failed_open(self,address):

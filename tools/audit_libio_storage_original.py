@@ -17,11 +17,11 @@ from audit_allocator_original import state_differences
 from project_prelude_storage_original import expand_case
 
 
-def compare(case,*,return_state=False,cache_files=None,console=None):
-    from reasitic.cache_storage import CacheStorage,initial_regions
+def compare(case,*,return_state=False,cache_files=None,console=None,initial_regions=()):
+    from reasitic.cache_storage import CacheStorage,initial_regions as cache_regions
     cached=cache_files is not None
     console_regions=console.initial_regions(tuple((r['address'],bytes.fromhex(r['data']))for r in case['setup_context']['memory_regions']))if console is not None else()
-    regions=tuple(initial_regions(case['cache_inputs'])if cached else())+console_regions
+    regions=tuple(cache_regions(case['cache_inputs'])if cached else())+console_regions+tuple(initial_regions)
     before,heap,addresses,memory=geometry(case,return_state=True,include_prelude=False,observe_headers=True,initial_regions=regions)
     result=dict(label=case['label'],cache_mode=case['cache_mode'],geometry=before,events_checked=0,allocations_checked=0,file_records_checked=0,header_arrays_checked=0,workspaces_checked=0,file_buffers_checked=0,bytes_checked=0,unknown_bytes=0,differences=list(before['differences']))
     if result['differences']:return result
