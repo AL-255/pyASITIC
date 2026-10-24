@@ -114,6 +114,27 @@ class Heap:
         self.tcache_enabled=bool(snapshot['tcache_address'])
         self.cache_address=snapshot['tcache_address'];self._cache_memory=None;self._cache_key=None
         self._cache_write_memory=None
+        self._header_memory=None
+
+    def observe_header_stores(self,memory):
+        """Trace actual chunk head/footer stores, without backing header reads.
+
+        Unlike a snapshot refresh, only source operations which store a word
+        write it. Old headers inside a merged chunk remain as native bytes.
+        Bin links and corruption-aware header decisions are separate work.
+        """
+        if memory.address_space is not self.address_space:raise ValueError('Header stores need the heap address space')
+        if self._header_memory is not None:raise ValueError('Header observation is already active')
+        current=self._cache_memory or self._cache_write_memory
+        if current is not None and current is not memory:raise ValueError('Header and cache stores must share memory')
+        self._header_memory=memory
+
+    def _head(self,p):
+        if self._header_memory is not None:
+            c=self.chunks[p];self._header_memory.put_u32(p+4,c.size|int(c.previous_in_use))
+
+    def _foot(self,p,size):
+        if self._header_memory is not None:self._header_memory.put_u32(p+size,size)
 
     def observe_cache_stores(self,memory,key):
         """Trace logical tcache stores before numerical corruption is possible.
@@ -137,6 +158,7 @@ class Heap:
 
     def _validate_cache_memory(self,memory,key):
         if memory.address_space is not self.address_space:raise ValueError('Heap and cache memory must share one address space')
+        if self._header_memory is not None and memory is not self._header_memory:raise ValueError('Cache and header stores must share memory')
         if isinstance(key,bool)or not isinstance(key,int)or not 0<=key<=0xffffffff:raise ValueError('The i386 tcache key must be an unsigned 32-bit integer')
 
     def _write_cache_control(self,index):
@@ -145,7 +167,7 @@ class Heap:
         memory.put_u32(self.cache_address+128+4*index,chain[0]+8 if chain else 0)
 
     def _storage_memory(self):
-        return self._cache_memory if self._cache_memory is not None else self._cache_write_memory
+        return self._cache_memory if self._cache_memory is not None else self._cache_write_memory if self._cache_write_memory is not None else self._header_memory
 
     def attach_cache_memory(self,memory,key):
         """Back tcache control/links/keys with initialized shared bytes.
@@ -234,7 +256,7 @@ class Heap:
         raise ValueError('Free chunk is missing from arena bins')
 
     def _mark_in_use(self,p):
-        self.chunks[p+self.chunks[p].size].previous_in_use=True
+        following=p+self.chunks[p].size;self.chunks[following].previous_in_use=True;self._head(following)
         return p+8
 
     def _insert_bin(self,p):
@@ -252,6 +274,7 @@ class Heap:
         next_address=p+chunk.size;chunk.size=size;chunk.previous_in_use=True
         remainder=p+size;self.chunks[remainder]=Chunk(remaining,0,True)
         following=self.chunks[next_address];following.previous=remaining;following.previous_in_use=False
+        self._head(p);self._head(remainder);self._foot(remainder,remaining)
         self.bins[1].insert(0,remainder)
         if advertise:self.last_remainder=remainder
         return p+8
@@ -310,6 +333,7 @@ class Heap:
             if top.size>=size+16:
                 p=self.top;remaining=top.size-size;top.size=size;top.previous_in_use=True
                 self.top=p+size;self.chunks[self.top]=Chunk(remaining,0,True)
+                self._head(p);self._head(self.top)
                 return p+8
             if self.have_fastchunks:self._consolidate();continue
             if size>=self.parameters['mmap_threshold'] and self.parameters['n_mmaps']<self.parameters['n_mmaps_max']:
@@ -331,6 +355,7 @@ class Heap:
             memory=self._storage_memory()
             if memory is not None:memory.zero(end,extra)
             top.size+=extra;self.system_mem+=extra
+            self._head(self.top)
             self.max_system_mem=max(self.max_system_mem,self.system_mem)
 
     def _merge(self,p):
@@ -344,9 +369,13 @@ class Heap:
             next_chunk=self.chunks[next_address];after=next_address+next_chunk.size
             if not self.chunks[after].previous_in_use:
                 self._unlink(next_address);size+=next_chunk.size;del self.chunks[next_address]
+            else:
+                next_chunk.previous_in_use=False;self._head(next_address)
             self.chunks[p+size].previous=size;self.chunks[p+size].previous_in_use=False
+            self._foot(p,size)
             self.bins[1].insert(0,p)
         self.chunks[p].size=size;self.chunks[p].previous_in_use=True
+        self._head(p)
         return size
 
     def _consolidate(self):
@@ -382,3 +411,4 @@ class Heap:
                 memory=self._storage_memory()
                 if memory is not None:memory.forget(self.top+top.size-extra,extra)
                 top.size-=extra;self.system_mem-=extra
+                self._head(self.top)

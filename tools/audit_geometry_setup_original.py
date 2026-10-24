@@ -13,7 +13,7 @@ from audit_allocator_original import state_differences
 from audit_cap_prelude_original import compare as prelude
 
 
-def compare(case,*,return_state=False):
+def compare(case,*,return_state=False,include_prelude=True,observe_headers=False):
     context=case['setup_context'];output=case['setup_output'];initial=case['allocator_states'][0]
     assert initial['label']=='driver_entry'
     heap=Heap(initial);memory=Memory(heap.address_space)
@@ -29,6 +29,7 @@ def compare(case,*,return_state=False):
             key=memory.u32(chain[0]+4);break
     if key is None:raise ValueError('Capture needs an initial tcache key observation')
     heap.observe_cache_stores(memory,key)
+    if observe_headers:heap.observe_header_stores(memory)
     mesh=_mesh(case['request'],Technology.from_text(case['request']['technology']))
     first,second=geometry.setup(context['driver'],context['arguments'],cap_length=mesh['capacitance_length_cell'],length=mesh['length_cell'])
     result=dict(label=case['label'],cache_mode=case['cache_mode'],events_checked=0,allocations_checked=0,geometry_bytes_checked=0,string_bytes_checked=0,prefix=None,differences=[])
@@ -62,7 +63,7 @@ def compare(case,*,return_state=False):
         for chain in strings['chains']:
             for entry in chain:check(entry['address'],entry['data'],'string_bytes_checked')
         differences.extend(state_differences(heap,next(s for s in case['allocator_states']if s['label']=='contacts_entry')))
-    if not differences:
+    if not differences and include_prelude:
         prefix,heap,contacts=prelude(case,heap=heap,return_state=True);result['prefix']=prefix;differences.extend(prefix['differences'])
         addresses={**geometry.addresses,**contacts}
     else:addresses=geometry.addresses

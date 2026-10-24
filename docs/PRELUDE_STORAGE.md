@@ -10,6 +10,11 @@ This is a component of that integration. FILE records, raw technology header
 arrays and non-cache allocator metadata bytes still need their producers.
 The production trailing-via guard remains enabled.
 
+The subsequent [libio replay](LIBIO_STORAGE.md) now generates all selected
+FILE/header records and relevant head/footer stores, matching every pre-free
+buffer in all 130 original histories. The rectangular cache-table corruption
+and the remaining integration described there still fail strict validation.
+
 ## Generation and transport
 
 The production spectral table generator now optionally retains the complete
@@ -100,9 +105,10 @@ node tools/check_prelude_storage_original.mjs /path/to/pyodide.mjs /tmp/prelude-
 ```
 
 The whole CAP-entry heap is captured to expose missing stores, not to repair
-them. Reproducing FILE construction/closure, raw technology header copies,
-non-cache allocator header/bin writes and any other intervening stores remains
-necessary before combining the complete byte history. Earlier process/scene
+them. The subsequent libio stage now reproduces FILE construction/closure,
+raw technology header copies and head/footer stores. Cache-table, bin/fastbin
+and remaining intervening stores still need to be generated before combining
+the complete byte history. Earlier process/scene
 startup, secondary geometry groups, later command cleanup and the known
 logarithm/cosine and JOIN/UNJOIN discrepancies also remain unfinished. Exact
 buffer matches alone do not establish whole-program parity or authorize

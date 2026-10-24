@@ -22,10 +22,11 @@ history has not yet been derived.
 
 The separate [geometry storage replay](GEOMETRY_STORAGE.md) now derives clone
 and coupled JOIN addresses and full records from driver-entry state, then
-continues the same allocator through contact/cache preparation. The new
-[pre-CAP storage](PRELUDE_STORAGE.md) generates FFT scratch and stream-buffer
-bytes. Joining that earlier memory to this numerical replay still requires
-FILE/header records and other intervening stores.
+continues the same allocator through contact/cache preparation.
+[Pre-CAP storage](PRELUDE_STORAGE.md) generates FFT scratch and stream-buffer
+bytes, and [libio storage](LIBIO_STORAGE.md) adds FILE/header and head/footer
+stores. Joining that earlier memory to this numerical replay still requires
+cache-table stores and the remaining allocator byte history.
 
 The complete initial bytes matter: name padding left untouched in a contact
 group can later become an allocator validation word after reuse. Supplying

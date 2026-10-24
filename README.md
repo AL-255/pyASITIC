@@ -307,6 +307,12 @@ square/rectangular histories match in portable Python too. FILE/header records
 and other intervening stores still need integration before the earlier and
 later byte histories can run continuously.
 
+[FILE/header replay](docs/LIBIO_STORAGE.md) now covers every pre-free buffer in
+those 130 histories: 1,430 buffers / 4,667,260 bytes match exactly, including
+source allocator footer writes and external cache-header padding. The added
+rectangular case still fails strict heap-state validation from native
+cache-table corruption; that failure remains a required gate.
+
 Records use binary64 with selected retained-precision intermediates matching the
 reference's x87 arithmetic. The [native logarithm audit](docs/LOGARITHM_AUDIT.md)
 adds 8,182 instruction cases and 10,327 multiplier cases with complete request

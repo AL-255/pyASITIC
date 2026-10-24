@@ -1,0 +1,88 @@
+"""Replay every pre-CAP allocation and freed buffer from earlier guest state."""
+import argparse,gzip,json,struct,sys
+from pathlib import Path
+ROOT=Path(__file__).resolve().parents[1]
+sys.path.insert(0,str(ROOT/'src'))
+from reasitic import Technology
+from reasitic.bridge import _frequency
+from reasitic.allocation_plan import capacitance_prelude_storage
+from reasitic.libio_storage import FileStorage,copy_cache_headers
+from reasitic.contact_storage import write_prepared
+from reasitic.prelude_storage import table_storage,complex_bytes,store_file_buffer
+from reasitic.memory import UnknownMemory
+from audit_geometry_setup_original import compare as geometry
+from audit_contact_storage_original import ported_records
+from audit_cap_prelude_original import dimensions
+from audit_allocator_original import state_differences
+from project_prelude_storage_original import expand_case
+
+
+def compare(case,*,return_state=False):
+    before,heap,addresses,memory=geometry(case,return_state=True,include_prelude=False,observe_headers=True)
+    result=dict(label=case['label'],cache_mode=case['cache_mode'],geometry=before,events_checked=0,allocations_checked=0,file_records_checked=0,header_arrays_checked=0,workspaces_checked=0,file_buffers_checked=0,bytes_checked=0,unknown_bytes=0,differences=list(before['differences']))
+    if result['differences']:return result
+    initial=next(s for s in case['allocator_states']if s['label']=='contacts_entry')
+    counts,metals,substrates,nx=dimensions(case);abi=initial['io_abi'];block=abi['filesystem_block_size']
+    plan=capacitance_prelude_storage(counts,metals,substrates,nx,cache_mode=case['cache_mode'],file_bytes=abi['file_plus']+abi['lock']+abi['wide_data'],buffer_bytes=min(abi['buffer_default'],block)if block>0 else abi['buffer_default'])
+    objects={e.name:e for e in plan if e.action=='allocate'};observed={r['event_index']:r for r in case['prelude_storage']}
+    inputs=case['libio_inputs'];files=FileStorage(memory,inputs)
+    technology=Technology.from_text(case['request']['technology']);frequency=_frequency(case['request']);contacts=ported_records(case);prepared=False
+    if len(plan)!=len(case['prefix_events']):result['differences'].append(dict(kind='event-count',actual=len(plan),original=len(case['prefix_events'])))
+    for index,(event,native)in enumerate(zip(plan,case['prefix_events'])):
+        name=event.name
+        if (event.action,event.allocator)!=(native['kind'],native['allocator']):result['differences'].append(dict(kind='interface',index=index));break
+        if not prepared and name.startswith('cache.'):
+            write_prepared(memory,contacts,addresses);prepared=True
+        if event.action=='allocate':
+            if event.size!=native['request']:result['differences'].append(dict(kind='request',index=index));break
+            address=heap.malloc(event.size);addresses[name]=address;result['allocations_checked']+=1
+            if name.endswith('.file'):files.initialize(address)
+            if name=='cache.reader.buffer':
+                prefix=struct.pack('<iid',int(technology.chip['fftx']),int(technology.chip['ffty']),frequency)
+                matches=[r for r in inputs['cache_files']if bytes.fromhex(r['header']).startswith(prefix)]
+                if len(matches)!=1:raise ValueError('Missing or ambiguous earlier cache-file header')
+                copy_cache_headers(memory,addresses['cache.header.substrates'],addresses['cache.header.metals'],bytes.fromhex(matches[0]['header']),substrates,metals)
+        else:
+            address=addresses[name]
+            if name.endswith('.file'):
+                if name=='cache.reader.file'and case['cache_mode']=='cold':files.failed_open(address)
+                else:files.closed_byte_stream(address)
+                key='file_records_checked'
+            elif name.startswith('cache.header.'):key='header_arrays_checked'
+            elif name.startswith('cache.fft.'):
+                source,target=map(int,name.split('.')[-2:]);*tables,scratch=table_storage(technology,frequency,source,target)
+                memory.write(address,complex_bytes(scratch));key='workspaces_checked'
+            elif name.endswith('.buffer'):
+                store_file_buffer(memory,address,objects[name].size,case['cache_mode'],technology,frequency);key='file_buffers_checked'
+            else:raise ValueError('Unimplemented pre-CAP free store: '+name)
+            record=observed[index];assert record['address']==address and record['size']==objects[name].size
+            expected=bytes.fromhex(record['data']);result[key]+=1
+            for offset in range(0,len(expected),4):
+                size=min(4,len(expected)-offset)
+                try:actual=memory.read(address+offset,size)
+                except UnknownMemory:
+                    result['unknown_bytes']+=size;result['differences'].append(dict(kind='unknown-bytes',name=name,offset=offset,size=size));continue
+                result['bytes_checked']+=size
+                if actual!=expected[offset:offset+size]:result['differences'].append(dict(kind='bytes',name=name,offset=offset,actual=actual.hex(),original=expected[offset:offset+size].hex()))
+            heap.free(address)
+        if address!=native['address']:result['differences'].append(dict(kind='address',index=index,name=name,actual=address,original=native['address']))
+        result['events_checked']+=1
+    result['differences'].extend(state_differences(heap,next(s for s in case['allocator_states']if s['label']=='scope')))
+    if return_state:return result,heap,addresses,memory
+    return result
+
+
+def main():
+    parser=argparse.ArgumentParser(description=__doc__);parser.add_argument('--fixture',type=Path,default=ROOT/'tests/fixtures/libio_storage_original.json.gz');parser.add_argument('--output',type=Path);args=parser.parse_args()
+    fixture=json.loads(gzip.decompress(args.fixture.read_bytes()));results=[]
+    for entry in fixture['cases']:
+        case=expand_case(fixture,entry);result=compare(case);results.append(result)
+        print(case['label']+'/'+case['cache_mode']+': '+str(len(result['differences']))+' differences',flush=True)
+    report=dict(cases=len(results),differences=sum(len(r['differences'])for r in results),results=results)
+    for key in ('events_checked','allocations_checked','file_records_checked','header_arrays_checked','workspaces_checked','file_buffers_checked','bytes_checked','unknown_bytes'):report[key]=sum(r[key]for r in results)
+    if args.output:args.output.write_text(json.dumps(report,indent=2)+'\n')
+    print(json.dumps({k:v for k,v in report.items()if k!='results'},separators=(',',':')))
+    raise SystemExit(int(bool(report['differences'])))
+
+
+if __name__=='__main__':main()
