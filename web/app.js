@@ -81,7 +81,7 @@ function definition() {
   }
   if(kind==="balun"&&currentDefinition?.kind===kind&&currentDefinition.native_keyword&&!("secondary_metal" in currentDefinition.parameters)
       &&Number(values.secondary_metal)===Number(current.parameters.secondary_metal))delete values.secondary_metal;
-  if((rectangular||["symmetric_square","symmetric_polygon"].includes(kind))&&$("#rectangular-input-mode").value==="interactive")return {kind,parameters:values,winding:0,native_interactive:true};
+  if((rectangular||["symmetric_square","symmetric_polygon","polygon","ring"].includes(kind))&&$("#rectangular-input-mode").value==="interactive")return {kind,parameters:values,winding:0,native_interactive:true};
   return {kind,parameters:values,winding:0,...(["ring","square","polygon","wire","symmetric_square","symmetric_polygon","multimetal","capacitor","transformer","balun"].includes(kind)?{native_keyword:true}:["via","transformer3d"].includes(kind)?{native_interactive:true}:{})};
 }
 function restoreFormParameter(key,value){
@@ -144,21 +144,27 @@ function showFields(loaded=currentDefinition) {
     for (const input of label.querySelectorAll("input,select")) input.disabled = !visible;
   }
   if(["symmetric_square","symmetric_polygon"].includes(kind))form.elements.namedItem("inner_gap").removeAttribute("min");
-  const rectangular=["square","multimetal"].includes(kind),symmetric=["symmetric_square","symmetric_polygon"].includes(kind),inner=rectangular&&$("#dimension-mode").value==="inner",interactive=(rectangular||symmetric)&&$("#rectangular-input-mode").value==="interactive";
+  const rectangular=["square","multimetal"].includes(kind),symmetric=["symmetric_square","symmetric_polygon"].includes(kind),radial=["polygon","ring"].includes(kind),inner=rectangular&&$("#dimension-mode").value==="inner",interactive=(rectangular||symmetric||radial)&&$("#rectangular-input-mode").value==="interactive";
   $("#dimension-mode").closest("label").hidden=!rectangular;$("#dimension-mode").disabled=!rectangular;
   for(const key of ["inner_length","inner_height",...(rectangular?["length","height"]:[])]){
     const input=form.elements.namedItem(key),hidden=key.startsWith("inner_")?!inner:inner;
     input.closest("label").hidden=hidden;input.disabled=hidden;if(key.startsWith("inner_")&&!interactive)input.removeAttribute("min");else input.min=interactive?"1e-10":"0.001";
   }
-  if(rectangular||symmetric){
-    if(symmetric)form.elements.namedItem(kind==="symmetric_square"?"length":"radius").min=interactive?"1e-10":"0.001";
+  if(rectangular||symmetric||radial){
+    if(symmetric||radial)form.elements.namedItem(kind==="symmetric_square"?"length":"radius").min=interactive?"1e-10":"0.001";
     form.elements.namedItem("turns").min=interactive?"1":"0.0625";
     form.elements.namedItem("width").min=interactive?"1e-10":"0.001";
     if(interactive&&symmetric&&technology?.metals[Number(form.elements.namedItem("metal").value)]?.minimum_spacing)form.elements.namedItem("spacing").removeAttribute("min");
     else form.elements.namedItem("spacing").min=interactive?"1e-10":"0";
-    for(const key of ["angle","phase"]){const input=form.elements.namedItem(key);input.closest("label").hidden=interactive;input.disabled=interactive;}
+    for(const key of radial?["angle"]:["angle","phase"]){const input=form.elements.namedItem(key);input.closest("label").hidden=interactive;input.disabled=interactive;}
     $("#ring-input-note").textContent=symmetric?(interactive?"Original interactive input keeps full precision and floors turns first. Transition-gap bounds and warnings follow the process minima. Orientation and phase are zero.":"Original keyword input snaps to 0.1 µm. Explicit transition gaps use the keyword clearance test."):interactive?"Original interactive input keeps full precision. Inner-opening expansion and turn limits follow the prompt rules; orientation is zero and phase is positive.":"Original keyword input snaps to 0.1 µm. Inner dimensions expand before turns are rounded down.";
   }else form.elements.namedItem("spacing").min="0";
+  const angle=form.elements.namedItem("angle");
+  if(radial){
+    angle.removeAttribute("min");angle.removeAttribute("max");
+    if(kind==="ring"){const gap=form.elements.namedItem("gap");gap.removeAttribute("min");gap.removeAttribute("max");}
+    $("#ring-input-note").textContent=interactive?(kind==="ring"?"Original interactive ring input keeps full precision. Gap angles use the original wrapping rules; orientation is zero.":"Original interactive polygon input keeps full precision and truncates turns in 1/sides steps. Orientation is zero."):"Original keyword input snaps to 0.1 µm. Gap and orientation angles follow the original wrapping rules.";
+  }else{angle.min="-360";angle.max="360";}
 }
 function svgElement(tag,attributes={},text) {
   const el = document.createElementNS(NS,tag);
@@ -670,7 +676,8 @@ $("#project-file").addEventListener("change",event=>task(async()=>{
     inner_length:data.shape.parameters.inner_length??30,inner_height:data.shape.parameters.inner_height??data.shape.parameters.inner_length??30,
     width:5,spacing:2,turns:2,metal:technology.metals.length-1,exit_metal:restored.parameters.exit_metal??-1,
     bottom_metal:restored.parameters.bottom_metal??0,angle:0,phase:1,x:0,y:0}:{};
-  const restoredParameters=data.shape.kind==="wire"?{name:restored.name,length:100,width:5,metal:technology.metals.length-1,angle:0,phase:1,x:0,y:restored.parameters.y??0,...data.shape.parameters}:{...symmetricDefaults,...multimetalDefaults,...primitiveDefaults,...pairedDefaults,...rectangularDefaults,...data.shape.parameters};
+  const radialDefaults=["polygon","ring"].includes(data.shape.kind)?{name:restored.name,radius:50,sides:16,width:5,spacing:2,turns:2,gap:20,metal:technology.metals.length-1,angle:0,phase:1,x:0,y:0}:{};
+  const restoredParameters=data.shape.kind==="wire"?{name:restored.name,length:100,width:5,metal:technology.metals.length-1,angle:0,phase:1,x:0,y:restored.parameters.y??0,...data.shape.parameters}:{...symmetricDefaults,...multimetalDefaults,...primitiveDefaults,...pairedDefaults,...rectangularDefaults,...radialDefaults,...data.shape.parameters};
   if(data.shape.kind==="via")for(const key of ["nx","ny"])restoredParameters[key]=restored.parameters[key]??restored.segments[0][key];
   for(const [key,value] of Object.entries(restoredParameters))restoreFormParameter(key,key==="phase"&&(data.shape.kind==="wire"||symmetric||multimetal||primitive||paired||data.shape.kind==="square")?((restored.parameters.phase??value)<0?-1:1):value);
   if(restoredMesh)applyMesh(restoredMesh);

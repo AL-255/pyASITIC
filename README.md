@@ -208,6 +208,10 @@ Implemented so far:
   count rounding matches 2,116 captured primitive cases; six complete original
   CLI runs verify MAXNW, filament stores and LMAT reports (five finite reports
   match bit for bit; the native invalid MAXNW=1 case remains a diagnostic).
+  Polygon spirals and rings also expose the original full-precision interactive
+  input mode. All 120 captured radial creation histories preserve 65,268 XYZ
+  stores or their native construction failures; six full Pi2/2PORT histories,
+  including a wide ring and eddy correction, match the original output stores.
   Webpage meshes also follow the original 0.1 µm input snap and CCELL grid-pitch
   minimum. Six fractional-mesh histories, including 200 filaments, match the
   original LMAT/Pi2/Y/S outputs exactly. Retained summation preserves native

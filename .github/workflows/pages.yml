@@ -135,6 +135,7 @@ jobs:
             metrics)
               node tools/check_assembly_geometry.mjs /tmp/reasitic-pyodide/node_modules/pyodide/pyodide.mjs
               node tools/check_ring_original.mjs /tmp/reasitic-pyodide/node_modules/pyodide/pyodide.mjs /tmp/reasitic-pyodide/node_modules/jsdom/lib/api.js
+              node tools/check_radial_interactive_original.mjs /tmp/reasitic-pyodide/node_modules/pyodide/pyodide.mjs /tmp/reasitic-pyodide/node_modules/jsdom/lib/api.js
               node tools/check_square_original.mjs /tmp/reasitic-pyodide/node_modules/pyodide/pyodide.mjs /tmp/reasitic-pyodide/node_modules/jsdom/lib/api.js
               node tools/check_polygon_original.mjs /tmp/reasitic-pyodide/node_modules/pyodide/pyodide.mjs /tmp/reasitic-pyodide/node_modules/jsdom/lib/api.js
               node tools/check_wire_original.mjs /tmp/reasitic-pyodide/node_modules/pyodide/pyodide.mjs /tmp/reasitic-pyodide/node_modules/jsdom/lib/api.js

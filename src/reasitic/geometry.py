@@ -186,7 +186,7 @@ def build(kind="square", *, technology=None, native_keyword=False, native_intera
     `inner_length` / `inner_height` use the original inner-opening expansion.
     `radius` is the native
     polygon vertex radius. Fractional turns are truncated to 1/sides, as ASITIC
-    does. Native interactive square/multi-metal and symmetric input retains
+    does. Native interactive polygon/ring, square/multi-metal and symmetric input retains
     prompt precision and turn bounds. Symmetric prompts also preserve process
     minima, warning-only lower bounds and floor-before-capacity whole turns.
     Origin is a separate translation and is never folded into segments.
@@ -204,7 +204,7 @@ def build(kind="square", *, technology=None, native_keyword=False, native_intera
         raise ValueError(f"Unsupported generator: {kind}")
     p = dict(parameters)
     if native_keyword and native_interactive:raise ValueError('Choose one native input mode')
-    if native_interactive and kind not in('wire','capacitor','via','square','multimetal','symmetric_square','symmetric_polygon'):raise ValueError('Native interactive input mode is not supported for this generator')
+    if native_interactive and kind not in('wire','capacitor','via','square','polygon','ring','multimetal','symmetric_square','symmetric_polygon'):raise ValueError('Native interactive input mode is not supported for this generator')
     rectangular=kind in('square','multimetal')
     inner=rectangular and 'inner_length'in p and 'length'not in p
     if rectangular and 'inner_height'in p and 'inner_length'not in p and 'length'not in p:raise ValueError('An inner height requires inner_length')
@@ -252,6 +252,9 @@ def build(kind="square", *, technology=None, native_keyword=False, native_intera
         if not all(math.isfinite(v)and 1e-10<=v<=chip for v in(first,second)):raise ValueError('Interactive spiral input dimensions exceed chip bounds')
         if not all(math.isfinite(float(p.get(k,d)))and 1e-10<=float(p.get(k,d))<=min(first,second)for k,d in [('width',5),('spacing',2)]):raise ValueError('Interactive winding width/spacing exceed input dimensions')
     interactive_warnings=[]
+    if native_interactive and kind in('polygon','ring'):
+        from .radial_inputs import prepare_interactive
+        interactive_warnings=prepare_interactive(p,tech,kind)
     if native_interactive and kind in('symmetric_square','symmetric_polygon'):
         from .symmetric_inputs import prepare_interactive
         interactive_warnings,interactive_maximum=prepare_interactive(p,tech,kind)
@@ -275,7 +278,7 @@ def build(kind="square", *, technology=None, native_keyword=False, native_intera
     if kind in ("polygon","ring","symmetric_polygon") and (sides != sides_value or not 3 <= sides <= 1024):
         raise ValueError("Sides must be an integer from 3 to 1024")
     angle = num("angle",0)
-    if abs(angle) > 360:
+    if abs(angle) > 360 and not(native_keyword and kind in('polygon','ring')):
         raise ValueError("Orientation must be between −360 and 360 "+("native radians"if native_interactive else"degrees"))
     if kind in('wire','capacitor')and(native_keyword or native_interactive)and min(length,width)<1e-10:
         raise ValueError(('Capacitor plate'if kind=='capacitor'else'Wire')+' dimensions too small after native input conversion')
@@ -308,6 +311,7 @@ def build(kind="square", *, technology=None, native_keyword=False, native_intera
     if native_keyword:
         from .command_numbers import angle_radians
         radians=angle_radians(angle)
+        if kind in('polygon','ring')and not -360<=radians<=360:raise ValueError('Spiral orientation angle not in the native range [-360,360]')
     if kind in ("symmetric_square","symmetric_polygon"):
         from .symmetric_geometry import symmetric_square, symmetric_polygon
         inner_gap = num("inner_gap",width+spacing)
@@ -355,7 +359,7 @@ def build(kind="square", *, technology=None, native_keyword=False, native_intera
         raw_turns = num("turns",2)
         if raw_turns <= 0:
             raise ValueError("Turns must be positive")
-        if native_interactive and rectangular and raw_turns<1:raise ValueError('Interactive spirals need at least 1 turn')
+        if native_interactive and (rectangular or kind=='polygon')and raw_turns<1:raise ValueError('Interactive spirals need at least 1 turn')
         if native_interactive and rectangular:
             from .command_numbers import quantize_turns
             dimension=R(1e15 if inner else min(length,height))
@@ -401,13 +405,18 @@ def build(kind="square", *, technology=None, native_keyword=False, native_intera
             _capacitor(shape,tech,metal,bottom,length,width,radians)
     elif kind == "ring":
         gap = num("gap",20)
-        if not 0 <= abs(gap) <= 360:
+        if not(native_keyword or native_interactive)and not 0 <= abs(gap) <= 360:
             raise ValueError("Gap must be between −360 and 360 degrees")
-        if width >= radius*math.cos(math.pi/sides):
+        if not(native_keyword or native_interactive)and width >= radius*math.cos(math.pi/sides):
             raise ValueError("Ring width must leave a positive inner radius")
+        if native_keyword and R(radius)*R(2)>R(min(float(tech.chip.get('chipx',512)),float(tech.chip.get('chipy',512)))):
+            raise ValueError('Ring dimensions exceed chip dimension')
         if native_keyword:
             from .command_numbers import angle_radians
             gap,radians=angle_radians(gap),angle_radians(angle)
+        elif native_interactive:
+            from .radial_inputs import gap_radians
+            gap=gap_radians(gap)
         else:gap=math.radians(gap)
         _ring(shape,tech,metal,radius,sides,width,gap,radians)
     else:

@@ -1480,3 +1480,44 @@ checks empty/maximum buffers, immutable inputs, rejected-call output safety
 and recovery. Regenerate all captured stages with
 `tools/capture_mesh_inputs_original.py --reference ... --library-path ...`;
 it invokes the separate read-only inverse-stage capturer after the CLI captures.
+
+
+Interactive polygon and ring creation is now exposed through
+`native_interactive: true` and the shared webpage input-mode selector.
+`radial_inputs.py` follows original prompts `0x08066b78` / `0x0806be74`:
+full-precision radius, width, spacing and origin, integer side input, positive
+phase and zero orientation. Polygon prompts require at least one turn and
+quantize the live retained fractional product, rather than the keyword spill.
+The interactive ring gap stores wrapped degrees and radians as binary64;
+keyword gap/orientation parsing retains its two binary32 stores. Positive
+periodic angles are accepted according to the original wrap. Interactive radii
+can reach a full chip dimension, while keyword radius validation uses diameter.
+
+The previous positive-inner-radius guard rejected native wide rings even though
+the original constructor retains those ribbon points. Native modes now preserve
+them; the typed convenience API keeps its existing guard. Negative ring gaps
+that produce a negative angular step still raise an explicit diagnostic: the
+original prints “Gap too large” and aborts that creation with a structure
+violation. These are controlled construction failures, not successful empty
+rings or process signals.
+
+`radial_interactive_original.json.gz` captures 120 unchanged original histories:
+109 successful shapes / 3,626 segments / 65,268 exact XYZ stores, and eleven
+constructor/parser failures. Cases include 3–128 sides, adjacent fractional-turn
+inputs, periodic gap/orientation input, wide/negative-inner-radius ribbons,
+full-chip radii, sub-nanometre geometry and interactive name normalization.
+All defined config, origin, width, thickness and metal fields remain available.
+Every successful shape is checked through independent `gdstk` GDS readback;
+the real webpage handlers additionally load, regenerate, save/reload and decode
+every GDS stream against the captured original coordinates. Omitted project
+parameters restore radial defaults rather than retaining the preceding form.
+
+Six additional complete interactive RING/SPIRAL -> Pi2/2PORT histories require
+every finite Y/model/S output bit and the captured resonance result in portable
+Python and compiled Pyodide. They include eddy correction, live turn truncation,
+periodic gap wrapping and a wide ring. Plain unobserved original CLI runs exit
+normally, and their CIF polygons match the constructed ribbons under the native
+retained scaling/truncation. The new checks are mandatory in CI. Arbitrary
+partial scans, retained prompt retry histories, all side-count/resource limits,
+and broader geometry-edit/branch-group workflows remain separate work; this
+change does not establish whole-program equivalence.
