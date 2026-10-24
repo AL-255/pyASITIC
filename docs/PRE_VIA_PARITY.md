@@ -20,6 +20,19 @@ does not take a matrix, mutual value or correction from recorded outputs.
 The generated reduced impedance overwrites the entire native matrix region
 before any via load; captured words are used only for comparison.
 
+Via traversal is now shared with production through `vias.segment_records`.
+The audit derives the diagonal indices, Z endpoints, via width/resistance and
+cell counts from the request's Python geometry and technology. All 132 records
+in each 130-run corpus match the original segment observations byte for byte.
+Observed segment records serve only as expectations. A changed original Z
+word fails validation without changing the generated stamp inputs. The same
+source-derived records are required by both the older shared-memory audit and
+the [earlier contact/cache comparison](CAP_PRELUDE.md).
+Their 132 generated diagonal indices also overwrite the complete live
+`ind.via_indices` array at its predicted allocation address before stamping;
+every original 32-bit index word matches. Its bytes are no longer native
+calculation inputs to this comparison.
+
 ## Internal capacity and independent original checks
 
 The selected native inputs include 288- and 384-filament systems. Symmetric,
@@ -65,8 +78,10 @@ assembly, browser mesh recovery and real-worker output/download flows.
 
 ## Remaining scope
 
-Allocator state at the CAP scope and the otherwise unknown heap bytes at via
-entry remain captured component-test preconditions. These must be derived from
+The original comparison initializes allocator state at CAP matrix entry; the
+[subsequent prelude comparison](CAP_PRELUDE.md) moves that boundary back before
+contact construction. Those initial states and otherwise unknown heap bytes at
+via entry remain captured component-test preconditions. These must be derived from
 process/scene allocation history and preceding stores before production can use
 the shared-memory path. Most arena structures still have logical rather than
 full byte-backed metadata. Complete repeated command execution and cleanup,

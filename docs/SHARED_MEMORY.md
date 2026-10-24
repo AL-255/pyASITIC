@@ -3,6 +3,8 @@
 The subsequent [pre-via parity check](PRE_VIA_PARITY.md) now regenerates both
 CAP and the pre-via inductive matrix, matching all 130 selected observations.
 The original component mode and its native-input checks remain available.
+Both modes now derive via parameter records and the live via-index array from
+Python geometry, with all 132 original records/indices checked exactly.
 
 The development port now has sparse guest byte memory, complex matrix views
 that can alias the same bytes, the original via load/store sequence, and

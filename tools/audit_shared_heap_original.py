@@ -12,7 +12,7 @@ from reasitic.allocation_plan import combined_network_storage
 from reasitic.bridge import _frequency
 from reasitic.heap import Heap
 from reasitic.memory import Memory,MemoryFault,UnknownMemory,ComplexView
-from reasitic.vias import stamp_memory
+from reasitic.vias import stamp_memory,segment_records
 from audit_allocator_original import state_differences
 
 
@@ -22,6 +22,12 @@ def seed(memory,state):
 
 
 def via_records(case):
+    shape,technology=ported_inductance_geometry(case)
+    return list(segment_records(shape,technology,_frequency(case['request'])))
+
+
+def original_via_records(case):
+    """Expected records only; never used to generate a stamp input."""
     technology=Technology.from_text(case['request']['technology']);group=0;records=[]
     for raw in case['via']['segments']:
         segment=bytes.fromhex(raw);metal=struct.unpack_from('<i',segment,0xdc)[0]
@@ -30,8 +36,19 @@ def via_records(case):
         lo,hi=(struct.unpack_from('<d',segment,offset)[0]for offset in (16,40))
         nx,ny=struct.unpack_from('<2i',segment,0xe0)
         records.append((group,[_frequency(case['request']),lo,hi,via.width,via.resistance,nx,ny]))
-    assert [index for index,record in records]==case['via']['indices']
     return records
+
+
+def via_record_differences(case,records):
+    expected=original_via_records(case);differences=[]
+    if [index for index,record in records]!=case['via']['indices']:
+        differences.append(dict(kind='via-indices',actual=[index for index,record in records],original=case['via']['indices']))
+    if len(records)!=len(expected):differences.append(dict(kind='via-record-count',actual=len(records),original=len(expected)))
+    for ordinal,((index,record),(original_index,original))in enumerate(zip(records,expected)):
+        actual_bytes=struct.pack('<5d2i',*record);original_bytes=struct.pack('<5d2i',*original)
+        if index!=original_index or actual_bytes!=original_bytes:
+            differences.append(dict(kind='via-record',ordinal=ordinal,index=index,original_index=original_index,actual=actual_bytes.hex(),original=original_bytes.hex()))
+    return differences
 
 
 def ported_capacitance(case):
@@ -54,10 +71,9 @@ def ported_capacitance(case):
     return result
 
 
-def ported_impedance(case):
-    """Use the same pre-via preparation as the production LMAT/Pi solver."""
+def ported_inductance_geometry(case):
     from reasitic.bridge import _shapes,_mesh
-    from reasitic.solver import discretize,prepare_impedance
+    from reasitic.solver import discretize
     from reasitic.network import _join_for_pads
     request=case['request'];technology=Technology.from_text(request['technology'])
     shapes=_shapes(request,technology);mesh=_mesh(request,technology)
@@ -65,6 +81,14 @@ def ported_impedance(case):
     else:
         first,second=(discretize(shapes[request[key]],mesh['capacitance_length_cell'],mesh['length_cell'])for key in ('first_winding','second_winding'))
         second.segments.reverse();shape=_join_for_pads(first,second)
+    return shape,technology
+
+
+def ported_impedance(case):
+    """Use the same pre-via preparation as the production LMAT/Pi solver."""
+    from reasitic.bridge import _mesh
+    from reasitic.solver import prepare_impedance
+    request=case['request'];shape,technology=ported_inductance_geometry(case);mesh=_mesh(request,technology)
     # Native comparison includes larger systems. The normal solver/website
     # budget stays at 256; this explicit diagnostic budget is independent.
     return prepare_impedance(shape,technology,_frequency(request),width_cell=mesh['width_cell'],thickness_cell=mesh['thickness_cell'],max_width_cells=mesh.get('max_width_cells',500),max_filaments=512,discretized=True,eddy=request.get('eddy',False))
@@ -80,8 +104,11 @@ def normalized_errors(errors):
 
 
 def compare(case,*,invert=False,capacitance=None,impedance=None,heap=None,contact_addresses=None):
-    result=dict(label=case['label'],cache_mode=case['cache_mode'],allocations_checked=0,events_checked=0,stores_checked=0,faults_checked=0,cache_boundaries=0,cache_words_checked=0,cap_input_words_checked=0,ind_input_words_checked=0,cap_words_checked=0,ind_words_checked=0,predicted_cache_errors=[],differences=[])
+    result=dict(label=case['label'],cache_mode=case['cache_mode'],allocations_checked=0,events_checked=0,stores_checked=0,faults_checked=0,via_records_checked=0,via_index_words_checked=0,cache_boundaries=0,cache_words_checked=0,cap_input_words_checked=0,ind_input_words_checked=0,cap_words_checked=0,ind_words_checked=0,predicted_cache_errors=[],differences=[])
     states=case['allocator_states'];heap=Heap(next(state for state in states if state['label']=='scope'))if heap is None else heap;via=case['via'];memory=None;records=via_records(case)
+    result['differences'].extend(via_record_differences(case,records))
+    if result['differences']:return result
+    result['via_records_checked']=len(records)
     external={}
     if contact_addresses is None:
         for i,group in enumerate(case['contact_groups']):
@@ -90,7 +117,7 @@ def compare(case,*,invert=False,capacitance=None,impedance=None,heap=None,contac
     else:external.update(contact_addresses)
     external['geometry.descriptor']=via['shape_address'];external.update((f'geometry.segment.{i}',address)for i,address in enumerate(via['segment_addresses']))
     addresses=external.copy();n=via['matrix']['size']
-    plan=iter(combined_network_storage([len(g['contacts'])for g in case['contact_groups']],n,case['matrices']['ind_full']['size'],len(via['indices']),clone_segments=len(via['segments'])))
+    plan=iter(combined_network_storage([len(g['contacts'])for g in case['contact_groups']],n,case['matrices']['ind_full']['size'],len(records),clone_segments=len(via['segments'])))
     boundaries={state['event_count']:state for state in states}
     for index,event in enumerate(case['events']):
         if event['kind']in ('allocate','free'):
@@ -130,6 +157,11 @@ def compare(case,*,invert=False,capacitance=None,impedance=None,heap=None,contac
             if state['label']=='via_entry':
                 memory=Memory(heap.address_space);seed(memory,state)
                 heap.attach_cache_memory(memory,state['tcache_key'])
+                if records:
+                    address=addresses['ind.via_indices'];indices=b''.join(struct.pack('<i',index)for index,record in records)
+                    original=memory.read(address,len(indices));memory.write(address,indices)
+                    result['via_index_words_checked']+=len(records)
+                    if indices!=original:result['differences'].append(dict(kind='via-index-bytes',actual=indices.hex(),original=original.hex()))
                 if capacitance is not None:
                     view=ComplexView(memory,addresses['cap.output'],n)
                     original=memory.read(addresses['cap.output'],16*n*n)
@@ -175,7 +207,7 @@ def main():
         prepared=ported_impedance(case)if options.ported_ind else None
         results.append(compare(case,invert=options.inverse,capacitance=cap,impedance=None if prepared is None else prepared.reduced_z))
         if options.ported_cap or options.ported_ind:print(case['label']+'/'+case['cache_mode']+': '+str(len(results[-1]['differences']))+' differences',flush=True)
-    report={key:sum(case[key]for case in results)for key in ('allocations_checked','events_checked','stores_checked','faults_checked','cache_boundaries','cache_words_checked','cap_input_words_checked','ind_input_words_checked','cap_words_checked','ind_words_checked')}
+    report={key:sum(case[key]for case in results)for key in ('allocations_checked','events_checked','stores_checked','faults_checked','via_records_checked','via_index_words_checked','cache_boundaries','cache_words_checked','cap_input_words_checked','ind_input_words_checked','cap_words_checked','ind_words_checked')}
     report.update(cases=len(results),predicted_cache_errors=sum(len(case['predicted_cache_errors'])for case in results),differences=sum(len(case['differences'])for case in results),results=results)
     if options.output:options.output.write_text(json.dumps(report,indent=2)+'\n')
     print(json.dumps({key:value for key,value in report.items()if key!='results'},separators=(',',':')))

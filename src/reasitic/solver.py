@@ -14,7 +14,7 @@ from .symmetric import inverse_symmetric
 from .linear import inverse_general
 from .filament import record as _filament_record,filament_records
 from .mutual_kernel import mesh_mutual,WARNING_MESSAGES
-from .vias import stamp as stamp_vias,active_height as active_via_height
+from .vias import stamp as stamp_vias,active_height as active_via_height,segment_records as via_records
 from .impedance import assemble as assemble_impedance,self_impedance as _filament_self_impedance
 from .mesh_counts import counts as _native_counts,maximum_width_cells
 from .retained_scalar import Real
@@ -193,13 +193,8 @@ def solve_impedance(shape,technology,frequency_hz,*,length_cell=1000,width_cell=
     warnings,eddy_details,n=prepared.warnings,prepared.eddy_details,prepared.filaments
     metal_count=len(technology.metals)
     omega=2*math.pi*frequency_hz
-    group = 0
-    for s in meshed.segments:
-        if s.metal<metal_count:
-            group += 1
-            continue
-        via = technology.vias[s.metal-metal_count]
-        if not active_via_height(s.start[2],s.end[2]):
+    for group,record in via_records(meshed,technology,frequency_hz):
+        if not active_via_height(record[1],record[2]):
             continue
         if group>=len(groups):
             # The original writes (n,n) outside the reduced matrix. Actual
@@ -208,8 +203,7 @@ def solve_impedance(shape,technology,frequency_hz,*,length_cell=1000,width_cell=
             # finite original models. Keep the unsupported alias explicit.
             raise ValueError('Native trailing-via stamp aliases memory outside the inductance matrix; this heap interaction is not yet reproduced')
         value=reduced_z[group][group]
-        reduced_z[group][group]=stamp_vias([[frequency_hz,s.start[2],s.end[2],via.width,via.resistance,
-                                           s.nx,s.ny,value.real,value.imag]])[0]
+        reduced_z[group][group]=stamp_vias([[*record,value.real,value.imag]])[0]
         if not all(math.isfinite(v) for v in (reduced_z[group][group].real,reduced_z[group][group].imag)):
             raise ValueError("Native via correction produced a nonfinite inductive kernel; review the reference mesh and via cell counts")
     total = _sum_complex(z for row in reduced_z for z in row)

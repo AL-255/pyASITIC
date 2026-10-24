@@ -68,6 +68,10 @@ From this earlier boundary, the packaged-Pyodide comparison reproduces:
   words, with no native matrix used as a calculation input.
 - 131 completed via stores, the native unmapped load fault and 39,524 raw cache
   words.
+- All 132 via indices and parameter records generated from Python geometry,
+  using the same segment traversal as the production solver. Captured segment
+  words are comparison expectations rather than stamp inputs. The complete
+  live via-index array is also regenerated, matching all 132 original words.
 - 118,948 CAP and 118,948 inductive words at the 129 completed node entries.
 - All three damaged tcache chains observed in this independent capture.
 

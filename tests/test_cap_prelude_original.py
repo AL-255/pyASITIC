@@ -53,6 +53,8 @@ class CapPreludeTests(unittest.TestCase):
         self.assertEqual(sum(r['prefix']['events']+r['body']['events_checked']for r in results),20609)
         self.assertEqual(sum(r['prefix']['allocations_checked']+r['body']['allocations_checked']for r in results),9419)
         self.assertEqual(sum(r['body']['stores_checked']for r in results),131);self.assertEqual(sum(r['body']['faults_checked']for r in results),1)
+        self.assertEqual(sum(r['body']['via_records_checked']for r in results),132)
+        self.assertEqual(sum(r['body']['via_index_words_checked']for r in results),132)
         self.assertEqual(sum(r['body']['cap_words_checked']for r in results),118948)
         errors=[(r['label'],r['cache_mode'],e['address'])for r in results for e in r['body']['predicted_cache_errors']]
         self.assertEqual(errors,[('pilot-width3/1/filaments','cold',0x8100),('pilot-width3/1/filaments','warm',0x8100),('pilot-boundary/1/filaments','warm',0x8100)])

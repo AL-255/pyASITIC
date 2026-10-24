@@ -1,11 +1,12 @@
 """Shared native via stores and tcache bytes, including damaged chains."""
-import collections,gzip,hashlib,json,struct,sys,unittest
+import collections,copy,gzip,hashlib,json,math,struct,sys,unittest
 from pathlib import Path
 ROOT=Path(__file__).resolve().parents[1]
 sys.path.insert(0,str(ROOT/'tools'))
 import capture_allocator_original as arena
 import capture_shared_memory_original as capture
-from audit_shared_heap_original import compare,seed,normalized_errors
+from audit_shared_heap_original import compare,seed,normalized_errors,via_records,via_record_differences
+from reasitic import Technology
 from reasitic.heap import Heap,AddressSpace
 from reasitic.memory import Memory,MemoryFault,UnknownMemory,ComplexView
 from reasitic.vias import stamp_memory
@@ -45,11 +46,29 @@ class SharedHeapTests(unittest.TestCase):
         results=[compare(case)for case in self.fixture['cases']]
         for result in results:
             with self.subTest(label=result['label'],mode=result['cache_mode']):self.assertEqual(result['differences'],[])
-        for field,value in (('allocations_checked',3117),('events_checked',12877),('stores_checked',131),('faults_checked',1),('cache_boundaries',259),('cache_words_checked',39524),('cap_words_checked',118948)):
+        for field,value in (('allocations_checked',3117),('events_checked',12877),('stores_checked',131),('faults_checked',1),('via_records_checked',132),('via_index_words_checked',132),('cache_boundaries',259),('cache_words_checked',39524),('cap_words_checked',118948)):
             self.assertEqual(sum(result[field]for result in results),value)
         errors=[(r['label'],r['cache_mode'],e['address'])for r in results for e in r['predicted_cache_errors']]
         self.assertEqual(errors,[('square/1/filaments','cold',0x8100),('pilot-width3/1/filaments','warm',0x8100),('pilot-boundary/1/filaments','cold',0x8100),('pilot-boundary/1/filaments','warm',0x811b)])
         self.assertEqual(collections.Counter(c['plain']['returncode']for c in self.fixture['cases']),{0:123,-6:5,-11:2})
+
+    def test_via_inputs_derive_from_request_geometry_not_observed_segments(self):
+        count=0
+        for case in self.fixture['cases']:
+            with self.subTest(label=case['label'],mode=case['cache_mode']):
+                records=via_records(case);count+=len(records)
+                self.assertEqual(via_record_differences(case,records),[])
+        self.assertEqual(count,132)
+        # A changed observation must fail comparison without changing the
+        # generated numerical inputs. This also preserves exact binary64 Z.
+        case=copy.deepcopy(self.fixture['cases'][0]);records=via_records(case)
+        metal_count=len(Technology.from_text(case['request']['technology']).metals)
+        ordinal=next(i for i,raw in enumerate(case['via']['segments'])if struct.unpack_from('<i',bytes.fromhex(raw),0xdc)[0]>=metal_count)
+        segment=bytearray.fromhex(case['via']['segments'][ordinal]);height=struct.unpack_from('<d',segment,16)[0]
+        struct.pack_into('<d',segment,16,math.nextafter(height,math.inf));case['via']['segments'][ordinal]=segment.hex()
+        self.assertEqual(via_records(case),records)
+        self.assertEqual([error['kind']for error in via_record_differences(case,records)],['via-record'])
+        self.assertEqual([error['kind']for error in compare(case)['differences']],['via-record'])
 
     def test_existing_balun_native_input_reinversion(self):
         for case in self.fixture['cases'][-4:]:

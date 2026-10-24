@@ -15,6 +15,23 @@ def active_height(start,end):
     return R(end)-R(start)>R(float.fromhex("0x1.b7cdfd9d7bdbbp-34"))
 
 
+def segment_records(shape,technology,frequency_hz):
+    """Yield native diagonal indices and via inputs from the segment chain.
+
+    setup_filament_groups increments the index only for metal segments. Vias
+    retain that index, including leading, consecutive and trailing vias; height
+    filtering happens later in add_via_impedance, after indices are assigned.
+    """
+    group=0;metal_count=len(technology.metals)
+    for segment in shape.segments:
+        if segment.metal<metal_count:
+            group+=1
+            continue
+        via=technology.vias[segment.metal-metal_count]
+        yield group,(frequency_hz,segment.start[2],segment.end[2],via.width,via.resistance,
+                     segment.nx,segment.ny)
+
+
 def _terms(f,lo,hi,width,resistance,nx,ny):
     height=R(hi)-R(lo)
     if not height>R(float.fromhex("0x1.b7cdfd9d7bdbbp-34")):return None
