@@ -154,7 +154,35 @@ signed zeros, extreme scales and native invalid sqrt(dot) histories. Production
 solves diagnose nonfinite coordinates explicitly. Source provenance is recorded
 in `filament-source.json`.
 
-Rebuild the checked-in, stripped `web/numeric.wasm` (123.1 KiB):
+`mutual.cpp` and `mutual_nonparallel.cpp` retain the original signed segment
+dispatch, canonical basis, intersection projection history, self/cross-section
+helpers, parallel case table and planar/spatial formulas. Filament solves use
+bounded batches of pairs, with frequency-independent packed results cached by
+all input geometry bits. Estimate/coupling calls share the same retained path.
+Source hashes and adaptations are recorded in `mutual-source.json`.
+
+`retained_math.cpp` evaluates elementary functions with binary128 guard
+precision between native retained stores. It preserves the original FLDLN2
+constant, exp reduction, atanh crossover and distinct FYL2X/FYL2XP1 paths. Sin/cos
+use the internal trigonometric Pi approximation described by Intel, rather
+than replacing the native instruction with the mathematical function. Their
+domain is restricted to [-4,4], covering the mutual formulas' stored angles;
+these helpers must not be used for arbitrary Green-integrand arguments.
+
+`capture_mutual.py` executes intact original routines for 2,135 cases, including
+939 whole pairs from real meshes and arbitrary planar/spatial geometry. Separate
+probe modes execute native x87 instructions for another 2,683 cases. All outputs
+match at binary64 boundaries, including signed zeros and nonfinite classes;
+statuses, warnings and caller immutability are checked too. Raw extended words
+and the oracle CPU/control-word environment remain in the fixture. Four
+standalone scalar and 28 instruction intermediates
+differ. No universal raw 80-bit instruction equivalence is claimed. All twelve
+captured finite eddy-off CALCTRANS sessions now additionally match every raw
+original SI Y/Z/model output bit (undefined coupling by classification), while
+the three eddy-enabled sessions retain tolerance checks and fail the separate
+strict whole-session audit.
+
+Rebuild the checked-in, stripped `web/numeric.wasm` (199.5 KiB):
 
 ```sh
 python tools/build_kernels.py --download-zig

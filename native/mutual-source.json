@@ -1,0 +1,16 @@
+{
+  "reference_commit": "63885e808b522bdeba3f254d353afc72e643c761",
+  "source_sha256": {
+    "numerics.cpp": "cedcb774b43abb092a3b30b7a08929b48fd87228e294d494fe28c584b08a0af1",
+    "separation.cpp": "e1aed6c65c757ae2fa8796a42707a52b28ceb58bca1ab1bfb2db24f5f35b487f",
+    "parallel.cpp": "01587c945f8aaedd715f90eee1687b6c5f3961df200efd75765f2746a75f082a",
+    "intersection.cpp": "a9bb6a26f9238cd35dbbb84e5b329d888a464b83219e060c3ca396c7da0b5883",
+    "canonicalize.cpp": "82d2c2c5b2fb27cd981b9ab9d53ca104deda18c52fcb08e2b499b88d84c6b754",
+    "planar.cpp": "b3c02d2af097d7fbc4375ed4c3f8b7c62c649412839d19675ce2d1ee8dd010d6",
+    "spatial.cpp": "088996bfacd5896593cbd21b3d5f72864279634a2c7d43eb93effb03044ff898",
+    "segment.cpp": "4466963692b101b7e027afb4ad2b3a9aa710007e53e66635b4e50fe5d3172e68",
+    "x87.hpp": "14452aaed86d0ec525a7611e387f3a62c9b5ab514d20de4708b2c52c9c925e9b"
+  },
+  "adaptation": "SoftFloat retained operations and original binary64 stores; bounded typed batch records; explicit projection reloads; guarded binary128 elementary evaluation. Trigonometric Pi correction follows Intel documentation and native instruction captures. Sin/cos cover the mutual formulas\u2019 [-4,4] angle domain only. Binary64 fixture equality does not imply universal raw 80-bit instruction equality.",
+  "trigonometric_reference": "https://www.intel.com/content/www/us/en/developer/articles/technical/the-difference-between-x87-instructions-and-mathematical-functions.html"
+}

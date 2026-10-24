@@ -13,6 +13,7 @@ from .inductance import segment_mutual, SELF_CONSTANT
 from .symmetric import inverse_symmetric
 from .linear import inverse_general
 from .filament import record as _filament_record,filament_records
+from .mutual_kernel import mesh_mutual,WARNING_MESSAGES
 
 
 @lru_cache(maxsize=32768)
@@ -135,10 +136,15 @@ def solve_impedance(shape,technology,frequency_hz,*,length_cell=1000,width_cell=
     n = len(filaments)
     full = [[0j]*n for _ in range(n)]
     warnings = []
+    native=mesh_mutual(b"".join(struct.pack("=8d",*wire) for wire,_,_ in filaments));pair=0
     for row,(a,metal,nz) in enumerate(filaments):
         full[row][row]=_filament_self_impedance(a,technology.metals[metal].resistance,nz,omega_nh)
         for col in range(row+1,n):
-            mutual,notices = _filament_mutual(struct.pack("=16d",*a,*filaments[col][0]))
+            if native is not None and native[3*pair]==0:
+                mutual=native[3*pair+1];warning=int(native[3*pair+2])
+                notices=(WARNING_MESSAGES[warning],) if warning else ()
+            else:mutual,notices = _filament_mutual(struct.pack("=16d",*a,*filaments[col][0]))
+            pair+=1
             warnings.extend(notices)
             full[row][col] = full[col][row] = complex(0,omega*1e-9*mutual)
     full_y = inverse_symmetric(full)

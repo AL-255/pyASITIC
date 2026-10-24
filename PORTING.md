@@ -31,6 +31,7 @@ Reference checkout: `~/github/asitic-re`, revision recorded in each fixture.
 | `extended.py`, `linear.py` | `extended_node.cpp`, `extended_twoport.cpp`, `general.cpp`, `node_equations.cpp` | 68 native extended-node cases, including noncontiguous native strides, exact finite column stamps and systems beyond the 64-column LU panel boundary |
 | `symmetric.py`, `native/matrix_*.cpp`, `native/soft_real.hpp` | Original ZSYTF2 `0x0809bcf8` / ZSYTRI `0x08095bf8`; `symmetric.cpp`, `complex.cpp`, `blocked.cpp` | 44 directly verified original factor/inverse cases, exact compiled pivots and output bits, tiny/huge scales, signed zeros, partial singularity; complete original factor/inverse digests for 128/256-entry systems including two-entry pivots; four original dense Pi2 sessions at 189 filaments / 63 contacts; portable Python factors and six eigen rotations retain component checks |
 | `parallel.py`, `solver.py` | `parallel.cpp`, `separation.cpp`, `numerics.cpp`, `impedance.cpp` | 175 native self-integral/cross-section/separation/parallel/full-segment probes; retained filament self-impedance diagonals in complete PiX sessions |
+| `mutual_kernel.py`, `native/mutual*.cpp`, `native/retained_math.cpp` | `segment.cpp`, `canonicalize.cpp`, `intersection.cpp`, `parallel.cpp`, `separation.cpp`, `numerics.cpp`, `planar.cpp`, `spatial.cpp`, `x87.hpp` | 2,135 intact original scalar/pair outputs, including 939 whole pairs; 2,683 separately labeled native-instruction outputs; exact binary64 stores, native statuses/warnings and immutable batch inputs; all twelve finite eddy-off coupled sessions exact at raw SI output boundaries |
 | `extended.py` PiX pipeline | `potential_solver.cpp`, `extended_twoport.cpp`, `extended_node.cpp`, `console_analysis.cpp` | Ten complete PIX sessions across CMOS/BiCMOS, wires, square/polygon coils, vias, joined capacitors and multimetal windings; unfolded CAP, final LMAT, node vectors, full-precision Pi/ZIN reports, direct port Y for all ten and six native 2PORTX Y/S exports |
 | `gds.py` | Native ribbon and `layout_export.cpp` via pitch conventions | Independent gdstk round-trip for nine generators, units, coordinates, layer mapping, via counts and cut area |
 | `bridge.py`, `web/worker.js` | New browser interface | Generation, estimates, sweeps and exports exercised in pinned Pyodide WebAssembly runtime |
@@ -384,12 +385,32 @@ extractor from differences in the preceding electromagnetic solve.
 Run the separate strict end-to-end audit after `tools/build_site.py` with
 `node tools/audit_transformer_parity.mjs /path/to/pyodide.mjs`. It exits nonzero
 for any differing finite output bit; it is deliberately separate from the
-component-tolerance regression suite. At this revision, only 2 of the 15 finite
-coupled sessions are exact; 263 of their 345 Y/Z/model components differ.
-Original debugger snapshots locate differences in inductive-admittance inputs
-while CAP inputs match exactly in four sampled sessions. Filament construction,
-impedance assembly and eddy arithmetic remain precision work; the strict audit
-is not a passing parity gate yet.
+component-tolerance regression suite. With the retained mutual backend, 12 of
+the 15 finite coupled sessions are exact; 67 of their 345 Y/Z/model components
+still differ, all in the three eddy-enabled sessions. The twelve captured finite
+eddy-off sessions are now exact gates in the regular WebAssembly suite. The
+portable Python fallback retains its existing component comparisons.
+
+Original debugger snapshots isolated matching CAP inputs and filament self
+diagonals from differing mutual terms before inversion. The new compiled path
+preserves the original 5000-unit basis translation, retained cross/dot products,
+intersection tests, geometric-mean separation, case table and nonparallel spills.
+All input geometry bits form the cache key; cached data has no frequency weight
+or eddy correction. Production meshes cross the Python/JavaScript boundary in
+batches of at most 256 pairs. Estimate and coupling calls use the same backend.
+
+Elementary evaluation uses binary128 guard precision around the original
+extended operations. Native trig behavior near pi/2 and pi differs from a
+modern libm function: Intel documents an internal Pi approximation and the
+corresponding scaled function argument in its [x87 implementation
+article](https://www.intel.com/content/www/us/en/developer/articles/technical/the-difference-between-x87-instructions-and-mathematical-functions.html).
+The mutual kernel follows that behavior over its [-4,4] angle domain; it does
+not replace native near-zero values with mathematical zeros. These bounded
+sin/cos helpers are not suitable for arbitrary Green-integrand arguments.
+Four standalone scalar and 28 instruction raw extended results still differ
+despite matching every captured binary64 store. Their words remain recorded
+for further validation. Broader complete electrical coverage, eddy arithmetic,
+command-input boundaries and universal whole-simulator equality remain open.
 
 The open mesh panel exposes all five shared cell sizes above the simulation
 panels. Counts run without electrical solves and use the solver's own width/

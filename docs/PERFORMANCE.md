@@ -7,9 +7,9 @@ symmetric/general factors and inverses, triangular solves and network dot
 products now run in a compiled
 WebAssembly module. Both backends cache complete tables at identical inputs;
 the portable table fallback also memoizes spectral values and interface ratios.
-Filament mutual terms use bounded caching of
-ordered binary geometry records; frequency scaling and eddy terms are evaluated
-for each solve.
+Filament mutual terms now use a retained compiled case table and bounded packed
+caching of all input geometry bits; frequency scaling and eddy terms are
+evaluated for each solve. Scalar estimate/coupling calls share the same backend.
 
 The original reference is the unmodified `asitic.linux.2.2`, SHA256
 `72bcb93444604b89a65cb64e5825bfcff0ac740a816120d0f171855206bd572f`.
@@ -110,6 +110,36 @@ overlapped the first part of the sequence on the development host. Inputs,
 per-point times and L/R/Q results are in
 `benchmarks/2026-10-23-spectral-sweeps.json`. These are browser comparisons;
 original-binary sweep timing has not been measured by this tool.
+
+The retained mutual step (2026-10-24) moves the signed pair dispatch, canonical
+basis, cross-section separation and planar/spatial formulas into bounded
+compiled batches. A paired run against the deployed mesh release `b9c0b53`
+uses the same requests and one interpreter per version:
+
+| Mesh / FFT grid | Previous first request | Retained mutual first request |
+| --- | ---: | ---: |
+| 34 filaments / 64 × 64 | 0.336 s | 0.192 s |
+| 34 filaments / 128 × 128 | 0.788 s | 0.787 s |
+| 189 filaments / 64 × 64 | 5.192 s | 0.693 s |
+| 189 filaments / 128 × 128 | 0.352 s | 0.339 s |
+
+The dense first 64-grid request improves about 7.5×. Geometry caches persist
+between FFT cases, so the dense 128-grid row already benefits from its earlier
+64-grid geometry solve. Current cached dense requests take about 0.33–0.34 s;
+matrix inversion remains a substantial cost. The retained original cached
+measurement is about 21 ms. These measurements establish a geometry-work
+improvement, not native-speed parity or a universal timing bound. Complete
+inputs, per-request samples and results are in
+`benchmarks/2026-10-24-mutual.json`; native timings are retained from the earlier
+2026-10-23 original-binary measurements, not remeasured for this step.
+
+The eleven-point distinct-frequency dense 64-grid sweep improves from 10.41 s
+to 5.83 s. The corresponding 128-grid run is 12.18 s / 12.31 s, with little
+change after geometry reuse; frequency-dependent tables and matrix work remain.
+The two small-mesh sweeps measure 2.01 s / 1.93 s and 8.53 s / 8.81 s at 64/128
+grids. Versions run sequentially with separate interpreters. Raw inputs and
+every sample are in `benchmarks/2026-10-24-mutual-sweeps.json`; these are browser
+comparisons, excluding interpreter loading and DOM rendering.
 
 Cold browser timing is the first request for each FFT grid in one interpreter,
 excluding interpreter loading. Geometry caches persist between the two grids;

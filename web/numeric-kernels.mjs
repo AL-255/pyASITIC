@@ -22,6 +22,8 @@ export async function installNumericalKernels(python, bytes) {
   const transformerData = new Float64Array(api.memory.buffer, api.transformer_buffer(), 24);
   const filamentInput = new Float64Array(api.memory.buffer, api.filament_buffer(), 256*26);
   const filamentOutput = new Float64Array(api.memory.buffer, api.filament_result_buffer(), 256*9);
+  const mutualInput = new Float64Array(api.memory.buffer, api.mutual_buffer(), 256*18);
+  const mutualOutput = new Float64Array(api.memory.buffer, api.mutual_result_buffer(), 256*6);
   function spectralCall(config,output,probe) {
     let c,o;
     try {
@@ -40,6 +42,15 @@ export async function installNumericalKernels(python, bytes) {
     } finally {o?.release();c?.release();}
   }
   python.registerJsModule("_reasitic_numeric", {
+    mutual(input,output) {
+      let a,b;
+      try {
+        a=input.getBuffer("f64");b=output.getBuffer("f64");const n=a.data.length/18;
+        if(!Number.isInteger(n)||n<1||n>256||b.data.length!==n*6)throw new Error("Mutual batch dimensions are invalid");
+        for(let i=0;i<n;i++)if(![0,1,2,3,4].includes(a.data[18*i]))throw new Error("Mutual operation is invalid");
+        mutualInput.set(a.data);const status=api.mutual_probe(n);b.data.set(mutualOutput.subarray(0,n*6));return status;
+      } finally {b?.release();a?.release();}
+    },
     filaments(input,output) {
       let a,b;
       try {

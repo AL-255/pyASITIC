@@ -167,6 +167,12 @@ def _nonparallel(a,b,spatial):
 
 def segment_mutual(a,b,warnings=None):
     """Signed mutual nH between [x0,y0,z0,x1,y1,z1,width,thickness]."""
+    from .mutual_kernel import segment_value,WARNING_MESSAGES
+    compiled=segment_value(a,b)
+    if compiled is not None:
+        value,warning=compiled
+        if warning and warnings is not None:warnings.append(WARNING_MESSAGES[warning])
+        return value
     orientation = _dot(_sub(a[:3],a[3:6]),_sub(b[:3],b[3:6]))
     if abs(orientation)<=EPS:
         return 0

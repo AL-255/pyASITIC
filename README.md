@@ -4,7 +4,8 @@ Python reconstruction of ASITIC, with a static browser application for GitHub
 Pages. The reference is [`AL-255/asitic-re`](https://github.com/AL-255/asitic-re),
 specifically its `recomp_cpp` reconstruction. This repository implements the
 algorithms through a Python API; it does not invoke the reference executable at
-runtime. The browser accelerates retained FFT, spectral math, contact potentials and matrix
+runtime. The browser accelerates retained FFT, spectral math, filament construction,
+mutual inductance, contact potentials and matrix
 solves with a small compiled
 WebAssembly kernel; a portable Python implementation is also included.
 
@@ -27,6 +28,11 @@ Implemented so far:
   or MIM PDK models.
 - Original `Inductance` and `Coupling` estimate algorithms: segment self terms,
   signed parallel, planar and spatial mutual-inductance cases.
+  The browser's segment-pair path preserves the original retained basis,
+  intersection tests, cross-section separation and planar/spatial spill order.
+  A direct original-executable gate checks 2,135 scalar/pair outputs exactly at
+  binary64 boundaries; 2,683 separate native instruction cases check the
+  elementary-function stores.
 - `LMAT` filament solver with longitudinal and cross-section meshing,
   impedance assembly, inversion/reduction and via corrections. The web app
   displays L, R, series Q and the complex matrix, with full matrix CSV download.
@@ -71,6 +77,9 @@ Implemented so far:
   The compiled extractor matches 67 direct original-executable cases exactly
   at finite output boundaries. Complete-session checks cover 15 finite cases
   and explicit diagnostics for six original nonfinite histories.
+  All twelve captured finite eddy-off sessions additionally match every raw
+  original SI Y/Z/model output bit, with undefined coupling by classification.
+  Full bitwise equality for eddy-enabled sessions remains incomplete.
 - GDSII export with actual via cuts and metal landing pads. Default mapping:
   metal index + 1, via index + 100; datatype 0. GF180 presets supply their drawn
   layer numbers. Python/JSON callers can override the mapping.
@@ -131,7 +140,7 @@ tests and the same source archive inside the pinned WebAssembly runtime before
 deploying to Pages. No external simulation service is required.
 
 The Pages workflow runs Python core checks, every native potential-reference
-process/frequency group, and twelve WebAssembly groups in parallel. FFT/CAP and
+process/frequency group, and thirteen WebAssembly groups in parallel. FFT/CAP and
 SELFRES checks print case progress. Fixture-derived grouping keeps all native
 cases covered; deployment waits for every group and publishes only the current
 main commit. Active validation is retained when another commit is pushed.

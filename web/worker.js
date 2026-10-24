@@ -16,7 +16,8 @@ from reasitic.linear import _compiled_general
 from reasitic.table_kernel import _compiled_tables,_compiled_coefficients
 from reasitic.transformer import _compiled_transformer
 from reasitic.filament import _compiled_filaments
-assert all(x is not None for x in (_compiled_transform,_native_tanh,_native_cosh,_compiled_symmetric,_compiled_contact_pair,_compiled_general,_compiled_tables,_compiled_coefficients,_compiled_transformer,_compiled_filaments)), "Could not initialize numerical kernels"
+from reasitic.mutual_kernel import _compiled_mutual
+assert all(x is not None for x in (_compiled_transform,_native_tanh,_native_cosh,_compiled_symmetric,_compiled_contact_pair,_compiled_general,_compiled_tables,_compiled_coefficients,_compiled_transformer,_compiled_filaments,_compiled_mutual)), "Could not initialize numerical kernels"
 from reasitic.bridge import request_json
 `);
   self.postMessage({ ready: true });

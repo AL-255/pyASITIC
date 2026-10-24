@@ -84,6 +84,17 @@ static E argument(double k,double a,double b){return extF80_mul(load(k),extF80_s
 static const E log2e={.signif=0xb8aa3b295c17f0bcULL,.signExp=0x3fff};
 static E integral(E x){return extF80_roundToInt(x,softfloat_round_near_even,0);}
 static int integer(E x){return extF80_to_i32(x,softfloat_round_near_even,0);}
+E retained_exp(E x){
+ E e=extF80_mul(x,log2e),i=integral(e),fraction=extF80_sub(e,i);
+ if((e.signExp&0x7fff)==0x7fff)return extF80_add(fraction,fraction);
+ if(extF80_lt(load(16384),i)){E infinity={.signif=0x8000000000000000ULL,.signExp=0x7fff};return infinity;}
+ if(extF80_lt(i,load(-16446)))return load(0);
+ int power=integer(i);E result=extF80_add(exp2m1(fraction),load(1));
+ // Keep exponent adjustment exact until the final subnormal/overflow store.
+ if(power<-16382){result=extF80_mul(result,pow2(power+16382));power=-16382;}
+ if(power>16383){result=extF80_mul(result,load(2));power=16383;}
+ return extF80_mul(result,pow2(power));
+}
 static double cosh80(E x,int rounded){
  if(extF80_lt(load(500),x))return 1e15;
  if(rounded)x=load(spill(x));
