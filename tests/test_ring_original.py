@@ -69,7 +69,9 @@ class OriginalRingTests(unittest.TestCase):
         native=build('ring',radius=40.1234567,width=3.25,x=12.3456789,y=23.456789,native_keyword=True)
         self.assertEqual(native.origin,[12.300000190734863,23.5]);self.assertEqual(native.segments[0].width,3.200000047683716)
         with self.assertRaisesRegex(ValueError,'gap exceeds'):build('ring',native_keyword=True,gap=-20)
-        with self.assertRaisesRegex(ValueError,'currently supports ring'):handle(dict(action='build',kind='wire',native_keyword=True))
+        wire=handle(dict(action='build',kind='wire',native_keyword=True))
+        self.assertEqual(wire['kind'],'wire');self.assertEqual(wire['origin'],[0.,5.])
+        with self.assertRaises(ValueError):handle(dict(action='build',kind='invalid-generator',native_keyword=True))
         for config in((40,2,3,0,0),(40,3.5,3,0,0),(40,1025,3,0,0),(40,16,-3,0,0),(40,16,3,math.nan,0),(40,16,3,0,math.inf)):
             with self.assertRaises(ValueError):vertices(*config)
         for grid in(0,-1,math.inf,math.nan):
