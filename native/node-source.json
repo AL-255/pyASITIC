@@ -1,0 +1,9 @@
+{
+  "reference_commit": "63885e808b522bdeba3f254d353afc72e643c761",
+  "source_sha256": {
+    "node_equations.cpp": "aba6432dfccf40e0e1dad7fdc65e0529023aaa8ff3ead6210a7a3b4e54ac02b7",
+    "x87.hpp": "14452aaed86d0ec525a7611e387f3a62c9b5ab514d20de4708b2c52c9c925e9b"
+  },
+  "original_entry": "0x08053e00",
+  "adaptation": "Typed bounded arrays replace allocation/descriptors. SoftFloat retained operations preserve cap folding, differences, additions, dot-product spills and determinant arithmetic. Original factor/backsolve kernels and legacy-complex divisions are reused. Network dot products preserve original row-major reads of column-major input, including asymmetric matrices. Singular input is reported at the existing Python API error boundary."
+}

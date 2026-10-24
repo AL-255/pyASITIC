@@ -24,6 +24,10 @@ export async function installNumericalKernels(python, bytes) {
   const filamentOutput = new Float64Array(api.memory.buffer, api.filament_result_buffer(), 256*9);
   const mutualInput = new Float64Array(api.memory.buffer, api.mutual_buffer(), 256*18);
   const mutualOutput = new Float64Array(api.memory.buffer, api.mutual_result_buffer(), 256*6);
+  const viaInput = new Float64Array(api.memory.buffer, api.via_buffer(), 256*9);
+  const viaOutput = new Float64Array(api.memory.buffer, api.via_result_buffer(), 256*2);
+  const nodeInput = new Float64Array(api.memory.buffer, api.node_buffer(), 4*256*256);
+  const nodeOutput = new Float64Array(api.memory.buffer, api.node_result_buffer(), 8);
   function spectralCall(config,output,probe) {
     let c,o;
     try {
@@ -42,6 +46,27 @@ export async function installNumericalKernels(python, bytes) {
     } finally {o?.release();c?.release();}
   }
   python.registerJsModule("_reasitic_numeric", {
+    folded_node(input,output,n) {
+      let a,b;
+      try {
+        a=input.getBuffer("f64");b=output.getBuffer("f64");
+        if(!Number.isInteger(n)||n<1||n>256||a.data.length!==4*n*n||b.data.length!==2*n*n+8)throw new Error("Folded node dimensions are invalid");
+        nodeInput.set(a.data);const status=api.folded_node(n);
+        b.data.set(nodeInput.subarray(0,2*n*n));b.data.set(nodeOutput,2*n*n);return status;
+      } finally {b?.release();a?.release();}
+    },
+    via_stamp(input,output) {
+      let a,b;
+      try {
+        a=input.getBuffer("f64");b=output.getBuffer("f64");const n=a.data.length/9;
+        if(!Number.isInteger(n)||n<1||n>256||b.data.length!==n*2)throw new Error("Via batch dimensions are invalid");
+        for(let i=0;i<n;i++)for(const k of [5,6]){
+          const value=a.data[9*i+k];
+          if(!Number.isInteger(value)||value< -65535||value>65535)throw new Error("Via cell count is invalid");
+        }
+        viaInput.set(a.data);const status=api.via_stamp(n);b.data.set(viaOutput.subarray(0,n*2));return status;
+      } finally {b?.release();a?.release();}
+    },
     mutual(input,output) {
       let a,b;
       try {

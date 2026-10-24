@@ -5,11 +5,17 @@ use the native general LU path. Public Y matrices follow the native output port
 order (y22 first).
 """
 from decimal import Decimal,localcontext
+from array import array
 import copy
 import math
 from .solver import discretize,solve_impedance,_sum_complex
 from .potential import solve_capacitance,_divide
 from .linear import factor_general,solve_general,matrix_vector
+
+try:
+    from _reasitic_numeric import folded_node as _compiled_node
+except ImportError:
+    _compiled_node=None
 
 
 def _complex_matrix(values):
@@ -37,6 +43,15 @@ def solve_node_equations(capacitance,inductance):
     n=len(capacitance)
     if not n or len(inductance)!=n or any(len(row)!=n for row in capacitance+inductance):
         raise ValueError("Pi2 requires matching nonempty square CAP and inductance matrices")
+    if _compiled_node is not None and n<=256:
+        data=array("d",(v for matrix in (capacitance,inductance) for j in range(n) for i in range(n)
+                        for v in (matrix[i][j].real,matrix[i][j].imag)))
+        output=array("d",[0.])*(2*n*n+8)
+        status=_compiled_node(data,output,n)
+        if status:raise ValueError("Singular general LU matrix" if status>0 else "Invalid folded node configuration")
+        cap=[[complex(output[2*(j*n+i)],output[2*(j*n+i)+1]) for j in range(n)] for i in range(n)]
+        ports={key:complex(output[2*n*n+2*i],output[2*n*n+2*i+1]) for i,key in enumerate(("y11","y12","y21","y22"))}
+        return ports,cap
     cap=[[_sum_complex(row) if i==j else -value for j,value in enumerate(row)] for i,row in enumerate(capacitance)]
     difference=[[inductance[i][j]-(inductance[i][j-1] if j else 0j) for j in range(n)] for i in range(n)]
     difference=[[difference[i][j]-(difference[i-1][j] if i else 0j) for j in range(n)] for i in range(n)]

@@ -18,7 +18,7 @@ struct Header{u8 ident[16];u16 type,machine;u32 version,entry,phoff,shoff,flags;
 struct PH{u32 type,offset,vaddr,paddr,filesz,memsz,flags,align;};
 struct C{double re,im;};
 static u8 file[2*1024*1024];
-static u8 heap[1024*1024];static unsigned heap_used;
+static u8 heap[8*1024*1024];static unsigned heap_used;
 extern "C" void* probe_allocate(unsigned n){unsigned size=(n+15)&~15u;if(size>sizeof(heap)-heap_used)return nullptr;void* p=heap+heap_used;heap_used+=size?size:16;return p;}
 extern "C" void probe_release(void*){}
 extern "C" void probe_status(const char*){}
@@ -48,9 +48,9 @@ extern "C" int probe_main(int argc,char** argv){
  boundary(0x804c070,reinterpret_cast<unsigned>(&probe_status));
  *reinterpret_cast<u8*>(0x80ce5c0)=0;*reinterpret_cast<u8*>(0x80ce5c2)=0;
  fd=open(argv[3],0);if(fd<0)return 20;unsigned mode,n;
- if(read(fd,&mode,4)!=4||read(fd,&n,4)!=4||mode>1||n>65||(mode&&n<1))return 21;
+ if(read(fd,&mode,4)!=4||read(fd,&n,4)!=4||mode>1||n>256||(mode&&n<1))return 21;
  double frequency;if(read(fd,&frequency,8)!=8)return 22;
- static C cap[65*65],ind[65*65],y[4];
+ static C cap[256*256],ind[256*256],y[4];
  const unsigned y_addresses[]={0x80d8da8,0x80d8db8,0x80d8dd8,0x80d8de8};
  unsigned status=1;
  if(mode){

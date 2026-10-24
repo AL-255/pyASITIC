@@ -141,6 +141,31 @@ grids. Versions run sequentially with separate interpreters. Raw inputs and
 every sample are in `benchmarks/2026-10-24-mutual-sweeps.json`; these are browser
 comparisons, excluding interpreter loading and DOM rendering.
 
+The retained folded-node/via step (2026-10-24) moves the complete node assembly,
+voltage differences and final Y conversion into one compiled call. Its main
+purpose is exact retained arithmetic: two one-ULP assembly differences in the
+captured eddy-enabled balun input had amplified during factorization. At identical
+CAP/inductive inputs, all 54 direct-original node cases now match, including
+all 15 finite coupled-session inputs and 256-entry systems. The via boundary
+also checks 1,214 original stamps exactly (nonfinite values by classification).
+The three complete eddy-enabled sessions still fail the strict bitwise audit.
+
+A matched complete-Pi2 run against `c0a94b8` shows a small cached improvement:
+
+| Mesh / FFT grid | Previous cached | Retained node/via cached | Current first request |
+| --- | ---: | ---: | ---: |
+| 34 filaments / 64 × 64 | 14.4 ms | 14.3 ms | 0.192 s |
+| 34 filaments / 128 × 128 | 23.1 ms | 22.4 ms | 0.786 s |
+| 189 filaments / 64 × 64 | 0.341 s | 0.324 s | 0.697 s |
+| 189 filaments / 128 × 128 | 0.349 s | 0.338 s | 0.333 s |
+
+Cold timings are essentially unchanged, and the dense cached case remains
+about 16× slower than the retained original timing. Versions ran sequentially,
+with separate interpreters and no overlapping validation processes. Complete
+requests, all samples and output metrics are in
+`benchmarks/2026-10-24-nodes.json`; original timings are retained from the
+2026-10-23 measurements and have not been remeasured for this step.
+
 Cold browser timing is the first request for each FFT grid in one interpreter,
 excluding interpreter loading. Geometry caches persist between the two grids;
 the first dense case pays their initial cost. The native cold estimate

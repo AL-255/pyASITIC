@@ -182,7 +182,49 @@ original SI Y/Z/model output bit (undefined coupling by classification), while
 the three eddy-enabled sessions retain tolerance checks and fail the separate
 strict whole-session audit.
 
-Rebuild the checked-in, stripped `web/numeric.wasm` (199.5 KiB):
+`vias.cpp` follows the original via stamp's retained height, separately scaled
+perimeter counts, integer product, logarithm and inductance association. Angular
+frequency and reactance spill to binary64 at their original boundaries; the
+resistance remains extended until addition to the existing real matrix cell.
+The solver preserves via traversal and destination group indices. The compiled
+transport accepts original signed/uninitialized counts as well as positive
+counts; nonfinite matrix cells produce an explicit diagnostic before inversion.
+The portable fallback retains Decimal guard precision, with four-ULP fixture
+checks rather than a universal exactness claim.
+
+`capture_vias.py` calls the intact original `0x080657b8` routine using the
+checksum-pinned executable. Only allocation/release and warnings are supplied
+as runtime boundaries. It checks untouched matrix padding and descriptor bytes,
+as well as the x87 control word. Its 1,214 cases cover height thresholds, signed
+zeros, cancellation, integer-product overflow, forced-reference negative counts
+and zero counts. All 2,428 compiled output components match finite bits or
+nonfinite classification. Source provenance is recorded in `via-source.json`.
+This establishes the via-stamping boundary; the three complete eddy-enabled
+sessions still fail the independent strict audit.
+
+`node.cpp` retains the complete folded-node driver's cap folding, branch
+differences, matrix additions, dot products, voltage differences and final
+two-port determinant. Each addition/subtraction follows the original retained
+operation before its binary64 store; direct binary64 arithmetic can differ by
+one ULP at a halfway value and amplify that difference in the solve. The driver
+reuses the compiled original general LU/backsolve and legacy-complex divisions.
+Its dot products also preserve the original row-major reads of column-major
+records, including asymmetric inductive matrices. One bounded call supports
+up to 256 branches and returns both port Y and the complete folded CAP matrix.
+Caller matrices remain unchanged.
+
+`capture_nodes.py` independently replays intact original folded-node instructions
+for 54 cases, including 128/256 entries, asymmetric matrices, extreme scales,
+and raw inputs captured at the original node entry in all 15 finite coupled
+sessions. Each production replay must also match that original session's Y
+record. CI checks all 189,752 output components through exact finite bits or
+whole-matrix digests and checks input immutability. Source provenance is in
+`node-source.json`. These stage comparisons use identical CAP/inductive inputs;
+they do not substitute oracle intermediates into production simulations. Green
+integration and eddy arithmetic still leave the three complete eddy-enabled
+sessions short of bitwise equality.
+
+Rebuild the checked-in, stripped `web/numeric.wasm` (209.5 KiB):
 
 ```sh
 python tools/build_kernels.py --download-zig

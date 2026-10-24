@@ -14,6 +14,7 @@ from .symmetric import inverse_symmetric
 from .linear import inverse_general
 from .filament import record as _filament_record,filament_records
 from .mutual_kernel import mesh_mutual,WARNING_MESSAGES
+from .vias import stamp as stamp_vias,active_height as active_via_height
 
 
 @lru_cache(maxsize=32768)
@@ -161,14 +162,15 @@ def solve_impedance(shape,technology,frequency_hz,*,length_cell=1000,width_cell=
             group += 1
             continue
         via = technology.vias[s.metal-metal_count]
-        height = s.end[2]-s.start[2]
-        if height<=1e-10:
+        if not active_via_height(s.start[2],s.end[2]):
             continue
         if group>=len(groups):
             raise ValueError("Native LMAT cannot stamp a trailing via without a following metal segment")
-        perimeter = via.width*(s.nx+s.ny)
-        inductance = height*2e-4*(math.log(2*height/perimeter)+SELF_CONSTANT+perimeter/(height*3))
-        reduced_z[group][group] += complex(via.resistance/(s.nx*s.ny),omega*1e-9*inductance)
+        value=reduced_z[group][group]
+        reduced_z[group][group]=stamp_vias([[frequency_hz,s.start[2],s.end[2],via.width,via.resistance,
+                                           s.nx,s.ny,value.real,value.imag]])[0]
+        if not all(math.isfinite(v) for v in (reduced_z[group][group].real,reduced_z[group][group].imag)):
+            raise ValueError("Native via correction produced a nonfinite inductive kernel; review the reference mesh and via cell counts")
     total = _sum_complex(z for row in reduced_z for z in row)
     if eddy and total.real<0:
         warnings.append("The native eddy calculation produced negative total conductor resistance for this geometry/process")

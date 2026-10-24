@@ -1,0 +1,9 @@
+{
+  "reference_commit": "63885e808b522bdeba3f254d353afc72e643c761",
+  "source_sha256": {
+    "vias.cpp": "738dc813185e4b9b118ffbe906466ff54f56ee0ddd26eb3c9e167dfa38f329c9",
+    "x87.hpp": "14452aaed86d0ec525a7611e387f3a62c9b5ab514d20de4708b2c52c9c925e9b"
+  },
+  "original_entry": "0x080657b8",
+  "adaptation": "SoftFloat retained operations, guarded binary128 evaluation of the native FLDLN2/FYL2X log, and original omega/reactance/matrix stores. Typed bounded records replace native descriptors; Python preserves via traversal and group indices. Signed cell-count products wrap as native i386 integers. Original nonfinite histories are diagnosed before matrix inversion."
+}

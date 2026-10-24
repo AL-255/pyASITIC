@@ -39,6 +39,9 @@ Implemented so far:
   Uses the original symmetric factor/inverse and retained parallel mutual kernels.
   The browser's compiled matrix path is checked bit for bit against original
   factors/inverses, including 128- and 256-entry systems.
+  Via corrections preserve the original retained arithmetic and matrix stores;
+  1,214 direct-original stamps check 2,428 output components (finite bits and
+  nonfinite classifications), including forced-reference cell counts.
 - Optional native `EDDY ON` substrate correction, including square packing,
   segment folding, layered Green integration and convergence diagnostics.
   Preserves native negative-resistance results and reports nonfinite failures.
@@ -58,6 +61,8 @@ Implemented so far:
   and filament admittance through the original node equations. Reports series
   L/R, two RC shunts, port/differential Q, input impedances, shunt resistance,
   narrowband resonance estimate and native 50 Ω Y/S output, with JSON/CSV export.
+  The compiled folded-node stage matches 54 original-binary cases at identical
+  CAP/inductive inputs, including 256 nodes and all 15 finite coupled sessions.
   `PI3` requires an explicit reference; `PI4` solves with two pad strips and
   subtracts their capacitive contribution using the original de-embedding path.
 - Extended `PIX` two-port model with unfolded capacitance, segment impedance
