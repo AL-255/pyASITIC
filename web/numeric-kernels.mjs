@@ -25,6 +25,8 @@ export async function installNumericalKernels(python, bytes) {
   const impedanceWires = new Float64Array(api.memory.buffer, api.impedance_wire_buffer(), 256*10);
   const impedanceMutual = new Float64Array(api.memory.buffer, api.impedance_mutual_buffer(), 256*255/2);
   const impedanceMatrix = new Float64Array(api.memory.buffer, api.impedance_matrix_buffer(), 2*256*256);
+  const conductorResistance = new Float64Array(api.memory.buffer, api.conductor_resistance_buffer(), 20000*12);
+  const conductorResistanceOutput = new Float64Array(api.memory.buffer, api.conductor_resistance_result_buffer(), 4);
   const polygonConfig = new Float64Array(api.memory.buffer, api.polygon_config_buffer(), 6);
   const polygonVertices = new Float64Array(api.memory.buffer, api.polygon_vertex_buffer(), 20000*12);
   const filamentInput = new Float64Array(api.memory.buffer, api.filament_buffer(), 256*26);
@@ -78,6 +80,19 @@ export async function installNumericalKernels(python, bytes) {
         impedanceWires.set(w.data);impedanceMutual.set(p.data);const status=api.impedance_assemble(n,frequency);
         if(!status)o.data.set(impedanceMatrix.subarray(0,2*n*n));return status;
       } finally {o?.release();p?.release();w?.release();}
+    },
+    conductor_resistance(input,output,operation,frequency) {
+      let a,b;
+      try {
+        a=input.getBuffer("f64");b=output.getBuffer("f64");const count=a.data.length/12;
+        if(!Number.isInteger(count)||count<0||count>20000||b.data.length!==4||![0,1].includes(operation)||!Number.isFinite(frequency)||frequency<0)throw new Error("Conductor resistance configuration is invalid");
+        for(let i=0;i<count;i++){
+          if(![0,1].includes(a.data[12*i+9]))throw new Error("Conductor resistance segment type is invalid");
+          if(a.data[12*i+9]&&![10,11].every(k=>Number.isInteger(a.data[12*i+k])&&a.data[12*i+k]>=-2147483648&&a.data[12*i+k]<=2147483647))throw new Error("Via resistance counts are invalid");
+        }
+        conductorResistance.set(a.data);const status=api.conductor_resistance(count,operation,frequency);
+        if(!status)b.data.set(conductorResistanceOutput);return status;
+      } finally {b?.release();a?.release();}
     },
     network_metrics(input,output,operation=3) {
       let a,b;

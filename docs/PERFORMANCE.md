@@ -309,3 +309,16 @@ requests, versions and output metrics are in
 `benchmarks/2026-10-24-contact-geometry.json`. Native timings are inherited from
 the earlier benchmark input and were not remeasured. These four cases do not
 establish universal performance or original-binary equivalence.
+
+
+Conductor resistance now uses the original retained norm, power sequence and
+DC/HF accumulation stores. A separate batch kernel keeps this precision change
+small relative to full network solves. On the development host, a 95-segment
+polygon's direct HF-resistance calls at typed 1e9 / 1e11 Hz took median
+0.75 / 0.96 ms over five subsequent calls, versus 0.30 / 0.47 ms for the earlier
+binary64/Python-pow implementation. First calls were 1.19 / 1.06 ms. These
+figures exclude interpreter/kernel loading and geometry construction and are
+not fresh-browser or full-solve timings. The corrected arithmetic costs more;
+the earlier outputs differed from the original binary at many captured stores.
+The sequential per-release protocol and every sample are preserved in
+[the resistance measurement](benchmarks/2026-10-24-resistance.json).

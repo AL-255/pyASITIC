@@ -20,7 +20,9 @@ Implemented so far:
 - Planar transformers, 3D mirror transformers, and baluns with separate winding records, winding
   selection for electrical analysis, and combined GDS export.
 - `.tek` technology loading, conductor DC resistance and the original empirical
-  high-frequency resistance model, including parallel via counts.
+  high-frequency resistance model, including parallel via counts. Original
+  norm/power stores and distinct DC/HF accumulators match all 270 captured
+  finite x87 returns across 34 histories in Python and WebAssembly.
 - All 45 GF180 interconnect stacks selectable in the process panel, with 73
   downloadable `.tek` variants covering both published MIM gaps, editable
   substrate assumptions and GF180 GDS layer mappings. See [data and model

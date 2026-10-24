@@ -1,0 +1,88 @@
+{
+  "measured_at_utc": "2026-10-24T06:35:49.009757+00:00",
+  "host": "AMD Ryzen 9 7940HX / Linux x86_64",
+  "pyodide": "314.0.7",
+  "protocol": "Sequential fresh Pyodide interpreters per release, shared by the two frequencies within a release; six direct resistance_hf calls per frequency. Interpreter/kernel load and geometry creation are outside the measurements. First calls and five subsequent calls are recorded separately. No concurrent local validation ran during the measurements. This is a small direct-metric measurement, not a full solve or fresh-browser latency.",
+  "geometry": {
+    "kind": "polygon",
+    "radius": 120.123456789,
+    "sides": 32,
+    "width": 3.14159265358979,
+    "spacing": 2.71828182845905,
+    "turns": 2.96875,
+    "metal": "M4",
+    "native_keyword": false
+  },
+  "baseline": {
+    "version": "e71ee58b2a9d6001",
+    "segments": 95,
+    "cases": [
+      {
+        "hz": 1000000000,
+        "value": 35.82555331315163,
+        "samples_ms": [
+          0.4963860000000295,
+          0.343838999999889,
+          0.3106440000001385,
+          0.3003249999999298,
+          0.3033900000000358,
+          0.29846999999995205
+        ]
+      },
+      {
+        "hz": 100000000000,
+        "value": 48.333875236794555,
+        "samples_ms": [
+          0.5390990000000784,
+          0.4706660000001648,
+          0.4707459999999628,
+          0.4702350000000024,
+          0.45937400000002526,
+          0.41917499999999563
+        ]
+      }
+    ]
+  },
+  "corrected": {
+    "version": "125f8fffb29d2f6b",
+    "segments": 95,
+    "cases": [
+      {
+        "hz": 1000000000,
+        "value": 35.82555331315162,
+        "samples_ms": [
+          1.1878719999999703,
+          0.7842459999999392,
+          0.7542180000000371,
+          0.7738160000001244,
+          0.741982999999891,
+          0.6914659999999913
+        ]
+      },
+      {
+        "hz": 100000000000,
+        "value": 48.333875236794555,
+        "samples_ms": [
+          1.056105000000116,
+          0.9642759999999271,
+          0.9386460000000625,
+          0.9393979999999829,
+          0.9628640000000814,
+          0.9675830000001042
+        ]
+      }
+    ]
+  },
+  "corrected_kernel_sha256": "a5facc781861024d46854cb02dc66371aeb07434e19679edf892e8229a5a09a3",
+  "warm_medians_ms": {
+    "baseline": [
+      0.3033900000000358,
+      0.4702350000000024
+    ],
+    "corrected": [
+      0.7542180000000371,
+      0.9628640000000814
+    ]
+  },
+  "benchmark_script": "tools/benchmark_resistance.mjs"
+}

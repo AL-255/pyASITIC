@@ -1,0 +1,14 @@
+{
+  "reference_commit": "63885e808b522bdeba3f254d353afc72e643c761",
+  "source_sha256": {
+    "src/resistance.cpp": "9a5d7d73262ad0c56d08e2e6c3f095621fc8f776f100e39bd945705313b06519",
+    "include/asitic/resistance.hpp": "520d2598484cae59e3cf58b52eba9ae5687e9ac4c185b09140b23648f604611e",
+    "include/asitic/filaments.hpp": "1a16ad031ef9ff6cc5df2fee2ebd785c16dc61f6801f58a447a5818ae070828e",
+    "src/x87.hpp": "14452aaed86d0ec525a7611e387f3a62c9b5ab514d20de4708b2c52c9c925e9b"
+  },
+  "original_entries": {
+    "RESIS": "0x0804eedc",
+    "RESISHF": "0x0804d70c"
+  },
+  "adaptation": "Original norm/product/addition order and distinct retained DC versus per-segment binary64 HF accumulators. Power retains the 64-bit integer fast path and FYL2X/F2XM1/FSCALE sequence, including the aspect spill. SoftFloat and guarded binary128 elementary evaluation replace x87 instructions. Exact 12-scalar consumed-input records replace pointer/global technology access; signed via count products wrap to i386 int32. One bounded batch handles up to 20000 segments. All 270 captured finite raw ST0 returns match; two original NaNs retain public bounded diagnostics. Three older creator input gaps remain explicit and are replayed at their actual captured inputs."
+}

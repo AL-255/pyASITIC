@@ -733,3 +733,33 @@ GHz input, negative angles and both interactive turn boundaries. Actual DOM
 checks cover new native form definitions, named layers, saved input mode,
 independently decoded downloaded GDS, and native/typed Pi2 JSON downloads.
 Other creator input boundaries and whole-simulator equivalence remain open.
+
+
+RESIS and RESISHF now follow `resistance.cpp` through their distinct norms,
+retained arithmetic and accumulation. RESIS keeps its total in extended
+precision; RESISHF stores the total to binary64 after every segment. Both
+conductor paths retain `(dz*dz + dy*dy) + dx*dx` through sqrt/division, unlike
+the ignored scalar helper's stored XY norm. Skin-effect powers preserve the
+64-bit integer fast path and FYL2X/F2XM1/FSCALE sequence, including the high
+branch's aspect spill and individual power result stores. Via count products
+wrap as signed i386 int32. Public APIs still accept Hz; command GHz parsing
+continues to apply at the existing bridge boundary.
+
+Thirty-four unchanged-original CLI histories capture all consumed segment and
+technology inputs, parsed Hz and raw ST0 returns: 270 finite returns and two
+native NaNs. At these identical inputs the earlier binary64/Python-pow path
+differed in 111 finite output stores. Both portable Python and compiled
+WebAssembly now require every finite retained-return bit and final binary64
+store, with bounded diagnostics for the native undefined thin-conductor cases.
+Thirty-one histories also match through current public creator inputs. The
+rotated WIRE keyword conversion, a snapped 0.1 um WIRE width and symmetric
+polygon geometry remain explicit, independently checked creator input gaps;
+their actual native inputs are still required by the resistance replay gate.
+
+The browser makes one bounded resistance call for up to 20,000 segments and
+uses the portable path for larger custom shapes. The binding checks record
+lengths, operation/frequency, via flags/counts and output size; empty inputs,
+caller buffers and recovery after invalid requests are tested. Actual DOM
+checks compare preview DC, fractional-GHz HF estimates, the original 1/10/100
+GHz resistance sweep and CSV values, followed by an exact original Pi2 solve
+in the same interpreter to check shared-buffer/elementary-plan isolation.
