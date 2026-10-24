@@ -18,6 +18,7 @@ Reference checkout: `~/github/asitic-re`, revision recorded in each fixture.
 | `polygon.py`, `native/polygon.cpp` | `spiral_construction.cpp`, `shape_construction.cpp` | 42 actual original creator calls / 12,288 raw XY stores exact in portable Python and compiled WebAssembly; fractional turns, 3–32 sides, positive/negative rotations and production inputs |
 | `ring.py`, `geometry.py`, `command_numbers.py` | `winding_construction.cpp`, `command_runtime.cpp`; original ring `0x0805b450` | 45 original creators / 12,588 exact XY stores in Python and WebAssembly; full keyword/default snap inputs, 3–128 sides, gap/orientation boundaries; three complete original Pi2 Y/model/S/resonance sessions including eddy; independent GDS readback and actual form/project/model/export handlers |
 | `geometry.py` square/via emission, `model.py`, `precision.py` | `spiral_construction.cpp`, `shape_construction.cpp`, `geometry.cpp`; original square `0x08056670` | 126 complete original creators / 14,742 exact XYZ stores plus origins, widths, metal/thickness and defined via counts; keyword/interactive inputs, quarter-turn boundaries, rotations, reverse phase and exits; four complete original Pi2 electrical sessions and independent GDS readback |
+| `symmetric_geometry.py`, `native/symmetric_geometry.cpp`, symmetric keyword inputs | `symmetric_construction.cpp`, `shape_prompt_symmetric.cpp`; original square `0x08059854` / polygon `0x0805a45c` | 114 original creators / 60,804 exact XYZ stores plus origins/widths/metals/thickness/via counts; whole-turn and maximum-turn cases, rotations, integer phase, odd/fractional sides, crossover history, defaults and binary64 interactive construction; eight complete Pi2/2PORT sessions, independent GDS and actual form/project/download checks in both runtimes |
 | `contact_geometry.py`, `potential.py` | `contacts.cpp`; original preparation `0x08053580` / builder `0x08053a1c` | 50 original setups / 280 builder calls / 338 physical-bound and integer-grid records in Python and WebAssembly; retained placement, native counts/order, parser-forced reference mesh and original thin-wire grid/zero-area histories |
 | `potential.py` | `potential_tables.cpp`, `potential.cpp`, `contacts.cpp`, `potential_solver.cpp` | Eight CAP sessions across CMOS/BiCMOS: full potential snapshots, folded admittance matrices, and actual cache FFT samples for every metal pair; browser runtime checks cover all eight reduced matrices |
 | `contact_math.py`, `native/contact.cpp` | Original `0x080901c0`; `potential.cpp`, legacy complex DSO | All 41 captured contact matrices / 264,844 components exact in Python and WebAssembly: finite bits including signed zeros, nonfinite classes and both complete 256-contact digests; input table hashes and metadata immutability; ordered zero-term reuse checked across process/frequency edits |
@@ -751,10 +752,10 @@ native NaNs. At these identical inputs the earlier binary64/Python-pow path
 differed in 111 finite output stores. Both portable Python and compiled
 WebAssembly now require every finite retained-return bit and final binary64
 store, with bounded diagnostics for the native undefined thin-conductor cases.
-Thirty-one histories also match through current public creator inputs. The
-rotated WIRE keyword conversion, a snapped 0.1 um WIRE width and symmetric
-polygon geometry remain explicit, independently checked creator input gaps;
-their actual native inputs are still required by the resistance replay gate.
+The initial resistance port matched 31 public creator histories. Subsequent
+WIRE input and symmetric geometry ports close the three recorded input gaps;
+all 34 public histories now require the actual native consumed stores as well
+as the raw return and final resistance output bits.
 
 The browser makes one bounded resistance call for up to 20,000 segments and
 uses the portable path for larger custom shapes. The binding checks record
@@ -816,6 +817,53 @@ No failing finite native history was removed or assigned a tolerance.
 
 Both WIRE input gaps in the resistance audit are closed. All original 270 finite
 retained resistance returns and two native NaNs remain unchanged; public requests
-now match the exact resistance-consumed inputs in 33 of the 34 histories. The symmetric-polygon input
-geometry gap remains explicit. Whole-simulator equivalence and other creator
-input boundaries still require work.
+now match the exact resistance-consumed inputs in all 34 histories after the
+symmetric geometry port described below. Whole-simulator equivalence and other
+creator input boundaries still require work.
+
+
+### Symmetric geometry retained stores and public input parity
+
+The released float implementation differed at 11,448 XYZ stores across 81 of
+102 initially captured creators when given the original parsed configurations.
+The replacement preserves the actual state machines and binary64 stores, rather
+than adjusting final coordinates or electrical outputs. Square span/vertical
+updates retain the width-plus-spacing expression. Polygon endpoints distinguish
+the live incremented angle from its stored angle, retain the radial decrement,
+and spill the endpoint sector cosine and initial inner-edge Y at the original
+locations. Crossover-metal history, both via calls around a bridge, rotation and
+phase reversal remain in native order.
+
+The final original-binary fixture contains 114 complete creators / 60,804 XYZ
+stores, including same-metal crossovers, maximum turns, whole-turn parsing
+boundaries, odd/fractional sides, ±360-degree inputs and integer phase conversion.
+Every defined origin, scalar width, conductor thickness, metal and via count is
+also required; native uninitialized conductor mesh counts and via thickness are
+excluded explicitly. Full-binary64 interactive constructions are tested through
+the typed API. The keyword API and webpage now apply the original snapped
+lengths, F32 turns/angles, default transition gaps/origins and layer defaults.
+Project regeneration preserves omitted derived defaults until their displayed
+fields change, avoiding an extra snap of a default that the original never
+parsed as a length argument.
+
+`native/symmetric_geometry.cpp` batches complete state machines into conductor
+and via-request events; shared process construction supplies the original
+metal/via geometry. There is no Python callback per trigonometric operation.
+The kernel has fixed capacity for 60,000 events and at most 20,000 side-turns.
+Its source correspondence is recorded in `native/symmetric-geometry-source.json`.
+Both Python and compiled WebAssembly require every captured store, independent
+GDS conductors/layers/via counts, and eight complete original Pi2/2PORT sessions
+with exact Y/model/S/resonance outputs, including eddy. The original out-of-chip
+failure transcript remains a required bounded diagnostic. This closes the last
+resistance-consumed public creator input gap; all 34 resistance histories now
+match. These fixtures do not establish exhaustive interactive prompt/history or
+parser-clearance boundary parity, or whole-simulator equivalence.
+
+
+The scoped timing record `docs/benchmarks/2026-10-24-symmetric-geometry.json`
+compares the two retained implementations in one pinned Pyodide runtime. For a
+105-segment symmetric polygon, six warm builds have medians of 63.52 ms for the
+portable path and 3.67 ms for the compiled batch, with identical geometry hashes.
+`tools/benchmark_symmetric_geometry.mjs` reproduces the measurement. This is a
+geometry-only measurement; it does not compare complete electrical simulations
+or the original native executable.

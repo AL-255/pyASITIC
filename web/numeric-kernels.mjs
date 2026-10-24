@@ -27,6 +27,8 @@ export async function installNumericalKernels(python, bytes) {
   const impedanceMatrix = new Float64Array(api.memory.buffer, api.impedance_matrix_buffer(), 2*256*256);
   const conductorResistance = new Float64Array(api.memory.buffer, api.conductor_resistance_buffer(), 20000*12);
   const conductorResistanceOutput = new Float64Array(api.memory.buffer, api.conductor_resistance_result_buffer(), 4);
+  const symmetricConfig = new Float64Array(api.memory.buffer, api.symmetric_config_buffer(), 10);
+  const symmetricEvents = new Float64Array(api.memory.buffer, api.symmetric_event_buffer(), 60000*14);
   const polygonConfig = new Float64Array(api.memory.buffer, api.polygon_config_buffer(), 6);
   const polygonVertices = new Float64Array(api.memory.buffer, api.polygon_vertex_buffer(), 20000*12);
   const filamentInput = new Float64Array(api.memory.buffer, api.filament_buffer(), 256*26);
@@ -62,6 +64,19 @@ export async function installNumericalKernels(python, bytes) {
     } finally {o?.release();c?.release();}
   }
   python.registerJsModule("_reasitic_numeric", {
+    symmetric_geometry(config,output) {
+      let c,o;
+      try {
+        c=config.getBuffer("f64");o=output.getBuffer("f64");
+        if(c.data.length!==10||!Array.from(c.data).every(Number.isFinite)||![0,1].includes(c.data[0])||
+           ![1,2].every(k=>Number.isInteger(c.data[k])&&c.data[k]>=0&&c.data[k]<256)||
+           !Number.isInteger(c.data[4])||c.data[4]<4||c.data[4]>1024||c.data[4]%2||
+           !Number.isInteger(c.data[8])||c.data[8]<1||c.data[4]*c.data[8]>20000||
+           o.data.length%14||o.data.length>60000*14)throw new Error("Symmetric geometry configuration is invalid");
+        symmetricConfig.set(c.data);const count=api.symmetric_geometry();
+        if(count>0){if(o.data.length<count*14)throw new Error("Symmetric geometry output is too small");o.data.set(symmetricEvents.subarray(0,count*14));}return count;
+      } finally {o?.release();c?.release();}
+    },
     polygon_spiral(config,output) {
       let c,o;
       try {

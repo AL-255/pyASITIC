@@ -154,7 +154,7 @@ def build(kind="square", *, technology=None, native_keyword=False, native_intera
     `length` / `height` are outer square dimensions; `radius` is the native
     polygon vertex radius. Fractional turns are truncated to 1/sides, as ASITIC
     does. Origin is a separate translation and is never folded into segments.
-    For rings, squares, polygon spirals and wires, native_keyword=True applies the
+    For rings, squares, polygon spirals, symmetric coils and wires, native_keyword=True applies the
     original parser's default 0.1 um snap grid and binary32 angle stores. Typed
     calls retain binary64 dimensions and ordinary degree inputs. For WIRE,
     native_interactive=True preserves the original interactive raw-radian
@@ -168,10 +168,14 @@ def build(kind="square", *, technology=None, native_keyword=False, native_intera
     if native_keyword and native_interactive:raise ValueError('Choose one native input mode')
     if native_interactive and kind!='wire':raise ValueError('Native interactive input mode currently supports wire geometry')
     if native_keyword:
-        if kind not in('ring','square','polygon','wire'):raise ValueError('Native keyword input mode currently supports ring, square, polygon and wire geometry')
+        if kind not in('ring','square','polygon','wire','symmetric_square','symmetric_polygon'):raise ValueError('Native keyword input mode currently supports ring, square, polygon, symmetric coils and wire geometry')
         from .command_numbers import length_um,binary32
         if kind=='wire':
             fields=(('length',100),('width',5),('x',0))
+        elif kind in('symmetric_square','symmetric_polygon'):
+            dimension='length'if kind=='symmetric_square'else'radius'
+            fields=((dimension,100 if kind=='symmetric_square'else 50),('width',5),('spacing',2))
+            fields+=tuple((key,p[key])for key in('inner_gap','x','y')if key in p)
         elif kind=='square':
             fields=(('length',100),('height',p.get('length',100)),('width',5),('spacing',2),('x',0),('y',0))
         else:
@@ -180,9 +184,17 @@ def build(kind="square", *, technology=None, native_keyword=False, native_intera
         for key,default in fields:
             p[key]=length_um(p.get(key,default),grid_size=.1)
         if kind=='wire':p['y']=length_um(p['y'],grid_size=.1)if'y'in p else p['width']
-        if kind in('square','polygon'):
+        if kind in('square','polygon','symmetric_square','symmetric_polygon'):
             p['turns']=binary32(float(p.get('turns',2)))
         if kind=='square':p.setdefault('exit_metal',len(tech.metals)-2)
+        if kind in('symmetric_square','symmetric_polygon'):
+            p.setdefault('secondary_metal',len(tech.metals)-2)
+            p.setdefault('inner_gap',float(R(p['width'])+R(p['spacing'])))
+            origin=float(R(p['inner_gap'])*R(.5)+R(p['radius']))if kind=='symmetric_polygon'else 0.
+            p.setdefault('x',origin);p.setdefault('y',origin)
+            side=float(p.get('sides',16))
+            if not math.isfinite(side)or not -(1<<31)<=side<(1<<31):raise ValueError('Sides exceed the native integer range')
+            p['sides']=int(side)if kind=='symmetric_polygon'else 4
     def num(key, default):
         value = float(p.get(key, default))
         if not math.isfinite(value):
@@ -208,7 +220,7 @@ def build(kind="square", *, technology=None, native_keyword=False, native_intera
     if max(width,length,height,radius) > 1e6:
         raise ValueError("Dimensions must not exceed 1,000,000 µm")
     phase = num("phase",1)
-    if kind=='wire'and(native_keyword or native_interactive):
+    if (kind=='wire'and(native_keyword or native_interactive))or(native_keyword and kind in('symmetric_square','symmetric_polygon')):
         if not -(1<<31)<=phase<(1<<31):raise ValueError('Phase exceeds the native integer range')
         phase=int(phase)
         if native_keyword:phase=phase or 1
@@ -239,9 +251,11 @@ def build(kind="square", *, technology=None, native_keyword=False, native_intera
                 shape.warnings.append(f"Symmetric polygon sides reduced to even count {sides}.")
             if sides<4:
                 raise ValueError("Symmetric polygon requires at least four sides")
-            maximum = math.floor(radius*math.cos(math.pi/sides)/(width+spacing))
+            from .polygon import PI,_trig
+            maximum = math.floor((R(radius)*_trig(R(PI)/R(sides),True)/(R(width)+R(spacing))).value)
         else:
-            maximum = math.floor(length/(2*(width+spacing))-.25)
+            pitch=R(width)+R(spacing)
+            maximum = math.floor((R(length)/(pitch+pitch)-R(.25)).value)
         if not 1<=raw_turns<=maximum or turns*sides>20000:
             raise ValueError(f"Symmetric winding supports 1–{maximum} turns")
         if raw_turns!=turns:

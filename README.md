@@ -134,6 +134,11 @@ Implemented so far:
   Six complete finite-port Pi2 histories match original model/S/resonance
   stores. Two original NaN histories retain their contact evidence and defined
   downstream values, with explicit browser diagnostics.
+- Symmetric square/polygon construction preserves retained span, angle and
+  radius updates, crossover metal history and via placement. All 114 original
+  creators / 60,804 XYZ stores match in Python and compiled WebAssembly, with
+  independent GDS readback. Eight complete Pi2/2PORT sessions match every
+  captured electrical output, including eddy and binary64 interactive inputs.
 - Browser preview, pan/zoom, process-file import, project save/open, conductor
   estimates, selectable L/R/Q frequency plots, linear/log frequency scales,
   progressive Pi2/Pi3/Pi4 sweeps, sample-to-circuit inspection, plot SVG and CSV

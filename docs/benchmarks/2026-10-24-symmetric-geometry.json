@@ -1,0 +1,52 @@
+{
+  "scope": "Geometry build only, in one Pyodide instance; seven consecutive builds per backend, first excluded from warm median. Compares the two retained implementations, not the original native executable or complete electrical solve.",
+  "version": "0d5294e2593baaf4",
+  "node": "v24.19.0",
+  "pyodide": "314.0.7",
+  "cpu": "AMD Ryzen 9 7940HX with Radeon Graphics",
+  "kind": "symmetric_polygon",
+  "parameters": {
+    "radius": 120,
+    "sides": 32,
+    "width": 3.25,
+    "spacing": 2.125,
+    "inner_gap": 15.375,
+    "turns": 3,
+    "metal": "M4",
+    "secondary_metal": "M3"
+  },
+  "results": [
+    {
+      "backend": "portable retained Python",
+      "segments": 105,
+      "samples_ms": [
+        73.8957,
+        66.9110100000001,
+        63.08461799999998,
+        64.65963499999994,
+        61.510192000000075,
+        63.95386099999989,
+        61.428392999999915
+      ],
+      "first_ms": 73.8957,
+      "warm_median_ms": 63.519239499999934,
+      "geometry_sha256": "47663e07201fef0fd16c12ddee56b4ae4dccd0c9acff308396d2c4b061a9624e"
+    },
+    {
+      "backend": "compiled retained batch",
+      "segments": 105,
+      "samples_ms": [
+        6.561448000000025,
+        3.812133000000051,
+        3.777316000000086,
+        3.6333950000000392,
+        3.7079200000000867,
+        3.556555999999933,
+        3.575082000000007
+      ],
+      "first_ms": 6.561448000000025,
+      "warm_median_ms": 3.670657500000063,
+      "geometry_sha256": "47663e07201fef0fd16c12ddee56b4ae4dccd0c9acff308396d2c4b061a9624e"
+    }
+  ]
+}

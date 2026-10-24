@@ -41,7 +41,7 @@ def _shape(request,tech):
 def _shapes(request,tech):
     kind=request.get('kind','square').lower();parameters=dict(request.get('parameters',{}))
     if request.get('native_keyword',False):
-        if kind not in('ring','square','polygon','wire'):raise ValueError('Native keyword input mode currently supports ring, square, polygon and wire geometry')
+        if kind not in('ring','square','polygon','wire','symmetric_square','symmetric_polygon'):raise ValueError('Native keyword input mode currently supports ring, square, polygon, symmetric coils and wire geometry')
         parameters['native_keyword']=True
     if request.get('native_interactive',False):
         if kind!='wire':raise ValueError('Native interactive input mode currently supports wire geometry')

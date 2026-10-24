@@ -1,0 +1,17 @@
+{
+  "reference_commit": "63885e808b522bdeba3f254d353afc72e643c761",
+  "source_sha256": {
+    "src/symmetric_construction.cpp": "6196d35c51696172ae9dc6d977c34e76a6aae583d740353a2e224092bc403da5",
+    "src/shape_construction.cpp": "cfa061f327ed4d29c232602f64a38f8dbab7dc587ee9d69cf2e9686b8b66008d",
+    "src/shape_prompt_symmetric.cpp": "1b0b177840937ae5d13532498c2fe643d80409b5d22f8c652b3dd194781f7945",
+    "src/shape_creation_symmetric.cpp": "f792203d2f0f1772921134ff78d269f075739fdccd7b076dc503d13da8535508",
+    "src/shape_creation_sympoly.cpp": "81f9dc77eb34dbd561264aa6d6184e0aeb52620141751c73e45dd6b5d1b2f0e4",
+    "src/x87.hpp": "14452aaed86d0ec525a7611e387f3a62c9b5ab514d20de4708b2c52c9c925e9b"
+  },
+  "original_entries": {
+    "symmetric_square": "0x08059854",
+    "symmetric_polygon": "0x0805a45c",
+    "bridge": "0x0805a2fc"
+  },
+  "adaptation": "Retained SoftFloat symmetric state machines, including explicit span/radius/angle stores, the initial Y spill, live outer-edge cosine angle, endpoint cosine spill and bridge/via event order. One bounded batch emits up to 60000 events from at most 20000 side-turns; shared Python process metal/via construction resolves Z/thickness/counts and square rotation/phase. The portable Python implementation uses identical stores with guarded retained trig. All 114 original creators / 60804 XYZ stores plus defined fields and eight complete Pi2/2PORT sessions are checked in both backends. Keyword dimensions/origins, turns, sides, angles, phase and defaults follow the original input modes; captured full-binary64 interactive constructions remain supported by typed inputs. Interactive prompt state/history and all parser clearance boundaries are not claimed exhausted."
+}
