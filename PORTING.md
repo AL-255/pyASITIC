@@ -10,7 +10,7 @@ Reference checkout: `~/github/asitic-re`, revision recorded in each fixture.
 | `precision.py` | `shape_construction.cpp` point/shape rotation | Retained radius/angle arithmetic, asymmetric cosine/sine angle spills, and native midpoint evaluation; exact rotated-wire endpoint doubles from BSAVE and matching unequal-cell mesh dimensions in CPython/WebAssembly |
 | `filament.py`, `native/filament.cpp` | `filaments.cpp`, `numerics.cpp`; original `0x0806597c` | 2,220 intact original records / 19,980 exact finite components or nonfinite classifications in Python and compiled WebAssembly; all adaptive edge branches, arbitrary interpolation indices, asymmetric spills, destination Z preservation, signed zeros and extreme scales |
 | `mesh.py`, `web/app.js` | Native longitudinal subdivision and filament counts from `geometry.cpp`, `filament_setup.cpp` | Exact production-count reuse, Pi4 pad and explicit CALCTRANS winding mesh conventions; actual DOM reproduces 360-filament rejection, fits to 60 and successfully solves Pi2; presets, invalidation and project persistence |
-| `technology.py` | `technology_text.cpp`, `technology_records.cpp` | Sample CMOS technology; additional technology variants remain to validate |
+| `technology.py` | `technology_text.cpp`, `technology_records.cpp` | Original coordinate-height words from 41 actual CLI sessions across CMOS/BiCMOS/GF180; retained cumulative depths, separate nominal bottom distance and two-store geometry heights; broader reader commands remain to validate |
 | `resistance.py` | `resistance.cpp` | Original DC reports for nine families; twelve live C++ cases at five frequencies (1 MHz–100 GHz) |
 | `inductance.py` | `analysis_commands.cpp`, `segment.cpp`, `canonicalize.cpp`, `intersection.cpp`, `parallel.cpp`, `separation.cpp`, `planar.cpp`, `spatial.cpp` | Twelve live C++ INDUCTANCE command reports, including symmetric, nonparallel, stacked and via geometry |
 | `solver.py` | `geometry.cpp`, `filament_setup.cpp`, `filaments.cpp`, `impedance.cpp`, `vias.cpp`, `solver.cpp` | 36 complete C++ LMAT matrices: coarse 1 GHz, refined 2 GHz, and unequal inductive/capacitive length cells; within 1e-8 Ω per component in CPython and WebAssembly |
@@ -18,6 +18,7 @@ Reference checkout: `~/github/asitic-re`, revision recorded in each fixture.
 | `fft.py`, `native/fft.c` | Original machine-code routine at `0x080912c0`; `potential_tables.cpp` | 83 direct original-binary FFT/reflected-grid cases, 17,342 bit-identical binary64 output components including signed zeros/subnormals, verified in Python and compiled WebAssembly; pinned compiler reproduces the module byte for byte |
 | `x87_math.py`, `native/fft.c` | Original clipped cosh at `0x0809123c`, tanh through transfer-up at `0x0808f004`; `potential_tables.cpp` | 20,014 direct original-binary scalar cases match bit for bit in Python and compiled WebAssembly; retained argument formation and exponent reduction fix the grounded-wire raw-potential reference without widening tolerance |
 | `network.py` | `combined_network.cpp`, `node_equations.cpp`, `network.cpp`, `two_port_output.cpp` | Eight no-eddy PI2 sessions: CAP/inductive/nodal snapshots, 15-digit Y/S output, printed L/R/C/Q/shunt-R/resonance reports; isolated node/S checks and JSON/WebAssembly interfaces |
+| `network_metrics.py`, `retained_scalar.py`, `native/network*.cpp` | `network.cpp`, `two_port_output.cpp` | 3,435 intact-original records / 96,180 binary64 output components and 6,673 finite retained returns match exactly in portable Python and compiled WebAssembly; signed zeros/nonfinite classes, independent models, all ZIN modes and S conversion; operation isolation and caller immutability |
 | `network.py` Pi3/Pi4 | `analysis_dispatch.cpp`, `extended_analysis.cpp`, `composite_geometry.cpp` | Eight more wire/square PI3/PI4 sessions at 1/5 GHz, including precise native 2PORT/2PORTPAD Y/S records, printed Q, explicit ground, pad mesh sentinels, and distinct-origin wire/spiral joins |
 | `transformer.py`, `native/transformer.cpp` | `later_analysis.cpp`, `console_analysis.cpp`; original inverse `0x0808800c`, model `0x08089cb0`, folded nodes `0x08053e00` | 67 direct original-executable extraction cases / 1,541 exact finite output components or nonfinite classifications; 15 finite original CALCTRANS/2PORTTRANS sessions plus six original nonfinite histories; omitted/explicit references, termination boundary, swapped windings, eddy correction, and actual coupled-model/sweep/export DOM handlers |
 | `web/analysis-views.mjs`, `web/app.js` | New static plotting/circuit interface | Selectable L/R/Q plots, log/linear sampling, curve gaps for undefined values, point-to-circuit inspection, Pi-family diagrams, ground/pad controls, SVG/CSV/JSON exports; pure-view checks and rendered SVG visual inspection |
@@ -129,7 +130,9 @@ provide the stronger numerical comparisons. More devices, grounds with vias,
 near-singular networks and process stacks remain to validate.
 
 PI3 dispatch uses the same combined network backend as PI2, with a required
-explicit reference. PI4 copies the two parser-type-8 pads (-1/-1 mesh counts),
+parser-type-0 reference. It preserves the reference's ordinary mesh counts;
+Pi2's optional type-8 reference forces -1/-1. A later 2PORT command can therefore
+have different Y inputs from the preceding Pi3 command. PI4 copies the two parser-type-8 pads (-1/-1 mesh counts),
 clones the winding, joins the three structures, solves the combined network,
 then subtracts the pad-only folded capacitance contribution before extracting
 the Pi model. Native copied-segment order, coordinate translation and the
@@ -256,7 +259,10 @@ The original omitted final square index, via-consuming off-diagonal traversal,
 primary-block widths and axial length-minus-two-width rules are preserved.
 The eight geometry/process fixtures cover coarse 1 GHz and refined 2 GHz
 matrices; tolerance is max(1e-8 ohm, 1e-8 relative) per component. The eight
-additional Pi2 and eight Pi3/Pi4 fixtures use the existing Y/S tolerances.
+additional Pi2 fixtures retain their existing Y/S tolerances. Pi3/Pi4 model
+checks now use actual original model-command inputs, distinct from subsequent
+2PORT records, with exact compiled output checks and the unchanged portable
+component tolerances.
 These paths run in CPython and WebAssembly; arbitrary process stacks and all
 creator/eddy combinations still need independent fixtures.
 
@@ -457,3 +463,25 @@ base segments or forced 3×3 pad/reference filaments, so irreducible cases repor
 the required count. No automatic geometry simplification or solver substitution
 is applied. Project version 1 gains optional mesh fields while older projects
 remain loadable.
+
+Pi metrics and S conversion now preserve the original retained arithmetic in
+both Python and the compiled browser path. The original loader checks 3,435
+records / 96,180 binary64 outputs and 6,673 finite retained returns. This covers
+independent shunt/resonance inputs, all ZIN modes, terminated input impedance,
+nonreciprocity, signed zeros, tiny/large values and nonfinite classifications.
+The Python scalar type rounds exact rational operations after every step and
+uses an integer midpoint comparison for correctly rounded square root. This
+API does not expose hardware exception flags or NaN payloads.
+
+Complete CLI capture records the actual model Y/model stores, resonance ST0
+return and S-conversion Y/S stores. Pi4's intermediate pad and final reports are
+kept separately; Pi3's type-0 reference can differ from a later type-8 2PORT
+history. Original coordinate-height words independently check the reader's two
+stored subtractions. Nominal process height and geometry coordinate height stay
+separate. At identical Y inputs every captured CLI metric/S stage matches.
+Thirty-four of 41 complete sessions additionally match all finite Y/model/S
+outputs and resonance. The explicit strict `tools/check_pi_sessions.mjs
+/path/to/pyodide.mjs --audit-full` still fails on seven upstream square/via-exit
+and polygon histories. Those captured outputs remain unchanged; the ordinary
+suite requires the 34 established complete-session boundaries. This is scoped
+progress, not universal original-binary parity.

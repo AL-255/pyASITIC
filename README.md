@@ -70,6 +70,12 @@ Implemented so far:
   CAP/inductive inputs, including 256 nodes and all 15 finite coupled sessions.
   `PI3` requires an explicit reference; `PI4` solves with two pad strips and
   subtracts their capacitive contribution using the original de-embedding path.
+  Pi metrics, ZIN and S conversion preserve every retained operation and store
+  in both Python and WebAssembly: 3,435 original records check 96,180 binary64
+  outputs and 6,673 finite retained returns. Pi3 preserves its ordinary reference
+  mesh, distinct from Pi2's forced reference mesh. Thirty-four of 41 new complete
+  original Pi sessions match every finite Y/model/S output and resonance value;
+  seven upstream geometry/solver differences remain in the strict full audit.
 - Extended `PIX` two-port model with unfolded capacitance, segment impedance
   and the original extended node equations. Includes circuit display, PiX
   sweeps and Y/S/model exports. Python/JSON callers can request matrix and
@@ -158,7 +164,7 @@ tests and the same source archive inside the pinned WebAssembly runtime before
 deploying to Pages. No external simulation service is required.
 
 The Pages workflow runs Python core checks, every native potential-reference
-process/frequency group, and fourteen WebAssembly groups in parallel. FFT/CAP and
+process/frequency group, and fifteen WebAssembly groups in parallel. FFT/CAP and
 SELFRES checks print case progress. Fixture-derived grouping keeps all native
 cases covered; deployment waits for every group and publishes only the current
 main commit. Active validation is retained when another commit is pushed.

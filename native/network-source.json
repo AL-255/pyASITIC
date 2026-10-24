@@ -1,0 +1,13 @@
+{
+  "reference_commit": "63885e808b522bdeba3f254d353afc72e643c761",
+  "source_sha256": {
+    "src/network.cpp": "57a93824514e7418ed8eb0102498f2f6df775088174fa30b14edd5a3c7985ca1",
+    "src/two_port_output.cpp": "cebea47df55961f248db6ac60768cb29179146be5276c81886ae190d626bf66b",
+    "src/legacy_complex.cpp": "a493b4d50bc88448c40b0a89526e8f806aa0219fd39a69ff09975898e0420fd1",
+    "src/technology_text.cpp": "fd02e27f5d0af9766f8b9a3b1cf6e258cd990cc7295d9861b82e6eb990659c64",
+    "src/technology_records.cpp": "2472a9e1a2099d1ee822b467b6d18cd6c05e58c8566d8d7858c602feabbeb45a",
+    "include/asitic/network.hpp": "3bcd98fda782c67d168c06b264e42d197d68f9b39e5d34c20d5b3f3a88327726",
+    "include/asitic/two_port_output.hpp": "20824b09e72729bd86e9a4f82b01fa3477348899e5810c5ae5dd549f11f269d3"
+  },
+  "adaptation": "SoftFloat retained arithmetic and explicit binary64 stores for Pi extraction, shunt/resonance, ZIN, terminated ZIN and scattering; no numerical formula changes. Portable Python evaluates the same arithmetic with exact rational rounding and square root. Exception flags and NaN payloads are not exposed by the Python/browser API. Technology retains separate nominal bottom distance and original two-store coordinate height. Pi3 preserves type-0 reference mesh; Pi2/Pi4 preserve type-8 marking. Direct original routines and complete actual CLI traces are checked independently. See strict full-session audit for remaining upstream differences."
+}

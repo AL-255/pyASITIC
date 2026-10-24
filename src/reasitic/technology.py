@@ -3,6 +3,7 @@ from dataclasses import dataclass, asdict, field
 from pathlib import Path
 import math
 import re
+from .retained_scalar import Real
 
 
 @dataclass(frozen=True)
@@ -13,6 +14,11 @@ class Metal:
     resistance: float
     layer: int
     color: str = "#e8b665"
+    coordinate_height: float | None = None
+
+    @property
+    def geometry_height(self):
+        return self.height if self.coordinate_height is None else self.coordinate_height
 
 
 @dataclass(frozen=True)
@@ -66,6 +72,9 @@ class Technology:
             else:
                 raise ValueError(f"Invalid technology line: {line}")
         metals, vias = [], []
+        depths = [0.] * (len(blocks["layer"]) + 1)
+        for i in range(len(blocks["layer"]) - 1, -1, -1):
+            depths[i] = float(Real(blocks["layer"][i]["t"]) + depths[i + 1])
         for i, m in enumerate(blocks["metal"]):
             if m["t"] <= 0 or m["rsh"] <= 0:
                 raise ValueError("Metal thickness and sheet resistance must be positive")
@@ -74,10 +83,13 @@ class Technology:
                 raise ValueError("Metal references an unknown substrate layer")
             if m["d"] < 0 or m["d"] > blocks["layer"][layer]["t"]:
                 raise ValueError("Metal height falls outside its substrate layer")
-            # Native technology initialization stores this same bottom distance
-            # after converting the internal top-distance field twice.
+            # Geometry reloads depth - stored(depth - d), while the spectral
+            # tables use the first stored top distance. Cancellation in these
+            # two binary64 stores is observable in eddy and mutual terms.
+            top_distance = float(Real(depths[layer]) - m["d"])
+            coordinate_height = float(Real(depths[layer]) - top_distance)
             metals.append(Metal(str(m.get("name", f"M{i+1}")).upper(), m["d"],
-                                m["t"], m["rsh"]*0.001, layer, str(m.get("color", "#e8b665"))))
+                                m["t"], float(Real(m["rsh"])*.001), layer, str(m.get("color", "#e8b665")),coordinate_height))
         for i, v in enumerate(blocks["via"]):
             bottom, top = int(v["bottom"]), int(v["top"])
             if not (0 <= bottom < len(metals) and 0 <= top < len(metals)) or bottom == top:

@@ -11,6 +11,7 @@ import math
 from .solver import discretize,solve_impedance,_sum_complex
 from .potential import solve_capacitance,_divide
 from .linear import factor_general,solve_general,matrix_vector
+from .network_metrics import impedance as _metric_impedance,extract as _metric_extract,scattering as _metric_scattering
 
 try:
     from _reasitic_numeric import folded_node as _compiled_node
@@ -73,97 +74,29 @@ def solve_node_equations(capacitance,inductance):
     return dict(y11=_divide(determinant,a),y12=offdiag,y21=offdiag,y22=_divide(1+0j,a)),cap
 
 
-def _ratio(a,b):
-    if b:
-        return a/b
-    return math.nan if not a else math.copysign(math.inf,a)
-
-
 def two_port_impedance(y,*,differential=False,port=1):
-    """Native ZIN: single-ended port 1 uses 1/y22; differential assumes reciprocity."""
-    if not differential:
-        return _divide(1+0j,y["y22" if port==1 else "y11"])
-    with localcontext() as context:
-        context.prec=25
-        ar,ai,br,bi,cr,ci=(Decimal.from_float(v) for z in (y["y22"],y["y11"],y["y21"]) for v in (z.real,z.imag))
-        determinant=complex(float((ar*br-ai*bi)-Decimal.from_float(float(cr*cr-ci*ci))),float((ar*bi+ai*br)-(cr*ci+cr*ci)))
-        numerator=complex(float((ar+br)+(cr+cr)),float((ai+bi)+(ci+ci)))
-    return _divide(numerator,determinant)
+    """Original ZIN, including native diagonal order and reciprocal differential."""
+    return _metric_impedance(y,differential,port)
 
 
 def extract_pi_equivalent(y,frequency_hz):
-    """Native series L/R, two series RC shunts, Q, shunt R and resonance."""
-    first,second=y["y11"]+y["y12"],y["y21"]+y["y22"]
-    series=-y["y21"]
-    omega=2*math.pi*frequency_hz
-    z=_divide(1+0j,series)
-    inductance,resistance=z.imag/omega,z.real
-    def shunt(value):
-        if abs(value)<=float.fromhex("0x1.b7cdfd9d7bdbbp-34"):
-            return 0.0,1e15
-        impedance=_divide(1+0j,value)
-        return _ratio(-1,omega*impedance.imag),impedance.real
-    c1,r1=shunt(second)
-    c2,r2=shunt(first)
-    zd=two_port_impedance(y,differential=True)
-    def shunt_resistance(differential):
-        capacitance=_ratio(c1*c2,c1+c2) if differential else c1
-        ground_resistance=r1+r2 if differential else r1
-        a=_ratio(omega*inductance,resistance)**2
-        b=_ratio(1,omega*capacitance*ground_resistance)**2
-        series_r=(a+1)*resistance
-        shunt_r=(1+b)*ground_resistance
-        return _ratio(series_r*shunt_r,series_r+shunt_r)
-    ratio=_ratio(c1,inductance)
-    correction=_ratio(1-resistance*resistance*ratio,1-r1*r1*ratio)
-    resonance=_ratio(1,inductance*c1)
-    if correction>0:
-        resonance*=correction
-    resonance=math.sqrt(resonance)/(2*math.pi) if resonance>=0 else math.nan
-    values=dict(inductance_h=inductance,resistance_ohm=resistance,capacitance_first_f=c1,capacitance_second_f=c2,
-                resistance_first_ohm=r1,resistance_second_ohm=r2,
-                q_first=_ratio(-(second.imag+series.imag),second.real+series.real),
-                q_second=_ratio(-(series.imag+first.imag),series.real+first.real),q_differential=_ratio(zd.imag,zd.real),
-                shunt_single_ohm=shunt_resistance(False),shunt_differential_ohm=shunt_resistance(True),
-                resonant_frequency_hz=resonance)
-    return {key:value if math.isfinite(value) else None for key,value in values.items()}
+    """Original retained Pi metrics, with native SI stores and public nulls."""
+    return _metric_extract(y,frequency_hz)
 
 
 def convert_scattering(y):
-    """Native 50-ohm S conversion, including its repeated y22 factor in s11."""
-    with localcontext() as context:
-        context.prec=25
-        def pair(value):
-            return Decimal.from_float(value.real),Decimal.from_float(value.imag)
-        def multiply(a,b):
-            ar,ai=a;br,bi=b
-            return ar*br-ai*bi,ar*bi+ai*br
-        def add(a,b):
-            return a[0]+b[0],a[1]+b[1]
-        def spill(a):
-            return complex(float(a[0]),float(a[1]))
-        reference=Decimal.from_float(.02)
-        a,b,c,d=map(pair,(y["y11"],y["y12"],y["y21"],y["y22"]))
-        positive_a,negative_a=(a[0]+reference,a[1]),(reference-a[0],-a[1])
-        positive_d,negative_d=(d[0]+reference,d[1]),(reference-d[0],-d[1])
-        cross=multiply(c,b)
-        base=multiply(positive_d,positive_a)
-        denominator=spill((base[0]-cross[0],base[1]-cross[1]))
-        s11=_divide(spill(add(multiply(negative_d,positive_d),cross)),denominator)
-        s22=_divide(spill(add(multiply(positive_d,negative_a),cross)),denominator)
-        s21=_divide(spill((-2*c[0]*reference,-2*c[1]*reference)),denominator)
-        s12=_divide(spill((-2*b[0]*reference,-2*b[1]*reference)),denominator)
-    return [[s11,s12],[s21,s22]]
+    """Original 50-ohm conversion, including the historical first diagonal."""
+    return _metric_scattering(y)
 
 
 def solve_pi2(shape,technology,frequency_hz,*,ground=None,length_cell=1000,width_cell=1000,thickness_cell=1000,
-              capacitance_length_cell=1000,capacitance_width_cell=1000,max_filaments=256,max_contacts=256,include_matrices=False,eddy=False):
+              capacitance_length_cell=1000,capacitance_width_cell=1000,max_filaments=256,max_contacts=256,include_matrices=False,eddy=False,_force_ground_mesh=True):
     """Original distributed Pi2 combination with substrate capacitance and loss."""
     if not all(math.isfinite(v) and v>0 for v in (frequency_hz,length_cell,width_cell,thickness_cell,capacitance_length_cell,capacitance_width_cell)):
         raise ValueError("Pi2 frequency and mesh sizes must be finite and positive")
     meshed=discretize(shape,capacitance_length_cell,length_cell)
     cap=solve_capacitance(meshed,technology,frequency_hz,ground=ground,length_cell=capacitance_length_cell,
-                          width_cell=capacitance_width_cell,max_contacts=max_contacts)
+                          width_cell=capacitance_width_cell,max_contacts=max_contacts,force_ground_mesh=_force_ground_mesh)
     ind=solve_impedance(meshed,technology,frequency_hz,width_cell=width_cell,thickness_cell=thickness_cell,
                         max_filaments=max_filaments,admittance=True,discretized=True,eddy=eddy)
     y,nodal=solve_node_equations(_complex_matrix(cap["matrix"]),_complex_matrix(ind["matrix"]))
@@ -182,10 +115,10 @@ def solve_pi2(shape,technology,frequency_hz,*,ground=None,length_cell=1000,width
 
 
 def solve_pi3(shape,technology,frequency_hz,*,ground,**mesh):
-    """Native PI3 dispatch uses the same combined solver with explicit ground."""
+    """PI3 uses the combined solver and a type-0 reference, without type-8 marking."""
     if ground is None:
         raise ValueError("Pi3 requires an explicit ground shape")
-    result=solve_pi2(shape,technology,frequency_hz,ground=ground,**mesh)
+    result=solve_pi2(shape,technology,frequency_hz,ground=ground,_force_ground_mesh=False,**mesh)
     result["method"]="ASITIC PI3, native eddy on" if result["eddy"] else "ASITIC PI3, eddy off"
     return result
 

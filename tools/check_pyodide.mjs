@@ -112,18 +112,16 @@ for(const fixture of networkCases){
   if(fixture.kind==="wire" && !fixture.ground)assert.equal(result.pi.shunt_differential_ohm,null);
 }
 console.log("16 native distributed Pi2 Y/S models passed in WebAssembly, eddy off/on.");
-const piModelCases=[...JSON.parse(readFileSync(new URL("../tests/fixtures/pi_models.json",import.meta.url))).cases,
-  ...JSON.parse(readFileSync(new URL("../tests/fixtures/pi_models_eddy.json",import.meta.url))).cases];
-for(const fixture of piModelCases){
-  const result=request({action:fixture.model,kind:fixture.kind,parameters:fixture.parameters,technology:fixture.technology,
-    ground:fixture.ground,first_pad:fixture.first_pad,second_pad:fixture.second_pad,frequency_hz:fixture.frequency_hz,eddy:fixture.eddy||false});
-  for(const key of ["admittance_matrix","scattering_matrix"]){
-    result[key].forEach((row,i)=>row.forEach((value,j)=>value.forEach((component,k)=>{
-      const expected=fixture[key][i][j][k];
-      assert.ok(Math.abs(component-expected)<=Math.max(1e-10,Math.abs(expected)*1e-8),`${fixture.model} ${fixture.kind} ${key}`);
-    })));
-  }
-  if(fixture.model==="pi4")assert.ok(result.filaments>=19);
+const originalPi=JSON.parse(readFileSync(new URL("../tests/fixtures/pi_sessions_original.json",import.meta.url))).cases;
+const originalMetrics=JSON.parse(readFileSync(new URL("../tests/fixtures/network_metrics_original.json",import.meta.url))).cases;
+const metricCases=new Map(originalMetrics.filter(c=>c.session_index!==undefined).map(c=>[c.session_index,c]));
+for(const [index,c]of originalPi.entries())if(["pi3","pi4"].includes(c.request.action)){
+  const result=request(c.request),value=bits=>Buffer.from(bits,"hex").readDoubleLE();
+  const y=c.model.Y.map(value),raw=Buffer.from(metricCases.get(index).output_bits,"hex");
+  const s=Array.from({length:8},(_,i)=>raw.readDoubleLE(160+8*i));
+  const expected={admittance_matrix:[[y.slice(6,8),y.slice(4,6)],[y.slice(2,4),y.slice(0,2)]],scattering_matrix:[[s.slice(0,2),s.slice(2,4)],[s.slice(4,6),s.slice(6,8)]]};
+  for(const key of ["admittance_matrix","scattering_matrix"])assert.deepEqual(result[key],expected[key],`Actual-original ${c.request.action} ${c.request.kind} ${key}`);
+  if(c.request.action==="pi4")assert.ok(result.filaments>=19);
 }
 assert.throws(()=>request({action:"pi"}),/native fast Pi/);
 assert.throws(()=>request({action:"pi3"}),/explicit ground/);

@@ -33,7 +33,7 @@ def _metal(s,index,tech):
     metal = tech.metals[index]
     s.metal,s.thickness = index,metal.thickness
     for point in s.points:
-        point[2] = metal.height
+        point[2] = metal.geometry_height
 
 
 def symmetric_square(shape,tech,primary,secondary,span,height,width,spacing,turns,angle,phase):

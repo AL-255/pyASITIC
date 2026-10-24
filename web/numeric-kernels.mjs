@@ -20,6 +20,8 @@ export async function installNumericalKernels(python, bytes) {
   const spectralTables = new Float64Array(api.memory.buffer, api.spectral_table_buffer(), 2 * (66049 + 1024));
   const spectralDepths = new Float64Array(api.memory.buffer, api.spectral_depth_buffer(), 257);
   const transformerData = new Float64Array(api.memory.buffer, api.transformer_buffer(), 24);
+  const networkMetricInput = new Float64Array(api.memory.buffer, api.network_metric_buffer(), 256*26);
+  const networkMetricOutput = new Float64Array(api.memory.buffer, api.network_metric_result_buffer(), 256*42);
   const filamentInput = new Float64Array(api.memory.buffer, api.filament_buffer(), 256*26);
   const filamentOutput = new Float64Array(api.memory.buffer, api.filament_result_buffer(), 256*9);
   const mutualInput = new Float64Array(api.memory.buffer, api.mutual_buffer(), 256*18);
@@ -53,6 +55,16 @@ export async function installNumericalKernels(python, bytes) {
     } finally {o?.release();c?.release();}
   }
   python.registerJsModule("_reasitic_numeric", {
+    network_metrics(input,output,operation=3) {
+      let a,b;
+      try {
+        a=input.getBuffer("f64");b=output.getBuffer("f64");const n=a.data.length/26;
+        if(!Number.isInteger(n)||n<1||n>256||b.data.length!==42*n||![0,1,2,3].includes(operation))throw new Error("Network metric dimensions are invalid");
+        for(let i=0;i<n;i++)if(![0,1].includes(a.data[26*i])||![0,1,2].includes(a.data[26*i+2])||![0,1].includes(a.data[26*i+3]))throw new Error("Network metric configuration is invalid");
+        networkMetricInput.set(a.data);const status=api.network_metrics(n,operation);
+        if(!status)b.data.set(networkMetricOutput.subarray(0,42*n));return status;
+      } finally {b?.release();a?.release();}
+    },
     green_reflection(input,output) {
       let a,b;
       try {

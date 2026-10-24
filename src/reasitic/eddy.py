@@ -98,7 +98,7 @@ def _stamp_compiled(matrix,shape,technology,frequency,mode,state,warnings):
     n=len(matrix);square=shape.kind=="square" and mode==1;p=shape.parameters
     if square:
         metal=technology.metal_index(p.get("metal",len(technology.metals)-1))
-        geometry=[p.get("length",100),p.get("width",5),p.get("spacing",2),p["turns"],technology.metals[metal].height]
+        geometry=[p.get("length",100),p.get("width",5),p.get("spacing",2),p["turns"],technology.metals[metal].geometry_height]
         size=2*math.ceil(p["turns"])
     else:geometry=[0.]*5;size=0
     if len(shape.segments)>2048 or n>256 or size>256:return None
@@ -186,7 +186,7 @@ def add_eddy(matrix,shape,technology,frequency,mode,warnings):
     if shape.kind=="square" and mode==1:
         p=shape.parameters
         metal=technology.metal_index(p.get("metal",len(technology.metals)-1))
-        height=float(_d(float.fromhex("0x1.0c6f7a0b5ed8dp-19"))*_d(technology.metals[metal].height))
+        height=float(_d(float.fromhex("0x1.0c6f7a0b5ed8dp-19"))*_d(technology.metals[metal].geometry_height))
         real=assemble_square(p.get("length",100),p.get("width",5),p.get("spacing",2),p["turns"],frequency,height,integral)
         n,size=math.ceil(p["turns"]),len(real)
         limit=math.floor(_d(p["turns"])*4)

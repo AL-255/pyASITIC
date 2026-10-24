@@ -14,7 +14,7 @@ KINDS = ("square", "polygon", "symmetric_square", "symmetric_polygon", "wire", "
 def _segment(tech, metal, width, start, end, outer_start, outer_end, inner_start, inner_end):
     m = tech.metals[metal]
     def point(p):
-        return [float(p[0]), float(p[1]), m.height]
+        return [float(p[0]), float(p[1]), m.geometry_height]
     return Segment(*(point(p) for p in (start, end, outer_start, outer_end, inner_start, inner_end)),
                    width, m.thickness, metal)
 
@@ -25,7 +25,7 @@ def _via(tech, index, nx, ny, x=0, y=0):
     height = v.width*ny+v.spacing*(ny-1)
     left, right = x-length/2, x+length/2
     top, bottom = y+height/2, y-height/2
-    low, high = tech.metals[v.bottom].height, tech.metals[v.top].height
+    low, high = tech.metals[v.bottom].geometry_height, tech.metals[v.top].geometry_height
     return Segment([left,y,low], [right,y,high], [left,top,low], [right,top,high],
                    [left,bottom,low], [right,bottom,high], height, 0,
                    len(tech.metals)+index, nx, ny)
@@ -269,7 +269,7 @@ def build(kind="square", *, technology=None, **parameters):
                         m = tech.metals[index]
                         s.metal,s.thickness = index,m.thickness
                         for point in s.points:
-                            point[2] = m.height
+                            point[2] = m.geometry_height
                     winding.reflect(axis)
                     winding.segments.reverse()
                     for s in winding.segments:
@@ -291,7 +291,7 @@ def build(kind="square", *, technology=None, **parameters):
             m = tech.metals[bottom]
             second.metal,second.thickness = bottom,m.thickness
             for point in second.points:
-                point[2] = m.height
+                point[2] = m.geometry_height
             shape.segments.append(second)
         elif phase < 0:
             shape.segments[0].reverse()

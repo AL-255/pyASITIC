@@ -20,6 +20,37 @@ Python-owned buffer copied into and out of separate bounded WebAssembly memory.
 The solver retains a portable Python implementation for environments without
 the compiled module.
 
+`network.cpp` and `network_scattering.cpp` preserve the original Pi extractor,
+single-ended/differential and terminated ZIN, shunt resistance, resonance and
+50-ohm S conversion. The historical diagonal ordering, ignored differential
+y12 input, squared-real spill and all original model stores remain unchanged.
+`network_metrics.py` uses the same formulas with exact rational arithmetic,
+nearest-even 64-bit significands, extended exponents and an integer square-root
+rounding decision in `retained_scalar.py`. Public undefined metrics remain null;
+the Python/browser API does not expose x87 exception flags or NaN payloads.
+
+`capture_network_metrics.py` executes intact original entry points and the
+original legacy DSO for 3,435 records. All 96,180 binary64 outputs and 6,673
+finite retained returns match in Python and WebAssembly. Cases cover normal,
+tiny/large/nonfinite values, signed zeros, nonreciprocity, shunt threshold
+neighbors, independent model records and every input port/mode. Partial API
+operations clear unrelated output fields and preserve caller input buffers.
+
+`capture_pi_sessions.py` independently observes 41 actual original CLI sessions.
+Pi4's intermediate pad report and final de-embedded report remain separate.
+All captured metric/S stages match at identical Y inputs. Thirty-four complete
+sessions also match every finite Y/model/S output and resonance. The separate
+`check_pi_sessions.mjs --audit-full` deliberately fails on seven remaining
+upstream square/via-exit and polygon histories. Those original words remain
+unchanged; production calculations never load fixture data. Source hashes and
+adaptations are recorded in `network-source.json`.
+
+Technology geometry heights preserve the reader's two binary64 stores:
+`depth - stored(depth - d)`. The nominal bottom distance stays separate for
+spectral preparation and process display. Pi3 preserves its parser-type-0
+reference mesh; Pi2/Pi4 retain type-8 marking. These input histories are covered
+by the complete-session gates rather than being inferred from isolated kernels.
+
 The spectral helpers retain `k * (a - b)` until the original store, then follow
 the original FLDL2E / FRNDINT / F2XM1 / FSCALE exponent reduction. The F2XM1
 fraction is evaluated with binary128 guard precision and stored in the native

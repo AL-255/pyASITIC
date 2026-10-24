@@ -10,6 +10,7 @@ from functools import lru_cache
 from decimal import Decimal,localcontext
 import copy
 import math
+from .retained_scalar import Real
 from .solver import inverse,_sum_complex
 from .fft import _fft,_transform_grid,_fft_extended,_fft_spill
 from .x87_math import tanh_argument,cosh_argument
@@ -313,7 +314,7 @@ def _contact_potential(a,b,nx,ny,width,height,metal_records,coefficients,depths,
 
 
 def solve_capacitance(shape,technology,frequency_hz,*,ground=None,length_cell=1000,width_cell=1000,
-                      fft_x=None,fft_y=None,unfolded=False,max_contacts=256,include_potential=False):
+                      fft_x=None,fft_y=None,unfolded=False,max_contacts=256,include_potential=False,force_ground_mesh=True):
     """Original contact-potential matrix inversion and folded/unfolded reduction.
 
     Returned matrix is a complex admittance in siemens. `unfolded` preserves
@@ -334,8 +335,9 @@ def solve_capacitance(shape,technology,frequency_hz,*,ground=None,length_cell=10
         # Explicit ground arguments have native parser type 8, which marks all
         # their segment mesh counts -1 before the capacitance driver runs.
         ground=copy.deepcopy(ground)
-        for segment in ground.segments:
-            segment.nx=segment.ny=-1
+        if force_ground_mesh:
+            for segment in ground.segments:
+                segment.nx=segment.ny=-1
         remaining=max_contacts-sum(len(group) for group in groups)
         groups.extend(_contacts(ground,technology,nx,ny,width,height,length_cell,width_cell,remaining))
         second_count=len(ground.segments)
@@ -344,9 +346,9 @@ def solve_capacitance(shape,technology,frequency_hz,*,ground=None,length_cell=10
         raise ValueError(f"Capacitance mesh needs 1–{max_contacts} contacts")
     depths=[0.0]*(len(technology.substrate)+1)
     for i in range(len(technology.substrate)-1,-1,-1):
-        depths[i]=depths[i+1]+technology.substrate[i]["t"]
+        depths[i]=float(Real(depths[i+1])+technology.substrate[i]["t"])
     coefficients=layer_coefficients(technology.substrate,frequency_hz)
-    records=tuple((m.layer,depths[m.layer]-m.height,m.thickness) for m in technology.metals)
+    records=tuple((m.layer,float(Real(depths[m.layer])-m.height),m.thickness) for m in technology.metals)
     packed={}
     def get_table(low,high):
         pair=low,high
