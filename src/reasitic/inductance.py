@@ -109,12 +109,7 @@ def inductance_estimate(shape,technology):
 
 
 def coupling_estimate(first,second,technology):
-    """Original COUPLING result: mutual nH and signed dimensionless k."""
-    if len(first.segments)*len(second.segments)>1000000:
-        raise ValueError("Coupling estimate exceeds one million segment pairs")
-    l1,l2 = inductance_estimate(first,technology),inductance_estimate(second,technology)
-    count = len(technology.metals)
-    mutual = sum(segment_mutual(_record(a,first.origin),_record(b,second.origin))
-                 for a in first.segments if a.metal<count
-                 for b in second.segments if b.metal<count)
-    return mutual,mutual/math.sqrt(l1*l2) if min(l1,l2)>EPS else 0
+    """Original COUPLING result and native centerline translation side effects."""
+    from .coupling_metrics import retained_coupling
+    mutual,coefficient=retained_coupling(first,second,technology)
+    return mutual,float(coefficient)

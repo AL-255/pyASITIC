@@ -1317,3 +1317,56 @@ complete-command self-log raw differences from 34 to 56. It was not incorporated
 into the runtime. Matching one hardware case is insufficient evidence for a
 universal instruction replacement. These observations narrow the remaining
 work without introducing fitted adjustments, fixture lookups or relaxed gates.
+
+
+### COUPLING accumulation, normalization and mutable translation history
+
+`coupling_metrics.py` and `native/coupling_metrics.cpp` port
+`shape_coupling_estimate` in `analysis_commands.cpp`. L1 and L2 are stored to
+binary64 before multiplication. The product, square root and final division
+retain x87 precision until the actual coefficient output store. The mutual sum
+is stored to binary64 after **every** pair; Python's compensated builtin `sum`
+and a binary64 `sqrt(l1*l2)` do not reproduce those operations.
+
+For every cross-winding metal pair, the original adds each shape's origin to
+its segment endpoints, stores them to binary64, computes mutual, updates the
+sum, and subtracts/stores the origins. This can change the local centerline
+coordinates even after the subtraction. The port preserves that state for
+repeated typed calls. Ribbon edges, via records and primary widths/thicknesses
+are untouched, as in the original. The browser's JSON command reconstructs
+fresh geometry per request; its preview and saved project remain unchanged.
+The JSON command rejects identical winding names with the original self-coupling
+error, and typed direct calls reject the same shape object.
+
+The new data-only capture tool runs all 98 original paired creators, all six
+previous 3D transformer sessions and eight wire creations. Each history requests
+A/B, A/B again, B/A and A/B again. The compressed fixture retains **112 histories,
+428 executed calls and 81,996 actual cross-pair input/value/sum records**, before
+and after geometry, both inductance input stores, raw k returns, actual sprintf
+M/k stores and FPU controls. Five histories are retained with their original
+errors: two lowercase generated-name lookups fail after parser uppercasing, one
+uses identical names, and two wire dimensions snap below the native minimum.
+All terminate normally. No numerical code, data, runtime, allocator or descriptor
+was patched. Original executable/library hashes and parent fixture hashes are
+checked, and gzip output is deterministic (`mtime=0`).
+
+The portable and compiled tests require every executed original M/k F64 output,
+raw k return, consumed geometry/material record and post-call centerline/edge
+store. The full compiled cross-winding loop uses a single transport call and
+keeps mutable geometry in its own bounded buffers. Transport tests check counts,
+shape/array bounds, untouched caller input buffers and rejected-call recovery.
+All 101 valid paired/3D projects are additionally restored through the actual
+webpage handlers and their Estimate coupling results compared bit-for-bit.
+`audit_coupling_original.py --pairs` checks every actual translated pair input,
+individual contribution and F64 accumulator without a tolerance. This **strict
+diagnostic currently exits 1**: all 81,996 indices, translated inputs and
+accumulator stores match, but one pair contribution in reversed call 3 of
+`paired_original/92` differs by four F64 ULP. That difference rounds out in its
+actual accumulator, and every captured final M/k store and raw k return matches.
+The existing mutual primitive's transcendental fidelity remains open; no
+correction is applied to that pair. The browser checker accepts `--pairs` and `--baseline` to run the same diagnostic and the
+actual previous `4ba28b7` Python implementation against the existing mutual
+kernel. That previous browser path differs in **260 / 428 M** and **303 / 428 k**
+stores; the port corrects those captured command outputs without fitted constants
+or embedded reference results. This does not establish unrestricted original
+parser, CPU transcendental, nonfinite payload or whole-simulator equivalence.

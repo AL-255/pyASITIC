@@ -188,6 +188,12 @@ Implemented so far:
   progressive Pi2/Pi3/Pi4 sweeps, sample-to-circuit inspection, plot SVG and CSV
   download. Python runs in a
   module worker using pinned Pyodide 314.0.7; the runtime loads from jsDelivr.
+- `COUPLING` preserves the original binary64 accumulation, retained square-root
+  normalization, and per-pair origin add/subtract stores. All 428 captured calls
+  match M/k and raw coefficient returns in both backends, including repeated
+  and reversed order. Typed calls retain the original centerline rounding
+  changes; webpage requests start from fresh project geometry. The compiled
+  path evaluates the complete cross-winding sum in one batch.
 - Shared mesh settings start with the Python API’s coarse preset
   (1000 µm). Coarse/balanced/fine presets, custom conductor and
   CAP cells, and a filament-count check before electrical solves. “Fit to 256

@@ -29,6 +29,8 @@ export async function installNumericalKernels(python, bytes) {
   const conductorResistanceOutput = new Float64Array(api.memory.buffer, api.conductor_resistance_result_buffer(), 4);
   const conductorMetrics = new Float64Array(api.memory.buffer, api.conductor_metrics_buffer(), 2000*16);
   const conductorMetricsOutput = new Float64Array(api.memory.buffer, api.conductor_metrics_result_buffer(), 9);
+  const couplingMetrics = new Float64Array(api.memory.buffer, api.coupling_metrics_buffer(), 4000*8+6);
+  const couplingMetricsOutput = new Float64Array(api.memory.buffer, api.coupling_metrics_result_buffer(), 4000*8+6);
   const symmetricConfig = new Float64Array(api.memory.buffer, api.symmetric_config_buffer(), 10);
   const symmetricEvents = new Float64Array(api.memory.buffer, api.symmetric_event_buffer(), 60000*14);
   const polygonConfig = new Float64Array(api.memory.buffer, api.polygon_config_buffer(), 6);
@@ -97,6 +99,15 @@ export async function installNumericalKernels(python, bytes) {
         impedanceWires.set(w.data);impedanceMutual.set(p.data);const status=api.impedance_assemble(n,frequency);
         if(!status)o.data.set(impedanceMatrix.subarray(0,2*n*n));return status;
       } finally {o?.release();p?.release();w?.release();}
+    },
+    coupling_metrics(input,output,firstCount,secondCount) {
+      let a,b;
+      try {
+        a=input.getBuffer("f64");b=output.getBuffer("f64");const length=8*(firstCount+secondCount)+6;
+        if(![firstCount,secondCount].every(n=>Number.isInteger(n)&&n>=0&&n<=2000)||firstCount*secondCount>1000000||a.data.length!==length||b.data.length!==length)throw new Error("Coupling metric configuration is invalid");
+        couplingMetrics.set(a.data);const status=api.coupling_metrics(firstCount,secondCount);
+        if(!status)b.data.set(couplingMetricsOutput.subarray(0,length));return status;
+      } finally {b?.release();a?.release();}
     },
     conductor_metrics(input,output) {
       let a,b;

@@ -68,6 +68,7 @@ def handle(request,*,progress=None):
         return dict(base64=base64.b64encode(write_gds(shapes,tech,request.get("layer_map"))).decode())
     if action == "coupling":
         a,b = (_shape(request[key],tech) for key in ("first","second"))
+        if a.name==b.name:raise ValueError("Cannot find self-coupling; use inductance instead")
         mutual,k = coupling_estimate(a,b,tech)
         return dict(mutual_nh=mutual,k=k)
     if action == "calctrans" or (action=="mesh" and request.get("model")=="calctrans"):

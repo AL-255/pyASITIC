@@ -1,0 +1,52 @@
+{
+  "reference_commit": "63885e808b522bdeba3f254d353afc72e643c761",
+  "source_sha256": {
+    "src/analysis_commands.cpp": "8f040114bdcf59ca1f7701cc820625726e4f42519ca60bf1a074927ae4f94cc1",
+    "src/segment.cpp": "4466963692b101b7e027afb4ad2b3a9aa710007e53e66635b4e50fe5d3172e68",
+    "src/canonicalize.cpp": "82d2c2c5b2fb27cd981b9ab9d53ca104deda18c52fcb08e2b499b88d84c6b754",
+    "src/parallel.cpp": "01587c945f8aaedd715f90eee1687b6c5f3961df200efd75765f2746a75f082a",
+    "src/planar.cpp": "b3c02d2af097d7fbc4375ed4c3f8b7c62c649412839d19675ce2d1ee8dd010d6",
+    "src/spatial.cpp": "088996bfacd5896593cbd21b3d5f72864279634a2c7d43eb93effb03044ff898",
+    "src/x87.hpp": "14452aaed86d0ec525a7611e387f3a62c9b5ab514d20de4708b2c52c9c925e9b"
+  },
+  "original_entries": {
+    "coupling": "0x0804d03c",
+    "inductance": "0x0804ce78",
+    "after_inductance_F64_stores": "0x0804d07c",
+    "translated_pair_call": "0x0804d10e",
+    "pair_return": "0x0804d113",
+    "after_sum_F64_store": "0x0804d12d",
+    "retained_sqrt": "0x0804d1bb",
+    "retained_normalization": "0x0804d1bd",
+    "coupling_static_return": "0x0804d1e0",
+    "formatted_output": "0x0804ae04"
+  },
+  "record_stride": 8,
+  "record_fields": [
+    "x0",
+    "y0",
+    "z0",
+    "x1",
+    "y1",
+    "z1",
+    "primary_width",
+    "primary_thickness"
+  ],
+  "configuration_fields": [
+    "first_origin_x",
+    "first_origin_y",
+    "second_origin_x",
+    "second_origin_y",
+    "first_L_F64",
+    "second_L_F64"
+  ],
+  "result_fields": [
+    "M_F64",
+    "k_F64",
+    "k_R80_low",
+    "k_R80_high",
+    "k_R80_exponent",
+    "warning_mask"
+  ],
+  "adaptation": "Literal original COUPLING: each pair adds/stores shape origins, computes the existing mutual kernel, adds/stores the binary64 sum, then subtracts/stores origins. Those operations intentionally retain centerline drift; edge records, widths and vias remain unchanged. L1/L2 spill to F64 before retained multiply, sqrt and division. Both Python and a single bounded compiled batch per complete cross-winding sum use the same operation order. Native CLI same-name rejection is preserved at the JSON command boundary; typed direct calls reject the same object. 112 unmodified-original creation histories retain 428 complete coupling calls and 81,996 actual cross-pair input/value/sum stores, including repeated and reversed winding calls and five native rejected histories. All 428 M/k F64 outputs, raw k returns and post-call geometry stores pass both backends. Web tests restore all 101 valid paired projects and compare the actual coupling display; later requests reconstruct fresh geometry. General x87 transcendental, full parser/history and nonfinite payload equivalence remain separate open work. The optional strict all-pair audit still exits 1 on one reversed-call contribution (paired_original/92, 4 F64 ULP); all 81,996 native translated inputs, pair indices and F64 accumulator stores match. That difference rounds out in its actual sum. It remains recorded without a tolerance or fitted correction."
+}
