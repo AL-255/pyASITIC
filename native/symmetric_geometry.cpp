@@ -109,6 +109,6 @@ extern "C" __attribute__((export_name("symmetric_config_buffer"))) unsigned symm
 extern "C" __attribute__((export_name("symmetric_event_buffer"))) unsigned symmetric_event_buffer(){return reinterpret_cast<unsigned>(events);}
 extern "C" __attribute__((export_name("symmetric_geometry"))) int symmetric_geometry(){
  used=0;const int kind=int(config[0]);const double sides=config[4],turns=config[8];
- if((kind!=0&&kind!=1)||sides<4||sides>1024||sides!=int(sides)||int(sides)%2||!(turns>=1)||turns!=int(turns)||sides*turns>20000||!(config[3]>0)||!__builtin_isfinite(config[5])||!(config[6]>0)||config[7]<0)return -1;
+ if((kind!=0&&kind!=1)||sides<4||sides>1024||sides!=int(sides)||int(sides)%2||!(turns>=1)||turns!=int(turns)||sides*turns>20000||!(config[3]>0)||!__builtin_isfinite(config[5])||!(config[6]>0)||!__builtin_isfinite(config[7]))return -1;
  return kind?polygon():square();
 }

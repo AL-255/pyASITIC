@@ -144,6 +144,10 @@ Implemented so far:
   including zero/negative gaps and omitted defaults that bypass native validation.
   Two additional finite Pi2/2PORT sessions match all captured electrical stores;
   four original NaN histories retain contact evidence and explicit browser errors.
+  The webpage also offers the original interactive symmetric input mode, with
+  full precision, prompt turn limits and technology SMIN/WMIN rules. Another
+  36 creators / 10,386 XYZ stores and three finite complete models match the
+  original. Eleven repeated-prompt and three NaN histories retain diagnostics.
 - Multi-metal squares preserve native copy origins, reflection history and
   deferred joins across up to five sample-process metals. All 180 original
   creators / 56,214 XYZ stores match in Python and Pyodide, with independent GDS

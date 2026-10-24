@@ -1,0 +1,21 @@
+{
+  "reference_commit": "63885e808b522bdeba3f254d353afc72e643c761",
+  "source_sha256": {
+    "src/shape_creation_symmetric.cpp": "f792203d2f0f1772921134ff78d269f075739fdccd7b076dc503d13da8535508",
+    "src/shape_creation_sympoly.cpp": "81f9dc77eb34dbd561264aa6d6184e0aeb52620141751c73e45dd6b5d1b2f0e4",
+    "src/shape_creation_commands.cpp": "08f00e9e90033792880f9173470ed07ef2879fa37f2d4048ca2751944ce77365",
+    "src/symmetric_construction.cpp": "6196d35c51696172ae9dc6d977c34e76a6aae583d740353a2e224092bc403da5",
+    "src/technology_text.cpp": "fd02e27f5d0af9766f8b9a3b1cf6e258cd990cc7295d9861b82e6eb990659c64",
+    "src/technology_records.cpp": "2472a9e1a2099d1ee822b467b6d18cd6c05e58c8566d8d7858c602feabbeb45a",
+    "src/x87.hpp": "14452aaed86d0ec525a7611e387f3a62c9b5ab514d20de4708b2c52c9c925e9b"
+  },
+  "original_entries": {
+    "square_prompt": "0x08069474",
+    "square_creator": "0x08059854",
+    "polygon_creator": "0x0805a45c",
+    "square_static_exit": "0x0805a2fb",
+    "polygon_static_exit": "0x0805abea",
+    "scanf_observer": "0x0804ac94"
+  },
+  "adaptation": "Separate literal native-interactive symmetric acquisition: binary64 dimensions/origins, biased bounded defaults, floor-before-capacity turns, odd-side rounding upward, orientation/phase zero, process SMIN/WMIN and square warning-only negative spacing. Shared geometry arithmetic unchanged; finite signed spacing is permitted in the batch guard. All 36 successful original histories / 10386 XYZ stores plus defined descriptors/origins/scalars/metals/thickness/via counts, independent GDS and actual form/project/GDS flows are checked in portable Python and compiled Pyodide. Three finite complete Pi2/2PORT/resonance sessions match every captured output; three NaN sessions retain raw outputs, contacts and plain CLI/CIF transcripts with bounded frontend errors. Eleven native repeated-prompt histories are preserved with an explicit read-only 1200-scan observation bound, not reported as native termination. No fitted/reference outputs in runtime. Nonzero-SMIN polygon success, arbitrary failed-scan/prior descriptor histories, alternate FFT initialization, NaN payloads/fault emulation and whole-simulator equivalence remain unproven. The 86 retained keyword-clearance intermediate differences remain under the existing strict optional audit."
+}

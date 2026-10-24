@@ -15,6 +15,8 @@ class Metal:
     layer: int
     color: str = "#e8b665"
     coordinate_height: float | None = None
+    minimum_spacing: float = 0.
+    minimum_width: float = 0.
 
     @property
     def geometry_height(self):
@@ -88,8 +90,11 @@ class Technology:
             # two binary64 stores is observable in eddy and mutual terms.
             top_distance = float(Real(depths[layer]) - m["d"])
             coordinate_height = float(Real(depths[layer]) - top_distance)
+            def minimum(key):
+                value=m.get(key,-271.)
+                return 0. if value==-271. else .1 if value<0 else value
             metals.append(Metal(str(m.get("name", f"M{i+1}")).upper(), m["d"],
-                                m["t"], float(Real(m["rsh"])*.001), layer, str(m.get("color", "#e8b665")),coordinate_height))
+                                m["t"], float(Real(m["rsh"])*.001), layer, str(m.get("color", "#e8b665")),coordinate_height,minimum('smin'),minimum('wmin')))
         for i, v in enumerate(blocks["via"]):
             bottom, top = int(v["bottom"]), int(v["top"])
             if not (0 <= bottom < len(metals) and 0 <= top < len(metals)) or bottom == top:

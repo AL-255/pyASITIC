@@ -1155,3 +1155,60 @@ reports them; `--raw` deliberately fails until every finite ST0 word matches.
 No tolerance is used or unresolved raw record discarded. Interactive symmetric
 prompt acquisition, technology WMIN/SMIN branches, unrestricted input ranges and
 whole-simulator equivalence remain unproven.
+
+
+### Interactive symmetric acquisition and process minima
+
+Native interactive symmetric square/polygon inputs now have a separate public
+adapter and webpage selector. Dimension, width, spacing and origin values retain
+binary64 precision. Whole-turn prompts floor the entered value before checking
+capacity, unlike keyword parsing. Symmetric square capacity uses retained
+`((length+spacing)/(width+spacing))*0.5`, quarter-turn quantization and a final
+floor. Symmetric polygons round odd scanned side counts upward, then compute
+the original cosine/radius capacity. Orientation and phase are fixed at zero.
+Blank/default square outer length and transition-gap inputs retain the original
+binary64 fallback plus 1e-10 store. Project regeneration preserves those omitted
+defaults, including the extra bias, rather than converting them into explicit
+keyword values.
+
+Metal records now retain SMIN/WMIN, including the original missing/sentinel-zero
+and negative-to-0.1 initialization rules. With zero SMIN, spacing must be positive
+but a transition gap below zero only warns; no keyword trigonometric clearance
+test runs. With nonzero SMIN, square spacing has a warning-only lower bound, so
+even captured negative spacings remain usable. The separate retained threshold
+and strict gap comparison, binary64 squared operands, transition-width estimate
+and WMIN warning follow `shape_creation_symmetric.cpp`. The compiled geometry
+guard now permits finite signed spacing; its construction arithmetic is unchanged.
+The keyword path continues to require nonnegative spacing.
+
+Thirty-six intact-original successful prompt histories / 10,386 XYZ stores check
+every parsed dimension/gap/width/spacing/turn/side/orientation/phase, completed
+origin, segment coordinates, scalar widths, metals, conductor thickness and
+defined via counts. They include default scans, near-integer turns, the extra
+interactive square capacity, below-grid dimensions, negative gaps/spacing and
+chip-edge origins. Independent GDS readback and actual Pyodide DOM generation,
+input-mode switching, project save/reload and GDS downloads cover every creator.
+Six complete original Pi2/2PORT histories include three finite sessions requiring
+every Y/model/S/resonance output word and three native NaN sessions. The latter
+retain independent collapsed-contact observations, raw downstream outputs and
+plain CLI/CIF transcripts; the browser gives explicit contact errors.
+
+Eleven additional original prompt histories do not reach construction. Ten
+nonzero-SMIN symmetric polygons repeatedly enforce a maximum-zero spacing or
+transition limit, even after an ordinary preceding keyword square command.
+One small symmetric square repeatedly requests more transition space because
+its required lower bound exceeds its permitted upper bound. The fixture retains
+all requests, transcripts and last scanned values. A read-only sscanf breakpoint
+stops observation after 1,200 calls, then terminates the captured inferior; this
+is explicitly an observation bound, not native termination. No numerical code,
+descriptors, inputs or allocator hooks are patched. The adapter provides bounded
+errors for these paths rather than synthesizing successful geometry.
+
+These captures do not establish arbitrary prior descriptor/failed-scan history,
+all technology parser prefixes, alternate FFT-count initialization, native
+NaN-payload/fault emulation or whole-simulator equivalence. Nonzero-SMIN polygon
+acquisition remains explicitly unavailable until a successful original history
+is established and its required state can be represented faithfully. The 86
+retained keyword-clearance intermediate differences documented above remain;
+this interactive port neither removes those records nor relaxes their audit.
+Source correspondence is in `native/symmetric-interactive-source.json`.
