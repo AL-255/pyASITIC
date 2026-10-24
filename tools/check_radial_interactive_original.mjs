@@ -31,7 +31,7 @@ for(const c of fixture.cases){
  if(!c.returned)continue;
  const shape={kind:c.kind,parameters:c.parameters,...(c.native_keyword?{native_keyword:true}:{native_interactive:true})};
  await restore({format:'reasitic-project',version:1,shape,technology:fixture.technology});exact(w.radialState().current,c);
- assert.equal($('#rectangular-input-mode').value,c.native_keyword?'keyword':'interactive');assert.equal($('#rectangular-input-mode').disabled,false);assert.equal($('#rectangular-input-mode').closest('[data-kinds]').hidden,false);assert.equal($('#dimension-mode').disabled,true);assert.equal(form.elements.namedItem('angle').disabled,!c.native_keyword);assert.equal(form.elements.namedItem('phase').disabled,true);
+ assert.equal($('#rectangular-input-mode').value,c.native_keyword?'keyword':'interactive');assert.equal($('#rectangular-input-mode').disabled,false);assert.equal($('#rectangular-input-mode').closest('[data-kinds]').hidden,false);assert.equal($('#dimension-mode').disabled,true);assert.equal(form.elements.namedItem('angle').disabled,!c.native_keyword);assert.equal(form.elements.namedItem('phase').disabled,!c.native_keyword);
  await click('#generate');exact(w.radialState().current,c);assert.equal(!!w.radialState().currentDefinition.native_interactive,!c.native_keyword);assert.ok($('#drawing polygon'));
  await gdsMatches(c);await click('#download-project');const saved=JSON.parse(await downloads.at(-1).text());assert.equal(!!saved.shape.native_interactive,!c.native_keyword);await restore(saved);exact(w.radialState().current,c);created++;
 }
