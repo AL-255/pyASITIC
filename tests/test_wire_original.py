@@ -65,7 +65,8 @@ class OriginalWireTests(unittest.TestCase):
         with self.assertRaisesRegex(ValueError,'one native input mode'):build('wire',native_keyword=True,native_interactive=True)
         square=build('square',native_interactive=True)
         self.assertEqual((square.parameters['angle'],square.parameters['phase']),(0.,1))
-        with self.assertRaisesRegex(ValueError,'interactive input mode'):build('polygon',native_interactive=True)
+        polygon=build('polygon',native_interactive=True)
+        self.assertEqual((polygon.parameters['angle'],polygon.parameters['phase']),(0.,1))
         for phase in(0,2,-.5):
             with self.assertRaisesRegex(ValueError,'phase must be'):build('wire',native_interactive=True,phase=phase)
         with self.assertRaisesRegex(ValueError,'integer range'):build('wire',native_keyword=True,phase=2**31)

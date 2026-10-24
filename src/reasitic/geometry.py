@@ -262,6 +262,9 @@ def build(kind="square", *, technology=None, native_keyword=False, native_intera
         from .rectangular_inputs import expand_inner
         expand_inner(p,interactive=native_interactive,multimetal=kind=='multimetal')
     if native_interactive and kind=='via':p['angle']=0.
+    if native_interactive and kind in('wire','capacitor','via'):
+        from .paired_geometry import _name
+        p['name']=_name(p.get('name','L1'))
     def num(key, default):
         value = float(p.get(key, default))
         if not math.isfinite(value):

@@ -216,6 +216,18 @@ Implemented so far:
   minimum. Six fractional-mesh histories, including 200 filaments, match the
   original LMAT/Pi2/Y/S outputs exactly. Retained summation preserves native
   double rounding after each term and runs as a compiled browser batch.
+- Wire, capacitor, transformer and balun forms also expose original interactive
+  input mode. Wire/capacitor angles retain the original literal radians and
+  full-precision dimensions. Interactive transformers share one turn count;
+  baluns floor the total count before checking capacity and follow the original
+  bounds on non-square chips. Interactive primitive names follow native case
+  and whitespace normalization. Twenty paired boundary histories and nine name
+  histories verify 10,296 XYZ stores and independent GDS readback. Two new
+  finite coupled sessions match every Y/Z/model/S and input-matrix output bit;
+  a third original all-NaN session retains an explicit collapsed-contact
+  diagnostic. All 84 captured interactive wire/capacitor/via/paired creations
+  pass actual webpage Generate, project round-trips and decoded GDS checks in
+  jsdom with real Pyodide and the shipped numerical kernels.
 
 Records use binary64 with selected retained-precision intermediates matching the
 reference's x87 arithmetic.

@@ -10,6 +10,7 @@ let sweepContext=null,sweepModels=[];
 let selfresResult=null,selfresTrace=[];
 let transformerResult=null,transformerRequest=null,transformerRows=[],transformerSamples=[],transformerRange=null;
 let technologyPreset=null,technologyPresets=[];
+const INPUT_MODE_KINDS=["square","multimetal","symmetric_square","symmetric_polygon","polygon","ring","wire","capacitor","transformer","balun"];
 const MODEL_NAMES={pi:"Pi",pi2:"Pi2",pi3:"Pi3",pi4:"Pi4",pix:"PiX"};
 const eddyEnabled=()=>!!$("#eddy-mode")?.checked;
 const pending = new Map();
@@ -81,7 +82,7 @@ function definition() {
   }
   if(kind==="balun"&&currentDefinition?.kind===kind&&currentDefinition.native_keyword&&!("secondary_metal" in currentDefinition.parameters)
       &&Number(values.secondary_metal)===Number(current.parameters.secondary_metal))delete values.secondary_metal;
-  if((rectangular||["symmetric_square","symmetric_polygon","polygon","ring"].includes(kind))&&$("#rectangular-input-mode").value==="interactive")return {kind,parameters:values,winding:0,native_interactive:true};
+  if(INPUT_MODE_KINDS.includes(kind)&&$("#rectangular-input-mode").value==="interactive")return {kind,parameters:values,winding:0,native_interactive:true};
   return {kind,parameters:values,winding:0,...(["ring","square","polygon","wire","symmetric_square","symmetric_polygon","multimetal","capacitor","transformer","balun"].includes(kind)?{native_keyword:true}:["via","transformer3d"].includes(kind)?{native_interactive:true}:{})};
 }
 function restoreFormParameter(key,value){
@@ -136,7 +137,7 @@ function showFields(loaded=currentDefinition) {
   for(const key of ["length","height"]){const input=form.elements.namedItem(key);if(kind==="transformer3d")input.removeAttribute("min");else input.min="0.001";}
   form.elements.namedItem("width").min=kind==="transformer3d"?"1e-10":"0.001";
   $("#ring-input-note").hidden=!["ring","square","polygon","wire","symmetric_square","symmetric_polygon","multimetal","capacitor","via","transformer","balun","transformer3d"].includes(kind);
-  $("#ring-input-note").textContent=kind==="transformer3d"?"3D transformer inputs keep full precision. Orientation and phase are recorded without transforming the layout.":["transformer","balun"].includes(kind)&&loaded?.native_interactive?"Loaded interactive windings keep full-precision dimensions. Generate uses the ASITIC grid and keyword turn limits.":kind==="via"?"Via origins keep the entered precision. Counts are whole numbers.":["wire","capacitor"].includes(kind)&&loaded?.native_interactive?`Loaded interactive ${kind==="wire"?"WIRE":"CAPACITOR"} angles are stored as radians. Generate layout uses degrees and the ASITIC 0.1 µm grid.`:"Coil, wire and capacitor dimensions and origins snap to the ASITIC 0.1 µm grid.";
+  $("#ring-input-note").textContent=kind==="transformer3d"?"3D transformer inputs keep full precision. Orientation and phase are recorded without transforming the layout.":kind==="via"?"Via origins keep the entered precision. Counts are whole numbers.":"Coil, wire and capacitor dimensions and origins snap to the ASITIC 0.1 µm grid.";
   $("#secondary-metal").parentElement.firstChild.nodeValue=kind==="transformer3d"?"Secondary winding metal":"Crossover metal";
   for (const label of form.querySelectorAll("[data-kinds]")) {
     const visible = label.dataset.kinds.split(" ").includes(kind);
@@ -144,7 +145,7 @@ function showFields(loaded=currentDefinition) {
     for (const input of label.querySelectorAll("input,select")) input.disabled = !visible;
   }
   if(["symmetric_square","symmetric_polygon"].includes(kind))form.elements.namedItem("inner_gap").removeAttribute("min");
-  const rectangular=["square","multimetal"].includes(kind),symmetric=["symmetric_square","symmetric_polygon"].includes(kind),radial=["polygon","ring"].includes(kind),inner=rectangular&&$("#dimension-mode").value==="inner",interactive=(rectangular||symmetric||radial)&&$("#rectangular-input-mode").value==="interactive";
+  const rectangular=["square","multimetal"].includes(kind),symmetric=["symmetric_square","symmetric_polygon"].includes(kind),radial=["polygon","ring"].includes(kind),inner=rectangular&&$("#dimension-mode").value==="inner",interactive=INPUT_MODE_KINDS.includes(kind)&&$("#rectangular-input-mode").value==="interactive";
   $("#dimension-mode").closest("label").hidden=!rectangular;$("#dimension-mode").disabled=!rectangular;
   for(const key of ["inner_length","inner_height",...(rectangular?["length","height"]:[])]){
     const input=form.elements.namedItem(key),hidden=key.startsWith("inner_")?!inner:inner;
@@ -165,6 +166,18 @@ function showFields(loaded=currentDefinition) {
     if(kind==="ring"){const gap=form.elements.namedItem("gap");gap.removeAttribute("min");gap.removeAttribute("max");}
     $("#ring-input-note").textContent=interactive?(kind==="ring"?"Original interactive ring input keeps full precision. Gap angles use the original wrapping rules; orientation is zero.":"Original interactive polygon input keeps full precision and truncates turns in 1/sides steps. Orientation is zero."):"Original keyword input snaps to 0.1 µm. Gap and orientation angles follow the original wrapping rules.";
   }else{angle.min="-360";angle.max="360";}
+  const primitive=["wire","capacitor"].includes(kind),paired=["transformer","balun"].includes(kind);
+  $("#angle-unit").textContent=primitive&&interactive?"rad":"°";
+  if(primitive||paired){
+    for(const key of ["length",...(kind==="transformer"?["height"]:[]),"width",...(paired?["spacing"]:[]),...(kind==="balun"?["secondary_width"]:[])])form.elements.namedItem(key).min=interactive?"1e-10":key==="spacing"?"0":"0.001";
+    if(paired){
+      angle.closest("label").hidden=interactive;angle.disabled=interactive;
+      form.elements.namedItem("turns").min=kind==="balun"?"3":interactive?"1":"0.0625";
+      if(kind==="balun"&&!interactive)form.elements.namedItem("turns").removeAttribute("min");
+      if(kind==="transformer")for(const key of ["phase","secondary_turns"]){const input=form.elements.namedItem(key);input.closest("label").hidden=interactive;input.disabled=interactive;}
+      $("#ring-input-note").textContent=interactive?(kind==="transformer"?"Original interactive transformer input keeps full precision. Both windings share the entered turns; orientation is zero and phase is positive.":"Original interactive balun input keeps full precision and floors total turns before checking capacity. Orientation and phase are zero."):"Original keyword input snaps dimensions to 0.1 µm and uses the keyword turn limits.";
+    }else $("#ring-input-note").textContent=interactive?`Original interactive ${kind==="wire"?"WIRE":"CAPACITOR"} input keeps full precision. Angles are stored as radians by ASITIC; enter the native constructor value shown in rad.`:"Original keyword input snaps dimensions and origins to 0.1 µm. Orientation is entered in degrees.";
+  }
 }
 function svgElement(tag,attributes={},text) {
   const el = document.createElementNS(NS,tag);

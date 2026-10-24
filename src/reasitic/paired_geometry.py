@@ -55,11 +55,11 @@ def build_paired(kind,tech,parameters):
         p['turns']=binary32(float(p.get('turns',1.5 if kind=='transformer'else 3)))
         if kind=='transformer'and'secondary_turns'in p:p['secondary_turns']=binary32(float(p['secondary_turns']))
     length,width,spacing=number('length',100),number('width',3),number('spacing',2)
-    x,y=number('x',0),number('y',0);angle=number('angle',0)
+    x,y=number('x',0),number('y',0);angle=0. if interactive else number('angle',0)
     if min(length,width)<=0 or spacing<0 or max(length,width)>1e6 or abs(angle)>360:raise ValueError('Invalid transformer dimensions or orientation')
     if interactive:
         chipx=float(tech.chip.get('chipx',512));chipy=float(tech.chip.get('chipy',512))
-        if max(length,width,spacing)>min(chipx,chipy)or not 0<=x<=chipx or not 0<=y<=chipy:raise ValueError('Interactive paired dimensions/origin exceed chip bounds')
+        if not 0<=x<=chipx or not 0<=y<=chipy or(kind=='balun'and length>chipx):raise ValueError('Interactive paired dimensions/origin exceed chip bounds')
         angle=0.;p['angle']=0.
     radians=angle_radians(angle)if keyword else 0. if interactive else math.radians(angle)
     metal=tech.metal_index(p.get('metal',len(tech.metals)-1));name=str(p.get('name','T1'))
@@ -77,6 +77,7 @@ def build_paired(kind,tech,parameters):
         height=number('height',length)
         if not 0<height<=1e6:raise ValueError('Invalid transformer height')
         if (keyword or interactive)and max(length,height)>chip:raise ValueError('Spiral dimensions exceed chip dimension')
+        if interactive and not all(1e-10<=v<=min(length,height)for v in(width,spacing)):raise ValueError('Interactive transformer width/spacing exceed dimensions or are too small')
         internal=float(R(spacing)+R(spacing)+R(width));raw=number('turns',1.5)
         other=raw if interactive else number('secondary_turns',raw)
         if interactive:
@@ -98,8 +99,14 @@ def build_paired(kind,tech,parameters):
         configs=[dict(name=n,length=length,height=height,width=width,spacing=internal,turns=t,angle=radians,metal=metal,exit_metal=exit_metal,phase=phase,x=x,y=y)for n,t in [(primary_name,turns),(secondary_name,secondary_turns)]]
     else:
         second_width=number('secondary_width',width);raw=number('turns',3)
+        if interactive:raw=float(math.floor(raw))
         if second_width<=0 or second_width>1e6 or(not keyword and raw<3):raise ValueError('Balun needs at least three total turns and positive winding widths')
         if interactive:
+            if not all(1e-10<=v<=min(length,chipx,chipy)for v in(width,spacing)):raise ValueError('Interactive balun width/spacing exceed dimensions or are too small')
+            inset=R(width)+R(spacing);secondary_length=float(R(length)-(inset+inset))
+            if not 1e-10<=second_width<=min(secondary_length,chipx,chipy):raise ValueError('Interactive secondary width exceeds dimensions or is too small')
+            lower=int(tech.chip.get('fftx',128))
+            if length<lower:warnings.append(f'Warning:  Dimension less than {lower:5.2f}')
             maximum=quantize_turns(((R(length)+R(spacing))/(R(width)+R(spacing)))*R(.5),4,keyword=False)
             if raw>maximum:raise ValueError(f'Interactive balun supports at most {float(maximum):g} total turns')
             raw=float(quantize_turns(raw,4,keyword=False))
