@@ -21,6 +21,7 @@
       <form id="geometry-form">
         <label>Generator<select name="kind" id="kind"><option value="square">Square spiral</option><option value="polygon">Polygon spiral</option><option value="symmetric_square">Symmetric square</option><option value="symmetric_polygon">Symmetric polygon</option><option value="multimetal">Multi-metal square</option><option value="transformer">Planar transformer</option><option value="transformer3d">3D mirror transformer</option><option value="balun">Balun</option><option value="ring">Polygon ring</option><option value="wire">Straight wire</option><option value="capacitor">Capacitor plates</option><option value="via">Via array</option></select></label>
         <label>Shape name<input name="name" value="L1" required maxlength="79"></label>
+        <div class="field-pair" data-kinds="transformer transformer3d"><label>Primary name <span>optional</span><input name="primary_name" maxlength="79"></label><label>Secondary name <span>optional</span><input name="secondary_name" maxlength="79"></label></div>
         <div class="field-pair">
           <label data-kinds="square multimetal wire capacitor symmetric_square transformer balun transformer3d">Length <span>µm</span><input name="length" type="number" value="100" min="0.001" step="any" required></label>
           <label data-kinds="square multimetal transformer transformer3d">Height <span>µm</span><input name="height" type="number" value="100" min="0.001" step="any" required></label>

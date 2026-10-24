@@ -11,7 +11,7 @@ except ImportError:
 
 
 def _compiled(shape,tech,kind,primary,secondary,dimension,sides,height,width,spacing,turns,angle,phase):
-    if _compiled_geometry is None:return False
+    if _compiled_geometry is None or(kind==0 and turns<1):return False
     from array import array
     config=array('d',[kind,primary,secondary,dimension,sides,height,width,spacing,turns,angle])
     capacity=min(60000,int(turns*(sides+6 if kind else 12))+2)

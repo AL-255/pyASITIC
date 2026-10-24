@@ -4,7 +4,7 @@ Ports combined_network.cpp, node_equations.cpp and network.cpp. Matrix solves
 use the native general LU path. Public Y matrices follow the native output port
 order (y22 first).
 """
-from decimal import Decimal,localcontext
+from .retained_scalar import Real
 from array import array
 import copy
 import math
@@ -97,13 +97,10 @@ def _join_for_pads(target,source):
     """Native copied segment concatenation, including wire/spiral origin history."""
     result=copy.deepcopy(target)
     other=copy.deepcopy(source)
-    with localcontext() as context:
-        context.prec=25
-        for segment in other.segments:
-            for point in segment.points:
-                for axis in range(2):
-                    delta=Decimal.from_float(float(source.origin[axis]))-Decimal.from_float(float(target.origin[axis]))
-                    point[axis]=float(delta+Decimal.from_float(float(point[axis])))
+    delta=[Real(source.origin[axis])-Real(target.origin[axis]) for axis in range(2)]
+    for segment in other.segments:
+        for point in segment.points:
+            for axis in range(2):point[axis]=float(delta[axis]+Real(point[axis]))
     result.segments.extend(other.segments)
     if target.kind=="wire" and source.kind in ("square","polygon"):
         result.origin=source.origin.copy()

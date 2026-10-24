@@ -5,7 +5,7 @@ Reference checkout: `~/github/asitic-re`, revision recorded in each fixture.
 | Python | C++ source under `recomp_cpp/src/` | Current evidence |
 | --- | --- | --- |
 | `geometry.py`, `model.py`, `symmetric_geometry.py` | `shape_construction.cpp`, `spiral_construction.cpp`, `winding_construction.cpp`, `composite_geometry.cpp`, `symmetric_construction.cpp` | Original SAVE records for nine creator families, coordinates/layer/width and DC reports |
-| `devices.py` | `winding_construction.cpp`, `shape_prompt_transformer.cpp`, `console_geometry.cpp` | Original SAVE records and DC reports for both planar transformer and balun windings; independent combined GDS round-trip |
+| `devices.py`, `paired_geometry.py`, shared retained joins | `winding_construction.cpp`, `shape_prompt_transformer.cpp`, `shape_creation_transformer.cpp`, `geometry.cpp`; original TRANS `0x080576d4` | 98 original keyword/interactive creators / 38,592 exact XYZ stores, names/origins/scalars, both windings and combined GDS; six actual joined filament meshes, five finite complete CAP/LMAT/Y/Z/model/S sessions and one original all-NaN reference diagnostic; actual form/default/name/project/model/download handlers in Python/Pyodide |
 | `transformer3d.py` | `transformer3d.cpp`, `shape_creation_mirror.cpp` | Original SAVE/DC fixture plus seven live C++ creator sessions, including fractional turns, phase/orientation metadata and different metal thicknesses; 14 full winding LMAT matrices in CPython/WebAssembly |
 | `precision.py` | `shape_construction.cpp` point/shape rotation | Retained radius/angle arithmetic, asymmetric cosine/sine angle spills, and native midpoint evaluation; exact rotated-wire endpoint doubles from BSAVE and matching unequal-cell mesh dimensions in CPython/WebAssembly |
 | `filament.py`, `native/filament.cpp` | `filaments.cpp`, `numerics.cpp`; original `0x0806597c` | 2,220 intact original records / 19,980 exact finite components or nonfinite classifications in Python and compiled WebAssembly; all adaptive edge branches, arbitrary interpolation indices, asymmetric spills, destination Z preservation, signed zeros and extreme scales |
@@ -952,3 +952,53 @@ Typed input conventions remain intact. The browser's via-count bound remains
 1–1000; these fixtures do not claim unrestricted original sizes, exhaustive
 prompt/descriptor histories, a functioning original VIA keyword path, or
 whole-simulator equivalence.
+
+
+### Planar transformer and balun native creation and joined meshes
+
+`paired_geometry.py` adapts the original TRANS/BALUN descriptors before calling
+literal retained constructors. TRANS builds both square windings, reflects the
+secondary on both axes, shifts the first lead endpoints and updates the primary
+origin using the secondary's quarter-turn exit history. BALUN computes each
+winding's spacing and inner gap in the native operation order, constructs both
+symmetric squares, reflects the secondary and reverses each segment direction.
+The interactive and keyword descriptors use different arithmetic associations
+for the inner length/gap, preserved independently.
+
+Keyword dimensions/origins use the original binary32 input and 0.1 µm grid;
+turns and angles retain their separate native conversions. Interactive input
+keeps unsnapped binary64 dimensions and its different prompt turn bounds. The
+original accepts interactive TRANS 6.25 and BALUN 13.75 histories rejected by
+keyword limits; both remain in the fixtures. Keyword BALUN can produce zero or
+negative-turn center records, including N=0 and N=-2, which use the original
+cheap two-center-record construction; the webpage permits those same keyword
+turn inputs. Standalone symmetric-square bounds remain
+unchanged. Omitted balun transition metal defaults to the penultimate process
+metal even when it equals an explicitly selected winding metal; specifying that
+same layer explicitly is rejected by the original. The webpage preserves the
+omission until that field changes.
+
+TRANS name parsing preserves original ASCII normalization and the lower-case
+`-p`/`-s` suffixes used when SNAME is absent. Supplying SNAME keeps the primary
+name unsuffixed. Original duplicate explicit winding names remain selectable by
+index in the webpage. An unequal WS is parsed but ignored with the original
+warning; both winding widths use WP. Native zero integer phase becomes +1.
+Typed input keeps its previous naming conventions. This work does not claim
+original raw-input parity for the separate 3D creator.
+
+All 98 intact-original creations / 38,592 XYZ stores require exact origin bits,
+names, widths, conductor thicknesses, metals and defined via counts. Independent
+GDS readers check both windings' polygons and via layer/counts. Six additional
+complete electrical histories observe actual creation at the model placement,
+joined conductor fields, every filament, upper impedance assembly, CAP and LMAT
+node inputs, and original SI Y/Z/model/S outputs. Two rotated cases exposed a
+shared join bug: arbitrary decimal precision did not reproduce the retained
+subtraction/addition before each binary64 store. The join now uses exact retained
+scalar operations. All five finite histories require every raw matrix and final
+output word in Python and compiled Pyodide. The sixth original history returns
+all NaNs after explicit-reference via correction; its bounded diagnostic remains
+required instead of a fabricated finite circuit. Original uninitialized fields,
+NaN payloads, exception flags and exhaustive parser/prompt states are excluded
+from these claims. Capture scripts observe the intact original without changing
+numerical instructions or input records; source hashes are in
+`native/paired-source.json`.

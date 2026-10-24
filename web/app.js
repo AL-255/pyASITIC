@@ -68,13 +68,16 @@ async function task(callback) {
 function definition() {
   const values = Object.fromEntries(new FormData(form));
   const kind = values.kind; delete values.kind;
-  for (const key of Object.keys(values)) if (!["name", "metal", "exit_metal", "bottom_metal", "via"].includes(key)) values[key] = Number(values[key]);
+  for(const key of ["primary_name","secondary_name"])if(!values[key])delete values[key];
+  for (const key of Object.keys(values)) if (!["name", "primary_name", "secondary_name", "metal", "exit_metal", "bottom_metal", "via"].includes(key)) values[key] = Number(values[key]);
   if(["symmetric_square","symmetric_polygon"].includes(kind)&&currentDefinition?.kind===kind&&currentDefinition.native_keyword){
     // Preserve omitted native derived defaults until the displayed field changes.
     for(const key of ["inner_gap","x","y"])
       if(!(key in currentDefinition.parameters)&&Number(values[key])===Number(current.parameters[key]))delete values[key];
   }
-  return {kind,parameters:values,winding:0,...(["ring","square","polygon","wire","symmetric_square","symmetric_polygon","multimetal","capacitor"].includes(kind)?{native_keyword:true}:kind==="via"?{native_interactive:true}:{})};
+  if(kind==="balun"&&currentDefinition?.kind===kind&&currentDefinition.native_keyword&&!("secondary_metal" in currentDefinition.parameters)
+      &&Number(values.secondary_metal)===Number(current.parameters.secondary_metal))delete values.secondary_metal;
+  return {kind,parameters:values,winding:0,...(["ring","square","polygon","wire","symmetric_square","symmetric_polygon","multimetal","capacitor","transformer","balun"].includes(kind)?{native_keyword:true}:kind==="via"?{native_interactive:true}:{})};
 }
 function restoreFormParameter(key,value){
   const input=form.elements.namedItem(key);if(!input)return;
@@ -115,8 +118,10 @@ $("#mesh-fit").addEventListener("click",()=>task(async()=>{
 }));
 function showFields(loaded=currentDefinition) {
   const kind = $("#kind").value;
-  $("#ring-input-note").hidden=!["ring","square","polygon","wire","symmetric_square","symmetric_polygon","multimetal","capacitor","via"].includes(kind);
-  $("#ring-input-note").textContent=kind==="via"?"Via origins keep the entered precision. Counts are whole numbers.":["wire","capacitor"].includes(kind)&&loaded?.native_interactive?`Loaded interactive ${kind==="wire"?"WIRE":"CAPACITOR"} angles are stored as radians. Generate layout uses degrees and the ASITIC 0.1 µm grid.`:"Coil, wire and capacitor dimensions and origins snap to the ASITIC 0.1 µm grid.";
+  const turns=form.elements.namedItem("turns");
+  if(kind==="balun")turns.removeAttribute("min");else turns.min="0.0625";
+  $("#ring-input-note").hidden=!["ring","square","polygon","wire","symmetric_square","symmetric_polygon","multimetal","capacitor","via","transformer","balun"].includes(kind);
+  $("#ring-input-note").textContent=["transformer","balun"].includes(kind)&&loaded?.native_interactive?"Loaded interactive windings keep full-precision dimensions. Generate uses the ASITIC grid and keyword turn limits.":kind==="via"?"Via origins keep the entered precision. Counts are whole numbers.":["wire","capacitor"].includes(kind)&&loaded?.native_interactive?`Loaded interactive ${kind==="wire"?"WIRE":"CAPACITOR"} angles are stored as radians. Generate layout uses degrees and the ASITIC 0.1 µm grid.`:"Coil, wire and capacitor dimensions and origins snap to the ASITIC 0.1 µm grid.";
   $("#secondary-metal").parentElement.firstChild.nodeValue=kind==="transformer3d"?"Secondary winding metal":"Crossover metal";
   for (const label of form.querySelectorAll("[data-kinds]")) {
     const visible = label.dataset.kinds.split(" ").includes(kind);
@@ -620,9 +625,14 @@ $("#project-file").addEventListener("change",event=>task(async()=>{
   const primitiveDefaults=primitive?{name:restored.name,length:plate?(data.shape.parameters.length??(data.shape.native_keyword?data.shape.parameters.width:undefined)??100):100,
     width:plate?(data.shape.parameters.width??(data.shape.native_keyword?data.shape.parameters.length:undefined)??5):5,metal:technology.metals.length-1,
     bottom_metal:restored.segments[1]?.metal??Math.max(0,technology.metals.length-2),via:0,nx:2,ny:2,angle:0,phase:1,x:0,y:restored.parameters.y??0}:{};
-  const restoredParameters=data.shape.kind==="wire"?{name:restored.name,length:100,width:5,metal:technology.metals.length-1,angle:0,phase:1,x:0,y:restored.parameters.y??0,...data.shape.parameters}:{...symmetricDefaults,...multimetalDefaults,...primitiveDefaults,...data.shape.parameters};
+  const paired=["transformer","balun","transformer3d"].includes(data.shape.kind);
+  const pairedDefaults=paired?{name:data.shape.parameters.name??"T1",primary_name:"",secondary_name:"",length:100,height:data.shape.parameters.length??100,
+    width:3,secondary_width:data.shape.parameters.width??3,spacing:data.shape.kind==="transformer3d"?8:2,turns:data.shape.kind==="balun"?3:data.shape.kind==="transformer3d"?2:1.5,
+    secondary_turns:data.shape.parameters.turns??1.5,metal:technology.metals.length-1,exit_metal:restored.parameters.exit_metal??-1,
+    secondary_metal:restored.parameters.secondary_metal??Math.max(0,technology.metals.length-2),angle:0,phase:1,x:0,y:0}:{};
+  const restoredParameters=data.shape.kind==="wire"?{name:restored.name,length:100,width:5,metal:technology.metals.length-1,angle:0,phase:1,x:0,y:restored.parameters.y??0,...data.shape.parameters}:{...symmetricDefaults,...multimetalDefaults,...primitiveDefaults,...pairedDefaults,...data.shape.parameters};
   if(data.shape.kind==="via")for(const key of ["nx","ny"])restoredParameters[key]=restored.parameters[key]??restored.segments[0][key];
-  for(const [key,value] of Object.entries(restoredParameters))restoreFormParameter(key,key==="phase"&&(data.shape.kind==="wire"||symmetric||multimetal||primitive)?((restored.parameters.phase??value)<0?-1:1):value);
+  for(const [key,value] of Object.entries(restoredParameters))restoreFormParameter(key,key==="phase"&&(data.shape.kind==="wire"||symmetric||multimetal||primitive||paired)?((restored.parameters.phase??value)<0?-1:1):value);
   if(restoredMesh)applyMesh(restoredMesh);
   currentDefinition=data.shape;current=restored;render(current);resetResults();status("Project restored. Run analysis on the selected winding.");
   event.target.value="";

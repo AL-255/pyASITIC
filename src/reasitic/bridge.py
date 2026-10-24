@@ -41,10 +41,10 @@ def _shape(request,tech):
 def _shapes(request,tech):
     kind=request.get('kind','square').lower();parameters=dict(request.get('parameters',{}))
     if request.get('native_keyword',False):
-        if kind not in('ring','square','polygon','wire','symmetric_square','symmetric_polygon','multimetal','capacitor','via'):raise ValueError('Native keyword input mode currently supports ring, square, polygon, symmetric/multi-metal coils, wire and capacitor geometry')
+        if kind not in('ring','square','polygon','wire','symmetric_square','symmetric_polygon','multimetal','capacitor','via','transformer','balun'):raise ValueError('Native keyword input mode currently supports ring, square, polygon, symmetric/multi-metal coils, wire, capacitor, transformer and balun geometry')
         parameters['native_keyword']=True
     if request.get('native_interactive',False):
-        if kind not in('wire','capacitor','via'):raise ValueError('Native interactive input mode currently supports wire, capacitor and via geometry')
+        if kind not in('wire','capacitor','via','transformer','balun'):raise ValueError('Native interactive input mode currently supports wire, capacitor, via, transformer and balun geometry')
         parameters['native_interactive']=True
     return build_device(kind,technology=tech,**parameters)
 

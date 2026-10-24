@@ -150,6 +150,13 @@ Implemented so far:
   resistance returns match, including original nonfinite metric classes.
   The broken original VIA keyword command and standalone VIA Pi2 fault retain
   explicit diagnostics; signed-zero input survives request/project round-trips.
+- Planar transformer and balun keyword/interactive creation preserves native
+  turn limits, names, defaults, lead shifts, origins and reflections. All 98
+  original creators / 38,592 XYZ stores match in both runtimes, with combined
+  GDS readback. Six complete coupled histories check the actual joined meshes;
+  five finite cases match every CAP/LMAT/Y/Z/model/S store, and one original
+  all-NaN reference case retains an explicit diagnostic. Optional winding names
+  and native default omissions survive webpage generation and project reload.
 - Browser preview, pan/zoom, process-file import, project save/open, conductor
   estimates, selectable L/R/Q frequency plots, linear/log frequency scales,
   progressive Pi2/Pi3/Pi4 sweeps, sample-to-circuit inspection, plot SVG and CSV
