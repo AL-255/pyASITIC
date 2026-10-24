@@ -6,7 +6,7 @@ Reference checkout: `~/github/asitic-re`, revision recorded in each fixture.
 | --- | --- | --- |
 | `geometry.py`, `model.py`, `symmetric_geometry.py` | `shape_construction.cpp`, `spiral_construction.cpp`, `winding_construction.cpp`, `composite_geometry.cpp`, `symmetric_construction.cpp` | Original SAVE records for nine creator families, coordinates/layer/width and DC reports |
 | `devices.py`, `paired_geometry.py`, shared retained joins | `winding_construction.cpp`, `shape_prompt_transformer.cpp`, `shape_creation_transformer.cpp`, `geometry.cpp`; original TRANS `0x080576d4` | 98 original keyword/interactive creators / 38,592 exact XYZ stores, names/origins/scalars, both windings and combined GDS; six actual joined filament meshes, five finite complete CAP/LMAT/Y/Z/model/S sessions and one original all-NaN reference diagnostic; actual form/default/name/project/model/download handlers in Python/Pyodide |
-| `transformer3d.py` | `transformer3d.cpp`, `shape_creation_mirror.cpp` | Original SAVE/DC fixture plus seven live C++ creator sessions, including fractional turns, phase/orientation metadata and different metal thicknesses; 14 full winding LMAT matrices in CPython/WebAssembly |
+| `transformer3d.py`, native 3D input adaptation | `transformer3d.cpp`, `shape_creation_mirror.cpp`; original constructor `0x08057d40`, terminal `0x08059214` | 96 intact-original creators / 94,824 exact XYZ stores, origins/names/all defined ribbon fields; native spacing boundaries, name/phase scanning and prompt retries, independent combined GDS, twelve raw winding LMAT matrices including eddy; three original all-NaN and three native SIGSEGV coupled histories confirmed without observers; actual form/project/GDS/LMAT/CSV/diagnostic handlers in both runtimes |
 | `precision.py` | `shape_construction.cpp` point/shape rotation | Retained radius/angle arithmetic, asymmetric cosine/sine angle spills, and native midpoint evaluation; exact rotated-wire endpoint doubles from BSAVE and matching unequal-cell mesh dimensions in CPython/WebAssembly |
 | `filament.py`, `native/filament.cpp` | `filaments.cpp`, `numerics.cpp`; original `0x0806597c` | 2,220 intact original records / 19,980 exact finite components or nonfinite classifications in Python and compiled WebAssembly; all adaptive edge branches, arbitrary interpolation indices, asymmetric spills, destination Z preservation, signed zeros and extreme scales |
 | `mesh.py`, `web/app.js` | Native longitudinal subdivision and filament counts from `geometry.cpp`, `filament_setup.cpp` | Exact production-count reuse, Pi4 pad and explicit CALCTRANS winding mesh conventions; actual DOM reproduces 360-filament rejection, fits to 60 and successfully solves Pi2; presets, invalidation and project persistence |
@@ -1002,3 +1002,56 @@ NaN payloads, exception flags and exhaustive parser/prompt states are excluded
 from these claims. Capture scripts observe the intact original without changing
 numerical instructions or input records; source hashes are in
 `native/paired-source.json`.
+
+
+### Intact-original 3D transformer inputs and matrix returns
+
+The generated 3D arithmetic already matches all 96 newly captured intact-original
+creators / 94,824 XYZ stores. These records also require exact origin bits,
+normalized names, width/thickness, primary ribbon width/thickness and metal
+indices. Unwritten native mesh counts are excluded. The constructor prepends
+its two winding lists independently, with asymmetric terminal insertion and no
+final rotation, rebasing, list reversal or reciprocal partner links. Orientation
+is stored as the entered degree value; phase is scanned as an integer. Neither
+transforms the layout. The original 3D command has no keyword argument path;
+native keyword API requests produce an explicit diagnostic. Twelve plain CLI
+keyword attempts retain three canonical `Invalid Argument(s)` rejections and
+nine `Unknown or Mistyped Commnd` replies for the other catalog spellings. The
+pre-existing Python aliases remain API conveniences; they are not evidence of
+original command-spelling acceptance.
+
+Native interactive input preserves binary64 dimensions, origins and fractional
+turns. Names use the original normalized first whitespace token, and duplicate
+names are permitted because neither winding exists when the prompt reads them.
+The original also accepts zero/negative planar dimensions and origins outside
+the chip; those finite histories remain creatable/exportable. Width must be at
+least the native binary64 1e-10 threshold and turns at least one. Spacing compares
+`(spacing - A*width)/B` against two in retained arithmetic, with the exact native
+A/B constants. Four captured valid values were previously rejected by ordinary
+float arithmetic; two values accepted by that float check trigger native prompt
+retries and now receive the same public rejection. The separate typed API keeps
+its prior positive-dimension/name conventions. Native sizes remain bounded by
+browser limits, so this is not an unrestricted-range claim.
+
+Independent GDS readers check both complete windings for all 96 cases. Six
+additional original electrical histories capture each standalone winding's LMAT
+matrix at the actual driver return, requiring every raw complex word, including
+eddy correction and different metal thicknesses. All twelve matrices match in
+portable Python and compiled Pyodide. Return observers stop explicitly at each
+actual return; they do not infer results from an unwinder or leave callbacks at
+reused call sites. The full original coupled histories remain in the same
+fixtures: three produce all-NaN SI models and three crash with signal 11. Separate
+plain CLI runs without GDB or preload confirm those classifications. The public
+solver rejects their zero planar-length potential contacts explicitly, preserving
+an understandable failure rather than substituting a finite circuit.
+
+The webpage uses native 3D input mode, preserves signed-zero project input and
+effective secondary-metal defaults, accepts the original finite dimension/name
+histories and displays the metadata-only orientation behavior. Real shipped-
+runtime DOM checks cover generation, winding selection, project reload, all GDS
+streams, twelve LMAT displays/CSV exports and six failed coupled analyses. The
+regeneration tool now references the already-used `geometry_height` field, so
+`port_transformer3d.py --check` reproduces the checked-in Python again. Source
+correspondence is in `native/transformer3d-source.json`. These cases do not prove
+all scan/prompt histories, alternate floating-point control modes, nonfinite
+input handling, native fault/NaN-payload emulation or whole-simulator equivalence.

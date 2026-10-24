@@ -77,7 +77,7 @@ function definition() {
   }
   if(kind==="balun"&&currentDefinition?.kind===kind&&currentDefinition.native_keyword&&!("secondary_metal" in currentDefinition.parameters)
       &&Number(values.secondary_metal)===Number(current.parameters.secondary_metal))delete values.secondary_metal;
-  return {kind,parameters:values,winding:0,...(["ring","square","polygon","wire","symmetric_square","symmetric_polygon","multimetal","capacitor","transformer","balun"].includes(kind)?{native_keyword:true}:kind==="via"?{native_interactive:true}:{})};
+  return {kind,parameters:values,winding:0,...(["ring","square","polygon","wire","symmetric_square","symmetric_polygon","multimetal","capacitor","transformer","balun"].includes(kind)?{native_keyword:true}:["via","transformer3d"].includes(kind)?{native_interactive:true}:{})};
 }
 function restoreFormParameter(key,value){
   const input=form.elements.namedItem(key);if(!input)return;
@@ -119,9 +119,11 @@ $("#mesh-fit").addEventListener("click",()=>task(async()=>{
 function showFields(loaded=currentDefinition) {
   const kind = $("#kind").value;
   const turns=form.elements.namedItem("turns");
-  if(kind==="balun")turns.removeAttribute("min");else turns.min="0.0625";
-  $("#ring-input-note").hidden=!["ring","square","polygon","wire","symmetric_square","symmetric_polygon","multimetal","capacitor","via","transformer","balun"].includes(kind);
-  $("#ring-input-note").textContent=["transformer","balun"].includes(kind)&&loaded?.native_interactive?"Loaded interactive windings keep full-precision dimensions. Generate uses the ASITIC grid and keyword turn limits.":kind==="via"?"Via origins keep the entered precision. Counts are whole numbers.":["wire","capacitor"].includes(kind)&&loaded?.native_interactive?`Loaded interactive ${kind==="wire"?"WIRE":"CAPACITOR"} angles are stored as radians. Generate layout uses degrees and the ASITIC 0.1 µm grid.`:"Coil, wire and capacitor dimensions and origins snap to the ASITIC 0.1 µm grid.";
+  if(kind==="balun")turns.removeAttribute("min");else turns.min=kind==="transformer3d"?"1":"0.0625";
+  for(const key of ["length","height"]){const input=form.elements.namedItem(key);if(kind==="transformer3d")input.removeAttribute("min");else input.min="0.001";}
+  form.elements.namedItem("width").min=kind==="transformer3d"?"1e-10":"0.001";
+  $("#ring-input-note").hidden=!["ring","square","polygon","wire","symmetric_square","symmetric_polygon","multimetal","capacitor","via","transformer","balun","transformer3d"].includes(kind);
+  $("#ring-input-note").textContent=kind==="transformer3d"?"3D transformer inputs keep full precision. Orientation and phase are recorded without transforming the layout.":["transformer","balun"].includes(kind)&&loaded?.native_interactive?"Loaded interactive windings keep full-precision dimensions. Generate uses the ASITIC grid and keyword turn limits.":kind==="via"?"Via origins keep the entered precision. Counts are whole numbers.":["wire","capacitor"].includes(kind)&&loaded?.native_interactive?`Loaded interactive ${kind==="wire"?"WIRE":"CAPACITOR"} angles are stored as radians. Generate layout uses degrees and the ASITIC 0.1 µm grid.`:"Coil, wire and capacitor dimensions and origins snap to the ASITIC 0.1 µm grid.";
   $("#secondary-metal").parentElement.firstChild.nodeValue=kind==="transformer3d"?"Secondary winding metal":"Crossover metal";
   for (const label of form.querySelectorAll("[data-kinds]")) {
     const visible = label.dataset.kinds.split(" ").includes(kind);

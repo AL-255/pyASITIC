@@ -157,6 +157,12 @@ Implemented so far:
   five finite cases match every CAP/LMAT/Y/Z/model/S store, and one original
   all-NaN reference case retains an explicit diagnostic. Optional winding names
   and native default omissions survive webpage generation and project reload.
+- 3D transformer native prompt inputs and geometry match 96 intact-original
+  creators / 94,824 XYZ stores, including exact primary ribbon widths/thicknesses,
+  raw dimensions/origins, name tokens, phase and spacing boundaries. Independent
+  GDS readback checks both windings. Twelve original LMAT matrices match every
+  output bit, including eddy. Six native coupled histories return NaNs or crash;
+  the webpage reports their invalid planar contacts explicitly.
 - Browser preview, pan/zoom, process-file import, project save/open, conductor
   estimates, selectable L/R/Q frequency plots, linear/log frequency scales,
   progressive Pi2/Pi3/Pi4 sweeps, sample-to-circuit inspection, plot SVG and CSV

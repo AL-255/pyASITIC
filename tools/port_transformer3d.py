@@ -18,7 +18,7 @@ def expression(text):
     text = re.sub(r"\b(\d+)\.L\b",r"\1.0",text)
     text = text.replace("*head","head").replace("binary64(","float(").replace("x87::abs(","abs(")
     text = text.replace("number(","_number(").replace("integer(","_integer(")
-    text = re.sub(r"technology.metal_heights\[([^]]+)\]",r"technology.metals[\1].height",text)
+    text = re.sub(r"technology.metal_heights\[([^]]+)\]",r"technology.metals[\1].geometry_height",text)
     text = re.sub(r"field\(s,(0x[\da-f]+)\)",r"fields[\1]",text)
     text = re.sub(r"s\.(endpoints|outer_start|outer_end|inner_start|inner_end)\[(\d+)\]",
                   lambda m:f"fields[0x{BASES[m[1]]+int(m[2])*8:x}]",text)

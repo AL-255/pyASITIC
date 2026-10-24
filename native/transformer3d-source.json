@@ -1,0 +1,19 @@
+{
+  "reference_commit": "63885e808b522bdeba3f254d353afc72e643c761",
+  "source_sha256": {
+    "src/transformer3d.cpp": "36ceea0e002db44fa85243e4be1764dca4253a207af80003acb643c453988cf1",
+    "src/shape_creation_mirror.cpp": "14afa27a83aa630bc66eb35f5de9a8b5f8b5dd700ded85c087a9ffff8c3c16d5",
+    "src/geometry.cpp": "23885f0c700e9a29301a0be31036d080acfd4c8d8e9011cc5eb4584277b6939d",
+    "src/shape_construction.cpp": "cfa061f327ed4d29c232602f64a38f8dbab7dc587ee9d69cf2e9686b8b66008d",
+    "src/console_geometry.cpp": "dbcebd085a18ea5a508c6ff859fe4827e74eb14f1b0d978a9e4777cbd1de9654",
+    "src/command_catalog.inc": "ff9842bc5adeaf13a029c933ce43123148e7cda4d2b1b44f9a2daf481d1eb477",
+    "src/technology_text.cpp": "fd02e27f5d0af9766f8b9a3b1cf6e258cd990cc7295d9861b82e6eb990659c64"
+  },
+  "original_entries": {
+    "prompt": "0x08068344",
+    "constructor": "0x08057d40",
+    "terminal": "0x08059214",
+    "inductance": "0x08064360"
+  },
+  "adaptation": "Generated literal retained 3D arithmetic remains unchanged; raw original captures verify every defined constructor field. Native interactive input retains unsnapped binary64 dimensions/origins/turns, first-token ASCII-normalized names, permitted duplicate names and zero/negative planar dimensions, integer-truncated phase and metadata-only degree orientation. Spacing validation retains the native x87 subtraction/product/division at the comparison boundary. The original command accepts no keyword arguments; native keyword requests fail explicitly; twelve intact-original keyword transcripts retain three canonical invalid-argument rejections and nine unknown-command replies for other catalog spellings. Existing API aliases remain conveniences, not original CLI spelling claims. Typed legacy validation and naming remain separate. All 96 intact-original creators / 94824 XYZ stores plus origin bits, widths, thicknesses, primary widths/thicknesses and metals match in Python/Pyodide; unwritten mesh counts are excluded. Independent combined GDS readback and twelve complete original winding LMAT matrices include fractional turns, metal/thickness spans and eddy. Six complete coupled histories retain three original all-NaN outputs and three SIGSEGV failures, confirmed by separate plain CLI runs without debugger/preload. Public contact validation reports nonzero planar length rather than inventing finite coupled circuits. No numerical instructions, descriptors or allocation hooks were patched. Regeneration now uses the existing geometry-height source field and reproduces the checked-in port. Browser ranges remain bounded; arbitrary nonfinite inputs, every prompt-state history, original fault instruction/NaN payload emulation and whole-simulator equality are not claimed."
+}

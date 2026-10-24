@@ -8,7 +8,7 @@ from .resistance import resistance_dc, resistance_hf
 from .inductance import inductance_estimate, coupling_estimate
 from .gds import write_gds, layout_polygons
 from .solver import solve_impedance
-from .devices import build_device, PAIRED_KINDS
+from .devices import build_device, PAIRED_KINDS, PAIRED_ALIASES
 from .potential import solve_capacitance
 from .network import solve_pi2,solve_pi3,solve_pi4
 from .resonance import solve_self_resonance
@@ -39,12 +39,13 @@ def _shape(request,tech):
 
 
 def _shapes(request,tech):
-    kind=request.get('kind','square').lower();parameters=dict(request.get('parameters',{}))
+    kind=request.get('kind','square').lower();kind=PAIRED_ALIASES.get(kind,kind);parameters=dict(request.get('parameters',{}))
     if request.get('native_keyword',False):
+        if kind=='transformer3d':raise ValueError('The original 3D transformer command is interactive and accepts no keyword arguments')
         if kind not in('ring','square','polygon','wire','symmetric_square','symmetric_polygon','multimetal','capacitor','via','transformer','balun'):raise ValueError('Native keyword input mode currently supports ring, square, polygon, symmetric/multi-metal coils, wire, capacitor, transformer and balun geometry')
         parameters['native_keyword']=True
     if request.get('native_interactive',False):
-        if kind not in('wire','capacitor','via','transformer','balun'):raise ValueError('Native interactive input mode currently supports wire, capacitor, via, transformer and balun geometry')
+        if kind not in('wire','capacitor','via','transformer','balun','transformer3d'):raise ValueError('Native interactive input mode currently supports wire, capacitor, via, transformer, balun and 3D transformer geometry')
         parameters['native_interactive']=True
     return build_device(kind,technology=tech,**parameters)
 
