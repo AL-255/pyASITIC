@@ -515,3 +515,8 @@ original polygon PiX session now has a strict portable Y/model/resonance bit
 check, alongside direct original coarse polygon mesh-pair checks. Other portable
 mutual/table fallbacks still require broader exactness work; the compiled path's
 full original-session gates remain separate.
+Parallel self/separation kernels also retain each arithmetic operation and the
+native logarithm/exponential reduction. This corrects a coupled wire case whose
+ground resistance amplified a small parallel mutual error. Range-boundary tests
+preserve nearest-even extended overflow/underflow while scalar rounding reuses
+bounded immutable powers of two and checks overflow only in the largest binade.

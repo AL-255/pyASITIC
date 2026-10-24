@@ -5,6 +5,7 @@ Finite arithmetic uses exact rationals, rounded after every operation to the
 classes are preserved. This module does not emulate exception flags or payloads.
 """
 from fractions import Fraction
+from functools import lru_cache
 from math import copysign, isfinite, isnan, isqrt
 
 
@@ -17,6 +18,7 @@ def _exponent(value):
     return e
 
 
+@lru_cache(maxsize=256)
 def _power(e):
     return Fraction(1 << e) if e >= 0 else Fraction(1, 1 << -e)
 
@@ -35,7 +37,9 @@ def _round(value):
     if 2 * r > scaled.denominator or (2 * r == scaled.denominator and q & 1):
         q += 1
     result = q * _power(shift)
-    return None if result >= _power(16384) else sign * result
+    # Only rounding in the largest binade can overflow. Avoid constructing
+    # and comparing a 16,385-bit integer in every ordinary BLAS operation.
+    return None if e == 16383 and q >= 1 << 64 else sign * result
 
 
 class Real:
