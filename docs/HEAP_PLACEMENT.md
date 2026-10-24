@@ -1,5 +1,9 @@
 # Native arena placement: development status
 
+The [mapped-allocation extension](MMAP_PLACEMENT.md) now covers all allocation
+addresses in a new independent capture of the same 130 input/cache cases.
+It retains this earlier fixture and its missing-policy audit failures.
+
 `src/reasitic/heap.py` ports the single-threaded i386 glibc 2.39 arena
 algorithms needed after the existing [storage plan](STORAGE_LIFETIMES.md).
 It is **not connected to electrical solves**. Neither native snapshots nor

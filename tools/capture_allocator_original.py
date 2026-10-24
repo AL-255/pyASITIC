@@ -61,11 +61,11 @@ def allocator_snapshot(label):
 '''
 
 
-def commands(debug_directory):
+def commands(debug_directory,observer=OBSERVER):
     text=lifetime.COMMANDS
     replacements=[
         ('set pagination off','set debug-file-directory '+str(debug_directory)+'\nset debuginfod enabled off\nset pagination off'),
-        ('class Observe(gdb.Breakpoint):',OBSERVER+'\nclass Observe(gdb.Breakpoint):'),
+        ('class Observe(gdb.Breakpoint):',observer+'\nclass Observe(gdb.Breakpoint):'),
         ("events.append(dict(kind='scope',contacts=i32(cap_frame-0xbc),groups=i32(cap_frame-0xb4),control=reg('fctrl')))","events.append(dict(kind='scope',contacts=i32(cap_frame-0xbc),groups=i32(cap_frame-0xb4),control=reg('fctrl')))\n   allocator_snapshot('scope')"),
         ("events.append(dict(kind='via_entry',**out,indices=indices));", "allocator_snapshot('via_entry')\n   events.append(dict(kind='via_entry',**out,indices=indices));"),
         ("node=dict(size=n,cap_address=cap", "allocator_snapshot('node')\n   node=dict(size=n,cap_address=cap"),
@@ -77,7 +77,7 @@ def commands(debug_directory):
     return text
 
 
-def main():
+def main(*,observer=OBSERVER,fixture_name='allocator_state_original.json.gz',extra_metadata=None):
     parser=argparse.ArgumentParser(add_help=False)
     parser.add_argument('--debug-directory',type=Path,required=True)
     parser.add_argument('--libc',type=Path,default=Path('/lib/i386-linux-gnu/libc.so.6'))
@@ -88,8 +88,9 @@ def main():
         notes=subprocess.run(['readelf','-n',str(path)],check=True,capture_output=True,text=True).stdout
         if 'Build ID: '+BUILD_ID not in notes:parser.error('Unexpected ELF build ID: '+str(path))
     sys.argv=[sys.argv[0],*remaining]
-    metadata=dict(allocator_provenance=dict(libc_sha256=hashlib.sha256(options.libc.read_bytes()).hexdigest(),libc_build_id=BUILD_ID,debug_sha256=hashlib.sha256(debug.read_bytes()).hexdigest(),libc_version='Ubuntu GLIBC 2.39-0ubuntu8.9',pointer_bytes=4,alignment=16,observer=OBSERVER,parent_sha256=hashlib.sha256((lifetime.ROOT/'tests/fixtures/trailing_via_heap_original.json.gz').read_bytes()).hexdigest()))
-    lifetime.main(commands=commands(options.debug_directory),fixture_name='allocator_state_original.json.gz',extra_metadata=metadata)
+    metadata=dict(allocator_provenance=dict(libc_sha256=hashlib.sha256(options.libc.read_bytes()).hexdigest(),libc_build_id=BUILD_ID,debug_sha256=hashlib.sha256(debug.read_bytes()).hexdigest(),libc_version='Ubuntu GLIBC 2.39-0ubuntu8.9',pointer_bytes=4,alignment=16,observer=observer,parent_sha256=hashlib.sha256((lifetime.ROOT/'tests/fixtures/trailing_via_heap_original.json.gz').read_bytes()).hexdigest()))
+    if extra_metadata:metadata.update(extra_metadata)
+    lifetime.main(commands=commands(options.debug_directory,observer),fixture_name=fixture_name,extra_metadata=metadata)
 
 
 if __name__=='__main__':main()

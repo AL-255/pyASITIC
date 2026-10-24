@@ -2,7 +2,8 @@
 
 This module is not connected to electrical solves. Snapshot initialization is
 for independent native comparisons; production must derive its own allocation
-history. Noncontiguous heap extension and mmap remain explicit boundaries.
+history. Noncontiguous heap extension remains an explicit boundary. Mmap
+placement requires independently supplied Linux address-layout settings.
 
 The algorithms follow malloc/malloc.c in glibc 2.39, Copyright (C) 1996-2024
 Free Software Foundation, Inc. and Copyright The GNU Toolchain Authors,
@@ -37,6 +38,55 @@ def bin_index(size):
     return 126
 
 
+class AddressSpace:
+    """Page mappings with a descending first-fit search and explicit limits.
+
+    The i386 search ceiling follows Linux's documented source layout settings;
+    no returned allocation address is used to choose it. Randomized and legacy
+    layouts are outside this model's present scope.
+    """
+    def __init__(self,maps,policy=None):
+        self.ranges=[(m['start'],m['end'])for m in maps]
+        self.policy=policy
+
+    def map(self,length):
+        policy=self.policy
+        if policy is None:raise SystemAllocationRequired('mmap required: native mapping policy is missing')
+        flags=policy['personality']
+        if not flags&0x40000 or flags&0x200000 or policy['legacy_va_layout']:
+            raise SystemAllocationRequired('Randomized or legacy mmap layout is not implemented')
+        if policy['page_size']!=4096 or '[always]'in policy['transparent_hugepage']:
+            raise SystemAllocationRequired('Alternate page size or automatic huge-page placement is not implemented')
+        task_size=0xc0000000 if flags&0x8000000 else 0xffffe000
+        maximum_gap=(task_size//6)*5
+        stack=policy['stack_limit']
+        gap=maximum_gap if stack is None else min(maximum_gap,max(128*1024*1024,stack+4096*policy['stack_guard_gap_pages']))
+        ceiling=(task_size-gap+4095)&~4095;minimum=policy['mmap_min_addr']
+        for start,end in sorted(self.ranges,reverse=True):
+            if start>=ceiling:continue
+            if end<=ceiling-length and ceiling-length>=minimum:
+                address=ceiling-length;self.ranges.append((address,ceiling));return address
+            ceiling=min(ceiling,start)
+        if ceiling-length<minimum:raise SystemAllocationRequired('No free virtual address range for mmap')
+        address=ceiling-length;self.ranges.append((address,ceiling));return address
+
+    def unmap(self,address,length):
+        end=address+length;result=[]
+        for start,stop in self.ranges:
+            if stop<=address or start>=end:result.append((start,stop));continue
+            if start<address:result.append((start,address))
+            if stop>end:result.append((end,stop))
+        self.ranges=result
+
+    def contains(self,address,length):
+        end=address+length;cursor=address
+        for start,stop in sorted(self.ranges):
+            if start>cursor:break
+            if stop>cursor:cursor=stop
+            if cursor>=end:return True
+        return False
+
+
 class Heap:
     """Arena metadata and ordered free lists, with no numerical fixture data."""
     def __init__(self,snapshot):
@@ -45,7 +95,11 @@ class Heap:
         self.have_fastchunks=bool(snapshot['have_fastchunks'])
         self.max_fast=snapshot['max_fast'];self.parameters=dict(snapshot['parameters'])
         self.flags=snapshot['flags'];self.system_mem=snapshot['system_mem']
-        self.ranges=[(m['start'],m['end'])for m in snapshot['maps']if m['path']!='[heap]']
+        raw=bytes.fromhex(snapshot['arena_bytes'])
+        self.binmap=[int.from_bytes(raw[offset:offset+4],'little')for offset in range(1080,1096,4)]
+        self.max_system_mem=int.from_bytes(raw[1112:1116],'little')
+        self.address_space=AddressSpace(snapshot['maps'],snapshot.get('mapping_policy'))
+        self.mapped={c['address']:Chunk(c['size_word']&~7,c['prev_size'],False)for c in snapshot.get('mapped_chunks',[])}
         self.bins=[[],*(list(b)for b in snapshot['bins'])]
         self.fastbins=[list(b)for b in snapshot['fastbins']]
         # Cached entries contain user addresses; all other lists use headers.
@@ -68,7 +122,8 @@ class Heap:
         return p+8
 
     def _insert_bin(self,p):
-        size=self.chunks[p].size;chain=self.bins[bin_index(size)]
+        size=self.chunks[p].size;index=bin_index(size);chain=self.bins[index]
+        self.binmap[index//32]|=1<<(index%32)
         if size<1008:chain.insert(0,p);return
         index=0
         while index<len(chain)and self.chunks[chain[index]].size>size:index+=1
@@ -131,9 +186,10 @@ class Heap:
                     position=chain.index(p)
                     if position+1<len(chain)and self.chunks[chain[position+1]].size==best:p=chain[position+1]
                     chain.remove(p);return self._split(p,size)
-            for chain in self.bins[index+1:]:
+            for bin_number,chain in enumerate(self.bins[index+1:],index+1):
                 if chain:
                     p=chain.pop();return self._split(p,size,small)
+                self.binmap[bin_number//32]&=~(1<<(bin_number%32))
             top=self.chunks[self.top]
             if top.size>=size+16:
                 p=self.top;remaining=top.size-size;top.size=size;top.previous_in_use=True
@@ -141,13 +197,20 @@ class Heap:
                 return p+8
             if self.have_fastchunks:self._consolidate();continue
             if size>=self.parameters['mmap_threshold'] and self.parameters['n_mmaps']<self.parameters['n_mmaps_max']:
-                raise SystemAllocationRequired(f'mmap required for {request} bytes (chunk {size})')
+                length=(size+4+15+4095)&~4095;base=self.address_space.map(length)
+                p=base+8;self.mapped[p]=Chunk(length-8,8,False)
+                self.parameters['n_mmaps']+=1;self.parameters['mmapped_mem']+=length
+                for current,maximum in (('n_mmaps','max_n_mmaps'),('mmapped_mem','max_mmapped_mem')):
+                    self.parameters[maximum]=max(self.parameters[maximum],self.parameters[current])
+                return p+8
             if self.flags&2:raise SystemAllocationRequired('Noncontiguous brk extension required')
             end=self.top+top.size
             extra=(size+self.parameters['top_pad']+16-top.size+4095)&~4095
-            if any(start<end+extra and finish>end for start,finish in self.ranges):
+            if any(start<end+extra and finish>end for start,finish in self.address_space.ranges):
                 raise SystemAllocationRequired('Contiguous brk extension overlaps a mapping')
+            self.address_space.ranges.append((end,end+extra))
             top.size+=extra;self.system_mem+=extra
+            self.max_system_mem=max(self.max_system_mem,self.system_mem)
 
     def _merge(self,p):
         chunk=self.chunks[p];size=chunk.size;next_address=p+size
@@ -173,6 +236,13 @@ class Heap:
     def free(self,address):
         if not address:return
         p=address-8
+        if p in self.mapped:
+            chunk=self.mapped.pop(p)
+            if not self.parameters['no_dyn_threshold'] and self.parameters['mmap_threshold']<(chunk.size|2)<=512*1024:
+                self.parameters['mmap_threshold']=chunk.size;self.parameters['trim_threshold']=2*chunk.size
+            length=chunk.previous+chunk.size;self.address_space.unmap(p-chunk.previous,length)
+            self.parameters['n_mmaps']-=1;self.parameters['mmapped_mem']-=length
+            return
         if p not in self.chunks:raise ValueError('Unknown allocation')
         size=self.chunks[p].size
         if self._cache_has_space(size):self.tcache[self._cache_index(size)].insert(0,p);return
@@ -184,4 +254,5 @@ class Heap:
             if self.chunks[self.top].size>=self.parameters['trim_threshold']:
                 top=self.chunks[self.top]
                 extra=max(0,top.size-16-1-self.parameters['top_pad'])&~4095
+                self.address_space.unmap(self.top+top.size-extra,extra)
                 top.size-=extra;self.system_mem-=extra
