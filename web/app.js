@@ -72,7 +72,7 @@ function definition() {
     for(const key of ["inner_gap","x","y"])
       if(!(key in currentDefinition.parameters)&&Number(values[key])===Number(current.parameters[key]))delete values[key];
   }
-  return {kind,parameters:values,winding:0,...(["ring","square","polygon","wire","symmetric_square","symmetric_polygon"].includes(kind)?{native_keyword:true}:{})};
+  return {kind,parameters:values,winding:0,...(["ring","square","polygon","wire","symmetric_square","symmetric_polygon","multimetal"].includes(kind)?{native_keyword:true}:{})};
 }
 function restoreFormParameter(key,value){
   const input=form.elements.namedItem(key);if(!input)return;
@@ -113,8 +113,8 @@ $("#mesh-fit").addEventListener("click",()=>task(async()=>{
 }));
 function showFields(loaded=currentDefinition) {
   const kind = $("#kind").value;
-  $("#ring-input-note").hidden=!["ring","square","polygon","wire","symmetric_square","symmetric_polygon"].includes(kind);
-  $("#ring-input-note").textContent=kind==="wire"&&loaded?.native_interactive?"Loaded interactive WIRE angles are stored as radians. Generate layout uses degrees and the ASITIC 0.1 µm grid.":"Square, polygon, ring, symmetric coil and wire dimensions and origins snap to the ASITIC 0.1 µm grid.";
+  $("#ring-input-note").hidden=!["ring","square","polygon","wire","symmetric_square","symmetric_polygon","multimetal"].includes(kind);
+  $("#ring-input-note").textContent=kind==="wire"&&loaded?.native_interactive?"Loaded interactive WIRE angles are stored as radians. Generate layout uses degrees and the ASITIC 0.1 µm grid.":"Square, polygon, ring, symmetric coil, multi-metal coil and wire dimensions and origins snap to the ASITIC 0.1 µm grid.";
   $("#secondary-metal").parentElement.firstChild.nodeValue=kind==="transformer3d"?"Secondary winding metal":"Crossover metal";
   for (const label of form.querySelectorAll("[data-kinds]")) {
     const visible = label.dataset.kinds.split(" ").includes(kind);
@@ -611,8 +611,11 @@ $("#project-file").addEventListener("change",event=>task(async()=>{
   const symmetric=["symmetric_square","symmetric_polygon"].includes(data.shape.kind);
   const symmetricDefaults=symmetric?{name:restored.name,length:100,radius:50,width:5,spacing:2,turns:2,sides:16,inner_gap:restored.parameters.inner_gap??((restored.parameters.width??5)+(restored.parameters.spacing??2)),
     metal:technology.metals.length-1,secondary_metal:restored.parameters.secondary_metal??Math.max(0,(restored.segments.find(s=>s.metal<technology.metals.length)?.metal??technology.metals.length-1)-1),angle:0,phase:1,x:restored.origin[0],y:restored.origin[1]}:{};
-  const restoredParameters=data.shape.kind==="wire"?{name:restored.name,length:100,width:5,metal:technology.metals.length-1,angle:0,phase:1,x:0,y:restored.parameters.y??0,...data.shape.parameters}:{...symmetricDefaults,...data.shape.parameters};
-  for(const [key,value] of Object.entries(restoredParameters))restoreFormParameter(key,key==="phase"&&(data.shape.kind==="wire"||symmetric)?((restored.parameters.phase??value)<0?-1:1):value);
+  const multimetal=data.shape.kind==="multimetal";
+  const multimetalDefaults=multimetal?{name:restored.name,length:100,height:data.shape.parameters.length??100,width:5,spacing:2,turns:2,
+    metal:technology.metals.length-1,bottom_metal:restored.parameters.bottom_metal??0,angle:0,phase:1,x:0,y:0}:{};
+  const restoredParameters=data.shape.kind==="wire"?{name:restored.name,length:100,width:5,metal:technology.metals.length-1,angle:0,phase:1,x:0,y:restored.parameters.y??0,...data.shape.parameters}:{...symmetricDefaults,...multimetalDefaults,...data.shape.parameters};
+  for(const [key,value] of Object.entries(restoredParameters))restoreFormParameter(key,key==="phase"&&(data.shape.kind==="wire"||symmetric||multimetal)?((restored.parameters.phase??value)<0?-1:1):value);
   if(restoredMesh)applyMesh(restoredMesh);
   currentDefinition=data.shape;current=restored;render(current);resetResults();status("Project restored. Run analysis on the selected winding.");
   event.target.value="";

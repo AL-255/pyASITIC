@@ -1,6 +1,6 @@
 """Direct ports of shape_construction, spiral_construction and winding_construction.
 
-Squares, polygon spirals, rings and via emission retain original intermediate
+Squares, polygon spirals, rings, multi-metal stacks and via emission retain original intermediate
 arithmetic and stores, including origin translation after rotation/reflection.
 Other builders preserve their algorithms; broader bitwise geometry parity is
 still being verified against the original executable.
@@ -129,6 +129,28 @@ def _square(shape, tech, metal, exit_metal, dx, dy, width, spacing, turns, angle
             s.reverse()
 
 
+def _multimetal(shape,tech,metal,bottom,length,height,width,spacing,turns,angle,phase):
+    if bottom>=metal:raise ValueError("Multi-metal coil needs a bottom metal below its top metal")
+    _square(shape,tech,metal,-1,length,height,width,spacing,turns,angle,phase)
+    alternate=turns%1 in (0,.5);axis=1 if alternate else 0
+    previous=shape;windings=[]
+    for index in range(metal-1,bottom-1,-1):
+        winding=copy.deepcopy(previous)
+        # Native copies the previous local geometry at the first shape's origin.
+        # Joined coordinates must not become the next copy's source geometry.
+        winding.origin=shape.origin.copy()
+        for segment in winding.segments:
+            m=tech.metals[index];segment.metal,segment.thickness=index,m.thickness
+            for point in segment.points:point[2]=m.geometry_height
+        winding.reflect(axis);winding.segments.reverse()
+        for segment in winding.segments:segment.reverse()
+        windings.append(winding);previous=winding
+        if alternate:axis=1-axis
+    for winding in windings:
+        winding.offset(R(winding.origin[0])-R(shape.origin[0]),R(winding.origin[1])-R(shape.origin[1]))
+        shape.segments.extend(winding.segments)
+
+
 def _wire(shape,tech,metal,length,width,angle,phase):
     shape.segments.append(_segment(tech,metal,width,(0,width/2),(length,width/2),
                                    (0,0),(length,0),(0,width),(length,width)))
@@ -154,7 +176,7 @@ def build(kind="square", *, technology=None, native_keyword=False, native_intera
     `length` / `height` are outer square dimensions; `radius` is the native
     polygon vertex radius. Fractional turns are truncated to 1/sides, as ASITIC
     does. Origin is a separate translation and is never folded into segments.
-    For rings, squares, polygon spirals, symmetric coils and wires, native_keyword=True applies the
+    For rings, squares, polygon spirals, symmetric/multi-metal coils and wires, native_keyword=True applies the
     original parser's default 0.1 um snap grid and binary32 angle stores. Typed
     calls retain binary64 dimensions and ordinary degree inputs. For WIRE,
     native_interactive=True preserves the original interactive raw-radian
@@ -168,7 +190,7 @@ def build(kind="square", *, technology=None, native_keyword=False, native_intera
     if native_keyword and native_interactive:raise ValueError('Choose one native input mode')
     if native_interactive and kind!='wire':raise ValueError('Native interactive input mode currently supports wire geometry')
     if native_keyword:
-        if kind not in('ring','square','polygon','wire','symmetric_square','symmetric_polygon'):raise ValueError('Native keyword input mode currently supports ring, square, polygon, symmetric coils and wire geometry')
+        if kind not in('ring','square','polygon','wire','symmetric_square','symmetric_polygon','multimetal'):raise ValueError('Native keyword input mode currently supports ring, square, polygon, symmetric/multi-metal coils and wire geometry')
         from .command_numbers import length_um,binary32
         if kind=='wire':
             fields=(('length',100),('width',5),('x',0))
@@ -176,7 +198,7 @@ def build(kind="square", *, technology=None, native_keyword=False, native_intera
             dimension='length'if kind=='symmetric_square'else'radius'
             fields=((dimension,100 if kind=='symmetric_square'else 50),('width',5),('spacing',2))
             fields+=tuple((key,p[key])for key in('inner_gap','x','y')if key in p)
-        elif kind=='square':
+        elif kind in('square','multimetal'):
             fields=(('length',100),('height',p.get('length',100)),('width',5),('spacing',2),('x',0),('y',0))
         else:
             fields=(('radius',50),('width',5),('x',0),('y',0))
@@ -184,9 +206,10 @@ def build(kind="square", *, technology=None, native_keyword=False, native_intera
         for key,default in fields:
             p[key]=length_um(p.get(key,default),grid_size=.1)
         if kind=='wire':p['y']=length_um(p['y'],grid_size=.1)if'y'in p else p['width']
-        if kind in('square','polygon','symmetric_square','symmetric_polygon'):
+        if kind in('square','polygon','symmetric_square','symmetric_polygon','multimetal'):
             p['turns']=binary32(float(p.get('turns',2)))
         if kind=='square':p.setdefault('exit_metal',len(tech.metals)-2)
+        if kind=='multimetal':p.setdefault('bottom_metal',len(tech.metals)-2)
         if kind in('symmetric_square','symmetric_polygon'):
             p.setdefault('secondary_metal',len(tech.metals)-2)
             p.setdefault('inner_gap',float(R(p['width'])+R(p['spacing'])))
@@ -220,7 +243,7 @@ def build(kind="square", *, technology=None, native_keyword=False, native_intera
     if max(width,length,height,radius) > 1e6:
         raise ValueError("Dimensions must not exceed 1,000,000 µm")
     phase = num("phase",1)
-    if (kind=='wire'and(native_keyword or native_interactive))or(native_keyword and kind in('symmetric_square','symmetric_polygon')):
+    if (kind=='wire'and(native_keyword or native_interactive))or(native_keyword and kind in('symmetric_square','symmetric_polygon','multimetal')):
         if not -(1<<31)<=phase<(1<<31):raise ValueError('Phase exceeds the native integer range')
         phase=int(phase)
         if native_keyword:phase=phase or 1
@@ -276,7 +299,7 @@ def build(kind="square", *, technology=None, native_keyword=False, native_intera
         raw_turns = num("turns",2)
         if raw_turns <= 0:
             raise ValueError("Turns must be positive")
-        if native_keyword and kind=='square':
+        if native_keyword and kind in('square','multimetal'):
             denominator=R(spacing)+R(width)
             native_maximum=(((R(spacing)+R(length))/denominator+(R(spacing)+R(height))/denominator)*R(.25))
             whole=math.floor(native_maximum.value)
@@ -304,30 +327,10 @@ def build(kind="square", *, technology=None, native_keyword=False, native_intera
             # Native polygon and ring builders do not apply PHASE reversal.
             _polygon(shape,tech,metal,radius,sides,width,spacing,turns,radians)
         else:
-            _square(shape,tech,metal,exit_metal if kind=="square" else -1,length,height,width,spacing,turns,radians,phase)
-            if kind == "multimetal":
-                bottom = tech.metal_index(p.get("bottom_metal",0))
-                if bottom >= metal:
-                    raise ValueError("Multi-metal coil needs a bottom metal below its top metal")
-                alternate = turns%1 in (0,0.5)
-                axis = 1 if alternate else 0
-                previous = copy.deepcopy(shape)
-                for index in range(metal-1,bottom-1,-1):
-                    winding = copy.deepcopy(previous)
-                    for s in winding.segments:
-                        m = tech.metals[index]
-                        s.metal,s.thickness = index,m.thickness
-                        for point in s.points:
-                            point[2] = m.geometry_height
-                    winding.reflect(axis)
-                    winding.segments.reverse()
-                    for s in winding.segments:
-                        s.reverse()
-                    winding.offset(winding.origin[0]-shape.origin[0],winding.origin[1]-shape.origin[1])
-                    shape.segments.extend(copy.deepcopy(winding.segments))
-                    previous = winding
-                    if alternate:
-                        axis = 1-axis
+            if kind=="multimetal":
+                bottom=tech.metal_index(p.get("bottom_metal",0))
+                _multimetal(shape,tech,metal,bottom,length,height,width,spacing,turns,radians,phase)
+            else:_square(shape,tech,metal,exit_metal,length,height,width,spacing,turns,radians,phase)
     elif kind in ("wire","capacitor"):
         _wire(shape,tech,metal,length,width,radians,phase if kind=='wire'else 1)
         if kind == "capacitor":

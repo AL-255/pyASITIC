@@ -139,6 +139,11 @@ Implemented so far:
   creators / 60,804 XYZ stores match in Python and compiled WebAssembly, with
   independent GDS readback. Eight complete Pi2/2PORT sessions match every
   captured electrical output, including eddy and binary64 interactive inputs.
+- Multi-metal squares preserve native copy origins, reflection history and
+  deferred joins across up to five sample-process metals. All 180 original
+  creators / 56,214 XYZ stores match in Python and Pyodide, with independent GDS
+  readback. Four complete Pi2/2PORT sessions preserve every captured electrical
+  output, including native nonfinite resonance and three invalid-stack histories.
 - Browser preview, pan/zoom, process-file import, project save/open, conductor
   estimates, selectable L/R/Q frequency plots, linear/log frequency scales,
   progressive Pi2/Pi3/Pi4 sweeps, sample-to-circuit inspection, plot SVG and CSV

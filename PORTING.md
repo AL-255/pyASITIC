@@ -19,6 +19,7 @@ Reference checkout: `~/github/asitic-re`, revision recorded in each fixture.
 | `ring.py`, `geometry.py`, `command_numbers.py` | `winding_construction.cpp`, `command_runtime.cpp`; original ring `0x0805b450` | 45 original creators / 12,588 exact XY stores in Python and WebAssembly; full keyword/default snap inputs, 3–128 sides, gap/orientation boundaries; three complete original Pi2 Y/model/S/resonance sessions including eddy; independent GDS readback and actual form/project/model/export handlers |
 | `geometry.py` square/via emission, `model.py`, `precision.py` | `spiral_construction.cpp`, `shape_construction.cpp`, `geometry.cpp`; original square `0x08056670` | 126 complete original creators / 14,742 exact XYZ stores plus origins, widths, metal/thickness and defined via counts; keyword/interactive inputs, quarter-turn boundaries, rotations, reverse phase and exits; four complete original Pi2 electrical sessions and independent GDS readback |
 | `symmetric_geometry.py`, `native/symmetric_geometry.cpp`, symmetric keyword inputs | `symmetric_construction.cpp`, `shape_prompt_symmetric.cpp`; original square `0x08059854` / polygon `0x0805a45c` | 114 original creators / 60,804 exact XYZ stores plus origins/widths/metals/thickness/via counts; whole-turn and maximum-turn cases, rotations, integer phase, odd/fractional sides, crossover history, defaults and binary64 interactive construction; eight complete Pi2/2PORT sessions, independent GDS and actual form/project/download checks in both runtimes |
+| `geometry.py` multi-metal stacking and keyword input | `composite_geometry.cpp`, shared square/reflect/translate/parser sources; original `0x0805af5c` | 180 original creators / 56,214 exact XYZ stores plus origin/width/metal/thickness; fractional and maximum turns, two to five metals, rotations, phase, defaults and binary64 interactive construction; independent GDS, four full Pi2/2PORT sessions, three invalid stack transcripts and actual form/project/export handlers in Python/Pyodide |
 | `contact_geometry.py`, `potential.py` | `contacts.cpp`; original preparation `0x08053580` / builder `0x08053a1c` | 50 original setups / 280 builder calls / 338 physical-bound and integer-grid records in Python and WebAssembly; retained placement, native counts/order, parser-forced reference mesh and original thin-wire grid/zero-area histories |
 | `potential.py` | `potential_tables.cpp`, `potential.cpp`, `contacts.cpp`, `potential_solver.cpp` | Eight CAP sessions across CMOS/BiCMOS: full potential snapshots, folded admittance matrices, and actual cache FFT samples for every metal pair; browser runtime checks cover all eight reduced matrices |
 | `contact_math.py`, `native/contact.cpp` | Original `0x080901c0`; `potential.cpp`, legacy complex DSO | All 41 captured contact matrices / 264,844 components exact in Python and WebAssembly: finite bits including signed zeros, nonfinite classes and both complete 256-contact digests; input table hashes and metadata immutability; ordered zero-term reuse checked across process/frequency edits |
@@ -867,3 +868,39 @@ portable path and 3.67 ms for the compiled batch, with identical geometry hashes
 `tools/benchmark_symmetric_geometry.mjs` reproduces the measurement. This is a
 geometry-only measurement; it does not compare complete electrical simulations
 or the original native executable.
+
+
+### Multi-metal square copy, reflection and join stores
+
+`MMSQUARE` uses the shared exact square constructor without an exit, then copies
+the preceding layer's local segments at the first winding's origin. Each copy
+changes metal, reflects about the original branch-selected axis, reverses segment
+order and reverses segment directions. All copies finish before any joins.
+Joining retains the difference between each copy's origin and the first winding's
+origin through the final coordinate store. The previous Python implementation
+copied the preceding origin, joined immediately and formed its translation with
+a binary64 subtraction. At identical original parsed configurations, 36 XYZ
+stores differed across four of the first 174 captured creators.
+
+The port now requires 180 complete original creators / 56,214 XYZ stores, plus
+all origins, scalar widths, metal indices and conductor thicknesses. Fixtures
+include all quarter-turn classes, rotations, phase conversion/wrapping, the
+maximum supported turn count, two to five sample-process metals, native defaults
+and full-binary64 interactive construction. The original interactive prompt
+rejects turns below one, unlike keyword creation; three captures preserve its
+warning and explicit retry to one turn. No failing finite native history is
+removed. Independent GDS readers verify conductor coordinates and process layers.
+
+The public native-keyword mode and webpage now apply the original square parser's
+outer dimensions, snapped lengths/origins, F32 turns/angles, integer phase and
+penultimate-metal default for the bottom layer. Typed calls keep their existing
+binary64 inputs and bottom-metal default. Effective project defaults prevent
+stale layer/orientation/origin fields from a previous project. Four unchanged
+original Pi2/2PORT sessions require every captured admittance, model, scattering
+and resonance output, including eddy and full-binary64 inputs. The original
+quarter-turn infinite resonance is preserved in the fixture and maps to `null`
+through the existing public JSON contract; finite outputs retain exact checks.
+Three same/reversed-metal stacks retain original diagnostic transcripts and a
+bounded public error. Source correspondence is in `native/multimetal-source.json`.
+Inner-hole keyword adapters and exhaustive prompt-state/parser boundary coverage
+remain unverified; this does not establish whole-simulator equivalence.

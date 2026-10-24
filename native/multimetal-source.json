@@ -1,0 +1,14 @@
+{
+  "reference_commit": "63885e808b522bdeba3f254d353afc72e643c761",
+  "source_sha256": {
+    "src/composite_geometry.cpp": "1ec856be68f6585da6f618c528136037848cb014d05e70d4b7bbcd76ceacb719",
+    "src/geometry.cpp": "23885f0c700e9a29301a0be31036d080acfd4c8d8e9011cc5eb4584277b6939d",
+    "src/winding_construction.cpp": "1232dabbabbe52b994c95a36bdb0774a7a974b4fa86302d93cc6d8ed56ebedd0",
+    "src/shape_construction.cpp": "cfa061f327ed4d29c232602f64a38f8dbab7dc587ee9d69cf2e9686b8b66008d",
+    "src/spiral_construction.cpp": "ed4eac77ce39dea4a92b55f97bde9b1a1bdf122a7e4f62e73fabf6a61be1a404",
+    "src/shape_prompts.cpp": "47f649244bf36d534d32d7953c8fa87f80f9cd0c5ffee959cf9c7fa065b2b0f1",
+    "src/shape_creation_commands.cpp": "08f00e9e90033792880f9173470ed07ef2879fa37f2d4048ca2751944ce77365"
+  },
+  "original_entry": "0x0805af5c",
+  "adaptation": "Direct port of original multi-metal square copy/reflection/join order. The initial winding uses the exact shared square constructor without an exit. Copies retain previous local segments but use the first winding origin; all copies/reflections complete before joining. Each join retains the source-minus-target origin difference through the coordinate store. Shared metal refresh preserves process Z/thickness; linked-list and direction reversal are independent. Native outer-dimension keyword input follows square parser F32/snapping/quarter-turn/angle/phase conventions with penultimate-metal bottom default; typed input retains binary64 dimensions and prior bottom-layer default. Original raw XYZ/origin/scalar/metal/thickness stores, independent GDS and complete Pi2/2PORT sessions are required in Python and Pyodide. Inner-hole keyword adapters and complete interactive prompt-state parity remain outside the verified input scope."
+}
