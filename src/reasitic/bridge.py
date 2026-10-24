@@ -20,6 +20,7 @@ from .retained_scalar import Real
 from .presets import list_presets,load_preset,identify
 from .command_numbers import frequency_ghz,mesh_cell_um
 from .conductor_metrics import retained_estimates,qlf as extrapolated_q
+from .editing import apply_edits
 
 
 def _frequency(request,prefix='frequency',default=1e9):
@@ -48,8 +49,8 @@ def _technology(request):
     return Technology.from_text(request["technology"]) if request.get("technology") else Technology.default()
 
 
-def _shape(request,tech):
-    shapes = _shapes(request,tech)
+def _shape(request,tech,*,shapes=None):
+    if shapes is None:shapes = _shapes(request,tech)
     index = int(request.get("winding",0))
     if not 0<=index<len(shapes):
         raise ValueError("Invalid winding selection")
@@ -65,7 +66,7 @@ def _shapes(request,tech):
     if request.get('native_interactive',False):
         if kind not in('wire','capacitor','via','square','polygon','ring','multimetal','symmetric_square','symmetric_polygon','transformer','balun','transformer3d'):raise ValueError('Native interactive input mode is not supported for this generator')
         parameters['native_interactive']=True
-    return build_device(kind,technology=tech,**parameters)
+    return apply_edits(build_device(kind,technology=tech,**parameters),tech,request.get('edits',[]))
 
 
 def handle(request,*,progress=None):
@@ -104,7 +105,8 @@ def handle(request,*,progress=None):
             termination_ohm=float(request.get("termination_ohm",0)),eddy=request.get("eddy",False),include_matrices=bool(request.get("include_matrices",False)),
             max_width_cells=maximum_width_cells(mesh.get("max_width_cells",500)),
             **{key:float(mesh.get(key,1000)) for key in ("length_cell","width_cell","thickness_cell","capacitance_length_cell","capacitance_width_cell")})
-    shape = _shape(request,tech)
+    windings=_shapes(request,tech)if action=='build'else None
+    shape = _shape(request,tech,shapes=windings)
     if shape.kind=='via'and(action=='pi2'or(action=='mesh'and request.get('model','pi2')=='pi2')):
         raise ValueError('The original standalone VIA Pi2 analysis faults before producing a model; add conductor geometry')
     if action=="mesh":
@@ -145,7 +147,6 @@ def handle(request,*,progress=None):
                                capacitance_length_cell=float(mesh["capacitance_length_cell"]) if "capacitance_length_cell" in mesh else None)
     if action == "build":
         data = shape.to_dict()
-        windings = _shapes(request,tech)
         data["windings"] = [w.name for w in windings]
         # Render exactly the polygons exported to GDS, including individual cuts.
         if sum(s.nx*s.ny for w in windings for s in w.segments) > 100000:

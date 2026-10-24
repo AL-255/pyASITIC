@@ -228,6 +228,19 @@ Implemented so far:
   diagnostic. All 84 captured interactive wire/capacitor/via/paired creations
   pass actual webpage Generate, project round-trips and decoded GDS checks in
   jsdom with real Pyodide and the shipped numerical kernels.
+- Layout editing supports the original MOVE/MOVEX/MOVEY/MOVETO, ROTATE,
+  FLIPV/FLIPH and FLIP commands, including their aliases in JSON edit histories.
+  Moves preserve native linked transformer/balun behavior; 3D windings remain
+  independent. Rotation, reflection and segment-order reversal affect only the
+  selected winding. The webpage provides apply/undo/reset controls; Generate,
+  project downloads, GDS and electrical analyses replay the same history.
+  Fifteen unchanged-original histories cover all twelve generators and 186
+  intermediate states / 29,052 exact XYZ stores. Sixty complete point-rotation
+  traces verify the retained instructions and cancellation-sensitive output
+  stores. Independent GDS readback checks all representable states, with
+  explicit export diagnostics for original layouts beyond GDSII's int32 range.
+  Three edited Pi2/CALCTRANS sessions match the original Y/model/S outputs and
+  complete coupled input matrices in both Python and the shipped browser runtime.
 
 Records use binary64 with selected retained-precision intermediates matching the
 reference's x87 arithmetic.

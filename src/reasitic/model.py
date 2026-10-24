@@ -87,8 +87,8 @@ class Shape:
         # ASITIC moves the local minimum into the shape origin.
         self._rebase(bounds[0],bounds[1])
 
-    def rotate(self, angle):
-        if abs(angle) <= 1e-10:
+    def rotate(self, angle,*,force=False):
+        if not force and abs(angle) <= 1e-10:
             return
         x0, y0, x1, y1 = self.bounds
         from .precision import rotate_xy,native_midpoint

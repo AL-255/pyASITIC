@@ -1,5 +1,35 @@
 # Pi performance and original-binary checks
 
+Spatial edits are replayed from the original generator inputs for preview,
+project regeneration, export and each simulation. MOVE/MOVETO use the original
+default type-7 grid/F32 input stores; ROTATE uses type 10 and executes even for
+zero/subthreshold angles. Native point rotation consumes retained FSIN/FCOS
+results before the coordinate store. An extra true-Pi/native-Pi rescaling in
+the geometry helper caused four captured state differences through cancellation;
+evaluating the unscaled reduced argument fixes all 29,052 captured XYZ stores
+and all 60 complete point traces. This geometry change does not replace the
+separate spectral/mutual trigonometric implementation or close its general
+raw-instruction audit. No fixture correction tables or relaxed tolerances are
+used. All 39 existing portable generator/GDS regression checks still pass.
+
+Rotation replay uses bounded 8,192-entry caches of computed trig and point
+results. Point keys retain all five binary64 input words, including signed
+zero; source records are never cached by fixture ID. Preview requests also
+construct/replay their windings once instead of twice. On the Ryzen 9 7940HX,
+Node 24.19.0 and Pyodide 314.0.7, complete JSON requests measured:
+
+| Captured edited case | Cold request | Median of five repeated requests |
+| --- | ---: | ---: |
+| 3D transformer, 12 spatial edits, selected winding 9 segments | 85.3 ms | 10.8 ms |
+| Planar transformer, 5 edits, 24-filament CALCTRANS | 808.6 ms | 62.4 ms |
+
+The numerical kernel is unchanged (405,481 bytes, SHA256
+`23256f1e918e48e38309babb5b1472c53344bbfe484b05e1f5ec1d94783ec061`).
+Timings exclude runtime startup, downloads and rendering; they are observations
+on these fixture inputs, not universal latency or native-speed guarantees.
+After building, reproduce with `node tools/benchmark_spatial_edits.mjs
+/path/to/pyodide.mjs`.
+
 The browser runs Python in Pyodide 314.0.7. Numerical loops written in Python
 were the principal cost: retained FFT butterflies, spectral arithmetic, and
 matrix inversion. The FFT, complete spectral table generation, layer coefficients, contact potentials,

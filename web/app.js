@@ -26,6 +26,8 @@ function status(message) { $("#analysis-status").textContent = message; }
 function controls() {
   for(const el of document.querySelectorAll(".technology input,.technology select,.technology button"))el.disabled=!ready||busy;
   for(const el of document.querySelectorAll(".analysis-panel input,.analysis-panel select"))el.disabled=busy;
+  for(const el of document.querySelectorAll(".layout-edits input,.layout-edits select,.layout-edits button"))el.disabled=!ready||busy||!current;
+  for(const id of["edit-undo","edit-reset"])$("#"+id).disabled=!ready||busy||!currentDefinition?.edits?.length;
   $("#generate").disabled = !ready || busy;
   for (const id of ["simulate", "sweep", "lmat", "capacitance", "pi2", "selfres", "download-gds", "download-project"]) $("#"+id).disabled = !ready || busy || !current;
   for(const id of ["mesh-check","mesh-fit"])$("#"+id).disabled=!ready||busy||!current;
@@ -82,8 +84,9 @@ function definition() {
   }
   if(kind==="balun"&&currentDefinition?.kind===kind&&currentDefinition.native_keyword&&!("secondary_metal" in currentDefinition.parameters)
       &&Number(values.secondary_metal)===Number(current.parameters.secondary_metal))delete values.secondary_metal;
-  if(INPUT_MODE_KINDS.includes(kind)&&$("#rectangular-input-mode").value==="interactive")return {kind,parameters:values,winding:0,native_interactive:true};
-  return {kind,parameters:values,winding:0,...(["ring","square","polygon","wire","symmetric_square","symmetric_polygon","multimetal","capacitor","transformer","balun"].includes(kind)?{native_keyword:true}:["via","transformer3d"].includes(kind)?{native_interactive:true}:{})};
+  const edits=currentDefinition?.kind===kind&&currentDefinition.edits?.length?{edits:currentDefinition.edits.map(edit=>({...edit}))}:{};
+  if(INPUT_MODE_KINDS.includes(kind)&&$("#rectangular-input-mode").value==="interactive")return {kind,parameters:values,winding:0,native_interactive:true,...edits};
+  return {kind,parameters:values,winding:0,...(["ring","square","polygon","wire","symmetric_square","symmetric_polygon","multimetal","capacitor","transformer","balun"].includes(kind)?{native_keyword:true}:["via","transformer3d"].includes(kind)?{native_interactive:true}:{}),...edits};
 }
 function restoreFormParameter(key,value){
   const input=form.elements.namedItem(key);if(!input)return;
@@ -185,6 +188,37 @@ function svgElement(tag,attributes={},text) {
   if (text !== undefined) el.textContent = text;
   return el;
 }
+function showEditFields(){
+  const command=$("#edit-command").value;
+  $("#edit-x-field").hidden=["FLIPV","FLIPH","FLIP"].includes(command);$("#edit-y-field").hidden=!["MOVE","MOVETO"].includes(command);
+  $("#edit-x-title").textContent=command==="ROTATE"?"Angle":command==="MOVETO"?"Origin X":command==="MOVEY"?"Delta Y":"Delta X";
+  $("#edit-x-unit").textContent=command==="ROTATE"?"degrees":"µm";
+  $("#edit-y-field").firstChild.nodeValue=command==="MOVETO"?"Origin Y ":"Delta Y ";
+}
+function renderEditHistory(){
+  const edits=currentDefinition?.edits||[];
+  $("#edit-status").textContent=edits.length?`${edits.length} layout edit${edits.length===1?"":"s"}. Regenerating keeps this history; Reset edits restores the generated layout.`:"No layout edits.";
+  $("#edit-history").replaceChildren(...edits.map(edit=>{
+    const row=document.createElement("li"),values=["x","y","angle"].filter(key=>key in edit).map(key=>`${key}=${edit[key]}`);
+    row.textContent=`${edit.command} · ${current.windings[edit.winding??0]}${values.length?" · "+values.join(", "):""}`;return row;
+  }));
+}
+async function replaceEdits(edits,message){
+  const next={...currentDefinition,edits};const shape=await request({action:"build",...next,technology:technologyText});
+  currentDefinition=next;current=shape;meshCache.clear();render(shape);resetResults();status(message);
+}
+$("#edit-command").addEventListener("change",showEditFields);
+$("#edit-apply").addEventListener("click",()=>task(async()=>{
+  const command=$("#edit-command").value,edit={command,winding:currentDefinition.winding||0};
+  if(["MOVE","MOVETO","MOVEX"].includes(command))edit.x=numeric("#edit-x");
+  if(["MOVE","MOVETO"].includes(command))edit.y=numeric("#edit-y");
+  if(command==="MOVEY")edit.y=numeric("#edit-x");
+  if(command==="ROTATE")edit.angle=numeric("#edit-x");
+  await replaceEdits([...(currentDefinition.edits||[]),edit],`${command} applied to the selected winding. Run analysis on the edited layout.`);
+}));
+$("#edit-undo").addEventListener("click",()=>task(()=>replaceEdits(currentDefinition.edits.slice(0,-1),"Last layout edit undone.")));
+$("#edit-reset").addEventListener("click",()=>task(()=>replaceEdits([],"Layout edits reset to the generated geometry.")));
+showEditFields();
 let viewport = {scale:1,x:0,y:0};
 function fit() { viewport = {scale:1,x:0,y:0}; transform(); }
 function transform() {
@@ -229,6 +263,7 @@ function render(shape) {
   $("#stat-metal-area").textContent=fmt(shape.metal_area)+" µm²";
   $("#stat-dc").textContent=fmt(shape.dc_ohm)+" Ω";
   $("#warnings").hidden=!shape.warnings.length; $("#warnings").textContent=shape.warnings.join(" ");
+  renderEditHistory();
   fit();
 }
 function resetResults() {
@@ -672,7 +707,7 @@ $("#project-file").addEventListener("change",event=>task(async()=>{
   $("#rectangular-input-mode").value=data.shape.native_interactive?"interactive":"keyword";showFields(data.shape);
   const symmetric=["symmetric_square","symmetric_polygon"].includes(data.shape.kind);
   const symmetricDefaults=symmetric?{name:restored.name,length:restored.parameters.length??100,radius:50,width:5,spacing:2,turns:2,sides:16,inner_gap:restored.parameters.inner_gap??((restored.parameters.width??5)+(restored.parameters.spacing??2)),
-    metal:technology.metals.length-1,secondary_metal:restored.parameters.secondary_metal??Math.max(0,(restored.segments.find(s=>s.metal<technology.metals.length)?.metal??technology.metals.length-1)-1),angle:0,phase:1,x:restored.origin[0],y:restored.origin[1]}:{};
+    metal:technology.metals.length-1,secondary_metal:restored.parameters.secondary_metal??Math.max(0,(restored.segments.find(s=>s.metal<technology.metals.length)?.metal??technology.metals.length-1)-1),angle:0,phase:1,x:restored.parameters.x??0,y:restored.parameters.y??0}:{};
   const multimetal=data.shape.kind==="multimetal";
   const multimetalDefaults=multimetal?{name:restored.name,length:100,height:data.shape.parameters.length??100,width:5,spacing:2,turns:2,
     metal:technology.metals.length-1,bottom_metal:restored.parameters.bottom_metal??0,angle:0,phase:1,x:0,y:0}:{};
