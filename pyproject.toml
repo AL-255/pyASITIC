@@ -15,4 +15,4 @@ reasitic = "reasitic.__main__:main"
 where = ["src"]
 
 [tool.setuptools.package-data]
-reasitic = ["*.tek", "technologies/*.tek", "technologies/*.json", "technologies/*.txt"]
+reasitic = ["*.tek", "*.txt", "technologies/*.tek", "technologies/*.json", "technologies/*.txt"]

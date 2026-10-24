@@ -2,11 +2,16 @@
 
 Finite arithmetic uses exact rationals, rounded after every operation to the
 64-bit significand and extended exponent range. Signed zero and IEEE nonfinite
-classes are preserved. This module does not emulate exception flags or payloads.
+classes and NaN payloads are preserved. Exception flags are not emulated.
+
+NaN propagation follows Berkeley SoftFloat 3e, 8086 specialization.
+Copyright 2011-2018 The Regents of the University of California.
+See SOFTFLOAT-LICENSE.txt for its redistribution conditions and disclaimer.
 """
 from fractions import Fraction
 from functools import lru_cache
 from math import copysign, isfinite, isnan, isqrt
+import struct
 
 
 def _exponent(value):
@@ -60,18 +65,61 @@ def _round(value):
 
 class Real:
     """Retained scalar; binary64 stores are explicit calls to float()."""
-    __slots__ = ("value", "kind", "negative")
+    __slots__ = ("value", "kind", "negative", "nan_significand")
 
     def __init__(self, value=0.):
         if isinstance(value, Real):
-            self.value, self.kind, self.negative = value.value, value.kind, value.negative
+            self.value, self.kind, self.negative, self.nan_significand = value.value, value.kind, value.negative, value.nan_significand
             return
         self.kind = 0
+        self.nan_significand = 0
         self.negative = copysign(1., value) < 0 if isinstance(value, float) else value < 0
         if isinstance(value, float) and not isfinite(value):
             self.value, self.kind = Fraction(0), 2 if isnan(value) else 1
+            if self.kind==2:
+                word=struct.unpack('<Q',struct.pack('<d',value))[0]
+                self.nan_significand=0xc000000000000000|((word&0xfffffffffffff)<<11)
         else:
             self.value = Fraction(value)
+
+    @classmethod
+    def memory_operand(cls,value):
+        """An arithmetic memory source keeps sNaN status until propagation.
+
+        FLD first quiets a binary64 signaling NaN; FSUBL's memory source is
+        instead consumed by the arithmetic operation's NaN selection rule.
+        """
+        result=cls(value)
+        if result.kind==2 and isinstance(value,float):
+            word=struct.unpack('<Q',struct.pack('<d',value))[0]
+            result.nan_significand=0x8000000000000000|((word&0xfffffffffffff)<<11)
+        return result
+
+    @classmethod
+    def from_words(cls,low,high,exponent):
+        """Decode stored x87 words, retaining the sign and significand of NaNs."""
+        sig=int(low)|(int(high)<<32);exponent=int(exponent);power=exponent&0x7fff;negative=bool(exponent&0x8000)
+        if power==0x7fff:
+            result=cls(-float('inf')if negative else float('inf'))
+            if sig!=1<<63:result.kind=2;result.nan_significand=sig
+            return result
+        if not sig:return cls(-0. if negative else 0.)
+        return cls((-sig if negative else sig)*_power((power or 1)-16383-63))
+
+    @classmethod
+    def _invalid(cls):
+        return cls.from_words(0,0xc0000000,0xffff)
+
+    @classmethod
+    def _propagate_nan(cls,a,b=None):
+        # SoftFloat 8086 s_propagateNaNExtF80UI: a quiet NaN takes precedence
+        # over a signaling NaN. Otherwise select the larger significand,
+        # preferring positive on a magnitude tie, then quiet the result.
+        candidates=[x for x in(a,b)if x is not None and x.kind==2]
+        quiet=[x for x in candidates if x.nan_significand&(1<<62)]
+        selected=max(quiet or candidates,key=lambda x:(x.nan_significand,not x.negative))
+        result=cls(selected);result.nan_significand|=0xc000000000000000
+        return result
 
     @classmethod
     def _result(cls, value, negative=False):
@@ -85,8 +133,11 @@ class Real:
         return result
 
     def __float__(self):
+        if self.kind==2:
+            word=(int(self.negative)<<63)|0x7ff8000000000000|((self.nan_significand&0x7fffffffffffffff)>>11)
+            return struct.unpack('<d',struct.pack('<Q',word))[0]
         if self.kind:
-            return copysign(float("nan" if self.kind == 2 else "inf"), -1. if self.negative else 1.)
+            return -float('inf')if self.negative else float('inf')
         if not self.value:
             return -0. if self.negative else 0.
         try:
@@ -106,17 +157,19 @@ class Real:
     def __add__(self, other):
         other = Real(other)
         if self.kind == 2 or other.kind == 2:
-            return Real(float("nan"))
+            return Real._propagate_nan(self,other)
         if self.kind or other.kind:
             if self.kind and other.kind and self.negative != other.negative:
-                return Real(float("nan"))
+                return Real._invalid()
             return Real(self if self.kind else other)
         return Real._result(self.value + other.value, self.negative and other.negative)
 
     __radd__ = __add__
 
     def __sub__(self, other):
-        return self + -Real(other)
+        other=Real(other)
+        if self.kind==2 or other.kind==2:return Real._propagate_nan(self,other)
+        return self + -other
 
     def __rsub__(self, other):
         return Real(other) - self
@@ -124,8 +177,9 @@ class Real:
     def __mul__(self, other):
         other = Real(other)
         negative = self.negative != other.negative
-        if self.kind == 2 or other.kind == 2 or (self.kind == 1 and not other.kind and not other.value) or (other.kind == 1 and not self.kind and not self.value):
-            return Real(float("nan"))
+        if self.kind==2 or other.kind==2:return Real._propagate_nan(self,other)
+        if (self.kind == 1 and not other.kind and not other.value) or (other.kind == 1 and not self.kind and not self.value):
+            return Real._invalid()
         if self.kind or other.kind:
             return Real(-float("inf") if negative else float("inf"))
         return Real._result(self.value * other.value, negative)
@@ -135,8 +189,9 @@ class Real:
     def __truediv__(self, other):
         other = Real(other)
         negative = self.negative != other.negative
-        if self.kind == 2 or other.kind == 2 or (self.kind and other.kind) or (not self.kind and not other.kind and not self.value and not other.value):
-            return Real(float("nan"))
+        if self.kind==2 or other.kind==2:return Real._propagate_nan(self,other)
+        if (self.kind and other.kind) or (not self.kind and not other.kind and not self.value and not other.value):
+            return Real._invalid()
         if self.kind or (not other.kind and not other.value):
             return Real(-float("inf") if negative else float("inf"))
         if other.kind:
@@ -172,8 +227,8 @@ class Real:
         return Real(other) <= self
 
     def sqrt(self):
-        if self.kind == 2 or (self.negative and (self.kind or self.value)):
-            return Real(float("nan"))
+        if self.kind==2:return Real._propagate_nan(self)
+        if self.negative and (self.kind or self.value):return Real._invalid()
         if self.kind or not self.value:
             return Real(self)
         shift = max(_exponent(self.value) // 2 - 63, -16445)
@@ -188,7 +243,7 @@ class Real:
     def words(self):
         """Little-endian significand halves and sign/exponent for diagnostics."""
         if self.kind:
-            sig, exponent = (1 << 63) if self.kind == 1 else (3 << 62), 0x7fff
+            sig, exponent = (1 << 63) if self.kind == 1 else self.nan_significand, 0x7fff
         elif not self.value:
             sig, exponent = 0, 0
         else:

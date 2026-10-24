@@ -194,6 +194,11 @@ Implemented so far:
   and reversed order. Typed calls retain the original centerline rounding
   changes; webpage requests start from fresh project geometry. The compiled
   path evaluates the complete cross-winding sum in one batch.
+- Layout length and area follow original `GEOM` accumulation, with a separate
+  `METALAREA` result. All 260 captured complete reports / 3,007 segment operands
+  and 538 direct threshold, extreme and NaN-payload cases match their actual
+  original output stores in both backends. Both areas use stored segment
+  widths and include vias. GDS continues to use the original ribbon edges.
 - Shared mesh settings start with the Python API’s coarse preset
   (1000 µm). Coarse/balanced/fine presets, custom conductor and
   CAP cells, and a filament-count check before electrical solves. “Fit to 256

@@ -1,0 +1,45 @@
+{
+  "reference_commit": "63885e808b522bdeba3f254d353afc72e643c761",
+  "source_sha256": {
+    "src/geometry_reporting.cpp": "dae8d0924fd8b8b82e1e9f726489d316cc7dfb41ec18cf42bb5ef0acae290354",
+    "src/x87.hpp": "14452aaed86d0ec525a7611e387f3a62c9b5ab514d20de4708b2c52c9c925e9b"
+  },
+  "original_entries": {
+    "geom": "0x0804c620",
+    "geom_length_width": "0x0804c67c",
+    "geom_running_F64_stores": "0x0804c693",
+    "geom_return": "0x0804cb8e",
+    "metalarea": "0x0804ee74",
+    "metalarea_length_width": "0x0804eebb",
+    "metalarea_accumulator": "0x0804eece",
+    "metalarea_return": "0x0804eedb",
+    "formatted_output": "0x0804ae04"
+  },
+  "record_stride": 7,
+  "record_fields": [
+    "x0",
+    "y0",
+    "z0",
+    "x1",
+    "y1",
+    "z1",
+    "stored_width"
+  ],
+  "result_fields": [
+    "GEOM_length_F64",
+    "GEOM_area_F64",
+    "METALAREA_F64",
+    "METALAREA_R80_low",
+    "METALAREA_R80_high",
+    "METALAREA_R80_exponent"
+  ],
+  "nan_sources": {
+    "native/softfloat/8086/s_propagateNaNExtF80UI.c": "971520af064f13d2d51048db93b054c714e55548cb8264ee7e1989a1998f661d",
+    "native/softfloat/8086/s_f64UIToCommonNaN.c": "f8a56a1b9a7a90eab8dbb08ea7bdee5b54932d80914abb799f1bba4104e52b2f",
+    "native/softfloat/8086/s_commonNaNToExtF80UI.c": "8ce4038f45501e75c2f2706a8821f677203e630a7c461d0f90bcee7b42462b9e",
+    "native/softfloat/8086/s_extF80UIToCommonNaN.c": "84b0ee8b1cbab018772f921040ea3e01b36c677013a59bdff9ba2f5d66662ba6",
+    "native/softfloat/8086/s_commonNaNToF64UI.c": "060cbb93d934c82871aa7a110a4ebb7681d16188ad11d828c76605d4b3877342",
+    "native/softfloat/8086/specialize.h": "692eed54023bd675be54be8d4b2cd48e963d422ffa68293c8e948cff5d878dd9"
+  },
+  "adaptation": "Literal GEOM F64 running length and length*stored-width area stores for every primary segment (including vias); METALAREA uses the original strict 1e-10 length gate and retained accumulation. Geometry norm follows FLDL endpoint, FSUBL start memory operands, and the exact square/add/sqrt order. Arithmetic memory sources retain signaling-NaN status until propagation, unlike a preceding FLD. Portable Real preserves NaN payload/sign, 8086 propagation and invalid indefinite values; decoded compiled words retain payloads too. SoftFloat license is included in the Python source package. 264 original CLI creation histories retain 260 executed GEOM/METALAREA reports, 3007 segment operands and accumulators, raw area returns and actual sprintf stores; four original lowercase generated-name lookup failures are retained. 538 direct intact-original cases additionally exercise empty/short vectors, threshold neighbors, large/small exponents, signed zeros, nonfinite invalid operations and paired quiet/signaling NaN payloads. All 798 captured L/area/METALAREA F64 stores and raw area words are strict gates in both backends. Previous 39cdf9c browser geometry metrics differed in 67/260 L and 236/260 area stores. No fixture data, fitting or oracle adjustment in runtime. These checks do not establish unrestricted x87 flags, encodings, geometry, parser or whole-simulator equivalence."
+}

@@ -199,6 +199,7 @@ function render(shape) {
   $("#stat-segments").textContent=shape.segments.length;
   $("#stat-length").textContent=fmt(shape.length)+" µm";
   $("#stat-area").textContent=fmt(shape.area)+" µm²";
+  $("#stat-metal-area").textContent=fmt(shape.metal_area)+" µm²";
   $("#stat-dc").textContent=fmt(shape.dc_ohm)+" Ω";
   $("#warnings").hidden=!shape.warnings.length; $("#warnings").textContent=shape.warnings.join(" ");
   fit();

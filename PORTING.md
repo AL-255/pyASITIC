@@ -1370,3 +1370,78 @@ kernel. That previous browser path differs in **260 / 428 M** and **303 / 428 k*
 stores; the port corrects those captured command outputs without fitted constants
 or embedded reference results. This does not establish unrestricted original
 parser, CPU transcendental, nonfinite payload or whole-simulator equivalence.
+
+
+### Reversed COUPLING pair instruction trace
+
+`capture_coupling_command_traces_original.py` traces the remaining contribution
+in `paired_original/92`, reversed call index 2, pair index 1653, within its
+unchanged complete repeated/reversed COUPLING history. It counts only segment
+calls returning to native `0x0804d113`, leaving the intervening INDUCTANCE calls
+unchanged. The observer records six helper calls and then terminates after the
+selected pair returns; this does not assert native command termination.
+
+The strict mutual command audit now covers five complete-command pair traces
+and 126 math instruction events. All five canonical statuses/coordinate records
+match. The newly traced effective separation and two of its three self-helper
+raw returns match. The other self helper first differs at FYL2X `0x0806433f` by
+one extended ULP; its later self return differs by two extended ULP, producing
+the already recorded four-F64-ULP pair difference. No fitted adjustment or
+replacement instruction implementation is introduced. The strict audit still
+exits 1 and retains all five differing final pair stores.
+
+### Original GEOM and METALAREA geometry metrics
+
+The previous webpage computed length using Python's `math.dist` and builtin
+`sum`, and area by a planar polygon shoelace sum. The original GEOM command
+instead uses retained coordinate subtraction, square/add/sqrt order and stored
+segment width, with a binary64 length/area accumulator store after every primary
+segment. METALAREA is a separate retained sum, admitting only segments whose
+3D length is strictly greater than the original `1e-10` threshold. Both count
+via segments. These commands do not compute a union of GDS polygons.
+
+`geometry_metrics.py` and `native/geometry_metrics.cpp` port these exact loops.
+`Shape.to_dict()` and the webpage now expose the actual GEOM length/area plus
+METALAREA, while GDS polygons continue to use the native ribbon-edge records.
+The compiled path uses one batch, bounded at 20,000 records; larger typed
+geometries retain the portable path. Geometry/material words form a bounded
+cache key, including signed zero; all original records remain untouched.
+
+The data-only CLI capture runs 264 creation histories: all 56 conductor
+histories, both windings of all 98 paired creators, eight symmetric sessions and
+four inner-opening sessions. It retains **260 executed original GEOM/METALAREA
+reports, 3,007 primary-segment operands and accumulator events**, complete raw
+METALAREA returns and actual sprintf stores. Four lowercase generated-name
+lookups fail in the original and remain recorded. For duplicate-name native
+lookups, the actual consumed winding is matched against the original parent
+constructor records, with requested index and actual matches retained. No
+numerical instructions, inputs, allocator, descriptors or runtime imports were
+modified.
+
+A separate probe executes intact original GEOM/METALAREA functions on **538
+supplied record lists**, including empty vectors, threshold neighbors, signed
+zeros, very large/small exponents, invalid nonfinite arithmetic and paired
+signaling/quiet NaN payloads. Only nonnumerical sprintf/status sinks are replaced;
+the formatter copies the actual original variadic GEOM words. The complete
+original creator histories remain separate from this direct primitive probe.
+
+Those cases exposed payload loss in the common portable retained scalar and
+compiled-word decoder. `Real` now preserves NaN significands/sign, propagates them
+using the already vendored Berkeley SoftFloat 3e 8086 rules, and uses the native
+negative indefinite for invalid arithmetic. Its `memory_operand` distinguishes
+an arithmetic sNaN memory source from a preceding FLD, which quiets that source.
+The distinction is required for the original FSUBL coordinate differences; it
+is reproduced in both geometry backends. The SoftFloat redistribution notice
+and license accompany the Python package. Exception flags and unrestricted
+unsupported extended encodings are still outside these checks.
+
+All **798** captured GEOM length, GEOM area, METALAREA F64 and raw area-return
+stores pass a strict bitwise audit in both backends, including all captured NaN
+words. Every CLI operand and intermediate accumulator also matches. The prior
+`39cdf9c` browser source differs in **67 / 260 length** and **236 / 260 area**
+results. Actual project/display handlers are checked for all 260 reports,
+followed by a GDS download without geometry mutation and an exact original Pi2
+Y/S model. Array shape/count checks, immutable transport inputs and rejected-call
+recovery are required. No fixture data or original output lookup is used by the
+runtime. These captures do not prove arbitrary geometry, NaN encoding, FPU flag,
+parser or whole-simulator equality.

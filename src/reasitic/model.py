@@ -4,7 +4,6 @@ All geometry is in micrometres. Coordinates are local to the shape origin.
 Separate ribbon edges are retained rather than inferred from a centerline.
 """
 from dataclasses import dataclass, field, asdict
-import math
 from .retained_scalar import Real as R
 
 
@@ -36,7 +35,8 @@ class Segment:
 
     @property
     def length(self):
-        return math.dist(self.start, self.end)
+        from .geometry_metrics import segment_length
+        return float(segment_length(self.start,self.end))
 
     @property
     def area(self):
@@ -101,6 +101,7 @@ class Shape:
 
     def to_dict(self):
         data = asdict(self)
-        data.update(bounds=self.bounds, length=sum(s.length for s in self.segments),
-                    area=sum(s.area for s in self.segments))
+        from .geometry_metrics import retained_geometry_metrics
+        length,area,metal_area=retained_geometry_metrics(self)
+        data.update(bounds=self.bounds,length=length,area=area,metal_area=float(metal_area))
         return data

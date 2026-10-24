@@ -27,10 +27,7 @@ def _records(shape,technology):
 
 
 def _operand(words):
-    low,high,exponent=(int(v)for v in words);sig=low|(high<<32);power=exponent&0x7fff;negative=bool(exponent&0x8000)
-    if power==0x7fff:return R(math.copysign(math.inf,-1 if negative else 1)if sig==1<<63 else math.nan)
-    if not sig:return R(-0. if negative else 0.)
-    return R(Fraction(-sig if negative else sig)*Fraction(2)**((power or 1)-16383-63))
+    return R.from_words(*words)
 
 
 def _self_and_dc(rows,observe=None):

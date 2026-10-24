@@ -5,7 +5,7 @@ than replacing native words with ideal mathematical results or accepting a
 numeric tolerance. Helper replay uses each actual native call's inputs, which
 separates an instruction difference from later propagation through cancellation.
 """
-import collections,hashlib,json,struct,sys
+import collections,gzip,hashlib,json,struct,sys
 from decimal import Decimal,localcontext
 from fractions import Fraction
 from pathlib import Path
@@ -56,12 +56,19 @@ def instruction(event):
 def main():
     directory=ROOT/'tests/fixtures';fixture=json.loads((directory/'mutual_command_traces_original.json').read_text());parent=directory/'conductor_metrics_original.json'
     assert hashlib.sha256(parent.read_bytes()).hexdigest()==fixture['parent_sha256']
-    parents=json.loads(parent.read_text())['cases'];counts=collections.Counter();differences=collections.Counter();details=[]
+    parents=json.loads(parent.read_text())['cases'];counts=collections.Counter();differences=collections.Counter();details=[];jobs=[]
     for c in fixture['cases']:
-        label=f"{c['parent_case']}/{c['parent_pair']}";p=parents[c['parent_case']];pair=p['inductance'][0]['pairs'][c['parent_pair']];records=rows(p)
-        expected_inputs=[[*records[pair[key]][:6],*records[pair[key]][14:16]]for key in('first','second')]
-        assert bytes.fromhex(c['input_bits'])==struct.pack('<16d',*expected_inputs[0],*expected_inputs[1])
-        assert c['output_bits']==pair['value_bits']
+        p=parents[c['parent_case']];pair=p['inductance'][0]['pairs'][c['parent_pair']];records=rows(p)
+        args=[[*records[pair[key]][:6],*records[pair[key]][14:16]]for key in('first','second')]
+        assert bytes.fromhex(c['input_bits'])==struct.pack('<16d',*args[0],*args[1]);assert c['output_bits']==pair['value_bits']
+        jobs.append((f"INDUCTANCE/{c['parent_case']}/{c['parent_pair']}",c,args))
+    coupled=json.loads((directory/'coupling_command_traces_original.json').read_text());parent=directory/'coupling_original.json.gz'
+    assert hashlib.sha256(parent.read_bytes()).hexdigest()==coupled['parent_sha256'];parents=json.loads(gzip.decompress(parent.read_bytes()))['cases']
+    for c in coupled['cases']:
+        pair=parents[c['parent_case']]['calls'][c['parent_call']]['pairs'][c['parent_pair']]
+        assert c['input_bits']==pair['input_bits'];assert c['output_bits']==pair['value_bits'];args=doubles(c['input_bits'])
+        jobs.append((f"COUPLING/{c['parent_case']}/{c['parent_call']}/{c['parent_pair']}",c,[args[:8],args[8:]]))
+    for label,c,expected_inputs in jobs:
         assert c['control_before']==c['control_after']==0x37f
         def compare(category,actual,want,where):
             counts[category]+=1
