@@ -16,6 +16,7 @@ Reference checkout: `~/github/asitic-re`, revision recorded in each fixture.
 | `solver.py` | `geometry.cpp`, `filament_setup.cpp`, `filaments.cpp`, `impedance.cpp`, `vias.cpp`, `solver.cpp` | 36 complete C++ LMAT matrices: coarse 1 GHz, refined 2 GHz, and unequal inductive/capacitive length cells; within 1e-8 Ω per component in CPython and WebAssembly |
 | `impedance.py`, `native/impedance.cpp` | `impedance.cpp`, `geometry.cpp` | 23 actual original complete upper matrices / 4,648 exact components, 2,094 original mesh-pair outputs, immutable input and symmetric reconstruction checks; actual original longitudinal clone fields including refined polygons |
 | `polygon.py`, `native/polygon.cpp` | `spiral_construction.cpp`, `shape_construction.cpp` | 42 actual original creator calls / 12,288 raw XY stores exact in portable Python and compiled WebAssembly; fractional turns, 3–32 sides, positive/negative rotations and production inputs |
+| `ring.py`, `geometry.py`, `command_numbers.py` | `winding_construction.cpp`, `command_runtime.cpp`; original ring `0x0805b450` | 45 original creators / 12,588 exact XY stores in Python and WebAssembly; full keyword/default snap inputs, 3–128 sides, gap/orientation boundaries; three complete original Pi2 Y/model/S/resonance sessions including eddy; independent GDS readback and actual form/project/model/export handlers |
 | `potential.py` | `potential_tables.cpp`, `potential.cpp`, `contacts.cpp`, `potential_solver.cpp` | Eight CAP sessions across CMOS/BiCMOS: full potential snapshots, folded admittance matrices, and actual cache FFT samples for every metal pair; browser runtime checks cover all eight reduced matrices |
 | `contact_math.py`, `native/contact.cpp` | Original `0x080901c0`; `potential.cpp`, legacy complex DSO | All 41 captured contact matrices / 264,844 components exact in Python and WebAssembly: finite bits including signed zeros, nonfinite classes and both complete 256-contact digests; input table hashes and metadata immutability; ordered zero-term reuse checked across process/frequency edits |
 | `fft.py`, `native/fft.c` | Original machine-code routine at `0x080912c0`; `potential_tables.cpp` | 83 direct original-binary FFT/reflected-grid cases, 17,342 bit-identical binary64 output components including signed zeros/subnormals, verified in Python and compiled WebAssembly; pinned compiler reproduces the module byte for byte |
@@ -645,3 +646,24 @@ frequency products and final matrix additions. All 1,214 existing original
 via records now require exact finite binary64 bits in Python too, including
 signed zero; nonfinite outputs retain their classifications. No fixture
 outputs or tolerances were loosened.
+
+Ring vertices now follow `build_ring_shape` through the rounded cosine and
+ribbon stores, live retained step/radii/angles, final center-X cosine spill,
+native bounds traversal and retained recentering offsets. All 45 unchanged
+original creator captures require every center/outer/inner XY bit, including
+gap zero/full-turn cases and negative orientations. Three additional original
+ring electrical sessions require every raw Y/model/S store and the finite
+resonance return in both Python and WebAssembly, with eddy off/on.
+
+New webpage ring definitions set `native_keyword=true`. This applies original
+type-7 length scaling, binary32 stores and the default binary64 0.1 um snap
+grid, plus both type-10 angle stores and the original asymmetric negative wrap.
+Direct typed dimensions remain binary64 and unsnapped unless this flag is
+selected. The flag is preserved through simulation, GDS and saved projects;
+other creator keyword boundaries remain separate work. Existing projects keep
+their stored input mode when loaded; newly generated webpage rings select the
+native keyword boundary. Actual DOM tests independently decode downloaded
+GDS coordinates against the original rows and compare the downloaded Pi model
+against original electrical stores. Project form restoration also resolves
+named metal/via layers to selector indices, preventing regeneration on the
+default top metal after loading a named-layer project.

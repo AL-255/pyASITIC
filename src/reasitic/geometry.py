@@ -1,7 +1,8 @@
 """Direct ports of shape_construction, spiral_construction and winding_construction.
 
-Python uses binary64 arithmetic rather than the reference's x87 intermediates;
-the algorithm and ribbon construction are preserved, not bitwise rounding.
+Polygon spirals and rings retain original intermediate arithmetic and stores.
+Other builders preserve their algorithms; broader bitwise geometry parity is
+still being verified against the original executable.
 """
 import copy
 import math
@@ -131,34 +132,31 @@ def _polygon(shape, tech, metal, radius, sides, width, spacing, turns, angle):
 
 
 def _ring(shape, tech, metal, radius, sides, width, gap, angle):
-    gap = abs(gap)
-    step = (2*math.pi-gap)/(sides-1)
-    ribbon = width/math.cos(math.pi/sides)
-    def vertex(theta):
-        return [(math.cos(theta)*r,math.sin(theta)*r)
-                for r in (radius,radius-ribbon/2,radius-ribbon)]
-    outer,center,inner = vertex(gap/2+angle)
-    for i in range(1,sides):
-        theta = angle-gap/2 if i == sides-1 else step*i+gap/2+angle
-        no,nc,ni = vertex(theta)
-        shape.segments.append(_segment(tech, metal, width, center,nc,outer,no,inner,ni))
-        outer,center,inner = no,nc,ni
-    x0,y0,x1,y1 = shape.bounds
-    shape.offset((x1-x0)/2,(y1-y0)/2)
+    from .ring import vertices
+    for row in vertices(radius,sides,width,gap,angle):
+        shape.segments.append(_segment(tech,metal,width,row[0:2],row[2:4],row[4:6],row[6:8],row[8:10],row[10:12]))
 
 
-def build(kind="square", *, technology=None, **parameters):
+def build(kind="square", *, technology=None, native_keyword=False, **parameters):
     """Build a shape using micrometre dimensions and degree orientation/gap.
 
     `length` / `height` are outer square dimensions; `radius` is the native
     polygon vertex radius. Fractional turns are truncated to 1/sides, as ASITIC
     does. Origin is a separate translation and is never folded into segments.
+    For rings, native_keyword=True applies the original keyword parser's
+    default 0.1 um snap grid and binary32 degree/radian stores. Other typed
+    calls retain binary64 dimensions and ordinary degree inputs.
     """
     tech = technology or Technology.default()
     kind = kind.lower()
     if kind not in KINDS:
         raise ValueError(f"Unsupported generator: {kind}")
     p = dict(parameters)
+    if native_keyword:
+        if kind!='ring':raise ValueError('Native keyword input mode currently supports ring geometry')
+        from .command_numbers import length_um
+        for key,default in(('radius',50),('width',5),('x',0),('y',0)):
+            p[key]=length_um(p.get(key,default),grid_size=.1)
     def num(key, default):
         value = float(p.get(key, default))
         if not math.isfinite(value):
@@ -284,7 +282,11 @@ def build(kind="square", *, technology=None, **parameters):
             raise ValueError("Gap must be between −360 and 360 degrees")
         if width >= radius*math.cos(math.pi/sides):
             raise ValueError("Ring width must leave a positive inner radius")
-        _ring(shape,tech,metal,radius,sides,width,math.radians(gap),radians)
+        if native_keyword:
+            from .command_numbers import angle_radians
+            gap,radians=angle_radians(gap),angle_radians(angle)
+        else:gap=math.radians(gap)
+        _ring(shape,tech,metal,radius,sides,width,gap,radians)
     else:
         index = tech.via_index(p.get("via",0))
         nx,ny = num("nx",2),num("ny",2)

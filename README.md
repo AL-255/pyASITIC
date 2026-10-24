@@ -190,6 +190,14 @@ main commit. Active validation is retained when another commit is pushed.
 
 Python API:
 
+Ring creation preserves the original retained vertex arithmetic, including
+its final endpoint spill and recentering. New webpage rings also use ASITIC's
+keyword parsing and default 0.1 µm snap grid. Python can select that boundary
+with `build("ring", native_keyword=True, ...)`; JSON requests use the same
+top-level flag. Ordinary typed ring calls retain unsnapped binary64 dimensions.
+The exact gate covers 45 original creators / 12,588 XY stores and three complete
+original Pi2 sessions, including eddy correction and finite resonance results.
+
 The webpage's GHz inputs follow the original command parser: read a double,
 multiply by 1e9 with retained precision, then store binary32 Hz. For example,
 `0.1234567` GHz is solved at `123456704` Hz. Plots and CSV exports use the

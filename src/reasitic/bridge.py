@@ -39,7 +39,11 @@ def _shape(request,tech):
 
 
 def _shapes(request,tech):
-    return build_device(request.get("kind","square"),technology=tech,**request.get("parameters",{}))
+    kind=request.get('kind','square').lower();parameters=dict(request.get('parameters',{}))
+    if request.get('native_keyword',False):
+        if kind!='ring':raise ValueError('Native keyword input mode currently supports ring geometry')
+        parameters['native_keyword']=True
+    return build_device(kind,technology=tech,**parameters)
 
 
 def handle(request,*,progress=None):

@@ -67,7 +67,13 @@ function definition() {
   const values = Object.fromEntries(new FormData(form));
   const kind = values.kind; delete values.kind;
   for (const key of Object.keys(values)) if (!["name", "metal", "exit_metal", "bottom_metal", "via"].includes(key)) values[key] = Number(values[key]);
-  return {kind,parameters:values,winding:0};
+  return {kind,parameters:values,winding:0,...(kind==="ring"?{native_keyword:true}:{})};
+}
+function restoreFormParameter(key,value){
+  const input=form.elements.namedItem(key);if(!input)return;
+  const layers=key==="via"?technology.vias:["metal","exit_metal","bottom_metal","secondary_metal"].includes(key)?technology.metals:null;
+  const index=layers?.findIndex(layer=>layer.name.toUpperCase()===String(value).toUpperCase())??-1;
+  input.value=String(index>=0?index:value);
 }
 function meshSettings(){
   const mesh=Object.fromEntries(Object.entries(MESH_FIELDS).map(([key,id])=>[key,numeric("#"+id)]));
@@ -102,6 +108,7 @@ $("#mesh-fit").addEventListener("click",()=>task(async()=>{
 }));
 function showFields() {
   const kind = $("#kind").value;
+  $("#ring-input-note").hidden=kind!=="ring";
   $("#secondary-metal").parentElement.firstChild.nodeValue=kind==="transformer3d"?"Secondary winding metal":"Crossover metal";
   for (const label of form.querySelectorAll("[data-kinds]")) {
     const visible = label.dataset.kinds.split(" ").includes(kind);
@@ -593,7 +600,7 @@ $("#project-file").addEventListener("change",event=>task(async()=>{
   const restored=await request({action:"build",...data.shape,technology:text});
   technologyText=text;fillTechnology(init);
   $("#kind").value=data.shape.kind;showFields();
-  for(const [key,value] of Object.entries(data.shape.parameters)) if(form.elements.namedItem(key))form.elements.namedItem(key).value=String(value);
+  for(const [key,value] of Object.entries(data.shape.parameters))restoreFormParameter(key,value);
   if(restoredMesh)applyMesh(restoredMesh);
   currentDefinition=data.shape;current=restored;render(current);resetResults();status("Project restored. Run analysis on the selected winding.");
   event.target.value="";
