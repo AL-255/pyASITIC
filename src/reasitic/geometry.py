@@ -1,6 +1,7 @@
 """Direct ports of shape_construction, spiral_construction and winding_construction.
 
-Polygon spirals and rings retain original intermediate arithmetic and stores.
+Squares, polygon spirals, rings and via emission retain original intermediate
+arithmetic and stores, including origin translation after rotation/reflection.
 Other builders preserve their algorithms; broader bitwise geometry parity is
 still being verified against the original executable.
 """
@@ -8,6 +9,7 @@ import copy
 import math
 from .model import Shape, Segment
 from .technology import Technology
+from .retained_scalar import Real as R
 
 KINDS = ("square", "polygon", "symmetric_square", "symmetric_polygon", "wire", "ring", "via", "capacitor", "multimetal")
 
@@ -22,13 +24,14 @@ def _segment(tech, metal, width, start, end, outer_start, outer_end, inner_start
 
 def _via(tech, index, nx, ny, x=0, y=0):
     v = tech.vias[index]
-    length = (nx-1)*v.spacing+v.width*nx
-    height = v.width*ny+v.spacing*(ny-1)
-    left, right = x-length/2, x+length/2
-    top, bottom = y+height/2, y-height/2
+    x,y=float(x),float(y)
+    length = (R(nx)-R(1))*R(v.spacing)+R(v.width)*R(nx)
+    height = R(v.width)*R(ny)+R(v.spacing)*(R(ny)-R(1))
+    left, right = float(R(x)-length*R(.5)),float(R(x)+length*R(.5))
+    top, bottom = float(R(y)+height*R(.5)),float(R(y)-height*R(.5))
     low, high = tech.metals[v.bottom].geometry_height, tech.metals[v.top].geometry_height
     return Segment([left,y,low], [right,y,high], [left,top,low], [right,top,high],
-                   [left,bottom,low], [right,bottom,high], height, 0,
+                   [left,bottom,low], [right,bottom,high], float(height), 0,
                    len(tech.metals)+index, nx, ny)
 
 
@@ -38,43 +41,44 @@ def _via_pair(shape, tech, a, b, width, x, y, dy=0):
     for i, v in enumerate(tech.vias):
         if {v.bottom, v.top} == {a,b}:
             overplot = max(v.overplot1, v.overplot2)
-            count = int((width-2*overplot+v.spacing)/(v.spacing+v.width))
-            if count <= 0:
+            count = int((((R(width)-(R(overplot)+R(overplot)))+R(v.spacing))/(R(v.spacing)+R(v.width))).value)
+            if count == 0:
                 shape.warnings.append("Insufficient space to insert via.")
             else:
-                radius = ((count-1)*v.spacing+count*v.width)/2+overplot
-                shape.segments.append(_via(tech, i, count, count, x, y+radius*dy))
+                radius = (((R(count)-R(1))*R(v.spacing)+R(count)*R(v.width))*R(.5))+R(overplot)
+                shape.segments.append(_via(tech, i, count, count, float(R(x)),float(radius*R(dy)+R(y))))
             return
     shape.warnings.append(f"No via layer connects metal {a} to metal {b}.")
 
 
 def _square(shape, tech, metal, exit_metal, dx, dy, width, spacing, turns, angle, phase):
     full = int(turns)
-    fraction = int(turns*4-full*4)
-    pitch, half = width+spacing, width/2
+    fraction = int((R(turns)*R(4)-R(full)*R(4)).value)
+    w=R(width);x_dimension,y_dimension=R(dx),R(dy)
+    pitch, half = float(w+R(spacing)),w*R(.5)
     current = None
     last_raw = None
     direction = 0
     for turn in range(1, full+2):
         direction = 0
         if turn == full+1 and fraction == 0:
-            shape.segments[-1].end[1] = shape.segments[-1].inner_end[1]-width
+            shape.segments[-1].end[1] = float(R(shape.segments[-1].inner_end[1])-w)
             shape.segments[-1].outer_end[1] = shape.segments[-1].inner_end[1]
             break
-        shift = pitch*(turn-1)
-        x1, y1 = dx-shift, dy-shift
-        ix, iy = x1-width, y1-width
+        shift = R(pitch)*R(turn-1)
+        x1, y1 = x_dimension-shift, y_dimension-shift
+        ix, iy = x1-w, y1-w
         cx, cy = x1-half, y1-half
-        so = 0 if turn == 1 else pitch*(turn-2)
-        si = 0 if turn == 1 else so+width
+        so = R(0) if turn == 1 else R(pitch)*R(turn-2)
+        si = R(0) if turn == 1 else so+w
         sp = 0 if turn == 1 else so+half
-        lo, lc = shift+width, shift+half
-        next_y = dy-pitch*turn
+        lo, lc = shift+w, shift+half
+        next_y = y_dimension-R(pitch)*R(turn)
         records = [
             ((sp,cy),(cx,cy),(so,y1),(x1,y1),(si,iy),(ix,iy)),
             ((cx,cy),(cx,lc),(x1,y1),(x1,shift),(ix,iy),(ix,lo)),
             ((cx,lc),(lc,lc),(x1,shift),(shift,shift),(ix,lo),(lo,lo)),
-            ((lc,lc),(lc,next_y-half),(shift,shift),(shift,next_y),(lo,lo),(lo,next_y-width)),
+            ((lc,lc),(lc,next_y-half),(shift,shift),(shift,next_y),(lo,lo),(lo,next_y-w)),
         ]
         for side, record in enumerate(records, 1):
             current = _segment(tech, metal, width, *record)
@@ -85,7 +89,7 @@ def _square(shape, tech, metal, exit_metal, dx, dy, width, spacing, turns, angle
             if turn == full+1 and fraction == side:
                 axis = 0 if side in (1,3) else 1
                 sign = -1 if side == 1 else 1
-                current.end[axis] = current.inner_end[axis]+sign*width
+                current.end[axis] = float(R(current.inner_end[axis])+R(sign)*w)
                 current.outer_end[axis] = current.inner_end[axis]
                 break
         if turn == full+1:
@@ -95,19 +99,19 @@ def _square(shape, tech, metal, exit_metal, dx, dy, width, spacing, turns, angle
         vx = -1 if direction == 1 else 1 if direction == 3 else 0
         vy = -1 if direction == 0 else 1 if direction == 2 else 0
         _via_pair(shape, tech, metal, exit_metal, width,
-                  last_raw.end[0]+width*vx, last_raw.end[1]+width*vy)
+                  float(w*R(vx)+R(last_raw.end[0])),float(w*R(vy)+R(last_raw.end[1])))
         outer_start, inner_start, start = tail.outer_end[:2], tail.inner_end[:2], tail.end[:2]
         if direction in (1,3):
-            delta = -width if direction == 1 else width
-            outer_start[0] += delta
-            inner_start[0] += delta
-            end = [width+dx if direction == 1 else -width, start[1]]
+            delta = -w if direction == 1 else w
+            outer_start[0] = float(R(outer_start[0])+delta)
+            inner_start[0] = float(R(inner_start[0])+delta)
+            end = [float(w+x_dimension) if direction == 1 else float(-w), start[1]]
             outer_end, inner_end = [end[0],outer_start[1]], [end[0],inner_start[1]]
         else:
-            delta = -width if direction == 0 else width
-            outer_start[1] += delta
-            inner_start[1] += delta
-            end = [start[0], width+dy if direction == 0 else -width]
+            delta = -w if direction == 0 else w
+            outer_start[1] = float(R(outer_start[1])+delta)
+            inner_start[1] = float(R(inner_start[1])+delta)
+            end = [start[0],float(w+y_dimension) if direction == 0 else float(-w)]
             outer_end, inner_end = [outer_start[0],end[1]], [inner_start[0],end[1]]
         # Native exit construction updates heights and metal, retaining the
         # winding thickness in the local segment record.
@@ -116,8 +120,8 @@ def _square(shape, tech, metal, exit_metal, dx, dy, width, spacing, turns, angle
         shape.segments.append(s)
     else:
         axis = 0 if direction in (1,3) else 1
-        delta = width if direction in (0,1) else -width
-        tail.inner_end[axis] += delta
+        delta = w if direction in (0,1) else -w
+        tail.inner_end[axis] = float(R(tail.inner_end[axis])+delta)
         tail.end[axis] = tail.outer_end[axis] = tail.inner_end[axis]
     shape.rotate(angle)
     if phase < 0:
@@ -143,7 +147,7 @@ def build(kind="square", *, technology=None, native_keyword=False, **parameters)
     `length` / `height` are outer square dimensions; `radius` is the native
     polygon vertex radius. Fractional turns are truncated to 1/sides, as ASITIC
     does. Origin is a separate translation and is never folded into segments.
-    For rings, native_keyword=True applies the original keyword parser's
+    For rings and squares, native_keyword=True applies the original parser's
     default 0.1 um snap grid and binary32 degree/radian stores. Other typed
     calls retain binary64 dimensions and ordinary degree inputs.
     """
@@ -153,10 +157,14 @@ def build(kind="square", *, technology=None, native_keyword=False, **parameters)
         raise ValueError(f"Unsupported generator: {kind}")
     p = dict(parameters)
     if native_keyword:
-        if kind!='ring':raise ValueError('Native keyword input mode currently supports ring geometry')
-        from .command_numbers import length_um
-        for key,default in(('radius',50),('width',5),('x',0),('y',0)):
+        if kind not in('ring','square'):raise ValueError('Native keyword input mode currently supports ring and square geometry')
+        from .command_numbers import length_um,binary32
+        fields=(('radius',50),('width',5),('x',0),('y',0))if kind=='ring'else(('length',100),('height',p.get('length',100)),('width',5),('spacing',2),('x',0),('y',0))
+        for key,default in fields:
             p[key]=length_um(p.get(key,default),grid_size=.1)
+        if kind=='square':
+            p['turns']=binary32(float(p.get('turns',2)))
+            p.setdefault('exit_metal',len(tech.metals)-2)
     def num(key, default):
         value = float(p.get(key, default))
         if not math.isfinite(value):
@@ -185,6 +193,9 @@ def build(kind="square", *, technology=None, native_keyword=False, **parameters)
     exit_metal = -1 if str(exit_value) in ("-1","none","") else tech.metal_index(exit_value)
     shape = Shape(name,kind,[num("x",0),num("y",0)],p)
     radians = math.radians(angle)
+    if native_keyword:
+        from .command_numbers import angle_radians
+        radians=angle_radians(angle)
     if kind in ("symmetric_square","symmetric_polygon"):
         from .symmetric_geometry import symmetric_square, symmetric_polygon
         inner_gap = num("inner_gap",width+spacing)
@@ -222,8 +233,15 @@ def build(kind="square", *, technology=None, native_keyword=False, **parameters)
         raw_turns = num("turns",2)
         if raw_turns <= 0:
             raise ValueError("Turns must be positive")
-        maximum = ((spacing+length)/(spacing+width)+(spacing+height)/(spacing+width))/4 if count==4 and kind!="polygon" else math.cos(math.pi/count)*radius/(spacing+width)
-        maximum = math.floor(maximum*count)/count
+        if native_keyword and kind=='square':
+            denominator=R(spacing)+R(width)
+            native_maximum=(((R(spacing)+R(length))/denominator+(R(spacing)+R(height))/denominator)*R(.25))
+            whole=math.floor(native_maximum.value)
+            product=float((native_maximum-R(whole))*R(4))
+            maximum=float(R(math.floor(product))/R(4)+R(whole))
+        else:
+            maximum = ((spacing+length)/(spacing+width)+(spacing+height)/(spacing+width))/4 if count==4 and kind!="polygon" else math.cos(math.pi/count)*radius/(spacing+width)
+            maximum = math.floor(maximum*count)/count
         if raw_turns > maximum:
             raise ValueError(f"Dimensions support at most {maximum:g} turns")
         turns = math.floor(raw_turns*count)/count

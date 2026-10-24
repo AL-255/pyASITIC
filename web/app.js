@@ -67,7 +67,7 @@ function definition() {
   const values = Object.fromEntries(new FormData(form));
   const kind = values.kind; delete values.kind;
   for (const key of Object.keys(values)) if (!["name", "metal", "exit_metal", "bottom_metal", "via"].includes(key)) values[key] = Number(values[key]);
-  return {kind,parameters:values,winding:0,...(kind==="ring"?{native_keyword:true}:{})};
+  return {kind,parameters:values,winding:0,...(["ring","square"].includes(kind)?{native_keyword:true}:{})};
 }
 function restoreFormParameter(key,value){
   const input=form.elements.namedItem(key);if(!input)return;
@@ -108,7 +108,7 @@ $("#mesh-fit").addEventListener("click",()=>task(async()=>{
 }));
 function showFields() {
   const kind = $("#kind").value;
-  $("#ring-input-note").hidden=kind!=="ring";
+  $("#ring-input-note").hidden=!["ring","square"].includes(kind);
   $("#secondary-metal").parentElement.firstChild.nodeValue=kind==="transformer3d"?"Secondary winding metal":"Crossover metal";
   for (const label of form.querySelectorAll("[data-kinds]")) {
     const visible = label.dataset.kinds.split(" ").includes(kind);

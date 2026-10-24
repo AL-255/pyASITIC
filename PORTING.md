@@ -17,6 +17,8 @@ Reference checkout: `~/github/asitic-re`, revision recorded in each fixture.
 | `impedance.py`, `native/impedance.cpp` | `impedance.cpp`, `geometry.cpp` | 23 actual original complete upper matrices / 4,648 exact components, 2,094 original mesh-pair outputs, immutable input and symmetric reconstruction checks; actual original longitudinal clone fields including refined polygons |
 | `polygon.py`, `native/polygon.cpp` | `spiral_construction.cpp`, `shape_construction.cpp` | 42 actual original creator calls / 12,288 raw XY stores exact in portable Python and compiled WebAssembly; fractional turns, 3–32 sides, positive/negative rotations and production inputs |
 | `ring.py`, `geometry.py`, `command_numbers.py` | `winding_construction.cpp`, `command_runtime.cpp`; original ring `0x0805b450` | 45 original creators / 12,588 exact XY stores in Python and WebAssembly; full keyword/default snap inputs, 3–128 sides, gap/orientation boundaries; three complete original Pi2 Y/model/S/resonance sessions including eddy; independent GDS readback and actual form/project/model/export handlers |
+| `geometry.py` square/via emission, `model.py`, `precision.py` | `spiral_construction.cpp`, `shape_construction.cpp`, `geometry.cpp`; original square `0x08056670` | 126 complete original creators / 14,742 exact XYZ stores plus origins, widths, metal/thickness and defined via counts; keyword/interactive inputs, quarter-turn boundaries, rotations, reverse phase and exits; four complete original Pi2 electrical sessions and independent GDS readback |
+| `contact_geometry.py`, `potential.py` | `contacts.cpp`; original preparation `0x08053580` / builder `0x08053a1c` | 50 original setups / 280 builder calls / 338 physical-bound and integer-grid records in Python and WebAssembly; retained placement, native counts/order, parser-forced reference mesh and original thin-wire grid/zero-area histories |
 | `potential.py` | `potential_tables.cpp`, `potential.cpp`, `contacts.cpp`, `potential_solver.cpp` | Eight CAP sessions across CMOS/BiCMOS: full potential snapshots, folded admittance matrices, and actual cache FFT samples for every metal pair; browser runtime checks cover all eight reduced matrices |
 | `contact_math.py`, `native/contact.cpp` | Original `0x080901c0`; `potential.cpp`, legacy complex DSO | All 41 captured contact matrices / 264,844 components exact in Python and WebAssembly: finite bits including signed zeros, nonfinite classes and both complete 256-contact digests; input table hashes and metadata immutability; ordered zero-term reuse checked across process/frequency edits |
 | `fft.py`, `native/fft.c` | Original machine-code routine at `0x080912c0`; `potential_tables.cpp` | 83 direct original-binary FFT/reflected-grid cases, 17,342 bit-identical binary64 output components including signed zeros/subnormals, verified in Python and compiled WebAssembly; pinned compiler reproduces the module byte for byte |
@@ -157,8 +159,9 @@ PIX uses the original device-reference default, clone thresholds, unfolded CAP
 principal reduction, impedance-mode LMAT and a (2n+2)-unknown system for segment
 voltages/currents. Its LU follows native abs-one pivot ranking, 64-column panels,
 rounded reciprocal/scaling and BLAS update order. Both off-diagonal ports are
-retained separately. General CAP inversion and Pi2's node solve still use their
-previous binary64 elimination helpers; those are separate validation boundaries.
+retained separately. General CAP inversion and Pi2's node solve preserve their
+native retained operations and stores, with independent original matrix/node
+and complete electrical-session gates.
 
 The direct node probes require exact finite half-column stamps, including
 signed zero, and compare Y/current/voltage results at max(1e-12 absolute, 1e-10
@@ -655,15 +658,50 @@ gap zero/full-turn cases and negative orientations. Three additional original
 ring electrical sessions require every raw Y/model/S store and the finite
 resonance return in both Python and WebAssembly, with eddy off/on.
 
-New webpage ring definitions set `native_keyword=true`. This applies original
+New webpage ring and square definitions set `native_keyword=true`. This applies original
 type-7 length scaling, binary32 stores and the default binary64 0.1 um snap
 grid, plus both type-10 angle stores and the original asymmetric negative wrap.
 Direct typed dimensions remain binary64 and unsnapped unless this flag is
 selected. The flag is preserved through simulation, GDS and saved projects;
 other creator keyword boundaries remain separate work. Existing projects keep
-their stored input mode when loaded; newly generated webpage rings select the
+their stored input mode when loaded; newly generated webpage rings/squares select the
 native keyword boundary. Actual DOM tests independently decode downloaded
 GDS coordinates against the original rows and compare the downloaded Pi model
 against original electrical stores. Project form restoration also resolves
 named metal/via layers to selector indices, preventing regeneration on the
 default top metal after loading a named-layer project.
+
+Square construction now preserves the explicit pitch store, live retained
+turn coordinates and individual endpoint/exit/via stores. Rotation and
+reflection first store the new origin, then translate with the retained
+old-minus-new origin difference. Subtracting the unrounded local minimum had
+incorrectly forced some original nonzero edge coordinates to zero. Native
+trigonometric angle spills remain explicit. All 126 captured square creators
+require every XYZ bit and defined metadata, including full-binary64 interactive
+dimensions, six near-quarter keyword inputs and both current directions.
+Square keyword numbers use original length/angle stores, the default snap
+grid, binary32 turn input and retained maximum-turn selection. Other creator
+keyword boundaries remain separate work.
+
+The full-binary64 square electrical case isolated another CAP difference at
+identical original creator geometry and identical inductive matrices.
+`contact_geometry.py` now follows `contacts.cpp` through retained global/local
+coordinates, count selection, the explicit offset/step/endpoint spills and
+integer grid conversion. Physical bound stores do not round the live grid
+operands early. All 50 original setups / 280 builder calls / 338 contact
+records retain physical-bound bits and integer indices; one native zero-area
+history has a bounded diagnostic. The original thin wire at y=20 straddles
+the grid because of retained arithmetic, while y=20.125 produces zero area;
+the earlier generic collapse test now uses that independently captured case.
+Four new complete original square sessions require every Y/model/S store
+and finite resonance return in both runtimes, including typed interactive
+inputs, rotations, reverse phase and eddy correction. The captured original
+out-of-chip history is separately required to retain its bounded error.
+
+Contact geometry reuse keys every consumed binary64 value by its bytes,
+plus native integer dimensions/counts, metal count and the per-call contact
+limit. The bounded cache stores frozen contacts in immutable tuples; each
+caller receives fresh list containers. Frequency and substrate coefficients
+do not participate in this geometry calculation. Original record replay and
+tests of origin/endpoint edits, forced reference counts, changed limits and
+caller mutation protect the reuse boundary.

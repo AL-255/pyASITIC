@@ -27,7 +27,9 @@ class PotentialTests(unittest.TestCase):
         with self.assertRaisesRegex(ValueError,"outside"):
             solve_capacitance(build("wire",length=40,width=5,x=-1,technology=technology),technology,1e9)
         with self.assertRaisesRegex(ValueError,"collapses"):
-            solve_capacitance(build("wire",length=40,width=.01,x=10,y=20,technology=technology),technology,1e9)
+            # The original's retained placement at y=20 straddles the grid;
+            # y=20.125 is the independently captured zero-area contact.
+            solve_capacitance(build("wire",length=40,width=.01,x=10,y=20.125,technology=technology),technology,1e9)
         with self.assertRaisesRegex(ValueError,"contact limit"):
             solve_capacitance(build("square",length=100,width=5,turns=2,technology=technology),technology,1e9,
                               length_cell=1e-100,width_cell=1e-100,max_contacts=2)

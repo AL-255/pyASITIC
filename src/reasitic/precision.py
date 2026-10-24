@@ -85,7 +85,9 @@ def rotate_xy(px,py,cx,cy,angle):
         polar=float(_round_extended(Fraction(_atan2(_decimal(y),_decimal(x)))))
         rotated=_round_extended(Fraction(polar)+Fraction(angle))
         # Native X retains the angle; Y reloads its binary64 spill.
-        cosine=_trig(rotated,True)
-        sine=_trig(Fraction(float(rotated)))
+        from .polygon import _trig as native_trig
+        from .retained_scalar import Real
+        cosine=native_trig(Real(rotated),True).value
+        sine=native_trig(Real(float(rotated)),False).value
         return (float(_round_extended(_round_extended(cosine*radius)+Fraction(cx))),
                 float(_round_extended(_round_extended(sine*radius)+Fraction(cy))))

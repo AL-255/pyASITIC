@@ -10,6 +10,8 @@ from array import array
 from functools import lru_cache
 import copy
 import math
+import struct
+from types import SimpleNamespace
 from .retained_scalar import Real
 from .solver import inverse,_sum_complex
 from .fft import _fft,_transform_grid,_fft_extended,_fft_spill
@@ -20,6 +22,7 @@ from .spectral_math import (transfer as _transfer,source_value as _source,
                             spectral as _spectral,combine as _spectral_combine,tables as _retained_tables)
 from .contact_math import (potential as _contact_potential,indices as _indices,
                            transfer as _zero_transfer,zero_potential as _zero_potential)
+from .contact_geometry import groups as _contact_groups
 
 def _tables(source,target,nx,ny,width,height,metal_records,coefficients,depth_records):
     # Tuple equality merges +0 and -0. Keep every input store in the cache
@@ -51,62 +54,26 @@ class Contact:
 
 
 def _contacts(shape,technology,nx,ny,width,height,length_step,width_step,max_contacts=256):
-    groups=[]
-    contact_count=0
-    pitch=max(width,height)/min(nx,ny)
-    for s in shape.segments:
-        if s.metal>=len(technology.metals):
-            continue
-        ox,oy=shape.origin
-        x0,y0,x1,y1=s.start[0]+ox,s.start[1]+oy,s.end[0]+ox,s.end[1]+oy
-        if not (0<=min(x0,x1) and max(x0,x1)<=width and 0<=min(y0,y1) and max(y0,y1)<=height):
-            raise ValueError("Contact coordinates lie outside the technology chip")
-        segment_length_step,segment_width_step=length_step,width_step
-        if s.nx==s.ny==-1:
-            segment_length_step=segment_width_step=max(width*10/nx,height*10/ny)
-        along=max(1,int(s.length/segment_length_step+.5))
-        across=max(1,int(s.width/segment_width_step+.5))
-        # Jump to the native decrement loop's neighborhood rather than taking
-        # billions of steps for a tiny requested cell. The final comparisons
-        # retain its strict inequality and minimum-one behavior.
-        across=min(across,max(1,int(s.width/pitch)+1))
-        along=min(along,max(1,int(s.length/pitch)+1))
-        while across>0 and s.width/across<pitch:
-            across-=1
-        while along>0 and s.length/along<pitch:
-            along-=1
-        across,along=max(across,1),max(along,1)
-        contact_count+=across*along
-        if contact_count>max_contacts:
-            raise ValueError("Capacitance mesh exceeds the contact limit; increase contact cell sizes")
-        dx,dy=x1-x0,y1-y0
-        length=math.hypot(dx,dy)
-        if not length:
-            raise ValueError("The native potential-contact construction requires nonzero planar segment length")
-        front_width=s.width if s.primary_width is None else s.primary_width
-        offset_x,offset_y=(front_width/2*dy)/length,(front_width/2*dx)/length
-        step_x,step_y=2*offset_x/across,2*offset_y/across
-        cell_width,cell_length=front_width/across,length/along
-        along_x,along_y=dx/along,dy/along
-        angle=math.atan2(dy,dx)
-        horizontal=abs(angle)<math.pi/4 or 3*math.pi/4<abs(angle)
-        half_x=(cell_length if horizontal else cell_width)/2
-        half_y=(cell_width if horizontal else cell_length)/2
-        group=[]
-        for i in range(across):
-            for j in range(along):
-                bx=x0-offset_x+i*step_x+step_x/2
-                by=y0+offset_y-i*step_y-step_y/2
-                ax,ay=bx+j*along_x,by+j*along_y
-                ex,ey=bx+(j+1)*along_x,by+(j+1)*along_y
-                cx,cy=min(ax,ex)+abs(ax-ex)/2,min(ay,ey)+abs(ay-ey)/2
-                a,b=int((cx-half_x)*nx/width),int((cx+half_x)*nx/width)
-                c,d=int((cy-half_y)*ny/height),int((cy+half_y)*ny/height)
-                if not (0<=a<b<=nx and 0<=c<d<=ny):
-                    raise ValueError("A contact collapses or exceeds the FFT grid; increase FFT resolution or move the layout inside the chip")
-                group.insert(0,Contact(a,b,c,d,s.metal))
-        groups.append(group)
-    return groups
+    # Byte keys distinguish every binary64 input, including signed zero.
+    # Frequency/process coefficients do not participate in contact geometry.
+    metal_count=len(technology.metals)
+    segments=tuple((s.metal,s.nx,s.ny,struct.pack('=8d',*s.start,*s.end,s.width,s.width if s.primary_width is None else s.primary_width))for s in shape.segments if s.metal<metal_count)
+    config=((nx,ny,metal_count,max_contacts),struct.pack('=6d',width,height,length_step,width_step,*shape.origin[:2]),segments)
+    return [list(group)for group in _cached_contact_groups(config)]
+
+
+@lru_cache(maxsize=16)
+def _cached_contact_groups(config):
+    (nx,ny,metal_count,maximum),raw,segments=config
+    width,height,length_step,width_step,ox,oy=struct.unpack('=6d',raw)
+    records=[]
+    for metal,snx,sny,values in segments:
+        values=struct.unpack('=8d',values)
+        records.append(SimpleNamespace(start=values[:3],end=values[3:6],width=values[6],primary_width=values[7],metal=metal,nx=snx,ny=sny))
+    shape=SimpleNamespace(origin=(ox,oy),segments=records);technology=SimpleNamespace(metals=range(metal_count))
+    result=_contact_groups(shape,technology,nx,ny,width,height,length_step,width_step,maximum,Contact)
+    # Contacts are frozen; fresh list containers above isolate each caller.
+    return tuple(tuple(group)for group in result)
 
 
 def solve_capacitance(shape,technology,frequency_hz,*,ground=None,length_cell=1000,width_cell=1000,

@@ -285,3 +285,27 @@ extended range classifications. Its separate `--raw` mode still reports five
 one-bit extended differences. The existing strict extreme-power and raw-trig
 audits also remain open; matching the checked electrical sessions is not a
 claim of universal instruction or simulator parity.
+
+The square/contact geometry correction (2026-10-24) preserves the original
+contact placement stores before grid conversion. Repeated geometry is keyed
+by the exact consumed input bytes and integer settings, with fresh containers
+for each caller. Retaining these operations without reuse added repeated CAP
+setup work; the bounded cache restores comparable cached-request costs.
+
+| Mesh / FFT grid | Previous cached | Corrected without reuse | Corrected cached | Corrected first request |
+| --- | ---: | ---: | ---: | ---: |
+| 34 filaments / 64 × 64 | 16.0 ms | 24.6 ms | 13.9 ms | 0.222 s |
+| 34 filaments / 128 × 128 | 25.6 ms | 33.7 ms | 23.5 ms | 0.823 s |
+| 189 filaments / 64 × 64 | 0.339 s | 0.378 s | 0.343 s | 0.790 s |
+| 189 filaments / 128 × 128 | 0.352 s | 0.384 s | 0.353 s | 0.391 s |
+
+Each version ran sequentially in a fresh interpreter, sharing that interpreter
+across its FFT cases; no local validation overlapped these timings. Cached
+values are the third identical request. The first request for each case may
+reuse state from the earlier cases, so it is not a fresh-browser cold time.
+The corrected uncached/cached complete JSON results were identical. Initial
+setup remains somewhat slower than the preceding implementation. All samples,
+requests, versions and output metrics are in
+`benchmarks/2026-10-24-contact-geometry.json`. Native timings are inherited from
+the earlier benchmark input and were not remeasured. These four cases do not
+establish universal performance or original-binary equivalence.

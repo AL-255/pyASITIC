@@ -5,6 +5,7 @@ Separate ribbon edges are retained rather than inferred from a centerline.
 """
 from dataclasses import dataclass, field, asdict
 import math
+from .retained_scalar import Real as R
 
 
 @dataclass
@@ -66,19 +67,25 @@ class Shape:
     def offset(self, dx, dy):
         for s in self.segments:
             for p in s.points:
-                p[0] += dx
-                p[1] += dy
+                p[0] = float(R(p[0])+R(dx))
+                p[1] = float(R(p[1])+R(dy))
+
+    def _rebase(self,x,y):
+        # Native first stores the new origin, then translates by old-new.
+        # That retained difference can differ from simply subtracting x/y.
+        old=self.origin.copy()
+        self.origin[0]=float(R(old[0])+R(x));self.origin[1]=float(R(old[1])+R(y))
+        self.offset(R(old[0])-R(self.origin[0]),R(old[1])-R(self.origin[1]))
 
     def reflect(self, axis):
         bounds = self.bounds
-        mirror = bounds[axis]+bounds[axis+2]
+        low,high=R(bounds[axis]),R(bounds[axis+2])
+        mirror = (high-low)+(low+low)
         for s in self.segments:
             for p in s.points:
-                p[axis] = mirror-p[axis]
+                p[axis] = float(mirror-R(p[axis]))
         # ASITIC moves the local minimum into the shape origin.
-        self.offset(-bounds[0], -bounds[1])
-        self.origin[0] += bounds[0]
-        self.origin[1] += bounds[1]
+        self._rebase(bounds[0],bounds[1])
 
     def rotate(self, angle):
         if abs(angle) <= 1e-10:
@@ -90,9 +97,7 @@ class Shape:
             for p in s.points:
                 p[0],p[1]=rotate_xy(p[0],p[1],cx,cy,angle)
         x0, y0, *_ = self.bounds
-        self.offset(-x0, -y0)
-        self.origin[0] += x0
-        self.origin[1] += y0
+        self._rebase(x0,y0)
 
     def to_dict(self):
         data = asdict(self)

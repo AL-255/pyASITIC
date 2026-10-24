@@ -190,11 +190,19 @@ main commit. Active validation is retained when another commit is pushed.
 
 Python API:
 
-Ring creation preserves the original retained vertex arithmetic, including
+Square and ring creation preserve the original retained coordinate arithmetic,
+including origin stores and translation after square rotation. Exact gates
+cover 126 original squares / 14,742 XYZ stores, full binary64 interactive
+dimensions, near-quarter keyword turns, exit vias and independent GDS readback.
+Four additional original square Pi2 sessions match every Y/model/S/resonance
+store, including reversed phase and eddy correction.
+
+Ring creation also preserves its original retained vertex arithmetic, including
 its final endpoint spill and recentering. New webpage rings also use ASITIC's
 keyword parsing and default 0.1 µm snap grid. Python can select that boundary
-with `build("ring", native_keyword=True, ...)`; JSON requests use the same
-top-level flag. Ordinary typed ring calls retain unsnapped binary64 dimensions.
+with `build("ring", native_keyword=True, ...)` or the corresponding square
+call; JSON requests use the same top-level flag. New webpage squares also
+select this mode. Ordinary typed calls retain unsnapped binary64 dimensions.
 The exact gate covers 45 original creators / 12,588 XY stores and three complete
 original Pi2 sessions, including eddy correction and finite resonance results.
 
