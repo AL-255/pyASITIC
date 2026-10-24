@@ -18,4 +18,4 @@ from test_allocation_plan_original import OriginalAllocationPlanTests
 result=unittest.TextTestRunner(verbosity=2).run(unittest.defaultTestLoader.loadTestsFromTestCase(OriginalAllocationPlanTests))
 assert result.wasSuccessful()
 `);
-console.log('130 cold/warm observations: all 12,877 observed allocation/free events and object identities, one original fault prefix, native cache provenance, and geometry/contact/filament dimensions passed in packaged Pyodide/WASM. Physical address placement and model aliasing remain unimplemented.');
+console.log('130 cold/warm observations: all 12,877 observed allocation/free events and object identities, one original fault prefix, native cache provenance, and geometry/contact/filament dimensions passed in packaged Pyodide/WASM. This suite checks lifetimes only; the separate strict heap audit covers incomplete physical placement. Model aliasing remains unimplemented.');

@@ -5,6 +5,9 @@ through the first combined-network node solve. It **does not place objects at
 physical heap addresses**, permit trailing-via simulations, or resolve the
 failing JOIN/UNJOIN models. This is an intermediate part of reproducing the
 native memory interaction described in [UNJOIN_PORTING.md](UNJOIN_PORTING.md).
+The next-stage [arena placement port](HEAP_PLACEMENT.md) now matches 110
+pre-via boundaries from independently captured initial allocator snapshots.
+Its strict full audit still fails, and it is not integrated into simulations.
 
 ## Source port
 
@@ -24,7 +27,7 @@ correction, and independent segment chains. It covers:
 Inputs are contact counts in native group order, conductor count, filament
 count, via count and cloned segment count. The calculation contains no native
 addresses, geometry-specific cases or returned numerical fixture values. A
-future address allocator must also model allocations preceding this plan;
+physical address allocator must also model allocations preceding this plan;
 the current geometry-only arena is not a complete process allocator.
 
 The native trace comparison checks requested byte counts, scalar versus array
