@@ -28,7 +28,7 @@ def jobs():
         mesh=dict(length_cell=1000,width_cell=1000,thickness_cell=1000,capacitance_length_cell=1000,capacitance_width_cell=1000),edits=[dict(command='COPY',winding=0,name='c',metal='M2',x=40,y=40)])
  yield 'via/copied-metal-pi2',primitive,r,'CELL 1000 1000 1000\nCCELL 1000 1000\nEDDY OFF\n'+c['script'],c['stdin'],['A']
 
-def main(*,output_name='copy_sessions_original',job_source=jobs,command_source=command,description=None,capture_cap_reference=True):
+def main(*,output_name='copy_sessions_original',job_source=jobs,command_source=command,description=None,capture_cap_reference=True,names_source=None):
  p=argparse.ArgumentParser(description=__doc__);p.add_argument('--reference',type=Path,required=True);p.add_argument('--library-path',required=True);a=p.parse_args();ref=a.reference.resolve();original=ref/'run/asitic.linux.2.2'
  for path,want in((original,ORIGINAL_SHA256),(ref/'run/libs/libstdc++-2-libc6.1-1-2.9.0.so',LEGACY_SHA256)):
   if hashlib.sha256(path.read_bytes()).hexdigest()!=want:raise ValueError('Unexpected original checksum')
@@ -39,7 +39,8 @@ def main(*,output_name='copy_sessions_original',job_source=jobs,command_source=c
    parents[parent.name]=hashlib.sha256(parent.read_bytes()).hexdigest();script=prefix
    for op in r['edits']:
     script+=command_source(op,names)
-    if op['command']=='COPY':names.append(op['name'].upper())
+    if names_source is not None:names_source(names,op)
+    elif op['command']=='COPY':names.append(op['name'].upper())
     elif op['command']=='RENAME':names[op['winding']]=op['name'].upper()
     elif op['command']=='ERASE'and len(op.get('windings',[]))<=10:names[:]=[name for i,name in enumerate(names)if i not in op['windings']]
    first=names[r['winding']];frequency=format(r['frequency_ghz'],'.17g');snapshot=names[0]if r['kind']=='via'else first;script+=f'GEOM {snapshot}\n';coupled=r['action']=='calctrans'

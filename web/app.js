@@ -30,6 +30,7 @@ function controls() {
   for(const el of document.querySelectorAll("[data-open-mesh]"))el.disabled=busy;
   for(const el of document.querySelectorAll(".layout-edits input,.layout-edits select,.layout-edits button"))el.disabled=!ready||busy||!hasWindings;
   for(const id of["edit-undo","edit-reset"])$("#"+id).disabled=!ready||busy||!currentDefinition?.edits?.length;
+  if($("#edit-command").value==="JOIN"&&(current?.windings.length??0)<2)$("#edit-apply").disabled=true;
   $("#generate").disabled = !ready || busy;
   for (const id of ["simulate", "sweep", "lmat", "capacitance", "pi2", "selfres", "download-gds", "download-project"]) $("#"+id).disabled = !ready || busy || !hasWindings;
   for(const id of ["download-gds","download-project"])$("#"+id).disabled=!ready||busy||!current;
@@ -222,6 +223,7 @@ function svgElement(tag,attributes={},text) {
 function showEditFields(){
   const command=$("#edit-command").value,copy=command==="COPY",position=copy&&$("#edit-metal").value!==""&&!$("#edit-keep-origin").checked;
   $("#edit-erase-field").hidden=command!=="ERASE";
+  $("#edit-join-field").hidden=command!=="JOIN";$("#edit-join-note").hidden=command!=="JOIN";
   $("#edit-phase-field").hidden=command!=="PHASE";$("#edit-phase-note").hidden=command!=="PHASE";
   $("#edit-phase-note").textContent=current?.electrical_phase===0?"Native phase state is zero; PHASE leaves directions unchanged.":`Electrical phase state: ${current?.electrical_phase??1}. PHASE reverses segment endpoints when the sign changes; the segment list keeps its order.`;
   $("#edit-name-field").hidden=!["COPY","RENAME"].includes(command);$("#edit-other-field").hidden=!["BEFRIEND","UNFRIEND"].includes(command);
@@ -246,6 +248,7 @@ function renderEditHistory(){
   }));
   const first=currentDefinition?.winding||0,partner=current?.partners?.[first];
   $("#edit-link-status").textContent=!current?.windings.length?"No windings remain.":current?.dangling_partners?.[first]?`Move link: erased winding ${current.dangling_partners[first]}.`:partner===null||partner===undefined?"No move link for this winding.":partner===first?"This winding links to itself; relative moves apply twice.":`Move link: ${current.windings[partner]} (${current.partners[partner]===first?"mutual":"one-way"}).`;
+  $("#edit-join").replaceChildren(...(current?.windings||[]).flatMap((name,index)=>index===first?[]:[new Option(name,String(index),false,index===otherWinding())]));
   $("#edit-erase").replaceChildren(...(current?.windings||[]).map((name,index)=>new Option(name,String(index),false,index===first)));
   const selected=$("#edit-other").value,n=current?.windings.length||0,wanted=selected!==""&&Number(selected)<n?Number(selected):n>1&&first===0?1:0;
   $("#edit-other").replaceChildren(...(current?.windings||[]).map((name,index)=>new Option(name,String(index),false,index===wanted)));
@@ -258,12 +261,13 @@ async function replaceEdits(edits,message){
   else delete next.other_winding;
   currentDefinition=next;current=shape;meshCache.clear();render(shape);resetResults();status(shape.windings.length?message:"Scene is empty. Undo or reset edits to restore windings; project and GDS exports remain available.");
 }
-$("#edit-command").addEventListener("change",showEditFields);
+$("#edit-command").addEventListener("change",()=>{showEditFields();controls();});
 for(const id of["edit-metal","edit-keep-origin"])$("#"+id).addEventListener("change",showEditFields);
 $("#edit-apply").addEventListener("click",()=>task(async()=>{
   const command=$("#edit-command").value,edit={command,winding:currentDefinition.winding||0};
   if(["MOVE","MOVETO","MOVEX"].includes(command))edit.x=numeric("#edit-x");
   if(["MOVE","MOVETO"].includes(command))edit.y=numeric("#edit-y");
+  if(command==="JOIN"){edit.others=Array.from($("#edit-join").selectedOptions,option=>Number(option.value));if(!edit.others.length)throw Error("Select at least one source winding to join.");}
   if(command==="ERASE"){edit.windings=Array.from($("#edit-erase").selectedOptions,option=>Number(option.value));if(!edit.windings.length)throw Error("Select at least one winding to erase.");}
   if(command==="MOVEY")edit.y=numeric("#edit-x");
   if(command==="ROTATE")edit.angle=numeric("#edit-x");
