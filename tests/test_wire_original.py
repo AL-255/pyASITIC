@@ -63,7 +63,9 @@ class OriginalWireTests(unittest.TestCase):
             self.assertIn('Wire dimensions too small',c['stdout'])
             with self.assertRaisesRegex(ValueError,'Wire dimensions too small'):build('wire',technology=self.tech,native_keyword=True,**c['parameters'])
         with self.assertRaisesRegex(ValueError,'one native input mode'):build('wire',native_keyword=True,native_interactive=True)
-        with self.assertRaisesRegex(ValueError,'supports wire'):build('square',native_interactive=True)
+        square=build('square',native_interactive=True)
+        self.assertEqual((square.parameters['angle'],square.parameters['phase']),(0.,1))
+        with self.assertRaisesRegex(ValueError,'interactive input mode'):build('polygon',native_interactive=True)
         for phase in(0,2,-.5):
             with self.assertRaisesRegex(ValueError,'phase must be'):build('wire',native_interactive=True,phase=phase)
         with self.assertRaisesRegex(ValueError,'integer range'):build('wire',native_keyword=True,phase=2**31)
