@@ -1,5 +1,6 @@
 import json
 import math
+import struct
 from pathlib import Path
 import unittest
 from reasitic.transformer import extract_transformer_equivalent,invert_transformer_admittance,solve_transformer,MODEL_KEYS
@@ -53,6 +54,14 @@ class TransformerTests(unittest.TestCase):
                 for key,scale,target in zip(keys,scales,c["metrics"]):
                     if isinstance(target,str):self.assertIsNone(r["model"][key])
                     else:self.near(r["model"][key]*scale,target,1e-9,1e-8)
+                if i==3:
+                    # This forced-reference wire amplified contact roundoff
+                    # in its ground resistance. Require the original SI
+                    # stores directly, without display-unit conversion.
+                    y,z=r['admittance_matrix'],r['impedance_matrix']
+                    actual=[v for cell in (y[1][1],y[1][0],y[0][1],y[0][0],z[0][0],z[0][1],z[1][0],z[1][1])for v in cell]
+                    actual.extend(r['model'][key]for key in MODEL_KEYS)
+                    self.assertEqual([struct.pack('<d',v).hex()for v in actual],c['raw_output_bits'])
                 if i in (0,16):
                     request={key:c[key] for key in ("first","second","technology","frequency_hz","ground","mesh","eddy","termination_ohm")}
                     self.assertEqual(handle(dict(action="calctrans",**request))["model"],r["model"])

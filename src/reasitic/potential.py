@@ -16,6 +16,8 @@ from .fft import _fft,_transform_grid,_fft_extended,_fft_spill
 from .x87_math import tanh_argument,cosh_argument
 from .contact_kernel import contact_matrix
 from .table_kernel import generate_tables,layer_coefficients
+from .contact_math import (potential as _contact_potential,indices as _indices,
+                           transfer as _zero_transfer,zero_potential as _zero_potential)
 
 EPSILON0=float.fromhex("0x1.8ebfab864ade4p-44")
 FACTOR=float.fromhex("0x1.3bd3cc9be45dep+4")
@@ -170,37 +172,6 @@ def _tables(source,target,nx,ny,width,height,metal_records,coefficients,depth_re
     return tx,ty,xy
 
 
-def _zero_transfer(layer,coefficients,depths):
-    slope,offset=1+0j,complex(depths[0])
-    for k in range(1,layer+1):
-        ratio=_divide(coefficients[k],coefficients[k-1])
-        with localcontext() as context:
-            context.prec=25
-            rr,ri,sr,si,orr,oi=(Decimal.from_float(value) for z in (ratio,slope,offset) for value in (z.real,z.imag))
-            depth=Decimal.from_float(depths[k])
-            real,imag=(rr-1)*depth,ri*depth
-            offset=complex(float(real*sr-imag*si+orr),float(real*si+imag*sr+oi))
-            slope=complex(float(rr*sr-ri*si),float(ri*sr+rr*si))
-    return slope,offset
-
-
-def _zero_potential(source,target,height,target_height,coefficients,depths,down):
-    if down:
-        slope,offset=_zero_transfer(target,coefficients,depths)
-        denominator=slope
-        height=target_height
-    else:
-        slope,offset=_zero_transfer(source,coefficients,depths)
-        denominator,_=_zero_transfer(target,coefficients,depths)
-    with localcontext() as context:
-        context.prec=25
-        sr,si,orr,oi,cr,ci=(Decimal.from_float(value) for z in (slope,offset,coefficients[target]) for value in (z.real,z.imag))
-        h=Decimal.from_float(height)
-        real,imag=orr-h*sr,oi-h*si
-        numerator=complex(float(real*cr-imag*ci),float(imag*cr+ci*real))
-    return _divide(numerator,denominator)
-
-
 @dataclass(frozen=True)
 class Contact:
     x0:int
@@ -267,50 +238,6 @@ def _contacts(shape,technology,nx,ny,width,height,length_step,width_step,max_con
                 group.insert(0,Contact(a,b,c,d,s.metal))
         groups.append(group)
     return groups
-
-
-def _indices(a0,a1,b0,b1,limit):
-    def folded(a,b):
-        total=a+b
-        return total if total<limit else 2*limit-total
-    return (abs(a0-b0),abs(a0-b1),abs(a1-b0),abs(a1-b1),
-            folded(a0,b0),folded(a0,b1),folded(a1,b0),folded(a1,b1))
-
-
-def _axis_sum(table,index):
-    d00,d01,d10,d11,s00,s01,s10,s11=index
-    return (table[d00]-table[s00])+(table[d11]-table[s11])+(table[s10]-table[d10])+(table[s01]-table[d01])
-
-
-def _contact_potential(a,b,nx,ny,width,height,metal_records,coefficients,depths,tables,zero_terms=None):
-    x=_indices(a.x0,a.x1,b.x0,b.x1,nx)
-    y=_indices(a.y0,a.y1,b.y0,b.y1,ny)
-    sl,sh,st=metal_records[a.metal]
-    tl,th,tt=metal_records[b.metal]
-    source_half,target_half=(0,0) if a.metal==b.metal else (st/2,tt/2)
-    ordered_pair=a.metal,b.metal
-    if zero_terms is not None and ordered_pair in zero_terms:total=zero_terms[ordered_pair]
-    else:
-        term=_zero_potential(sl,tl,sh+source_half if sh<th else sh-source_half,th-target_half,coefficients,depths,sh<th)
-        total=term/width/height
-        if zero_terms is not None:zero_terms[ordered_pair]=total
-    area_x,area_y=(b.x1-b.x0)*(a.x1-a.x0),(b.y1-b.y0)*(a.y1-a.y0)
-    tx,ty,txy=tables
-    total+=_axis_sum(tx,x)*(nx*nx)/width/height/FACTOR/area_x
-    total+=_axis_sum(ty,y)*(ny*ny)/width/height/FACTOR/area_y
-    xd00,xd01,xd10,xd11,xs00,xs01,xs10,xs11=x
-    yd00,yd01,yd10,yd11,ys00,ys01,ys10,ys11=y
-    rows=(xd11,xd00,xs10,xs01,xs11,xs00,xd10,xd01)
-    positive=(yd00,yd11,ys10,ys01)
-    negative=(ys00,ys11,yd10,yd01)
-    combined=0j
-    for row,index in enumerate(rows):
-        for column in range(4):
-            j=1-column if column<2 else column
-            offset=index*(nx+1)
-            delta=txy[offset+positive[j]]-txy[offset+negative[j]]
-            combined+=delta if row<4 else -delta
-    return total+combined*(nx*nx)*(ny*ny)/area_x/area_y/width/height/FACTOR/FACTOR
 
 
 def solve_capacitance(shape,technology,frequency_hz,*,ground=None,length_cell=1000,width_cell=1000,

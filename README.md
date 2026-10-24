@@ -60,8 +60,9 @@ Implemented so far:
   spectral Green functions, reflected FFT tables, potential-matrix inversion,
   and admittance reduction. Includes explicit ground winding selection, total
   capacitance, substrate equivalent resistance and admittance CSV download.
-  Compiled contact arithmetic matches 41 original-binary matrices exactly at
-  finite output boundaries, including complete 256-contact systems.
+  Python and compiled contact arithmetic match 41 original-binary matrices
+  exactly at finite output boundaries: 264,844 components, including two
+  complete 256-contact systems. Nonfinite results retain native classifications.
   CAP and Pi-family node solves use the original general LU/inverse sequence;
   the compiled path is checked against original factors, inverses, solves and
   network products across the native 64-column block boundaries.

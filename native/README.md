@@ -111,6 +111,9 @@ ordered directions of a metal pair. The position-independent term is reused
 only within that call. The portable Python fallback also reuses this term within
 one solve, keyed by ordered metal indices; it does not share values across
 frequencies or process edits.
+`contact_math.py` now mirrors all retained contact operations in portable Python,
+including transfer slopes/offsets, height stores, the asymmetric first-difference
+spills, ordered accumulator updates and every complex-division boundary.
 
 `capture_contact_potential.py` executes the intact original routine at
 `0x080901c0` with the checksum-pinned executable and legacy-complex DSO.
@@ -118,7 +121,8 @@ The 41 cases cover square and rectangular grids, boundaries, noncontiguous metal
 indices, layer transfers, subnormals, signed zeros, large values and nonfinite
 classifications. All 264,844 output components are checked: finite values bit for
 bit, nonfinite values by classification, and two complete 256-contact matrices
-by output digest. Input table digests check the deterministic recipe. Rectangular
+by output digest, in both portable Python and the compiled backend. Input table
+digests check the deterministic recipe before and after execution. Rectangular
 cases provide sufficient backing for the original `nx+1` table stride; they do
 not validate the original allocator's behavior. Eight complete production raw
 potential and reduced CAP matrices also retain their existing snapshot

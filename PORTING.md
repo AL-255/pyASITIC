@@ -17,6 +17,7 @@ Reference checkout: `~/github/asitic-re`, revision recorded in each fixture.
 | `impedance.py`, `native/impedance.cpp` | `impedance.cpp`, `geometry.cpp` | 23 actual original complete upper matrices / 4,648 exact components, 2,094 original mesh-pair outputs, immutable input and symmetric reconstruction checks; actual original longitudinal clone fields including refined polygons |
 | `polygon.py`, `native/polygon.cpp` | `spiral_construction.cpp`, `shape_construction.cpp` | 42 actual original creator calls / 12,288 raw XY stores exact in portable Python and compiled WebAssembly; fractional turns, 3–32 sides, positive/negative rotations and production inputs |
 | `potential.py` | `potential_tables.cpp`, `potential.cpp`, `contacts.cpp`, `potential_solver.cpp` | Eight CAP sessions across CMOS/BiCMOS: full potential snapshots, folded admittance matrices, and actual cache FFT samples for every metal pair; browser runtime checks cover all eight reduced matrices |
+| `contact_math.py`, `native/contact.cpp` | Original `0x080901c0`; `potential.cpp`, legacy complex DSO | All 41 captured contact matrices / 264,844 components exact in Python and WebAssembly: finite bits including signed zeros, nonfinite classes and both complete 256-contact digests; input table hashes and metadata immutability; ordered zero-term reuse checked across process/frequency edits |
 | `fft.py`, `native/fft.c` | Original machine-code routine at `0x080912c0`; `potential_tables.cpp` | 83 direct original-binary FFT/reflected-grid cases, 17,342 bit-identical binary64 output components including signed zeros/subnormals, verified in Python and compiled WebAssembly; pinned compiler reproduces the module byte for byte |
 | `x87_math.py`, `native/fft.c` | Original clipped cosh at `0x0809123c`, tanh through transfer-up at `0x0808f004`; `potential_tables.cpp` | 20,014 direct original-binary scalar cases match bit for bit in Python and compiled WebAssembly; retained argument formation and exponent reduction fix the grounded-wire raw-potential reference without widening tolerance |
 | `network.py` | `combined_network.cpp`, `node_equations.cpp`, `network.cpp`, `two_port_output.cpp` | Eight no-eddy PI2 sessions: CAP/inductive/nodal snapshots, 15-digit Y/S output, printed L/R/C/Q/shunt-R/resonance reports; isolated node/S checks and JSON/WebAssembly interfaces |
@@ -546,3 +547,25 @@ group's digest. Each runner re-discovers its group with GDS validation installed
 and requires that digest before execution. Local unsharded discovery still runs
 the complete core suite. Deployment requires every shard and every existing
 native process/frequency and WebAssembly group.
+
+Portable contact integration now follows `native/contact.cpp` through retained
+layer transfers, separately stored metal heights, legacy complex division and
+the original axis/combined summation order. The first selected axis difference
+and first combined difference spill to binary64 at their native boundaries;
+other terms retain their extended values until the original stores. Complex
+scaling preserves its explicit zero products for native IEEE nonfinite behavior.
+Integer index/area operations retain signed 32-bit wrapping. Zero terms remain
+local to one solve and are keyed by the ordered source/target metal pair.
+
+The same 41 intact-original contact fixtures now gate all 264,844 components in
+Python as well as WebAssembly. Two tests require the complete single-metal and
+multi-metal 256-contact digests; smaller matrices check each finite output word
+and nonfinite class. Table hashes are verified before and after computation,
+and original fixture words remain unchanged. This establishes contact arithmetic
+at identical table/coefficient inputs. Portable spectral generation, matrix and
+complete-session differences remain separate parity work.
+The contact correction also closes the square PiX session's raw Y/model/S and
+resonance stores and the forced-reference coupled-wire session's full SI Y/Z/
+model record. Both now have strict portable end-to-end regressions alongside
+the established polygon PiX result. No formerly exact captured Python session
+was lost in the complete-session audit.
