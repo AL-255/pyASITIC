@@ -249,8 +249,12 @@ complete dense 514-entry factor/inverse/solve/product digests. Finite outputs
 match bit for bit and nonfinite classifications match; caller inputs remain
 unchanged. These establish the tested matrix boundaries, not universal
 whole-simulator equality.
-The spectral gate checks 1,728 original regional/transfer calls and 33 complete
-tables (556,434 components), including rectangular and 256×256 table digests.
+The Python and compiled spectral gates check 1,728 original regional/transfer
+calls and 33 complete tables (556,434 components), including rectangular and
+256×256 table digests. The Python path preserves the original coefficient
+sentinels, intermediate stores and zero writes where rectangular table strides
+overlap. Its bounded table cache keys include every input byte, so signed-zero
+coefficient changes cannot reuse a different native configuration.
 Another 88 groups / 3,556 components compare the intact original CAP coefficient
 loop with both Python and compiled implementations. Finite bits and nonfinite
 classifications match; source helpers must restore depth bytes. These extend

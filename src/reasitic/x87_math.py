@@ -4,7 +4,7 @@ F2XM1 is evaluated with decimal guard precision before the native 64-bit
 significand store. The browser runs the corresponding compiled binary128
 calculation. Final stores and the original positive-cosh clipping are explicit.
 """
-from decimal import Decimal,localcontext,ROUND_HALF_EVEN
+from decimal import Decimal,localcontext,ROUND_HALF_EVEN,InvalidOperation
 from functools import lru_cache
 import math
 from .fft import _fft_extended as r,_fft_spill as spill
@@ -21,6 +21,7 @@ with localcontext() as c:
 def _argument(k,a,b):
     with localcontext() as c:
         c.prec=2048
+        c.traps[InvalidOperation]=False
         return r(Decimal.from_float(k)*r(Decimal.from_float(a)-Decimal.from_float(b)))
 def _pow2m1(x):
     if not x:return x
@@ -32,6 +33,7 @@ def _pow2m1(x):
 def _tanh(x):
     with localcontext() as c:
         c.prec=2048
+        if not x.is_finite():return math.nan
         if abs(x)>25:return math.copysign(1,float(x))
         e=r(-abs(r(x+x))*L2E);i=e.to_integral_value(rounding=ROUND_HALF_EVEN)
         whole=Decimal(2)**int(i);part=r(_pow2m1(r(e-i))*whole)
@@ -41,6 +43,7 @@ def _tanh(x):
 def _cosh(x,rounded=False):
     with localcontext() as c:
         c.prec=2048
+        if x.is_nan():return math.nan
         if x>500:return 1e15
         if rounded:x=Decimal.from_float(float(x))
         if x<-800:return math.inf

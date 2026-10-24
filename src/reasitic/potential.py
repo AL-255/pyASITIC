@@ -6,170 +6,39 @@ uses the original positive-sign, unnormalized twiddle recurrence. Tables are
 generated on demand for the same packed metal pairs used by the native solver.
 """
 from dataclasses import dataclass
+from array import array
 from functools import lru_cache
-from decimal import Decimal,localcontext
 import copy
 import math
 from .retained_scalar import Real
 from .solver import inverse,_sum_complex
 from .fft import _fft,_transform_grid,_fft_extended,_fft_spill
-from .x87_math import tanh_argument,cosh_argument
 from .contact_kernel import contact_matrix
-from .table_kernel import generate_tables,layer_coefficients
+from .table_kernel import configuration,generate_tables,layer_coefficients
+from .network_metrics import _divide
+from .spectral_math import (transfer as _transfer,source_value as _source,
+                            spectral as _spectral,combine as _spectral_combine,tables as _retained_tables)
 from .contact_math import (potential as _contact_potential,indices as _indices,
                            transfer as _zero_transfer,zero_potential as _zero_potential)
 
-EPSILON0=float.fromhex("0x1.8ebfab864ade4p-44")
-FACTOR=float.fromhex("0x1.3bd3cc9be45dep+4")
+def _tables(source,target,nx,ny,width,height,metal_records,coefficients,depth_records):
+    # Tuple equality merges +0 and -0. Keep every input store in the cache
+    # key, including signed zeros and the original nonfinite coefficient bits.
+    return _cached_tables(configuration(source,target,nx,ny,width,height,metal_records,coefficients,depth_records).tobytes())
 
-
-def _divide(a,b):
-    # The legacy complex division retains its ratio and denominator extended.
-    with localcontext() as context:
-        context.prec=25
-        ar,ai,br,bi=(Decimal.from_float(float(v)) for v in (a.real,a.imag,b.real,b.imag))
-        if abs(bi)>=abs(br):
-            ratio=br/bi
-            denominator=ratio*ratio*bi+bi
-            return complex(float((ar*ratio+ai)/denominator),float((ai*ratio-ar)/denominator))
-        ratio=bi/br
-        denominator=ratio*ratio*br+br
-        return complex(float((ai*ratio+ar)/denominator),float((ai-ar*ratio)/denominator))
-
-
-def _spectral_combine(scale,ratio,upper,lower,top,bottom,ta,tb,tc,down):
-    with localcontext() as context:
-        context.prec=25
-        dec=Decimal.from_float
-        def spill(value):
-            return dec(float(value))
-        rr,ri,ur,ui,dr,di,tr,ti,br,bi=(dec(v) for z in (ratio,upper,lower,top,bottom) for v in (z.real,z.imag))
-        s,a,b,c=map(dec,(scale,ta,tb,tc))
-        pr=spill(spill(ur*br)-ui*bi)
-        pi=ui*br+spill(ur*bi)
-        qr,qi=dr*tr-di*ti,dr*ti+di*tr
-        cr,ci=br*tr-bi*ti,ti*br+bi*tr
-        sr,si=spill(spill(s*rr)),spill(s*ri)
-        up_weight,down_weight=(b,a) if down else (a,b)
-        real_sum=((pr*up_weight+qr*down_weight)+spill(cr*b)*a)+(dr*ur-di*ui)
-        imag_sum=((pi*up_weight+qi*down_weight)+(ci*b)*a)+(di*ur+spill(dr*ui))
-        numerator=complex(float(spill(sr*real_sum)-si*imag_sum),float(imag_sum*sr+real_sum*si))
-        denominator=complex(float(((qr-pr)+cr*c)-((c*dr)*ur-(c*di)*ui)),
-                            float(((qi-spill(pi))+spill(ci)*c)-((c*di)*ur+(c*dr)*ui)))
-        return _divide(numerator,denominator)
-
-
-def _transfer(down,first,last,k,coefficients,depths,interfaces=None):
-    initial=(tanh_argument(k,depths[last+1],depths[last]) if down else tanh_argument(k,depths[0],depths[1]))
-    u,v=(1+0j,complex(initial)) if down else (complex(initial),1+0j)
-    for i in (range(last-1,first-1,-1) if down else range(1,last+1)):
-        t=(tanh_argument(k,depths[i+1],depths[i]) if down else tanh_argument(k,depths[i],depths[i+1]))
-        other=i+1 if down else i-1
-        q=interfaces(i,other) if interfaces is not None else _divide(coefficients[i],coefficients[other])
-        with localcontext() as context:
-            context.prec=25
-            qr,qi,ur,ui,vr,vi=(Decimal.from_float(value) for z in (q,u,v) for value in (z.real,z.imag))
-            dt=Decimal.from_float(t)
-            pr,pi=qr*vr-qi*vi,qr*vi+qi*vr
-            u,v=complex(float(ur+(qr*dt*vr-qi*dt*vi)),float(qi*dt*vr+qr*dt*vi+ui)),complex(float(dt*ur+pr),float(dt*ui+pi))
-    return u,v
-
-
-def _source(down,source,last,k,height,coefficients,depths,interfaces=None):
-    index=source if down else source+1
-    saved=depths[index]
-    depths[index]=height
-    try:
-        return _transfer(down,source if down else 0,last if down else source,k,coefficients,depths,interfaces)[0]
-    finally:
-        depths[index]=saved
-
-
-def _spectral(down,source,target,last,k,source_height,target_height,coefficients,depths,interfaces=None):
-    z,c=depths,coefficients
-    ta=tanh_argument(k,z[target if down else target+1],target_height)
-    tb=tanh_argument(k,z[target+1 if down else target],source_height)
-    tc=tanh_argument(k,z[target+1],z[target])
-    scale=1.0
-    for i in range(target if down else source,(source if down else target)+1):
-        a=cosh_argument(k,z[0],z[i+1])
-        b=cosh_argument(k,z[0],z[i])
-        d=cosh_argument(k,z[i+1],z[i],True)
-        scale=a/(b*d)*scale
-    top,bottom,lower=0j,0j,1+0j
-    if target==last:
-        top=interfaces(target,target-1) if interfaces is not None else _divide(c[target],c[target-1])
-    else:
-        if target!=0:
-            top=interfaces(target,target-1) if interfaces is not None else _divide(c[target],c[target-1])
-        bottom=interfaces(target,target+1) if interfaces is not None else _divide(c[target],c[target+1])
-        u,v=_transfer(True,target+1,last,k,c,z,interfaces)
-        lower=_divide(u,v)
-    u,v=_transfer(False,0,target-1,k,c,z,interfaces)
-    upper=_divide(u,v)
-    ratio=_divide(_source(down,source,last,k,source_height,c,z,interfaces),_source(down,target,last,k,source_height,c,z,interfaces))
-    value=_spectral_combine(scale,ratio,upper,lower,top,bottom,ta,tb,tc,down)
-    first=(cosh_argument(k,z[target],target_height) if down else cosh_argument(k,z[source],source_height))
-    value*=first
-    second=cosh_argument(k,z[0],z[target if down else source])
-    third=cosh_argument(k,z[0],z[(source if down else target)+1])
-    with localcontext() as context:
-        context.prec=25
-        weight=Decimal.from_float(second)/Decimal.from_float(third)
-        value=complex(float(Decimal.from_float(value.real)*weight),float(Decimal.from_float(value.imag)*weight))
-    final=cosh_argument(k,z[(source if down else target)+1],source_height if down else target_height)
-    with localcontext() as context:
-        context.prec=25
-        dec=Decimal.from_float
-        real,imag=dec(value.real)*dec(final),dec(value.imag)*dec(final)
-        weighted=complex(float(real*dec(c[target].real)-imag*dec(c[target].imag)),
-                         float(dec(c[target].imag)*dec(float(real))+dec(c[target].real)*imag))
-    return _divide(weighted,complex(k))
 
 @lru_cache(maxsize=16)
-def _tables(source,target,nx,ny,width,height,metal_records,coefficients,depth_records):
+def _cached_tables(key):
+    config=array('d');config.frombytes(key)
+    _,nx,ny,nm,nl,source,target,width,height=config[:9]
+    nx,ny,nm,nl,source,target=map(int,(nx,ny,nm,nl,source,target))
+    offset=9
+    metal_records=tuple((int(config[i]),config[i+1],config[i+2])for i in range(offset,offset+3*nm,3));offset+=3*nm
+    coefficients=tuple(complex(config[i],config[i+1])for i in range(offset,offset+2*nl,2));offset+=2*nl
+    depth_records=tuple(config[offset:])
     compiled=generate_tables(source,target,nx,ny,width,height,metal_records,coefficients,depth_records)
     if compiled is not None:return compiled
-    depths=list(depth_records)
-    @lru_cache(maxsize=None)
-    def interfaces(i,j):
-        return _divide(coefficients[i],coefficients[j])
-    @lru_cache(maxsize=None)
-    def sample(k,y_axis):
-        sl,sh,st=metal_records[source]
-        tl,th,tt=metal_records[target]
-        down=sh<th
-        if source!=target:
-            if down!=y_axis:
-                sh+=st/2
-                th-=tt/2
-            else:
-                sh-=st/2
-                th+=tt/2
-        return _spectral(down,sl,tl,len(coefficients)-1,k,sh,th,coefficients,depths,interfaces)
-    # Native generation and lookup use nx+1 stride, while the transform uses
-    # ny+1. Keep both index rules and initialize all backing cells explicitly.
-    cells=max((nx+1)*(ny+1),nx*(nx+1)+ny+1)
-    xy=[0j]*cells
-    for x in range(1,nx):
-        for y in range(1,ny):
-            kx,ky=x*math.pi/width,y*math.pi/height
-            value=sample(math.hypot(kx,ky),False)
-            xy[x*(nx+1)+y]=value/x/x/y/y
-    _transform_grid(xy,nx,ny)
-    tx=[0j]*(2*nx)
-    ty=[0j]*(2*ny)
-    for x in range(1,nx):
-        tx[x]=sample(x*math.pi/width,False)/x/x
-    for y in range(1,ny):
-        ty[y]=sample(y*math.pi/height,True)/y/y
-    for x in range(nx,2*nx):
-        tx[x]=tx[2*nx-x]
-    for y in range(ny,2*ny):
-        ty[y]=ty[2*ny-y]
-    _fft(tx)
-    _fft(ty)
-    return tx,ty,xy
+    return _retained_tables(source,target,nx,ny,width,height,metal_records,coefficients,depth_records)
 
 
 @dataclass(frozen=True)

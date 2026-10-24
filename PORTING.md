@@ -340,7 +340,7 @@ portable path retains Decimal guard precision and component-tolerance checks.
 Whole-simulator bitwise equivalence remains unproven: remaining stamping/reduction,
 broader spectral inputs and process/geometry coverage still require work.
 
-The browser's full spectral table generator now uses retained 80-bit arithmetic
+The Python and browser spectral table generators use retained 80-bit arithmetic
 for transfer/source terms, both regional kernels, wave numbers, square roots,
 normalization and every recorded spill. Complex zero products remain explicit,
 including in nonfinite histories. Original Y-axis thickness offsets and the
@@ -356,8 +356,9 @@ execute the intact original CAP initialization loop, captured before cache I/O.
 All 3,556 output components have exact finite-bit or nonfinite-classification
 checks in both Python and WebAssembly. The portable coefficient implementation
 also preserves negative zero on unary negation. Source hashes and boundary
-adaptations are recorded in `native/spectral-source.json`. The portable table
-fallback and complete electrical snapshots retain their existing tolerances.
+adaptations are recorded in `native/spectral-source.json`. Both table paths have
+exact original-boundary checks; existing complete electrical snapshots retain
+their tolerances alongside the stricter original-session gates.
 
 CALCTRANS discretizes both windings, reverses the secondary segment order,
 joins them, stamps the junction termination into folded CAP, and solves the
@@ -562,10 +563,27 @@ Python as well as WebAssembly. Two tests require the complete single-metal and
 multi-metal 256-contact digests; smaller matrices check each finite output word
 and nonfinite class. Table hashes are verified before and after computation,
 and original fixture words remain unchanged. This establishes contact arithmetic
-at identical table/coefficient inputs. Portable spectral generation, matrix and
-complete-session differences remain separate parity work.
+at identical table/coefficient inputs. Portable table generation is checked
+separately; matrix and complete-session differences remain parity work.
 The contact correction also closes the square PiX session's raw Y/model/S and
 resonance stores and the forced-reference coupled-wire session's full SI Y/Z/
 model record. Both now have strict portable end-to-end regressions alongside
 the established polygon PiX result. No formerly exact captured Python session
 was lost in the complete-session audit.
+
+Portable spectral arithmetic now mirrors `native/spectral.cpp` in
+`spectral_math.py`, including the zero coefficient records beyond either end,
+retained transfer products, regional weighting and explicit binary64 stores.
+Source helpers restore every depth byte. Rectangular generation preserves all
+boundary zero writes: the native nx+1 producer stride can overwrite earlier
+samples before the ny+1 FFT consumer reads them. Nonfinite tanh/cosh arguments
+retain the captured original classifications. The bounded table cache uses
+packed configuration bytes to distinguish signed-zero inputs.
+
+Python now checks all 1,728 original scalar requests and all 33 whole tables
+against unchanged finite words/digests and nonfinite classes. Complete square
+and polygon Pi2 regressions additionally require exact raw Y/model/S and
+resonance stores. A diagnostic audit improved complete portable session parity
+from 23/41 to 32/41 without losing an earlier match. Nine portable sessions still
+differ; the compiled path continues to require all 41. This does not establish
+universal binary equivalence.

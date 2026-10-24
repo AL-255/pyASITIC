@@ -66,9 +66,11 @@ Implemented so far:
   CAP and Pi-family node solves use the original general LU/inverse sequence;
   the compiled path is checked against original factors, inverses, solves and
   network products across the native 64-column block boundaries.
-  Retained compiled Green-table generation is checked against 33 complete
-  original-binary tables through 256×256, with separate native coefficient and
-  regional-transfer checks.
+  Python and compiled Green-table generation are checked against 33 complete
+  original-binary tables through 256×256 and 1,728 transfer/regional calls.
+  Both preserve coefficient sentinels, source-depth restoration, rectangular
+  backing-store writes and retained arithmetic; coefficient loops have separate
+  original-binary checks.
 - Distributed `PI2` / `PI3` two-port models with optional native eddy correction: combines CAP
   and filament admittance through the original node equations. Reports series
   L/R, two RC shunts, port/differential Q, input impedances, shunt resistance,
