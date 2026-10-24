@@ -21,20 +21,21 @@ const frequencyFields=(hz,ghz=hz/1e9)=>({frequency_hz:hz,frequency_ghz:ghz});
 function frequencyInput(){const ghz=numeric("#frequency");return frequencyFields(ghz*1e9,ghz);}
 const fmt = (value, digits=4) => Number(value).toLocaleString(undefined, { maximumSignificantDigits: digits });
 
-function error(message="") { $("#error").hidden = !message; $("#error").textContent = message; $("#mesh-recovery").hidden=true; }
+function error(message="") { $("#error").hidden = !message; $("#error").textContent = message; $("#mesh-recovery").hidden=true;$("#mesh-recovery-fit").hidden=true; }
 function status(message) { $("#analysis-status").textContent = message; }
 function controls() {
   const hasWindings=(current?.windings.length??0)>0;
   for(const el of document.querySelectorAll(".technology input,.technology select,.technology button"))el.disabled=!ready||busy;
   for(const el of document.querySelectorAll(".analysis-panel input,.analysis-panel select"))el.disabled=busy;
   for(const el of document.querySelectorAll("[data-open-mesh]"))el.disabled=busy;
+  $("#transformer-mesh-settings").disabled=busy||(current?.windings.length??0)<2;
   for(const el of document.querySelectorAll(".layout-edits input,.layout-edits select,.layout-edits button"))el.disabled=!ready||busy||!hasWindings;
   for(const id of["edit-undo","edit-reset"])$("#"+id).disabled=!ready||busy||!currentDefinition?.edits?.length;
   if($("#edit-command").value==="JOIN"&&(current?.windings.length??0)<2)$("#edit-apply").disabled=true;
   $("#generate").disabled = !ready || busy;
   for (const id of ["simulate", "sweep", "lmat", "capacitance", "pi2", "selfres", "download-gds", "download-project"]) $("#"+id).disabled = !ready || busy || !hasWindings;
   for(const id of ["download-gds","download-project"])$("#"+id).disabled=!ready||busy||!current;
-  for(const id of ["mesh-check","mesh-fit"])$("#"+id).disabled=!ready||busy||!hasWindings;
+  for(const id of ["mesh-check","mesh-fit","mesh-recovery-fit"])$("#"+id).disabled=!ready||busy||!hasWindings;
   const coupledMesh=$("#mesh-target option[value='calctrans']");coupledMesh.disabled=(current?.windings.length??0)<2;
   if(coupledMesh.disabled&&$("#mesh-target").value==="calctrans")$("#mesh-target").value="pi2";
   for(const id of ["download-selfres","download-selfres-csv","download-selfres-plot"])$("#"+id).disabled=busy||!selfresResult;
@@ -90,7 +91,7 @@ async function task(callback) {
   try { await callback(); } catch (e) {
     const message=e.message||String(e);error(message);status("Could not complete the operation. Check the message above.");
     meshFailure=/mesh.*(filaments|segments)/i.test(message);
-    if(meshFailure){$("#mesh-settings").open=true;$("#mesh-recovery").hidden=false;}
+    if(meshFailure){$("#mesh-settings").open=true;$("#mesh-recovery").hidden=false;$("#mesh-recovery-fit").hidden=false;}
   }
   finally { busy = false; controls();if(meshFailure)$("#mesh-fit").focus(); }
 }
@@ -147,8 +148,9 @@ function meshPayload(){
   return {...payload,action:"mesh",model};
 }
 for(const button of document.querySelectorAll("[data-open-mesh]"))button.addEventListener("click",()=>{
-  const model=button.dataset.openMesh==="model"?$("#pi-model").value:button.dataset.openMesh;
-  if(model)$("#mesh-target").value=["pi3","pix","selfres","pi"].includes(model)?"pi2":model;
+  const source=button.dataset.openMesh;
+  const model=source==="model"?$("#pi-model").value:source==="sweep"?$("#sweep-model").value:source;
+  if(model)$("#mesh-target").value=["pi3","pix","selfres","pi","estimates"].includes(model)?"pi2":model;
   $("#mesh-settings").open=true;
   $("#mesh-settings").scrollIntoView?.({block:"start",behavior:"smooth"});
   $("#mesh-preset").focus({preventScroll:true});
@@ -161,10 +163,13 @@ $("#mesh-preset").addEventListener("change",()=>{
 for(const id of Object.values(MESH_FIELDS))$("#"+id).addEventListener("change",()=>{$("#mesh-preset").value="custom";changedMesh();});
 $("#mesh-auto-fit").addEventListener("change",()=>{error();status($("#mesh-auto-fit").checked?"Automatic mesh fitting enabled. Over-budget simulations will use larger conductor cells; their sizes will be displayed.":"Automatic mesh fitting disabled. Adjust or fit the mesh manually before solving.");});
 $("#mesh-check").addEventListener("click",()=>task(async()=>{renderMeshInfo(await request(meshPayload()));status("Mesh counted without running the electrical solver.");}));
-$("#mesh-fit").addEventListener("click",()=>task(async()=>{
+async function fitMesh(){
   const plan=await request({...meshPayload(),fit:true});applyMesh(plan.mesh);resetResults();renderMeshInfo(plan);
+  $("#mesh-settings").open=true;
+  $("#mesh-settings").scrollIntoView?.({block:"start",behavior:"smooth"});
   status(plan.changed?"Conductor cell sizes increased to fit the filament limit. Run the simulation with this mesh.":"This mesh already fits. Run the simulation with the displayed cell sizes.");
-}));
+}
+for(const id of["mesh-fit","mesh-recovery-fit"])$("#"+id).addEventListener("click",()=>task(fitMesh));
 function showFields(loaded=currentDefinition) {
   const kind = $("#kind").value;
   const turns=form.elements.namedItem("turns");

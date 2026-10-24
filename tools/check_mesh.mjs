@@ -36,6 +36,16 @@ async function change(id,value){$(id).value=value;$(id).dispatchEvent(new w.Even
 async function restore(project){Object.defineProperty($("#project-file"),"files",{configurable:true,value:[{text:async()=>JSON.stringify(project)}]});$("#project-file").dispatchEvent(new w.Event("change"));await idle();}
 await idle();assert.equal($("#mesh-settings").open,true);assert.equal($("#mesh-max-width").value,"500");assert.equal($("#mesh-auto-fit").checked,false,"Mesh resolution changes require opting in");
 assert.equal($("#mesh-recovery").hidden,true);
+assert.equal($("#mesh-recovery-fit").hidden,true);
+for(const [button,selection,target]of[
+ ["sweep","pi4","pi4"],["sweep","pi3","pi2"],["sweep","estimates","pi2"],
+ ["selfres",null,"pi2"],["lmat",null,"lmat"],
+]){
+ if(selection)await change("#sweep-model",selection);
+ $("#mesh-settings").open=false;await click("#"+button+"-mesh-settings");
+ assert.equal($("#mesh-settings").open,true);assert.equal($("#mesh-target").value,target);assert.equal(w.document.activeElement.id,"mesh-preset");
+}
+await change("#sweep-model","pi2");
 $("#mesh-settings").open=false;
 await change("#pi-model","pi4");await click("#model-mesh-settings");
 assert.equal($("#mesh-settings").open,true);assert.equal($("#mesh-target").value,"pi4");assert.equal(w.document.activeElement.id,"mesh-preset");
@@ -56,8 +66,11 @@ const prior=requests.filter(r=>r.action==="pi2").length;
 $("#mesh-settings").open=false;
 await click("#pi2",true);assert.equal(w.document.activeElement.id,"mesh-fit","Mesh recovery must receive focus after controls are enabled");assert.match($("#error").textContent,/480 filaments/);assert.equal(requests.filter(r=>r.action==="pi2").length,prior,"Over-budget mesh must stop before expensive CAP/LMAT solves");assert.equal($("#mesh-settings").open,true);
 assert.equal($("#mesh-recovery").hidden,false);$("#mesh-settings").open=false;
+assert.equal($("#mesh-recovery-fit").hidden,false);
 await click("#mesh-recovery",true);assert.equal($("#mesh-settings").open,true);assert.equal(w.document.activeElement.id,"mesh-preset");
-await click("#mesh-fit");assert.equal($("#mesh-length").value,"40");assert.equal($("#mesh-width").value,"1");assert.equal($("#mesh-thickness").value,"1");assert.match($("#mesh-feedback").textContent,/60 \/ 256 filaments/);
+await click("#mesh-recovery-fit");assert.equal($("#mesh-length").value,"40");assert.equal($("#mesh-width").value,"1");assert.equal($("#mesh-thickness").value,"1");assert.match($("#mesh-feedback").textContent,/60 \/ 256 filaments/);
+assert.equal(requests.filter(r=>r.action==="pi2").length,prior,"Recovery fits cells for review without rerunning the solver");
+assert.equal($("#mesh-recovery-fit").hidden,true);
 assert.equal($("#mesh-recovery").hidden,true,"Successful recovery clears the shortcut with its error");
 assert.equal($("#cap-length").value,"1000");assert.equal($("#cap-width").value,"1000","Filament fitting preserves CAP cell settings");
 await click("#pi2");assert.equal(w.meshState().pi2Result.filaments,60);assert.equal($("#download-pi2").disabled,false);
@@ -103,4 +116,8 @@ await restore({...project,shape:{kind:"square",parameters:{name:"TooMany",length
 const beforeIrreducible=requests.filter(r=>r.action==="pi2").length;await click("#pi2",true);
 assert.match($("#error").textContent,/coarsest.*filaments/);assert.equal(requests.filter(r=>r.action==="pi2").length,beforeIrreducible,"Irreducible geometry must never reach the solver");
 await restore({...project,mesh_auto_fit:"yes"});assert.match($("#error").textContent,/mesh_auto_fit/);assert.equal($("#mesh-auto-fit").checked,true,"Invalid projects preserve the current preference");
+await restore({...project,shape:{...project.shape,edits:[{command:"COPY",winding:0,name:"Second"}]}});
+assert.equal($("#transformer-mesh-settings").disabled,false);
+await click("#transformer-mesh-settings");assert.equal($("#mesh-target").value,"calctrans");assert.equal(w.document.activeElement.id,"mesh-preset");
+await restore(project);assert.equal($("#transformer-mesh-settings").disabled,true,"Coupled mesh shortcut requires two windings");
 call.destroy();w.close();console.log("Actual mesh DOM handlers passed: coarse defaults, shared presets/cells/MAXNW, rejection before simulation, manual and opt-in automatic fitting, native recount before Pi2, LMAT and sweep solves, preserved CAP settings, consistent sweep meshes, longitudinal overflow recovery, irreducible geometry diagnostics, and legacy/new project save/restore.");
