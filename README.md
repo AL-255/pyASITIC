@@ -291,7 +291,12 @@ Implemented so far:
   emulator; broader allocator-dependent command histories remain unverified.
 
 Records use binary64 with selected retained-precision intermediates matching the
-reference's x87 arithmetic.
+reference's x87 arithmetic. The [native logarithm audit](docs/LOGARITHM_AUDIT.md)
+adds 8,182 instruction cases and 10,327 multiplier cases with complete request
+and original-command provenance. It rejects an isolated P5/P6 replacement that
+improves selected failures but worsens the independent set. The strict audit
+remains nonzero; no runtime arithmetic or existing expected words were changed.
+
 Universal bitwise numerical equality is not yet established. Original saved geometry fixtures are
 compared at their 6-decimal printed precision (5.1e-7 µm).
 Foundry design rules and layer mapping must come from the user's process.

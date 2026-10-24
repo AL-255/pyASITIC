@@ -334,6 +334,12 @@ The separate `audit_imported_math.mjs` additionally checks 2,057 native
 one binary64 ULP. Those differences originate in the native FYL2X retained
 result. The fixture remains unchanged; the current session/contour gates do
 not prove universal x87 instruction equivalence.
+The [native logarithm evidence](../docs/LOGARITHM_AUDIT.md) additionally retains
+8,182 instruction cases and 10,327 multiplier observations, including every
+shared unchanged-original instruction word. It separates actual `_log` calls
+from guarded instruction-formula probes and labels the rejected P5/P6 candidate
+as an isolated experiment. These diagnostics do not change the numerical module.
+
 
 The webpage's numerical source download includes every kernel source, upstream
 and adapted library files, notices, build script and original module. CI
