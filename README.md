@@ -244,6 +244,22 @@ Implemented so far:
   explicit export diagnostics for original layouts beyond GDSII's int32 range.
   Three edited Pi2/CALCTRANS sessions match the original Y/model/S outputs and
   complete coupled input matrices in both Python and the shipped browser runtime.
+- COPY, RENAME, BEFRIEND and UNFRIEND extend the same edit history to scenes
+  with multiple windings. Copies preserve full stored geometry; an optional
+  metal refresh updates every segment's height and thickness. Native directed
+  friend links, including stale one-way links and self-linked moves, are retained.
+  The webpage can select any scene winding and any distinct second winding for
+  coupling, CALCTRANS and Pi/CAP references. Generator defaults stay separate
+  from copied/renamed descriptors when projects regenerate; undo/reset can
+  recover after removing the selected copy. Seventeen unchanged-original
+  histories cover 229 states, including native rejections, with 117,630 exact
+  XYZ stores and independent GDS checks. Duplicate-destination COPY reports an
+  error instead of returning the incomplete descriptor left by the native
+  rejection. Five complete copied-winding Pi2/CALCTRANS sessions, including an
+  explicit Pi2 reference and a VIA copied onto a conductor metal, retain exact
+  original model outputs and coupled inputs. A metal-converted VIA can run Pi2;
+  the unconverted standalone VIA retains the original fault diagnostic. CAP's
+  original NaN totals with that VIA as a reference are retained as a diagnostic.
 
 Records use binary64 with selected retained-precision intermediates matching the
 reference's x87 arithmetic.

@@ -1,5 +1,29 @@
 # Pi performance and original-binary checks
 
+COPY/RENAME and directed friend links now replay in the same scene as spatial
+edits. Optional metal refresh preserves every captured native coordinate,
+width and thickness store. Five copied-winding Pi2/CALCTRANS sessions match
+their original model/port outputs; the converted-VIA CAP reference's native
+NaN totals remain an explicit diagnostic. This does not close the broader
+numerical audits described below.
+
+`node tools/benchmark_copy_links.mjs /path/to/pyodide.mjs` measures complete
+JSON requests after runtime initialization. On the Ryzen 9 7940HX with Node
+24.19.0 / Pyodide 314.0.7, a sequential run after local validation completed
+gave:
+
+| Request | First call | Median of five repeats |
+| --- | ---: | ---: |
+| Six-object 3D scene preview | 21.0 ms | 5.1 ms |
+| Copied BALUN CALCTRANS, 26 filaments | 750.4 ms | 54.2 ms |
+| Metal-converted VIA Pi2, 1 filament | 266.7 ms | 6.6 ms |
+
+Geometry/contact/table Python caches are cleared before each case, while the
+initialized runtime is reused. Startup, downloads and rendering are excluded;
+these are scoped measurements, without an original-binary speed claim.
+All samples, request hashes and fixture/runtime provenance are preserved in
+[the copy/link measurement](benchmarks/2026-10-24-copy-links.json).
+
 Spatial edits are replayed from the original generator inputs for preview,
 project regeneration, export and each simulation. MOVE/MOVETO use the original
 default type-7 grid/F32 input stores; ROTATE uses type 10 and executes even for

@@ -31,7 +31,7 @@ function controls() {
   $("#generate").disabled = !ready || busy;
   for (const id of ["simulate", "sweep", "lmat", "capacitance", "pi2", "selfres", "download-gds", "download-project"]) $("#"+id).disabled = !ready || busy || !current;
   for(const id of ["mesh-check","mesh-fit"])$("#"+id).disabled=!ready||busy||!current;
-  const coupledMesh=$("#mesh-target option[value='calctrans']");coupledMesh.disabled=current?.windings.length!==2;
+  const coupledMesh=$("#mesh-target option[value='calctrans']");coupledMesh.disabled=(current?.windings.length??0)<2;
   if(coupledMesh.disabled&&$("#mesh-target").value==="calctrans")$("#mesh-target").value="pi2";
   for(const id of ["download-selfres","download-selfres-csv","download-selfres-plot"])$("#"+id).disabled=busy||!selfresResult;
   $("#download-csv").disabled = busy || !sweepRows?.length;
@@ -42,8 +42,9 @@ function controls() {
   $("#download-capacitance").disabled = busy || !capacitanceResult;
   for(const id of ["download-pi2","download-ports"]) $("#"+id).disabled = busy || !pi2Result;
   $("#active-winding").disabled = busy;
-  $("#coupling").disabled = busy || !current || current.windings.length!==2;
-  for(const id of ["transformer-run","transformer-sweep"])$("#"+id).disabled=!ready||busy||current?.windings.length!==2;
+  $("#other-winding").disabled=busy||(current?.windings.length??0)<2;
+  $("#coupling").disabled = busy || !current || current.windings.length<2;
+  for(const id of ["transformer-run","transformer-sweep"])$("#"+id).disabled=!ready||busy||(current?.windings.length??0)<2;
   for(const id of ["download-transformer","download-transformer-svg","download-transformer-ports"])$("#"+id).disabled=busy||!transformerResult;
   for(const id of ["download-transformer-sweep","download-transformer-plot"])$("#"+id).disabled=busy||!transformerRows.length;
 }
@@ -103,7 +104,7 @@ function definition() {
   }
   if(kind==="balun"&&currentDefinition?.kind===kind&&currentDefinition.native_keyword&&!("secondary_metal" in currentDefinition.parameters)
       &&Number(values.secondary_metal)===Number(current.parameters.secondary_metal))delete values.secondary_metal;
-  const edits=currentDefinition?.kind===kind&&currentDefinition.edits?.length?{edits:currentDefinition.edits.map(edit=>({...edit}))}:{};
+  const edits=currentDefinition?.kind===kind?{...(currentDefinition.edits?.length?{edits:currentDefinition.edits.map(edit=>({...edit}))}:{}),...(Number.isInteger(currentDefinition.other_winding)?{other_winding:currentDefinition.other_winding}:{})}:{};
   if(INPUT_MODE_KINDS.includes(kind)&&$("#rectangular-input-mode").value==="interactive")return {kind,parameters:values,winding:0,native_interactive:true,...edits};
   return {kind,parameters:values,winding:0,...(["ring","square","polygon","wire","symmetric_square","symmetric_polygon","multimetal","capacitor","transformer","balun"].includes(kind)?{native_keyword:true}:["via","transformer3d"].includes(kind)?{native_interactive:true}:{}),...edits};
 }
@@ -209,31 +210,49 @@ function svgElement(tag,attributes={},text) {
   return el;
 }
 function showEditFields(){
-  const command=$("#edit-command").value;
-  $("#edit-x-field").hidden=["FLIPV","FLIPH","FLIP"].includes(command);$("#edit-y-field").hidden=!["MOVE","MOVETO"].includes(command);
-  $("#edit-x-title").textContent=command==="ROTATE"?"Angle":command==="MOVETO"?"Origin X":command==="MOVEY"?"Delta Y":"Delta X";
+  const command=$("#edit-command").value,copy=command==="COPY",position=copy&&$("#edit-metal").value!==""&&!$("#edit-keep-origin").checked;
+  $("#edit-name-field").hidden=!["COPY","RENAME"].includes(command);$("#edit-other-field").hidden=!["BEFRIEND","UNFRIEND"].includes(command);
+  $("#edit-metal-field").hidden=!copy;$("#edit-origin-field").hidden=!copy||$("#edit-metal").value==="";
+  $("#edit-x-field").hidden=!["MOVE","MOVETO","MOVEX","MOVEY","ROTATE"].includes(command)&&!position;$("#edit-y-field").hidden=!["MOVE","MOVETO"].includes(command)&&!position;
+  $("#edit-x-title").textContent=command==="ROTATE"?"Angle":command==="MOVETO"||copy?"Origin X":command==="MOVEY"?"Delta Y":"Delta X";
   $("#edit-x-unit").textContent=command==="ROTATE"?"degrees":"µm";
-  $("#edit-y-field").firstChild.nodeValue=command==="MOVETO"?"Origin Y ":"Delta Y ";
+  $("#edit-y-field").firstChild.nodeValue=command==="MOVETO"||copy?"Origin Y ":"Delta Y ";
+}
+function otherWinding(){
+  if((current?.windings.length??0)<2)return null;
+  const first=currentDefinition?.winding||0,selected=currentDefinition?.other_winding??Number($("#other-winding").value);
+  return Number.isInteger(selected)&&selected>=0&&selected<current.windings.length&&selected!==first?selected:first===0?1:0;
 }
 function renderEditHistory(){
   const edits=currentDefinition?.edits||[];
   $("#edit-status").textContent=edits.length?`${edits.length} layout edit${edits.length===1?"":"s"}. Regenerating keeps this history; Reset edits restores the generated layout.`:"No layout edits.";
   $("#edit-history").replaceChildren(...edits.map(edit=>{
-    const row=document.createElement("li"),values=["x","y","angle"].filter(key=>key in edit).map(key=>`${key}=${edit[key]}`);
+    const row=document.createElement("li"),values=["name","metal","other","x","y","angle"].filter(key=>key in edit).map(key=>`${key}=${key==="other"?current.windings[edit[key]]:edit[key]}`);
     row.textContent=`${edit.command} · ${current.windings[edit.winding??0]}${values.length?" · "+values.join(", "):""}`;return row;
   }));
+  const first=currentDefinition?.winding||0,partner=current?.partners?.[first];
+  $("#edit-link-status").textContent=partner===null||partner===undefined?"No move link for this winding.":partner===first?"This winding links to itself; relative moves apply twice.":`Move link: ${current.windings[partner]} (${current.partners[partner]===first?"mutual":"one-way"}).`;
+  const selected=$("#edit-other").value,n=current?.windings.length||0,wanted=selected!==""&&Number(selected)<n?Number(selected):n>1&&first===0?1:0;
+  $("#edit-other").replaceChildren(...(current?.windings||[]).map((name,index)=>new Option(name,String(index),false,index===wanted)));
 }
 async function replaceEdits(edits,message){
-  const next={...currentDefinition,edits};const shape=await request({action:"build",...next,technology:technologyText});
+  const next={...currentDefinition,edits};const shape=await request({action:"build",...next,reset_missing_winding:true,technology:technologyText});next.winding=shape.winding;
   currentDefinition=next;current=shape;meshCache.clear();render(shape);resetResults();status(message);
 }
 $("#edit-command").addEventListener("change",showEditFields);
+for(const id of["edit-metal","edit-keep-origin"])$("#"+id).addEventListener("change",showEditFields);
 $("#edit-apply").addEventListener("click",()=>task(async()=>{
   const command=$("#edit-command").value,edit={command,winding:currentDefinition.winding||0};
   if(["MOVE","MOVETO","MOVEX"].includes(command))edit.x=numeric("#edit-x");
   if(["MOVE","MOVETO"].includes(command))edit.y=numeric("#edit-y");
   if(command==="MOVEY")edit.y=numeric("#edit-x");
   if(command==="ROTATE")edit.angle=numeric("#edit-x");
+  if(["COPY","RENAME"].includes(command))edit.name=$("#edit-name").value;
+  if(["BEFRIEND","UNFRIEND"].includes(command))edit.other=Number($("#edit-other").value);
+  if(command==="COPY"&&$("#edit-metal").value!==""){
+    edit.metal=$("#edit-metal").value;
+    if(!$("#edit-keep-origin").checked){edit.x=numeric("#edit-x");edit.y=numeric("#edit-y");}
+  }
   await replaceEdits([...(currentDefinition.edits||[]),edit],`${command} applied to the selected winding. Run analysis on the edited layout.`);
 }));
 $("#edit-undo").addEventListener("click",()=>task(()=>replaceEdits(currentDefinition.edits.slice(0,-1),"Last layout edit undone.")));
@@ -272,10 +291,13 @@ function render(shape) {
   const subtitle = document.createElement("span"); subtitle.textContent = $("#kind").selectedOptions[0].textContent; $("#layout-title").append(subtitle);
   $("#winding-control").hidden=shape.windings.length<2;
   $("#cap-ground-control").hidden=shape.windings.length<2;
+  const second=otherWinding(),firstIndex=currentDefinition.winding||0;
+  $("#active-winding").replaceChildren(...shape.windings.map((name,index)=>new Option(name,String(index),false,index===firstIndex)));
+  $("#other-winding").replaceChildren(...shape.windings.flatMap((name,index)=>index===firstIndex?[]:[new Option(name,String(index),false,index===second)]));
+  if("other_winding"in currentDefinition){if(second===null)delete currentDefinition.other_winding;else currentDefinition.other_winding=second;}
   updateModelControls(false);
   updateTransformerControls();
-  $("#active-winding").replaceChildren(...shape.windings.map((name,index)=>new Option(name,String(index),false,index===(currentDefinition.winding||0))));
-  $("#canvas-caption").textContent=`${fmt(x1-x0)} × ${fmt(y1-y0)} µm · ${shape.windings.length>1?"both windings · ":""}origin (${fmt(shape.origin[0])}, ${fmt(shape.origin[1])})`;
+  $("#canvas-caption").textContent=`${fmt(x1-x0)} × ${fmt(y1-y0)} µm · ${shape.windings.length===2?"both windings · ":shape.windings.length>2?shape.windings.length+" windings · ":""}origin (${fmt(shape.origin[0])}, ${fmt(shape.origin[1])})`;
   $("#scale").textContent="Scroll to zoom · drag to pan";
   $("#stat-segments").textContent=shape.segments.length;
   $("#stat-length").textContent=fmt(shape.length)+" µm";
@@ -335,6 +357,7 @@ function fillTechnology(data) {
   fill("#bottom-metal",metalOptions,lower);
   fill("#secondary-metal",metalOptions,lower);
   fill("#via",technology.vias.map((v,i)=>[String(i),v.name]),0);
+  fill("#edit-metal",[["","Keep existing metals"],...metalOptions],"");showEditFields();
   fill("#model-ground-metal",metalOptions,0);
   fill("#transformer-ground-metal",metalOptions,0);
   for(const id of ["model-pad1-metal","model-pad2-metal"])fill("#"+id,metalOptions,technology.metals.length-1);
@@ -379,7 +402,7 @@ function updateModelControls(clear=true){
   const model=$("#pi-model").value,ground=$("#model-ground-mode"),required=model==="pi3";
   ground.options[0].disabled=required;
   ground.options[0].textContent=["pi4","pix"].includes(model)?"Device reference (native default)":"Substrate only";
-  ground.options[1].disabled=!current||current.windings.length!==2;
+  ground.options[1].disabled=!current||current.windings.length<2;
   if(required && ground.value==="none")ground.value="strip";
   if(ground.value==="other" && ground.options[1].disabled)ground.value=required?"strip":"none";
   $("#model-ground-fields").hidden=ground.value!=="strip"||model==="pi";
@@ -401,8 +424,8 @@ function stripDefinition(prefix,suffix){
 function modelPayload(model,frequency,ghz=frequency/1e9){
   const mode=$("#model-ground-mode").value;
   if(model==="pi3"&&mode==="none")throw new Error("Choose a ground strip or the other winding for Pi3.");
-  if(mode==="other" && current.windings.length!==2)throw new Error("This layout has no other winding; choose a ground strip.");
-  const ground=mode==="other"?{...currentDefinition,winding:1-(currentDefinition.winding||0)}:mode==="strip"?stripDefinition("model-ground","_ground"):null;
+  if(mode==="other" && current.windings.length<2)throw new Error("This layout has no other winding; choose a ground strip.");
+  const ground=mode==="other"?{...currentDefinition,winding:otherWinding()}:mode==="strip"?stripDefinition("model-ground","_ground"):null;
   return {action:model,...currentDefinition,ground,technology:technologyText,...frequencyFields(frequency,ghz),eddy:eddyEnabled(),
     ...(model==="pi4"?{first_pad:stripDefinition("model-pad1","_pad1"),second_pad:stripDefinition("model-pad2","_pad2")} : {}),
     ...meshInputs()};
@@ -439,8 +462,13 @@ $("#active-winding").addEventListener("change",()=>task(async()=>{
   const shape=await request({action:"build",...next,technology:technologyText});
   current=shape;currentDefinition=next;render(shape);resetResults();status(`Selected ${shape.name}. Analysis applies to this winding; GDS exports both windings.`);
 }));
+$("#other-winding").addEventListener("change",()=>{
+  if(busy||!current)return;
+  currentDefinition.other_winding=Number($("#other-winding").value);
+  meshCache.clear();resetResults();updateTransformerControls();controls();status("Other winding selected for coupled analysis and Pi/CAP reference.");
+});
 $("#coupling").addEventListener("click",()=>task(async()=>{
-  const result=await request({action:"coupling",technology:technologyText,first:{...currentDefinition,winding:0},second:{...currentDefinition,winding:1}});
+  const result=await request({action:"coupling",technology:technologyText,first:{...currentDefinition,winding:currentDefinition.winding||0},second:{...currentDefinition,winding:otherWinding()}});
   status(`ASITIC coupling estimate: k = ${fmt(result.k,6)}, M = ${fmt(result.mutual_nh,6)} nH.`);
 }));
 form.addEventListener("input",()=>{if(current)status("Parameters changed. Generate layout to apply them.");});
@@ -560,7 +588,7 @@ $("#download-matrix").addEventListener("click",()=>{
 });
 $("#capacitance").addEventListener("click",()=>task(async()=>{
   status("Generating layered Green tables and solving the contact-potential matrix…");
-  const ground=current.windings.length===2 && $("#cap-ground").checked ? {...currentDefinition,winding:1-(currentDefinition.winding||0)} : null;
+  const ground=current.windings.length>=2 && $("#cap-ground").checked ? {...currentDefinition,winding:otherWinding()} : null;
   const result=await request({action:"capacitance",...currentDefinition,ground,technology:technologyText,...frequencyInput(),
     ...meshInputs({length_cell:numeric("#cap-length"),width_cell:numeric("#cap-width")})});
   capacitanceResult=result;
@@ -581,10 +609,10 @@ $("#download-capacitance").addEventListener("click",()=>{
   download(rows.join("\n"),"text/csv",filename("-capacitance-admittance.csv"));
 });
 function updateTransformerControls(){
-  const paired=current?.windings.length===2,first=currentDefinition?.winding||0;
+  const paired=(current?.windings.length??0)>=2,first=currentDefinition?.winding||0,second=otherWinding();
   $("#transformer-ground-fields").hidden=$("#transformer-ground-mode").value!=="strip";
   $("#transformer-circuit").hidden=!paired;
-  $("#transformer-note").textContent=paired?`Port 1: ${current.windings[first]} · Port 2: ${current.windings[1-first]}. Uses the selected frequency, CAP/LMAT mesh and native eddy setting.`:"Choose a transformer, balun or 3D transformer to analyze both windings.";
+  $("#transformer-note").textContent=paired?`Port 1: ${current.windings[first]} · Port 2: ${current.windings[second]}. Uses the selected frequency, CAP/LMAT mesh and native eddy setting.`:"Generate a paired device or copy a winding to run coupled analysis.";
 }
 function resetTransformer(){
   transformerResult=null;transformerRequest=null;transformerRows=[];transformerSamples=[];transformerRange=null;
@@ -592,13 +620,13 @@ function resetTransformer(){
   $("#transformer-circuit").innerHTML=transformerSVG();updateTransformerControls();renderTransformerSweep();
 }
 function transformerPayload(frequency,ghz=frequency/1e9){
-  if(current?.windings.length!==2)throw Error("Choose a layout with two windings for CALCTRANS.");
+  if((current?.windings.length??0)<2)throw Error("Choose a layout with at least two windings for CALCTRANS.");
   const first=currentDefinition.winding||0,mode=$("#transformer-ground-mode").value;
   const ground=mode==="first"?{...currentDefinition,winding:first}:mode==="strip"?stripDefinition("transformer-ground","_ground"):null;
   const termination_ohm=Math.fround(numeric("#transformer-termination")),f=frequency;
   if(!Number.isFinite(termination_ohm)||!Number.isFinite(f)||f<=0)throw Error("Frequency or termination exceeds the native command range.");
   const mesh=meshSettings();
-  return {action:"calctrans",...currentDefinition,first_winding:first,second_winding:1-first,technology:technologyText,ground,...frequencyFields(f,ghz),termination_ohm,eddy:eddyEnabled(),...meshInputs(mesh)};
+  return {action:"calctrans",...currentDefinition,first_winding:first,second_winding:otherWinding(),technology:technologyText,ground,...frequencyFields(f,ghz),termination_ohm,eddy:eddyEnabled(),...meshInputs(mesh)};
 }
 const transformerMetrics=[
   ["First inductance","first_inductance_h",1e9,"nH"],["Second inductance","second_inductance_h",1e9,"nH"],
@@ -723,7 +751,10 @@ $("#project-file").addEventListener("change",event=>task(async()=>{
   const text=data.technology||"";
   const init=await request({action:"init",technology:text});
   // Verify geometry before replacing the current project.
-  const restored=await request({action:"build",...data.shape,technology:text});
+  const edited=await request({action:"build",...data.shape,technology:text});
+  // Form defaults belong to the generator, even when the selected copy has
+  // been renamed or moved. Never feed edited descriptors back into creation.
+  const restored=data.shape.edits?.length?await request({action:"build",...data.shape,edits:[],winding:0,technology:text}):edited;
   technologyText=text;fillTechnology(init);
   $("#kind").value=data.shape.kind;
   $("#dimension-mode").value=["square","multimetal"].includes(data.shape.kind)&&!("length"in data.shape.parameters)&&"inner_length"in data.shape.parameters?"inner":"outer";
@@ -753,7 +784,7 @@ $("#project-file").addEventListener("change",event=>task(async()=>{
   for(const [key,value] of Object.entries(restoredParameters))restoreFormParameter(key,key==="phase"&&(data.shape.kind==="wire"||symmetric||multimetal||primitive||paired||data.shape.kind==="square")?((restored.parameters.phase??value)<0?-1:1):value);
   if(restoredMesh)applyMesh(restoredMesh);
   $("#mesh-auto-fit").checked=data.mesh_auto_fit===true;
-  currentDefinition=data.shape;current=restored;showFields(data.shape);render(current);resetResults();status("Project restored. Run analysis on the selected winding.");
+  currentDefinition=data.shape;current=edited;showFields(data.shape);render(current);resetResults();status("Project restored. Run analysis on the selected winding.");
   event.target.value="";
 }));
 $("#technology-file").addEventListener("change",event=>task(async()=>{

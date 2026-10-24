@@ -1,0 +1,65 @@
+{
+  "date": "2026-10-24",
+  "host": "AMD Ryzen 9 7940HX, x86_64 family 25 model 97 stepping 2",
+  "runtime_version": "86bebb1c2674891d",
+  "protocol": {
+    "node": "v24.19.0",
+    "pyodide": "314.0.7",
+    "wasm_sha256": "23256f1e918e48e38309babb5b1472c53344bbfe484b05e1f5ec1d94783ec061",
+    "scope": "Complete JSON requests, excludes runtime startup/download/render; geometry/contact/table caches cleared before each case; first call and five repeats"
+  },
+  "measurement": "Recorded sequentially after local validation completed. A single initialized runtime is reused; the named Python caches are cleared before each case. Startup, downloads and rendering excluded. No original-binary speed comparison or universal performance claim.",
+  "fixture_sha256": {
+    "copy_links_original.json.gz": "db41f0ce855992e04d24e5935dbfa6f455becffab3a97acd8148c7fd65dfc6dd",
+    "copy_sessions_original.json.gz": "f027db0763b496ab4ea3c8ddf699511b47a38b693cb35b045654f56940da9d82"
+  },
+  "cases": [
+    {
+      "label": "six-object 3D scene",
+      "input_sha256": "c2b7f8b7b41fe742f2a480fb7ad032e012e20b96fa363e021890c31cdd61d004",
+      "first_ms": 20.988409000000047,
+      "warm_median_ms": 5.0655380000000605,
+      "warm_samples_ms": [
+        6.0520910000000185,
+        5.38312800000017,
+        5.0655380000000605,
+        4.978628999999955,
+        4.710696999999982
+      ],
+      "segments": 9,
+      "windings": 6
+    },
+    {
+      "label": "copied BALUN coupled model",
+      "input_sha256": "04ab1fa34072c50604a5a866fa91f27eab5be75192a1e16d540522aa9a32e340",
+      "first_ms": 750.4383,
+      "warm_median_ms": 54.17803700000013,
+      "warm_samples_ms": [
+        54.46171000000004,
+        54.17803700000013,
+        53.99294599999985,
+        52.94033599999966,
+        54.51728800000001
+      ],
+      "frequency_hz": 123456704,
+      "filaments": 26,
+      "segments": 26
+    },
+    {
+      "label": "metal-converted VIA Pi2",
+      "input_sha256": "57806c5c5eabbcf69319e2008abb021b1cc4db22b5138f00d9d21765eba260cf",
+      "first_ms": 266.6822769999999,
+      "warm_median_ms": 6.613454999999703,
+      "warm_samples_ms": [
+        6.8496939999999995,
+        6.613454999999703,
+        6.639034000000265,
+        6.543227000000115,
+        6.540602000000035
+      ],
+      "frequency_hz": 1234567936,
+      "filaments": 1,
+      "segments": 1
+    }
+  ]
+}

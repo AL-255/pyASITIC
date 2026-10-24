@@ -91,9 +91,9 @@ class OriginalSpatialEditTests(unittest.TestCase):
             self.assertEqual(struct.pack('<2d',*rotate_xy(x,y,0.,0.,0.)),struct.pack('<2d',x,y))
         c=self.fixture['cases'][0];tech=Technology.from_text(c['technology']);request=dict(c['public']);before=copy.deepcopy(request)
         for alias,canonical in ALIASES.items():
-            op=dict(command=alias,winding=0,x=.125,y=-.25,angle=17.123456789)
-            actual=_shapes(dict(request,edits=[op]),tech)[0];expected=_shapes(dict(request,edits=[dict(op,command=canonical)]),tech)[0]
-            self.assertEqual(actual.to_dict(),expected.to_dict())
+            op=dict(command=alias,winding=0,x=.125,y=-.25,angle=17.123456789,name='TEMP',other=0,metal='M2')
+            actual=_shapes(dict(request,edits=[op]),tech);expected=_shapes(dict(request,edits=[dict(op,command=canonical)]),tech)
+            self.assertEqual([s.to_dict()for s in actual],[s.to_dict()for s in expected])
         for edits in ({},[None],[{}],[dict(command='unknown')],[dict(command='MOVE',winding=-1,x=1,y=1)],[dict(command='MOVE',winding=.5,x=1,y=1)],[dict(command='MOVE',winding=True,x=1,y=1)],[dict(command='MOVE',x=math.nan,y=1)]):
             response=json.loads(request_json(json.dumps(dict(request,action='build',edits=edits))))
             self.assertIn('error',response)

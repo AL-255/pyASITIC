@@ -128,6 +128,8 @@ def solve_capacitance(shape,technology,frequency_hz,*,ground=None,length_cell=10
             full.append(row)
     admittance=inverse(full)
     total=_sum_complex(z for row in admittance[:len(contacts)-second_count] for z in row[:len(contacts)-second_count])
+    if total==0:
+        raise ValueError('Original CAP reduction is nonfinite (zero total admittance); review the reference geometry and contact mesh')
     impedance=1/total
     total_c=-1/(2*math.pi*frequency_hz*impedance.imag)
     indices=[]

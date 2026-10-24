@@ -12,6 +12,7 @@
 #transformer-circuit svg,#transformer-chart svg{display:block;width:100%;height:auto;margin:12px 0}#transformer-metrics table{margin:12px 0}
 #mesh-settings{border:1px solid #3c4a55;border-radius:6px;padding:16px;margin:20px 0;background:#14202a}#mesh-settings summary{font-size:14px;color:var(--accent)}#mesh-settings .method-note{margin:0 0 16px}.mesh-grid{display:grid;grid-template-columns:repeat(3,minmax(125px,1fr));gap:0 14px}#mesh-settings .sweep-controls label{flex-basis:240px;width:240px}#mesh-feedback{font:12px/1.8 var(--mono);margin-bottom:0}@media(max-width:1050px){.mesh-grid{grid-template-columns:1fr 1fr}}@media(max-width:420px){.mesh-grid{grid-template-columns:1fr}}
 .layout-edits{border:1px solid var(--line);border-radius:6px;padding:16px;margin:20px 0}.layout-edits .sweep-controls label:first-child{flex-basis:240px}.layout-edits .method-note{margin:12px 0}.layout-edits #edit-status,.layout-edits li{font:11px/1.8 var(--mono)}#edit-history{max-height:180px;overflow:auto;padding-left:24px}
+#winding-control{flex-wrap:wrap}.layout-edits #edit-origin-field{flex-basis:160px;display:flex;align-items:center;gap:8px}.layout-edits #edit-origin-field input{width:auto}
 
 .rectangular-inputs{grid-template-columns:minmax(0,1fr);grid-column:1/-1}.rectangular-inputs select{min-width:0}
 
