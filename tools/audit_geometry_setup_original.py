@@ -18,6 +18,7 @@ def compare(case,*,return_state=False,include_prelude=True,observe_headers=False
     assert initial['label']=='driver_entry'
     heap=Heap(initial);memory=Memory(heap.address_space)
     for region in context['memory_regions']:memory.write(region['address'],bytes.fromhex(region['data']))
+    memory.write(initial['arena_address'],bytes.fromhex(initial['arena_bytes']))
     for address,data in initial_regions:memory.write(address,data)
     strings=context['strings'];memory.write(strings['address'],bytes.fromhex(strings['data']))
     geometry=GeometryStorage(heap,memory,context['head'])

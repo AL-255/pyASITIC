@@ -100,6 +100,7 @@ class Heap:
         self.have_fastchunks=bool(snapshot['have_fastchunks'])
         self.max_fast=snapshot['max_fast'];self.parameters=dict(snapshot['parameters'])
         self.flags=snapshot['flags'];self.system_mem=snapshot['system_mem']
+        self.arena_address=snapshot['arena_address']
         raw=bytes.fromhex(snapshot['arena_bytes'])
         self.binmap=[int.from_bytes(raw[offset:offset+4],'little')for offset in range(1080,1096,4)]
         self.max_system_mem=int.from_bytes(raw[1112:1116],'little')
@@ -121,7 +122,8 @@ class Heap:
 
         Unlike a snapshot refresh, only source operations which store a word
         write it. Old headers inside a merged chunk remain as native bytes.
-        Bin links and corruption-aware header decisions are separate work.
+        Bin links share the same memory; corruption-aware header decisions
+        remain separate work.
         """
         if memory.address_space is not self.address_space:raise ValueError('Header stores need the heap address space')
         if self._header_memory is not None:raise ValueError('Header observation is already active')
@@ -136,13 +138,26 @@ class Heap:
     def _foot(self,p,size):
         if self._header_memory is not None:self._header_memory.put_u32(p+size,size)
 
+    def _clear_nextsize(self,p,size):
+        # malloc.c clears these fields when a large remainder/free chunk
+        # enters the unsorted bin. Their old bytes can become a later header.
+        memory=self._storage_memory()
+        if size>=1008 and memory is not None:
+            memory.put_u32(p+16,0);memory.put_u32(p+20,0)
+
+    def _fastbin_store(self,p,following):
+        # Unlike tcache, fastbin links name chunk headers, not user pointers.
+        memory=self._storage_memory()
+        if memory is not None:memory.put_u32(p+8,following^((p+8)>>12))
+
     def observe_cache_stores(self,memory,key):
         """Trace logical tcache stores before numerical corruption is possible.
 
         Initializes only cache controls, links and keys from the caller's
         initial allocator state. Allocation decisions still use logical lists;
         attach_cache_memory later enables reads from these same bytes without
-        reinitializing them. Other arena metadata is not byte-backed here.
+        reinitializing them. Other arena decisions remain logical, with
+        source link stores emitted into the same shared memory.
         """
         if self._cache_memory is not None or self._cache_write_memory is not None:
             raise ValueError('Cache store observation must begin before backing or tracing')
@@ -178,7 +193,7 @@ class Heap:
     def attach_cache_memory(self,memory,key):
         """Back tcache control/links/keys with initialized shared bytes.
 
-        Other arena structures currently remain logical metadata. This is an
+        Other arena allocation decisions currently remain logical. This is an
         intermediate port, not a promise that arbitrary header/bin corruption
         or complete numerical allocation history is already modeled.
         """
@@ -256,9 +271,46 @@ class Heap:
         index=self._cache_index(size)
         return self.tcache_enabled and index<self.parameters['tcache_bins'] and self._cache_count(index)<self.parameters['tcache_count']
 
+    def _bin_head(self,index):
+        # i386 malloc_state.bins starts at +64; bin_at subtracts two words.
+        return self.arena_address+56+8*(index-1)
+
+    def _large_representatives(self,index):
+        representatives=[];previous=None
+        for p in self.bins[index]:
+            size=self.chunks[p].size
+            if size!=previous:representatives.append(p);previous=size
+        return representatives
+
+    def _link_bin(self,index,p,position=0):
+        chain=self.bins[index];head=self._bin_head(index);memory=self._storage_memory()
+        before=chain[position-1]if position else head;after=chain[position]if position<len(chain)else head
+        if memory is not None:
+            memory.put_u32(p+12,before);memory.put_u32(p+8,after)
+            memory.put_u32(after+12,p);memory.put_u32(before+8,p)
+        chain.insert(position,p)
+
+    def _unlink_bin(self,index,p):
+        chain=self.bins[index];position=chain.index(p);head=self._bin_head(index);memory=self._storage_memory()
+        before=chain[position-1]if position else head;after=chain[position+1]if position+1<len(chain)else head
+        if memory is not None:
+            memory.put_u32(after+12,before);memory.put_u32(before+8,after)
+            if index!=1 and self.chunks[p].size>=1008:
+                representatives=self._large_representatives(index)
+                if p in representatives:
+                    slot=representatives.index(p);forward=representatives[(slot+1)%len(representatives)];backward=representatives[slot-1]
+                    if after!=head and self.chunks[after].size==self.chunks[p].size:
+                        if len(representatives)==1:memory.put_u32(after+16,after);memory.put_u32(after+20,after)
+                        else:
+                            memory.put_u32(after+16,forward);memory.put_u32(after+20,backward)
+                            memory.put_u32(forward+20,after);memory.put_u32(backward+16,after)
+                    else:
+                        memory.put_u32(forward+20,backward);memory.put_u32(backward+16,forward)
+        chain.pop(position)
+
     def _unlink(self,p):
-        for chain in self.bins[1:]:
-            if p in chain:chain.remove(p);return
+        for index,chain in enumerate(self.bins[1:],1):
+            if p in chain:self._unlink_bin(index,p);return
         raise ValueError('Free chunk is missing from arena bins')
 
     def _mark_in_use(self,p):
@@ -268,11 +320,21 @@ class Heap:
     def _insert_bin(self,p):
         size=self.chunks[p].size;index=bin_index(size);chain=self.bins[index]
         self.binmap[index//32]|=1<<(index%32)
-        if size<1008:chain.insert(0,p);return
-        index=0
-        while index<len(chain)and self.chunks[chain[index]].size>size:index+=1
-        if index<len(chain)and self.chunks[chain[index]].size==size:index+=1
-        chain.insert(index,p)
+        if size<1008:self._link_bin(index,p);return
+        position=0
+        while position<len(chain)and self.chunks[chain[position]].size>size:position+=1
+        if position<len(chain)and self.chunks[chain[position]].size==size:position+=1
+        else:
+            memory=self._storage_memory()
+            if memory is not None:
+                representatives=self._large_representatives(index)
+                if not representatives:memory.put_u32(p+16,p);memory.put_u32(p+20,p)
+                else:
+                    slot=next((i for i,q in enumerate(representatives)if self.chunks[q].size<size),len(representatives))
+                    forward=representatives[slot%len(representatives)];backward=representatives[slot-1]
+                    memory.put_u32(p+16,forward);memory.put_u32(p+20,backward)
+                    memory.put_u32(forward+20,p);memory.put_u32(backward+16,p)
+        self._link_bin(index,p,position)
 
     def _split(self,p,size,advertise=False):
         chunk=self.chunks[p];remaining=chunk.size-size
@@ -280,8 +342,9 @@ class Heap:
         next_address=p+chunk.size;chunk.size=size;chunk.previous_in_use=True
         remainder=p+size;self.chunks[remainder]=Chunk(remaining,0,True)
         following=self.chunks[next_address];following.previous=remaining;following.previous_in_use=False
+        self._clear_nextsize(remainder,remaining)
         self._head(p);self._head(remainder);self._foot(remainder,remaining)
-        self.bins[1].insert(0,remainder)
+        self._link_bin(1,remainder)
         if advertise:self.last_remainder=remainder
         return p+8
 
@@ -299,9 +362,9 @@ class Heap:
         if small:
             chain=self.bins[index]
             if chain:
-                p=chain.pop();self._mark_in_use(p)
+                p=chain[-1];self._unlink_bin(index,p);self._mark_in_use(p)
                 while chain and self._cache_has_space(size):
-                    other=chain.pop();self._mark_in_use(other);self._cache_put(other,size)
+                    other=chain[-1];self._unlink_bin(index,other);self._mark_in_use(other);self._cache_put(other,size)
                 return p+8
         elif self.have_fastchunks:self._consolidate()
         while True:
@@ -310,7 +373,7 @@ class Heap:
                 p=self.bins[1][-1];chunk=self.chunks[p]
                 if small and len(self.bins[1])==1 and p==self.last_remainder and chunk.size>size+16:
                     self.bins[1].pop();return self._split(p,size,True)
-                self.bins[1].pop()
+                self._unlink_bin(1,p)
                 if chunk.size==size:
                     self._mark_in_use(p)
                     if self._cache_has_space(size):
@@ -330,10 +393,10 @@ class Heap:
                     p=next(p for p in suitable if self.chunks[p].size==best)
                     position=chain.index(p)
                     if position+1<len(chain)and self.chunks[chain[position+1]].size==best:p=chain[position+1]
-                    chain.remove(p);return self._split(p,size)
+                    self._unlink_bin(index,p);return self._split(p,size)
             for bin_number,chain in enumerate(self.bins[index+1:],index+1):
                 if chain:
-                    p=chain.pop();return self._split(p,size,small)
+                    p=chain[-1];self._unlink_bin(bin_number,p);return self._split(p,size,small)
                 self.binmap[bin_number//32]&=~(1<<(bin_number%32))
             top=self.chunks[self.top]
             if top.size>=size+16:
@@ -378,8 +441,9 @@ class Heap:
             else:
                 next_chunk.previous_in_use=False;self._head(next_address)
             self.chunks[p+size].previous=size;self.chunks[p+size].previous_in_use=False
+            self._clear_nextsize(p,size)
             self._foot(p,size)
-            self.bins[1].insert(0,p)
+            self._link_bin(1,p)
         self.chunks[p].size=size;self.chunks[p].previous_in_use=True
         self._head(p)
         return size
@@ -406,7 +470,10 @@ class Heap:
         self._cache_check_free(p,size)
         if self._cache_has_space(size):self._cache_put(p,size);return
         if size<=self.max_fast:
-            self.fastbins[(size>>3)-2].insert(0,p);self.have_fastchunks=True;return
+            chain=self.fastbins[(size>>3)-2];following=chain[0]if chain else 0
+            if following==p:raise HeapCorruption('Native fastbin double free')
+            self._fastbin_store(p,following)
+            chain.insert(0,p);self.have_fastchunks=True;return
         size=self._merge(p)
         if size>=65536:
             if self.have_fastchunks:self._consolidate()

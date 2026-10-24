@@ -331,6 +331,12 @@ remain in the stronger comparison, including no-via wires. Complete later
 heaps and bounded numerical frees are now independent observations; missing
 heap stores remain strict failures in a new required CI suite.
 
+[Allocator pointer stores](docs/ALLOCATOR_STORES.md) now reproduce bin,
+fastbin and large-bin size-ring writes. All captured physical headers match,
+including previously differing unused fields. The 6,461 remaining heap-word
+differences are confined to traced stdout/log buffers and remain required
+failures; numerical and pre-free-buffer comparisons still match exactly.
+
 Records use binary64 with selected retained-precision intermediates matching the
 reference's x87 arithmetic. The [native logarithm audit](docs/LOGARITHM_AUDIT.md)
 adds 8,182 instruction cases and 10,327 multiplier cases with complete request

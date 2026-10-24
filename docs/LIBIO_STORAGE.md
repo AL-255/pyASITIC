@@ -66,8 +66,9 @@ by split, coalesce, in-use marking, top allocation/extension and trim branches.
 It does not refresh all headers from a logical snapshot. Headers inside merged
 chunks retain earlier writes, and only source operations that actually store
 a word update it. The observer shares memory with cache stores, remains opt-in,
-and does not yet make header allocation decisions corruption-aware. Bin-link
-and fastbin byte stores remain separate work.
+and does not yet make header allocation decisions corruption-aware. The later
+[allocator pointer-store port](ALLOCATOR_STORES.md) adds bin/fastbin and
+size-ring stores to the same memory.
 
 ## Exact results and strict remaining failure
 
@@ -117,8 +118,8 @@ node tools/check_libio_storage_original.mjs /path/to/pyodide.mjs /tmp/libio-audi
 ```
 
 Remaining integration includes source startup cache-table allocations,
-bin/fastbin bytes, corruption-aware allocator reads,
-and joining this earlier memory to the subsequent numerical history. Earlier
+corruption-aware allocator reads and production integration of the continuous
+driver replay. Earlier
 scene/process startup, contact stack-state words, secondary segment groups,
 later command cleanup and the known logarithm/cosine and JOIN/UNJOIN numerical
 discrepancies also remain unfinished. This checkpoint is not whole-program parity.

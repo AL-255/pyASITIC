@@ -108,16 +108,16 @@ Final packaged results across all 134 histories:
 | Numerical allocation/free events | 13,013 | 0 |
 | Via stores / native mapping faults | 131 / 1 | 0 |
 | CAP / inductance binary64 components at node input | 118,956 / 118,956 | 0 |
-| Complete later heaps | 263 boundaries / 19,456,000 32-bit words | 14,334 words |
+| Complete later heaps | 263 boundaries / 19,456,000 32-bit words | 6,461 words |
 
 There are no unknown heap bytes or unknown via targets. All observed raw
 tcache words and pre-via matrix words also match. The 130-case main audit
-returns 14,280 difference records: 14,236 heap words plus 44 physical-header
-comparisons; the four extra cases return 98 heap-word differences. Those 44
-header comparisons expose 56 differing `prev_size` field observations, with
-no different chunk addresses or size words. The remaining heap words include
-the original's logging buffers and still-unmodeled metadata/stores. Both
-strict commands exit nonzero; these discrepancies are not accepted outputs.
+now returns 6,363 heap-word differences; the four extra cases return 98.
+[Native allocator pointer stores](ALLOCATOR_STORES.md) resolve all previously
+differing physical headers, including unused `prev_size` fields, without
+refreshing them from observations. The remaining words are all in the two
+traced stdout/log buffers. Both strict commands still exit nonzero; these
+discrepancies are not accepted outputs.
 
 ```sh
 PYTHONPATH=src python tools/capture_driver_history_original.py --debug-directory /tmp/debug/usr/lib/debug --reference /path/to/asitic-re --library-path /path/to/native-libraries --full-output /tmp/driver-history-full.json.gz

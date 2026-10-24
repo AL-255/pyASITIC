@@ -102,11 +102,15 @@ python tools/build_site.py
 node tools/check_cache_storage_original.mjs /path/to/pyodide.mjs /tmp/cache-audit.json /tmp/cache-extra-audit.json
 ```
 
-Remaining work includes source cache/process startup, bin/fastbin byte stores,
-allocator decisions reading potentially corrupted shared headers, continuous
-integration with CAP/LMAT numerical memory, secondary geometry groups and
+Remaining work includes source cache/process startup,
+allocator decisions reading potentially corrupted shared headers, production
+integration of continuous CAP/LMAT memory, secondary geometry groups and
 later command cleanup. Known arithmetic and JOIN/UNJOIN discrepancies remain
 unfinished; these component results do not establish whole-program parity.
+
+The later [allocator byte producers](ALLOCATOR_STORES.md) now emit bin,
+fastbin and size-ring links. Header/bin allocation decisions still need full
+corruption-aware readback; pointer stores alone do not establish that scope.
 
 The subsequent [continuous driver replay](DRIVER_HISTORY.md) now passes this
 same source-produced memory through CAP/LMAT and the first node input. CAP

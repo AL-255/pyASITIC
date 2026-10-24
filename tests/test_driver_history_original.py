@@ -9,10 +9,15 @@ import capture_driver_history_extended_original as extended
 from capture_cache_storage_original import expand_files
 from audit_driver_history_original import compare
 from audit_cache_storage_original import compare as cache
-from audit_shared_heap_original import ported_impedance
+from audit_shared_heap_original import ported_impedance,ported_inductance_geometry,via_records,seed
+from audit_cap_prelude_original import dimensions
+from reasitic.allocation_plan import combined_network_storage
+from reasitic.bridge import _mesh
+from reasitic.solver import filament_counts
 from reasitic.storage_history import StorageHistory
 from reasitic.memory import Memory
 from reasitic.cache_storage import CacheStorage
+from reasitic.heap import Heap
 from reasitic.prelude_storage import table_storage
 
 
@@ -82,6 +87,55 @@ class DriverHistoryTests(unittest.TestCase):
         report=compare(self.fixture,entry)
         self.assertTrue(all(d['kind']=='heap-word'for d in report['differences']),report['differences'])
         self.assertGreater(report['workspace_arrays_checked'],0)
+
+    def test_native_large_remainder_clears_survive_as_later_header_words(self):
+        entry=next(c for c in self.fixture['cases']if c['label']=='square/3/contacts'and c['cache_mode']=='warm')
+        report=compare(self.fixture,entry)
+        self.assertTrue(all(d['kind']=='heap-word'for d in report['differences']),report['differences'])
+        with patch.object(Heap,'_clear_nextsize',return_value=None):without=compare(self.fixture,entry)
+        self.assertIn('physical-chunks',{d['kind']for d in without['differences']})
+
+    def test_native_fastbin_words_use_header_pointers_and_address_encoding(self):
+        entry=next(c for c in self.fixture['cases']if c['label']=='square/4/contacts'and c['cache_mode']=='warm')
+        report,heap,addresses,memory=compare(self.fixture,entry,return_state=True)
+        state=next(s for s in entry['allocator_states']if s['label']=='node')
+        self.assertEqual(heap.fastbins,state['fastbins']);checked=0
+        for chain in state['fastbins']:
+            for i,p in enumerate(chain):
+                following=chain[i+1]if i+1<len(chain)else 0
+                self.assertEqual(memory.u32(p+8),following^((p+8)>>12));checked+=1
+        self.assertGreater(checked,0)
+        with patch.object(Heap,'_fastbin_store',return_value=None):
+            report,heap,addresses,memory=compare(self.fixture,entry,return_state=True)
+        self.assertTrue(any(memory.u32(p+8)!=(chain[i+1]if i+1<len(chain)else 0)^((p+8)>>12)for chain in state['fastbins']for i,p in enumerate(chain)))
+
+    def test_native_bin_links_size_rings_and_arena_heads_after_source_lifetimes(self):
+        # Exercise the allocator's bytes independently of matrix arithmetic.
+        # Every request and free identity still comes from the source plan.
+        entry=next(c for c in self.fixture['cases']if c['label']=='square/48/coarse'and c['cache_mode']=='warm')
+        report,heap,addresses,memory=cache(self.fixture,entry,return_state=True)
+        self.assertEqual(report['differences'],[])
+        shape,technology=ported_inductance_geometry(entry);mesh=_mesh(entry['request'],technology)
+        conductors=[s for s in shape.segments if s.metal<len(technology.metals)]
+        filaments=sum(y*z for s in conductors for y,z in [filament_counts(s,mesh['width_cell'],mesh['thickness_cell'],mesh.get('max_width_cells',500))])
+        plan=combined_network_storage(dimensions(entry)[0],len(conductors),filaments,len(via_records(entry)),clone_segments=len(shape.segments))
+        native=[e for e in entry['events']if e['kind']in ('allocate','free')]
+        self.assertEqual(len(plan),len(native))
+        for event,observed in zip(plan,native):
+            self.assertEqual((event.action,event.allocator),(observed['kind'],observed['allocator']))
+            if event.action=='allocate':
+                self.assertEqual(event.size,observed['request']);address=heap.malloc(event.size);addresses[event.name]=address
+            else:address=addresses[event.name];heap.free(address)
+            self.assertEqual(address,observed['address'])
+        case=capture.expand_case(self.fixture,entry);state=next(s for s in case['allocator_states']if s['label']=='node')
+        self.assertEqual(heap.bins[1:],state['bins']);expected=Memory(heap.address_space);seed(expected,state);large=0
+        for index,chain in enumerate(heap.bins[1:],1):
+            head=heap._bin_head(index);self.assertEqual(memory.read(head+8,8),expected.read(head+8,8))
+            for p in chain:
+                size=16 if heap.chunks[p].size>=1008 else 8
+                self.assertEqual(memory.read(p+8,size),expected.read(p+8,size))
+                large+=int(index!=1 and size==16)
+        self.assertGreater(large,0)
 
     def test_isolated_rectangular_table_padding_fails_native_capacitance(self):
         def isolated(cache,source,target):return table_storage(cache.technology,cache.frequency,source,target)[:3]
