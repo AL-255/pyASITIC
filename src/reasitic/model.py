@@ -62,6 +62,7 @@ class Shape:
     @property
     def bounds(self):
         points = [p for s in self.segments for p in s.points]
+        if not points:return [1e15,1e15,-1e15,-1e15]
         return [min(p[0] for p in points), min(p[1] for p in points),
                 max(p[0] for p in points), max(p[1] for p in points)]
 

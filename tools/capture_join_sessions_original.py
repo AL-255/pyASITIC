@@ -30,16 +30,16 @@ def jobs():
   r.update(action=action,winding=0,first_winding=0,second_winding=1,termination_ohm=0,edits=[dict(command='JOIN',winding=0,others=[1]),dict(command='COPY',winding=0,name='d',metal='M2',x=40,y=40),dict(command='MOVE',winding=0,x=.125,y=-.25)])
   yield 'finite-balun/'+action,parent,r,prefix,stdin,names
 
-def capture_plain():
+def capture_plain(*,output_name='join_plain_outcomes_original',job_source=jobs,command_source=command,names_source=update_names,description=None):
  from capture_original_symmetric import ORIGINAL_SHA256,LEGACY_SHA256
  p=argparse.ArgumentParser();p.add_argument('--reference',type=Path,required=True);p.add_argument('--library-path',required=True);a=p.parse_args();original=a.reference/'run/asitic.linux.2.2'
  for path,digest in((original,ORIGINAL_SHA256),(a.reference/'run/libs/libstdc++-2-libc6.1-1-2.9.0.so',LEGACY_SHA256)):
   assert hashlib.sha256(path.read_bytes()).hexdigest()==digest
  accepted=[];results=[];parents={}
  with tempfile.TemporaryDirectory(prefix='pyasitic-join-plain-')as directory:
-  for job in jobs():
+  for job in job_source():
    label,parent,r,prefix,stdin,names=copy.deepcopy(job);parents[parent.name]=hashlib.sha256(parent.read_bytes()).hexdigest();script=prefix
-   for op in r['edits']:script+=command(op,names);update_names(names,op)
+   for op in r['edits']:script+=command_source(op,names);names_source(names,op)
    first=names[r['winding']];freq=format(r['frequency_ghz'],'.17g');script+=f'GEOM {first}\n'
    if r['action']=='calctrans':
     second=names[r['second_winding']];script+=f'CALCTRANS {first} {second} {freq}\n2PORTTRANS {first} {second} {freq} {freq} 1 S RECT s.out\n'
@@ -49,8 +49,8 @@ def capture_plain():
    successful=run.returncode==0 and(work/'s.out').exists()and'Could not generate capacitance matrix'not in run.stdout
    results.append(dict(label=label,request=r,script=script,stdin=stdin,returncode=run.returncode,stdout=run.stdout,stderr=run.stderr,produced_model=successful));print(label,'unobserved model:',successful,flush=True)
    if successful:accepted.append(copy.deepcopy(job))
- result=dict(original_sha256=ORIGINAL_SHA256,legacy_sha256=LEGACY_SHA256,parents=parents,reference='Every selected JOIN model request executed by the unchanged binary without GDB, preload taps, or replacements. Failed model attempts remain here with their complete scripts/requests/outputs; successful cases additionally receive read-only raw model observers.',cases=results)
- with gzip.GzipFile(str(ROOT/'tests/fixtures/join_plain_outcomes_original.json.gz'),'wb',mtime=0)as f:f.write((json.dumps(result,separators=(',',':'))+'\n').encode())
+ result=dict(original_sha256=ORIGINAL_SHA256,legacy_sha256=LEGACY_SHA256,parents=parents,reference=description or'Every selected JOIN model request executed by the unchanged binary without GDB, preload taps, or replacements. Failed model attempts remain here with their complete scripts/requests/outputs; successful cases additionally receive read-only raw model observers.',cases=results)
+ with gzip.GzipFile(str(ROOT/'tests/fixtures'/f'{output_name}.json.gz'),'wb',mtime=0)as f:f.write((json.dumps(result,separators=(',',':'))+'\n').encode())
  return accepted
 
 if __name__=='__main__':

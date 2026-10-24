@@ -6,7 +6,7 @@ from .paired_geometry import _name
 from .retained_scalar import Real as R
 
 ALIASES={}
-for names in [('MOVE','MV'),('MOVEX','MVX'),('MOVEY','MVY'),('MOVETO','MVTO','SETORIG','SETORIGIN'),('ROTATE','ROT','TURN'),('FLIPV','FLIPVERT','VFLIP','VERTFLIP'),('FLIPH','FLIPHORZ','HFLIP','HORZFLIP'),('FLIP','REVERSE','REV','REORDER'),('COPY','CP','DUPLICATE','DUP'),('RENAME','REN','NEWNAME','NAME'),('BEFRIEND','FRIEND'),('UNFRIEND','DEFRIEND'),('PHASE','PH'),('ERASE','DEL','DELETE','RM'),('JOIN','ADD','MATE','COUPLE')]:
+for names in [('MOVE','MV'),('MOVEX','MVX'),('MOVEY','MVY'),('MOVETO','MVTO','SETORIG','SETORIGIN'),('ROTATE','ROT','TURN'),('FLIPV','FLIPVERT','VFLIP','VERTFLIP'),('FLIPH','FLIPHORZ','HFLIP','HORZFLIP'),('FLIP','REVERSE','REV','REORDER'),('COPY','CP','DUPLICATE','DUP'),('RENAME','REN','NEWNAME','NAME'),('BEFRIEND','FRIEND'),('UNFRIEND','DEFRIEND'),('PHASE','PH'),('ERASE','DEL','DELETE','RM'),('JOIN','ADD','MATE','COUPLE'),('UNJOIN','SPLIT','BREAK','CUT')]:
     ALIASES.update((name,names[0])for name in names)
 
 
@@ -26,10 +26,18 @@ def apply_edits(shapes,technology,edits,*,with_links=False):
     paired=len(shapes)==2 and shapes[0].kind in('transformer','balun')
     generator_parameters=copy.deepcopy(shapes[0].parameters)if shapes else{}
     slots=list(shapes);live=list(range(len(slots)))
+    if any(isinstance(op,dict)and ALIASES.get(str(op.get('command','')).upper())=='UNJOIN'for op in edits):
+        for shape in slots:
+            p=shape.parameters;kind=shape.kind
+            shape._native_divisions=int(p['nx'])if kind=='via'else int(p.get('sides',4))if kind in('polygon','ring','symmetric_polygon')else 1 if kind in('wire','capacitor')else 4
+            # RING leaves this descriptor field uninitialized. Keep it unknown;
+            # its opaque bytes do not participate in split coordinates.
+            shape._native_turns=None if kind=='ring'else .25 if kind in('wire','via')else 0. if kind=='capacitor'else float(p['turns'])
     friends=[1,0]if paired else[None]*len(slots)
     def needs_arena(op):
         if not isinstance(op,dict):return False
         command=ALIASES.get(str(op.get('command','')).upper())
+        if command=='UNJOIN':return True
         if command=='JOIN':
             sources=op.get('others',[op['other']]if 'other'in op else[])
             return isinstance(sources,list)and 1<=len(sources)<=11
@@ -42,15 +50,16 @@ def apply_edits(shapes,technology,edits,*,with_links=False):
         for i,shape in enumerate(slots):
             address=arena.malloc(0xbc);addresses.append(address);identities[address]=i
             records=[arena.malloc(0xf0)for _ in shape.segments];segments.append(records);arena.write(shape,address,records)
-    def allocate(shape):
+    def allocate(shape,records=None):
         if arena is None:slot=len(slots);slots.append(shape);friends.append(None)
         else:
             address=arena.malloc(0xbc);slot=identities.get(address)
             if slot is None:
                 slot=len(slots);identities[address]=slot;slots.append(None);friends.append(None);addresses.append(address);segments.append([])
-            slots[slot]=shape;segments[slot]=[arena.malloc(0xf0)for _ in shape.segments];arena.write(shape,address,segments[slot])
+            slots[slot]=shape;segments[slot]=[arena.malloc(0xf0)for _ in shape.segments]if records is None else records;arena.write(shape,address,segments[slot])
         friends[slot]=None;live.append(slot)
     def release(slot,*,clear_peer=True):
+        if not slots[slot].segments:raise ValueError('The original command faults on an empty segment chain')
         peer=friends[slot]
         if clear_peer and peer is not None:friends[peer]=None
         arena.write(slots[slot],addresses[slot],segments[slot])
@@ -101,6 +110,8 @@ def apply_edits(shapes,technology,edits,*,with_links=False):
                 if target.kind=='wire'and source.kind in('square','polygon'):
                     target.origin[:]=source.origin;target.parameters=copy.deepcopy(source.parameters)
                     target.parameters['turns']=float(R(source.parameters.get('turns',0))+R(.25));target.electrical_phase=source.electrical_phase
+                    if hasattr(source,'_native_divisions'):
+                        target._native_divisions=source._native_divisions;target._native_turns=float(R(source._native_turns)+R(.25))
                 target.kind='joined';release(source_slot,clear_peer=False)
             continue
         if command=='ERASE':
@@ -121,7 +132,35 @@ def apply_edits(shapes,technology,edits,*,with_links=False):
         history.append([shape.name])
         dangling=peer is not None and peer not in live
         if dangling and command in('MOVE','MOVEX','MOVEY','MOVETO'):sync()
-        if command in('MOVE','MOVEX','MOVEY'):
+        if command=='UNJOIN':
+            requested=name(op['name'])
+            if any(slots[i].name==requested for i in live):shape.warnings.append('Error:  Spiral name already in use.');continue
+            if not shape.segments:raise ValueError('The original UNJOIN faults on an empty segment chain')
+            value=op['index']
+            if isinstance(value,bool):raise ValueError('Split index must be a signed 32-bit integer')
+            try:index=int(value)
+            except(TypeError,ValueError,OverflowError):raise ValueError('Split index must be a signed 32-bit integer')from None
+            if not -(1<<31)<=index<(1<<31):raise ValueError('Split index must be a signed 32-bit integer')
+            count=len(shape.segments)
+            if not -count<=index<=count:shape.warnings.append('Error:  Index out of range.');continue
+            if index==0:
+                if count<2:shape.warnings.append('Error:  Cannot split a single segment in half.  This feature will be added in the future.');continue
+                index=count//2
+            if index<0:index=index-1+count
+            if shape._native_turns is not None:
+                turns=abs(index)//shape._native_divisions*(-1 if index<0 else 1)
+                shape._native_turns=float(R(shape._native_turns)-R(turns))
+                if 'turns'in shape.parameters:shape.parameters['turns']=shape._native_turns
+            cut=max(1,index);copied=copy.deepcopy(shape);copied.name=requested;copied.parameters['name']=requested;copied.kind='wire'
+            copied.segments=shape.segments[cut:];shape.segments=shape.segments[:cut]
+            records=segments[slot][cut:];segments[slot]=segments[slot][:cut]
+            # The native split allocates only the descriptor; it transfers the
+            # original tail records without allocating or freeing segments.
+            allocate(copied,records)
+            x=min([1e15,*[p[0]for s in copied.segments for p in s.points]])
+            y=min([1e15,*[p[1]for s in copied.segments for p in s.points]])
+            copied._rebase(x,y)
+        elif command in('MOVE','MOVEX','MOVEY'):
             dx=length(op,'x')if command!='MOVEY'else None;dy=length(op,'y')if command!='MOVEX'else None
             for target in [shape,*([partner]if partner is not None and not dangling else[])]:
                 if dx is not None:target.origin[0]=float(R(target.origin[0])+R(dx))
@@ -153,6 +192,7 @@ def apply_edits(shapes,technology,edits,*,with_links=False):
                 # after reporting this error. Reject the failed operation at
                 # the API boundary rather than fabricate a valid new winding.
                 raise ValueError('Error:  Cannot copy using a spiral name which is already in use.')
+            if not shape.segments:raise ValueError('The original COPY faults on an empty segment chain')
             target=technology.metal_index(op['metal'])if'metal'in op else None
             if('x'in op or'y'in op)and target is None:raise ValueError('COPY positions require a metal argument; use MOVETO to position a copy that keeps its metals')
             x=length(op,'x')if'x'in op else None
@@ -192,6 +232,7 @@ def apply_edits(shapes,technology,edits,*,with_links=False):
         elif command=='FLIPV':shape.reflect(0)
         elif command=='FLIPH':shape.reflect(1)
         else:
+            if not shape.segments:raise ValueError('The original FLIP faults on an empty segment chain')
             shape.segments.reverse()
             if arena is not None:segments[slot].reverse()
         if any(not math.isfinite(v)for i in live for v in slots[i].origin):raise ValueError('Edited origin exceeds the finite native range')

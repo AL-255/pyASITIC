@@ -25,31 +25,33 @@ function error(message="") { $("#error").hidden = !message; $("#error").textCont
 function status(message) { $("#analysis-status").textContent = message; }
 function controls() {
   const hasWindings=(current?.windings.length??0)>0;
+  const hasSegments=hasWindings&&current.segments.length>0;
+  const hasPair=hasSegments&&(current?.windings.length??0)>1&&(current?.winding_segment_counts?.[otherWinding()]??1)>0;
   for(const el of document.querySelectorAll(".technology input,.technology select,.technology button"))el.disabled=!ready||busy;
   for(const el of document.querySelectorAll(".analysis-panel input,.analysis-panel select"))el.disabled=busy;
   for(const el of document.querySelectorAll("[data-open-mesh]"))el.disabled=busy;
-  $("#transformer-mesh-settings").disabled=busy||(current?.windings.length??0)<2;
+  $("#transformer-mesh-settings").disabled=busy||!hasPair;
   for(const el of document.querySelectorAll(".layout-edits input,.layout-edits select,.layout-edits button"))el.disabled=!ready||busy||!hasWindings;
   for(const id of["edit-undo","edit-reset"])$("#"+id).disabled=!ready||busy||!currentDefinition?.edits?.length;
   if($("#edit-command").value==="JOIN"&&(current?.windings.length??0)<2)$("#edit-apply").disabled=true;
   $("#generate").disabled = !ready || busy;
-  for (const id of ["simulate", "sweep", "lmat", "capacitance", "pi2", "selfres", "download-gds", "download-project"]) $("#"+id).disabled = !ready || busy || !hasWindings;
+  for (const id of ["simulate", "sweep", "lmat", "capacitance", "pi2", "selfres"]) $("#"+id).disabled = !ready || busy || !hasSegments;
   for(const id of ["download-gds","download-project"])$("#"+id).disabled=!ready||busy||!current;
-  for(const id of ["mesh-check","mesh-fit","mesh-recovery-fit"])$("#"+id).disabled=!ready||busy||!hasWindings;
-  const coupledMesh=$("#mesh-target option[value='calctrans']");coupledMesh.disabled=(current?.windings.length??0)<2;
+  for(const id of ["mesh-check","mesh-fit","mesh-recovery-fit"])$("#"+id).disabled=!ready||busy||!hasSegments;
+  const coupledMesh=$("#mesh-target option[value='calctrans']");coupledMesh.disabled=!hasPair;
   if(coupledMesh.disabled&&$("#mesh-target").value==="calctrans")$("#mesh-target").value="pi2";
   for(const id of ["download-selfres","download-selfres-csv","download-selfres-plot"])$("#"+id).disabled=busy||!selfresResult;
   $("#download-csv").disabled = busy || !sweepRows?.length;
   $("#download-plot").disabled = busy || !sweepRows?.length;
-  $("#download-model-svg").disabled = busy || !hasWindings;
+  $("#download-model-svg").disabled = busy || !hasSegments;
   if($("#pi-model").value==="pi")$("#pi2").disabled=true;
   $("#download-matrix").disabled = busy || !matrixResult;
   $("#download-capacitance").disabled = busy || !capacitanceResult;
   for(const id of ["download-pi2","download-ports"]) $("#"+id).disabled = busy || !pi2Result;
   $("#active-winding").disabled = busy;
   $("#other-winding").disabled=busy||(current?.windings.length??0)<2;
-  $("#coupling").disabled = busy || !current || current.windings.length<2;
-  for(const id of ["transformer-run","transformer-sweep"])$("#"+id).disabled=!ready||busy||(current?.windings.length??0)<2;
+  $("#coupling").disabled = busy || !hasPair;
+  for(const id of ["transformer-run","transformer-sweep"])$("#"+id).disabled=!ready||busy||!hasPair;
   for(const id of ["download-transformer","download-transformer-svg","download-transformer-ports"])$("#"+id).disabled=busy||!transformerResult;
   for(const id of ["download-transformer-sweep","download-transformer-plot"])$("#"+id).disabled=busy||!transformerRows.length;
 }
@@ -229,9 +231,11 @@ function showEditFields(){
   const command=$("#edit-command").value,copy=command==="COPY",position=copy&&$("#edit-metal").value!==""&&!$("#edit-keep-origin").checked;
   $("#edit-erase-field").hidden=command!=="ERASE";
   $("#edit-join-field").hidden=command!=="JOIN";$("#edit-join-note").hidden=command!=="JOIN";
+  $("#edit-index-field").hidden=command!=="UNJOIN";$("#edit-split-note").hidden=command!=="UNJOIN";
+  $("#edit-split-note").textContent=`${current?.segments.length??0} segments in the selected winding. Index 0 splits in half; a positive index cuts after that segment. Negative indices follow ASITIC indexing. Cutting after the last segment creates an empty winding. Undo restores the split.`;
   $("#edit-phase-field").hidden=command!=="PHASE";$("#edit-phase-note").hidden=command!=="PHASE";
   $("#edit-phase-note").textContent=current?.electrical_phase===0?"Native phase state is zero; PHASE leaves directions unchanged.":`Electrical phase state: ${current?.electrical_phase??1}. PHASE reverses segment endpoints when the sign changes; the segment list keeps its order.`;
-  $("#edit-name-field").hidden=!["COPY","RENAME"].includes(command);$("#edit-other-field").hidden=!["BEFRIEND","UNFRIEND"].includes(command);
+  $("#edit-name-field").hidden=!["COPY","RENAME","UNJOIN"].includes(command);$("#edit-other-field").hidden=!["BEFRIEND","UNFRIEND"].includes(command);
   $("#edit-metal-field").hidden=!copy;$("#edit-origin-field").hidden=!copy||$("#edit-metal").value==="";
   $("#edit-x-field").hidden=!["MOVE","MOVETO","MOVEX","MOVEY","ROTATE"].includes(command)&&!position;$("#edit-y-field").hidden=!["MOVE","MOVETO"].includes(command)&&!position;
   $("#edit-x-title").textContent=command==="ROTATE"?"Angle":command==="MOVETO"||copy?"Origin X":command==="MOVEY"?"Delta Y":"Delta X";
@@ -248,7 +252,7 @@ function renderEditHistory(){
   const edits=currentDefinition?.edits||[];
   $("#edit-status").textContent=edits.length?`${edits.length} layout edit${edits.length===1?"":"s"}. Regenerating keeps this history; Reset edits restores the generated layout.`:"No layout edits.";
   $("#edit-history").replaceChildren(...edits.map((edit,i)=>{
-    const row=document.createElement("li"),values=["name","metal","other","x","y","angle","phase"].filter(key=>key in edit).map(key=>`${key}=${key==="other"?(current.history_targets?.[i]?.[1]??`winding ${edit[key]}`):edit[key]}`);
+    const row=document.createElement("li"),values=["name","index","metal","other","x","y","angle","phase"].filter(key=>key in edit).map(key=>`${key}=${key==="other"?(current.history_targets?.[i]?.[1]??`winding ${edit[key]}`):edit[key]}`);
     row.textContent=`${edit.command} · ${(current.history_targets?.[i]??[`winding ${edit.winding??0}`]).join(", ")}${values.length?" · "+values.join(", "):""}`;return row;
   }));
   const first=currentDefinition?.winding||0,partner=current?.partners?.[first];
@@ -280,7 +284,11 @@ $("#edit-apply").addEventListener("click",()=>task(async()=>{
     if(!$("#edit-phase").value.trim())throw Error("Enter a signed 32-bit phase integer.");
     edit.phase=numeric("#edit-phase");
   }
-  if(["COPY","RENAME"].includes(command))edit.name=$("#edit-name").value;
+  if(["COPY","RENAME","UNJOIN"].includes(command))edit.name=$("#edit-name").value;
+  if(command==="UNJOIN"){
+    if(!$("#edit-index").value.trim())throw Error("Enter a signed 32-bit split index.");
+    edit.index=numeric("#edit-index");
+  }
   if(["BEFRIEND","UNFRIEND"].includes(command))edit.other=Number($("#edit-other").value);
   if(command==="COPY"&&$("#edit-metal").value!==""){
     edit.metal=$("#edit-metal").value;
@@ -308,19 +316,22 @@ function render(shape) {
   }
   let x0=Infinity,x1=-Infinity,y0=Infinity,y1=-Infinity;
   for (const poly of shape.polygons) for (const [x,y] of poly.points) {x0=Math.min(x0,x);x1=Math.max(x1,x);y0=Math.min(y0,y);y1=Math.max(y1,y);}
+  if(!shape.polygons.length){x0=y0=0;x1=y1=1;}
   const scale = Math.min(470/Math.max(x1-x0,0.001),315/Math.max(y1-y0,0.001));
   const px = x => 300+(x-(x0+x1)/2)*scale;
   const py = y => 215-(y-(y0+y1)/2)*scale;
   const layerIndices = [...new Set(shape.polygons.map(p=>p.metal))].sort((a,b)=>a-b);
   for (const poly of shape.polygons) drawing.append(svgElement("polygon", {points:poly.points.map(([x,y])=>`${px(x)},${py(y)}`).join(" "), fill:COLORS[poly.metal%COLORS.length], "fill-opacity":poly.metal<technology.metals.length ? 0.67 : 1, stroke:COLORS[poly.metal%COLORS.length], "stroke-width":0.6}));
-  const first=shape.segments[0].start, last=shape.segments.at(-1).end;
-  for (const [point,name] of [[first,"1"],[last,"2"]]) {
+  const terminals=shape.segments.length?[[shape.segments[0].start,"1"],[shape.segments.at(-1).end,"2"]]:[];
+  for (const [point,name] of terminals) {
     drawing.append(svgElement("circle",{cx:px(point[0]),cy:py(point[1]),r:5,fill:"#101923",stroke:"#f5dfba","stroke-width":1.5}));
     drawing.append(svgElement("text",{x:px(point[0])+9,y:py(point[1])-7,fill:"#f1dcc0","font-size":11,"font-family":"monospace"},name));
   }
-  const bar = Math.pow(10,Math.floor(Math.log10((x1-x0)/4)));
+  if(shape.polygons.length){
+  const bar = Math.pow(10,Math.floor(Math.log10(Math.max(x1-x0,.001)/4)));
   drawing.append(svgElement("path",{d:`M 475 375 h ${bar*scale} m 0 -4 v 8 m ${-bar*scale} -8 v 8`,stroke:"#a6b6c4",fill:"none","stroke-width":1}));
   drawing.append(svgElement("text",{x:475,y:365,fill:"#a6b6c4","font-size":10,"font-family":"monospace"},`${fmt(bar)} µm`));
+  }
   $("#legend").replaceChildren();
   const names = [...technology.metals,...technology.vias].map(m=>m.name);
   for (const layer of layerIndices) {
@@ -339,6 +350,7 @@ function render(shape) {
   updateModelControls(false);
   updateTransformerControls();
   $("#canvas-caption").textContent=`${fmt(x1-x0)} × ${fmt(y1-y0)} µm · ${shape.windings.length===2?"both windings · ":shape.windings.length>2?shape.windings.length+" windings · ":""}origin (${fmt(shape.origin[0])}, ${fmt(shape.origin[1])})`;
+  if(!shape.segments.length)$("#canvas-caption").textContent=`${shape.name} is empty · ${shape.polygons.length?"other windings shown":"no geometry"}. Select another winding, undo or reset edits.`;
   $("#scale").textContent="Scroll to zoom · drag to pan";
   $("#stat-segments").textContent=shape.segments.length;
   $("#stat-length").textContent=fmt(shape.length)+" µm";

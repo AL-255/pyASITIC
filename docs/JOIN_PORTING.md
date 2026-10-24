@@ -107,6 +107,8 @@ only its stated wire model and interaction scope. The combined CPython JOIN,
 ERASE, spatial, COPY and PHASE run checks 23 tests and has one failure, the
 finite joined CALCTRANS case. Existing regression expectations remain exact.
 
-Mixed-generator creation, general converted-VIA table histories, UNJOIN and
-secondary segment groups remain outside this JOIN capture scope. They still
-belong to the full recreation objective and require their own original runs.
+Mixed-generator creation, general converted-VIA table histories and secondary
+segment groups remain outside this JOIN capture scope. The separate UNJOIN
+development port and its unresolved model cases are documented in
+[UNJOIN_PORTING.md](UNJOIN_PORTING.md). All remain part of the full recreation
+objective.

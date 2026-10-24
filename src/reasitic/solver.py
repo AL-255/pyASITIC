@@ -171,7 +171,11 @@ def solve_impedance(shape,technology,frequency_hz,*,length_cell=1000,width_cell=
         if not active_via_height(s.start[2],s.end[2]):
             continue
         if group>=len(groups):
-            raise ValueError("Native LMAT cannot stamp a trailing via without a following metal segment")
+            # The original writes (n,n) outside the reduced matrix. Actual
+            # UNJOIN sessions show this aliasing a CAP cell in the native heap.
+            # Ignoring the stamp or applying it to the last conductor changes
+            # finite original models. Keep the unsupported alias explicit.
+            raise ValueError('Native trailing-via stamp aliases memory outside the inductance matrix; this heap interaction is not yet reproduced')
         value=reduced_z[group][group]
         reduced_z[group][group]=stamp_vias([[frequency_hz,s.start[2],s.end[2],via.width,via.resistance,
                                            s.nx,s.ny,value.real,value.imag]])[0]

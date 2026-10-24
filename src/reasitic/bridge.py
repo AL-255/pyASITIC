@@ -103,6 +103,7 @@ def handle(request,*,progress=None):
             if len(windings)<2 or i==j or not 0<=i<len(windings) or not 0<=j<len(windings):
                 raise ValueError("CALCTRANS requires two windings or explicit first and second definitions")
             first,second=windings[i],windings[j]
+        if not first.segments or not second.segments:raise ValueError('Coupled analysis requires two nonempty windings')
         ground=_shape(request["ground"],tech) if request.get("ground") else None
         mesh=_mesh(request,tech)
         if action=="mesh":return mesh_information(first,tech,mesh,model="calctrans",second=second,ground=ground,fit=bool(request.get("fit",False)))
@@ -112,8 +113,9 @@ def handle(request,*,progress=None):
             **{key:float(mesh.get(key,1000)) for key in ("length_cell","width_cell","thickness_cell","capacitance_length_cell","capacitance_width_cell")})
     windings,partners=_shapes(request,tech,with_links=True)if action=='build'else(None,None)
     if action=='build'and not windings:
-        return dict(name='',kind=request.get('kind','square'),origin=[0.,0.],parameters=windings.generator_parameters,segments=[],warnings=[],electrical_phase=0,bounds=[0.,0.,0.,0.],length=0.,area=0.,metal_area=0.,dc_ohm=0.,windings=[],partners=[],dangling_partners=[],winding=0,polygons=[],history_targets=windings.history_targets)
+        return dict(name='',kind=request.get('kind','square'),origin=[0.,0.],parameters=windings.generator_parameters,segments=[],warnings=[],electrical_phase=0,bounds=[0.,0.,0.,0.],length=0.,area=0.,metal_area=0.,dc_ohm=0.,windings=[],winding_segment_counts=[],partners=[],dangling_partners=[],winding=0,polygons=[],history_targets=windings.history_targets)
     shape = _shape(request,tech,shapes=windings,reset_missing=action=='build'and bool(request.get('reset_missing_winding',False)))
+    if action!='build'and not shape.segments:raise ValueError('Selected winding contains no segments; choose a nonempty winding or undo UNJOIN before analysis')
     if shape.kind=='via'and not any(s.metal<len(tech.metals)for s in shape.segments)and(action=='pi2'or(action=='mesh'and request.get('model','pi2')=='pi2')):
         raise ValueError('The original standalone VIA Pi2 analysis faults before producing a model; add conductor geometry')
     if action=="mesh":
@@ -155,6 +157,7 @@ def handle(request,*,progress=None):
     if action == "build":
         data = shape.to_dict()
         data["windings"] = [w.name for w in windings]
+        data['winding_segment_counts']=[len(w.segments)for w in windings]
         data['partners']=partners
         data['dangling_partners']=windings.dangling_partners
         data['history_targets']=windings.history_targets
