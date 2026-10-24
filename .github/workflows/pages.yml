@@ -53,6 +53,7 @@ jobs:
         with:
           python-version: '3.12'
       - run: python tools/build_kernels.py --download-zig --verify
+      - run: python tools/build_site.py && python tools/check_kernel_sources.py
   python-tables:
     name: Python · FFT tables · ${{ matrix.label }}
     needs: build
@@ -75,7 +76,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        suite: [baseline, dependencies, resonance, extended, technologies, fft, matrix, contacts, general, spectral, transformer, filaments, mutual]
+        suite: [baseline, dependencies, resonance, extended, technologies, fft, matrix, contacts, general, spectral, transformer, filaments, mutual, eddy]
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
@@ -116,6 +117,8 @@ jobs:
             mutual)
               node tools/check_mutual_kernels.mjs /tmp/reasitic-pyodide/node_modules/pyodide/pyodide.mjs
               node tools/check_vias.mjs /tmp/reasitic-pyodide/node_modules/pyodide/pyodide.mjs ;;
+            eddy)
+              node tools/check_eddy_kernels.mjs /tmp/reasitic-pyodide/node_modules/pyodide/pyodide.mjs ;;
             *) exit 1 ;;
           esac
   deploy:

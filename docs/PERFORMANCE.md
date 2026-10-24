@@ -148,7 +148,7 @@ captured eddy-enabled balun input had amplified during factorization. At identic
 CAP/inductive inputs, all 54 direct-original node cases now match, including
 all 15 finite coupled-session inputs and 256-entry systems. The via boundary
 also checks 1,214 original stamps exactly (nonfinite values by classification).
-The three complete eddy-enabled sessions still fail the strict bitwise audit.
+Those measurements precede the reflection Green/eddy step below.
 
 A matched complete-Pi2 run against `c0a94b8` shows a small cached improvement:
 
@@ -165,6 +165,34 @@ with separate interpreters and no overlapping validation processes. Complete
 requests, all samples and output metrics are in
 `benchmarks/2026-10-24-nodes.json`; original timings are retained from the
 2026-10-23 measurements and have not been remeasured for this step.
+
+The reflection Green/eddy step (2026-10-24) moves the native infinite/Fourier
+integration, retained physical scaling and square/segment stamping into the
+compiled module. It preserves native partial results and warnings. Imported
+binary64 sin/cos use the original glibc algorithm and table, separately from
+ASITIC's x87 trigonometric instructions. All fifteen captured finite coupled
+sessions now match every raw SI Y/Z/model output boundary; full raw matrix
+stamps, retained returns and callback traces are checked independently.
+
+A matched run against `c638d35` measures complete eddy-enabled analyses:
+
+| Analysis | Previous cached | Compiled reflection cached | Improvement |
+| --- | ---: | ---: | ---: |
+| Pi2, 34-filament square | 59.6 ms | 16.4 ms | 3.6× |
+| Pi2, 7-filament polygon | 279 ms | 12.5 ms | 22.3× |
+| Pi2, 12-filament multimetal | 783 ms | 37.7 ms | 20.8× |
+| CALCTRANS, 8-filament wire pair | 211 ms | 16.9 ms | 12.5× |
+| CALCTRANS, 11-filament transformer | 443 ms | 28.6 ms | 15.5× |
+| CALCTRANS, 24-filament balun | 1.111 s | 61.0 ms | 18.2× |
+
+The balun's first request measures 1.114 s / 71.4 ms. Versions ran sequentially
+with separate interpreters and no overlapping validation processes, using ten
+identical requests and case order, three times per case. Cold table/geometry
+work is included in each first request and caches persist between cases.
+All inputs, all samples and full result objects are saved in
+`benchmarks/2026-10-24-eddy.json`. These compare browser releases; original-binary
+timing was not measured by this experiment. Layered Green/observer fallbacks and
+the separately failing extreme-power audit remain open numerical boundaries.
 
 Cold browser timing is the first request for each FFT grid in one interpreter,
 excluding interpreter loading. Geometry caches persist between the two grids;

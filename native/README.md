@@ -138,9 +138,9 @@ including nonreciprocal inputs, extreme scales and folded-node results.
 Twenty-one raw Y records from complete original sessions independently check
 the compiled Z/model outputs at their SI binary64 boundaries as well.
 The full Python pipeline also checks 15 finite original CALCTRANS/2PORTTRANS
-sessions and diagnoses six original nonfinite histories. Those complete
-electrical comparisons retain component tolerances; they do not establish
-whole-simulator bitwise equality.
+sessions and diagnoses six original nonfinite histories. All 345 raw SI
+Y/Z/model components in those finite sessions match exactly, including eddy
+off/on. This scoped evidence does not establish whole-simulator bitwise equality.
 
 `filament.cpp` follows the original filament interpolation, including all three
 adaptive edge branches, retained complements and weights, asymmetric X/Y spills,
@@ -178,9 +178,9 @@ and the oracle CPU/control-word environment remain in the fixture. Four
 standalone scalar and 28 instruction intermediates
 differ. No universal raw 80-bit instruction equivalence is claimed. All twelve
 captured finite eddy-off CALCTRANS sessions now additionally match every raw
-original SI Y/Z/model output bit (undefined coupling by classification), while
-the three eddy-enabled sessions retain tolerance checks and fail the separate
-strict whole-session audit.
+original SI Y/Z/model output bit (undefined coupling by classification). The
+compiled reflection Green/eddy path below also closes the three captured
+eddy-enabled sessions.
 
 `vias.cpp` follows the original via stamp's retained height, separately scaled
 perimeter counts, integer product, logarithm and inductance association. Angular
@@ -199,8 +199,8 @@ as well as the x87 control word. Its 1,214 cases cover height thresholds, signed
 zeros, cancellation, integer-product overflow, forced-reference negative counts
 and zero counts. All 2,428 compiled output components match finite bits or
 nonfinite classification. Source provenance is recorded in `via-source.json`.
-This establishes the via-stamping boundary; the three complete eddy-enabled
-sessions still fail the independent strict audit.
+This establishes the via-stamping boundary. The independent strict session
+audit now also passes the three captured eddy-enabled sessions.
 
 `node.cpp` retains the complete folded-node driver's cap folding, branch
 differences, matrix additions, dot products, voltage differences and final
@@ -220,11 +220,47 @@ sessions. Each production replay must also match that original session's Y
 record. CI checks all 189,752 output components through exact finite bits or
 whole-matrix digests and checks input immutability. Source provenance is in
 `node-source.json`. These stage comparisons use identical CAP/inductive inputs;
-they do not substitute oracle intermediates into production simulations. Green
-integration and eddy arithmetic still leave the three complete eddy-enabled
-sessions short of bitwise equality.
+they do not substitute oracle intermediates into production simulations.
 
-Rebuild the checked-in, stripped `web/numeric.wasm` (209.5 KiB):
+`quadrature.cpp` and `oscillatory.cpp` port the original infinite/Fourier
+integration algorithms with retained arithmetic and explicit stores. The
+reflection callback, warm-up, selector, partial results and physical scaling
+remain in `green_integral.cpp`. `eddy.cpp` retains square packing, segment
+classification and folding, including the original zero additions and via
+column traversal. One bounded compiled call stamps a complete reduced matrix;
+frequency-dependent values and native warnings are recomputed for each solve.
+
+The original imported sin/cos boundary uses glibc's temporary 53-bit precision,
+distinct from ASITIC's FSIN/FCOS instructions. A mathematically rounded cosine
+can differ from that original routine near pi/2. The adaptation in `glibc/`
+therefore preserves the original algorithm, coefficients, lookup table and
+argument reduction, with LGPL notices and complete rebuildable sources. See
+`glibc/source.json` and `glibc/README.md` for provenance and modifications.
+
+`capture_eddy_original.py` observes actual original CLI calls without replacing
+any functions. Its thirteen coarse/fine contour and coupled stamps check 3,228
+matrix components, 123 raw retained Green returns, all 54,326 callback abscissae,
+and 3,930 imported cosine returns. Separate version-bound runtime-library
+fixtures check another 4,658 sin/cos outputs, including signed zeros, subnormals,
+branch boundaries and large arguments. CI also requires all fifteen complete
+finite coupled sessions to match every raw SI Y/Z/model bit. Six original
+nonfinite histories retain explicit diagnostics. `eddy-source.json` records
+the original ASITIC source hashes.
+
+Layered Green kernels and observer callbacks retain the portable Python path;
+their existing component/trace comparisons are not a universal exactness claim.
+The separate `audit_imported_math.mjs` additionally checks 2,057 native
+`pow(x,1.5)` cases and deliberately fails on eleven extreme inputs differing by
+one binary64 ULP. Those differences originate in the native FYL2X retained
+result. The fixture remains unchanged; the current session/contour gates do
+not prove universal x87 instruction equivalence.
+
+The webpage's numerical source download includes every kernel source, upstream
+and adapted library files, notices, build script and original module. CI
+extracts that archive and requires a byte-identical rebuild, permitting library
+modifications to be relinked with the rest of the module.
+
+Rebuild the checked-in, stripped `web/numeric.wasm`:
 
 ```sh
 python tools/build_kernels.py --download-zig

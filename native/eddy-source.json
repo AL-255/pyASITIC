@@ -1,0 +1,13 @@
+{
+  "reference_commit": "63885e808b522bdeba3f254d353afc72e643c761",
+  "source_sha256": {
+    "src/quadrature.cpp": "1cd57cfb5f39971ba96a09109d47ade31491ca7668a53cda08fbedaa7d4b2e34",
+    "src/oscillatory.cpp": "65ef88a3b94549365d330b1f4286278fc576718ee8468360868b8bec3033ce69",
+    "src/eddy.cpp": "62ba8ef7f11c689b6f3fcc45932efb57d36f42b9519ebd9967fb0a46145e814e",
+    "src/green.cpp": "5d9ec81243dc211291b7cceadee1b063971523663fa1245de8eb509138e84190",
+    "src/green_integration.cpp": "3ee60f46a7f351c746d7c9655861bb83f274b85bb4a297a1f1dda9672d49a5d2",
+    "src/x87.hpp": "14452aaed86d0ec525a7611e387f3a62c9b5ab514d20de4708b2c52c9c925e9b",
+    "include/asitic/quadrature.hpp": "47fe0e48739aa80463b4fcecb0a2ddff8920d7aee132202ad383f1c2a55d37c4"
+  },
+  "adaptation": "SoftFloat retained arithmetic and explicit binary64 stores. Complete infinite/Fourier algorithms; reflection callback and physical scaling; square assembly and segment folding, including zero-term stamps and via traversal. Imported binary64 sin/cos follow the observed glibc 2.39 implementation, kept separate from native FSIN/FCOS. Portable Python remains available for layered kernels and observer callbacks. Source provenance and license for the imported-math adaptation are in glibc/source.json and glibc/COPYING.LIB."
+}

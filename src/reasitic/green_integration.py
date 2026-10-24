@@ -5,11 +5,17 @@ Partial results and convergence statuses remain visible to the caller.
 """
 from dataclasses import dataclass,field
 from fractions import Fraction
+from array import array
 import math
 from .green import GreenLayers,oscillating_kernel,reflection_kernel,MU0,_guard,_d
 from .inductance import _round_extended
 from .quadrature import integrate_infinite
 from .oscillatory import integrate_fourier
+
+try:
+    from _reasitic_numeric import green_reflection as _compiled_reflection
+except ImportError:
+    _compiled_reflection=None
 
 
 @dataclass
@@ -51,6 +57,16 @@ def green_integral(frequency,separation,height,z_offset,state,*,observer=None):
     if not all(math.isfinite(v) for v in (frequency,separation,height,z_offset)):
         raise ValueError("Green integration parameters must be finite")
     state.frequency,state.separation,state.height,state.z_offset=frequency,separation,height,z_offset
+    if _compiled_reflection is not None and state.kernel=="reflection" and observer is None:
+        config=array("d",[frequency,separation,height,z_offset,*state.history,0.])
+        output=array("d",[0.])*3032
+        status=_compiled_reflection(config,output)
+        if status:raise ValueError("Invalid Green integration configuration")
+        if not status:
+            state.history[:]=output[10:13]
+            cycles=int(output[9])
+            return GreenIntegralResult(output[0],output[1],output[2],int(output[3]),int(output[4]),int(output[5]),output[7],
+                                       "DQAWFE" if cycles else "DQAGIE",int(output[8]),cycles,[int(v) for v in output[2032:2032+cycles]])
     observations=0
     last_point=0.0
     def kernel(k):

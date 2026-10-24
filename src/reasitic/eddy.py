@@ -1,7 +1,13 @@
 """Native ASITIC eddy-current square packing and segment folding (eddy.cpp)."""
 import math
+from array import array
 from .green import GreenLayers,_guard,_d
 from .green_integration import GreenIntegrationState,green_integral
+
+try:
+    from _reasitic_numeric import eddy_stamp as _compiled_stamp
+except ImportError:
+    _compiled_stamp=None
 
 SCALE=float.fromhex("0x1.0c6f7a0b5ed8dp-20")
 THRESHOLD=float.fromhex("0x1.b7cdfd9d7bdbbp-34")
@@ -88,6 +94,30 @@ def _axial_length(wire):
     return _length(wire)-(_d(wire[6])+_d(wire[6]))
 
 
+def _stamp_compiled(matrix,shape,technology,frequency,mode,state,warnings):
+    n=len(matrix);square=shape.kind=="square" and mode==1;p=shape.parameters
+    if square:
+        metal=technology.metal_index(p.get("metal",len(technology.metals)-1))
+        geometry=[p.get("length",100),p.get("width",5),p.get("spacing",2),p["turns"],technology.metals[metal].height]
+        size=2*math.ceil(p["turns"])
+    else:geometry=[0.]*5;size=0
+    if len(shape.segments)>2048 or n>256 or size>256:return None
+    config=array("d",[1,len(shape.segments),n,len(technology.metals),mode,int(square),frequency,SCALE,*geometry,*state.history,*([0.]*8)])
+    wires=array("d",(v for s in shape.segments for v in [*_wire(s),s.metal]))
+    data=array("d",(v for j in range(n) for i in range(n) for v in (matrix[i][j].real,matrix[i][j].imag)))
+    output=array("d",[0.])*(32+size*size)
+    status=_compiled_stamp(config,wires,data,output)
+    if status:raise ValueError("Native square eddy packing exceeds this segment matrix" if status==-3 else "Invalid eddy matrix configuration")
+    for i in range(n):
+        for j in range(n):matrix[i][j]=complex(data[2*(j*n+i)],data[2*(j*n+i)+1])
+    for i in range(16):
+        if i%8 and output[i+1]:warnings.append(f"ASITIC {'DQAWFE' if i>=8 else 'DQAGIE'} did not converge (status {i%8}); native partial result retained")
+    state.history[:]=output[17:20]
+    info=dict(mode=mode,kernel=state.kernel,layers=technology.eddy_layers.copy(),green_calls=int(output[0]))
+    if size:info["matrix"]=[[output[32+j*size+i] for j in range(size)] for i in range(size)]
+    return info
+
+
 @_guard
 def assemble_square(dimension,width,spacing,turns,frequency,height,integral):
     n=math.ceil(turns);size=2*n
@@ -137,6 +167,12 @@ def add_eddy(matrix,shape,technology,frequency,mode,warnings):
         warnings.append("Warning: No valid eddy current layers defined; native square correction skipped")
         return dict(mode=mode,kernel=None,layers=[],green_calls=0,skipped=True)
     state=configure_eddy(technology)
+    if _compiled_stamp is not None and state.kernel=="reflection":
+        info=_stamp_compiled(matrix,shape,technology,frequency,mode,state,warnings)
+        if info is not None:
+            if any(not math.isfinite(z.real) or not math.isfinite(z.imag) for row in matrix for z in row):
+                raise ValueError("The native eddy path produced a nonfinite impedance matrix; review short/wide segments, longitudinal mesh and process layers")
+            return info
     calls=0
     def integral(f,separation,height,width):
         nonlocal calls

@@ -66,14 +66,14 @@ for(const [i,c]of fixture.cases.entries()){
  for(const key of["admittance_matrix","scattering_matrix","nodal_capacitance_matrix"])near(r[key],c[key],key==="nodal_capacitance_matrix"?1e-16:1e-10);
  const keys=["first_inductance_h","first_resistance_ohm","second_inductance_h","second_resistance_ohm","mutual_h","coupling","ground_resistance_ohm"],scales=[1e9,1,1e9,1,1e9,1,1];
  keys.forEach((key,j)=>near(r.model[key]===null?null:r.model[key]*scales[j],c.metrics[j],1e-9));
- if(!c.eddy){
+ {
   const y=r.admittance_matrix,z=r.impedance_matrix;
   const values=[...[y[1][1],y[1][0],y[0][1],y[0][0],z[0][0],z[0][1],z[1][0],z[1][1]].flat(),...["first_inductance_h","second_inductance_h","first_resistance_ohm","second_resistance_ohm","ground_resistance_ohm","mutual_h","coupling"].map(k=>r.model[k]===null?NaN:r.model[k])];
-  exact(values.map(v=>{const b=Buffer.alloc(8);b.writeDoubleLE(v);return b.toString("hex");}),c.raw_output_bits.map(decoded),`Complete eddy-off original session ${i}`);exactSessions++;
+  exact(values.map(v=>{const b=Buffer.alloc(8);b.writeDoubleLE(v);return b.toString("hex");}),c.raw_output_bits.map(decoded),`Complete original session ${i}`);exactSessions++;
  }
 }
 console.log(`${fixture.cases.length} original coupled sessions passed: omitted/explicit references, terminations, transformer/balun geometries, eddy on/off and native nonfinite diagnostics.`);
-assert.equal(exactSessions,12);console.log(`${exactSessions} complete original eddy-off sessions also match every raw SI Y/Z/model output bit (nonfinite coupling by classification).`);
+assert.equal(exactSessions,15);console.log(`${exactSessions} complete original eddy-off/on sessions also match every raw SI Y/Z/model output bit (nonfinite coupling by classification).`);
 if(process.argv[3]){
  const{JSDOM}=await import(pathToFileURL(process.argv[3]).href);
  const{circuitSVG,sweepSVG,transformerSVG}=await import("../web/analysis-views.mjs");

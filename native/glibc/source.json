@@ -1,0 +1,27 @@
+{
+  "reference": "glibc-2.39",
+  "files": {
+    "s_sin.c": {
+      "url": "https://raw.githubusercontent.com/bminor/glibc/glibc-2.39/sysdeps/ieee754/dbl-64/s_sin.c",
+      "sha256": "d607bcb0823bb793ecf917546266559aa6f3da6504719ecb90db8b6cb4bb8b1b"
+    },
+    "usncs.h": {
+      "url": "https://raw.githubusercontent.com/bminor/glibc/glibc-2.39/sysdeps/ieee754/dbl-64/usncs.h",
+      "sha256": "c1c081b3f99d023f5f4093e72e81c5eabe6fa3cc7389e37f9709d6c138eaef4a"
+    },
+    "sincostab.c": {
+      "url": "https://raw.githubusercontent.com/bminor/glibc/glibc-2.39/sysdeps/ieee754/dbl-64/sincostab.c",
+      "sha256": "3233d23c6085ac87d47ce1fd7471d88533213f6271ba333e664df30f3172ab85"
+    },
+    "branred.c": {
+      "url": "https://raw.githubusercontent.com/bminor/glibc/glibc-2.39/sysdeps/ieee754/dbl-64/branred.c",
+      "sha256": "e697adc29fed48602ffd3c790f90bda8da1db7bc5e135d39f9880a0f7480d6ad"
+    },
+    "branred.h": {
+      "url": "https://raw.githubusercontent.com/bminor/glibc/glibc-2.39/sysdeps/ieee754/dbl-64/branred.h",
+      "sha256": "ac2285d857dc04ef833f53a6cf97457359b803cb97477885544ff724ff54363d"
+    }
+  },
+  "license": "LGPL-2.1-or-later",
+  "adaptation": "See libm_port.hpp, sin_table.hpp and reduction.hpp. Binary64 arithmetic replaces the original SET_RESTORE_ROUND_53BIT runtime boundary; exception flags and errno are not emulated. Rebuildable kernel sources accompany the distributed binary."
+}

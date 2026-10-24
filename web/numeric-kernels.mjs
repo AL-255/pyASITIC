@@ -28,6 +28,13 @@ export async function installNumericalKernels(python, bytes) {
   const viaOutput = new Float64Array(api.memory.buffer, api.via_result_buffer(), 256*2);
   const nodeInput = new Float64Array(api.memory.buffer, api.node_buffer(), 4*256*256);
   const nodeOutput = new Float64Array(api.memory.buffer, api.node_result_buffer(), 8);
+  const greenConfig = new Float64Array(api.memory.buffer, api.green_config_buffer(), 8);
+  const greenOutput = new Float64Array(api.memory.buffer, api.green_result_buffer(), 3032);
+  const eddyConfig = new Float64Array(api.memory.buffer, api.eddy_config_buffer(), 24);
+  const eddyWires = new Float64Array(api.memory.buffer, api.eddy_wire_buffer(), 2048*8);
+  const eddyMatrix = new Float64Array(api.memory.buffer, api.eddy_matrix_buffer(), 2*256*256);
+  const eddyInfo = new Float64Array(api.memory.buffer, api.eddy_info_buffer(), 32);
+  const eddySquare = new Float64Array(api.memory.buffer, api.eddy_square_buffer(), 256*256);
   function spectralCall(config,output,probe) {
     let c,o;
     try {
@@ -46,6 +53,28 @@ export async function installNumericalKernels(python, bytes) {
     } finally {o?.release();c?.release();}
   }
   python.registerJsModule("_reasitic_numeric", {
+    green_reflection(input,output) {
+      let a,b;
+      try {
+        a=input.getBuffer("f64");b=output.getBuffer("f64");
+        if(a.data.length!==8||b.data.length!==3032||!Array.from(a.data.subarray(0,4)).every(Number.isFinite))throw new Error("Green integration configuration is invalid");
+        greenConfig.set(a.data);const status=api.green_reflection_integral();
+        if(!status)b.data.set(greenOutput);return status;
+      } finally {b?.release();a?.release();}
+    },
+    eddy_stamp(config,wires,matrix,output) {
+      let c,w,a,b;
+      try {
+        c=config.getBuffer("f64");w=wires.getBuffer("f64");a=matrix.getBuffer("f64");b=output.getBuffer("f64");
+        const [version,count,n,metals,mode,square]=c.data;
+        if(c.data.length!==24||version!==1||!Number.isInteger(count)||count<1||count>2048||!Number.isInteger(n)||n<1||n>256||!Number.isInteger(metals)||metals<1||metals>256||!Number.isInteger(mode)||mode<1||mode>255||![0,1].includes(square))throw new Error("Eddy configuration is invalid");
+        const size=square&&mode===1?2*Math.ceil(c.data[11]):0;
+        if(!Number.isInteger(size)||size<0||size>256||w.data.length!==8*count||a.data.length!==2*n*n||b.data.length!==32+size*size)throw new Error("Eddy buffer dimensions are invalid");
+        for(let i=0;i<count;i++)if(!Number.isInteger(w.data[8*i+7])||w.data[8*i+7]<0||w.data[8*i+7]>65535)throw new Error("Eddy segment metal is invalid");
+        eddyConfig.set(c.data);eddyWires.set(w.data);eddyMatrix.set(a.data);const status=api.eddy_stamp();
+        if(!status){a.data.set(eddyMatrix.subarray(0,2*n*n));b.data.set(eddyInfo);if(size)b.data.set(eddySquare.subarray(0,size*size),32);}return status;
+      } finally {b?.release();a?.release();w?.release();c?.release();}
+    },
     folded_node(input,output,n) {
       let a,b;
       try {

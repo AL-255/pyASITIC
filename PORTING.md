@@ -384,12 +384,10 @@ extractor from differences in the preceding electromagnetic solve.
 
 Run the separate strict end-to-end audit after `tools/build_site.py` with
 `node tools/audit_transformer_parity.mjs /path/to/pyodide.mjs`. It exits nonzero
-for any differing finite output bit; it is deliberately separate from the
-component-tolerance regression suite. With the retained mutual backend, 12 of
-the 15 finite coupled sessions are exact; 67 of their 345 Y/Z/model components
-still differ, all in the three eddy-enabled sessions. The twelve captured finite
-eddy-off sessions are now exact gates in the regular WebAssembly suite. The
-portable Python fallback retains its existing component comparisons.
+for any differing finite output bit. All 15 finite coupled sessions now match
+their 345 raw SI Y/Z/model outputs (undefined coupling by classification), with
+eddy off/on. The regular WebAssembly suite requires these same exact session
+boundaries. The portable Python fallback retains component comparisons.
 
 Original debugger snapshots isolated matching CAP inputs and filament self
 diagonals from differing mutual terms before inversion. The new compiled path
@@ -409,8 +407,31 @@ not replace native near-zero values with mathematical zeros. These bounded
 sin/cos helpers are not suitable for arbitrary Green-integrand arguments.
 Four standalone scalar and 28 instruction raw extended results still differ
 despite matching every captured binary64 store. Their words remain recorded
-for further validation. Broader complete electrical coverage, eddy arithmetic,
-command-input boundaries and universal whole-simulator equality remain open.
+for further validation. Broader complete electrical coverage, layered eddy
+arithmetic, command-input boundaries and universal whole-simulator equality
+remain open.
+
+The reflection Green and eddy paths now run the original infinite/Fourier
+algorithms and square/segment stamps with retained operations. Direct debugger
+captures observe 123 actual original Green returns, all 54,326 callback points,
+3,930 imported cosine returns, and thirteen complete stamps across coarse/fine
+LMAT and coupled sessions. The stamp gates compare 3,228 matrix components
+exactly and preserve caller wire/configuration records.
+
+The imported cosine's 53-bit glibc algorithm is separate from ASITIC's x87
+FSIN/FCOS behavior. Its original table, polynomial and argument reduction are
+adapted under LGPL-2.1-or-later, with full notices and source provenance in
+`native/glibc`. Another 4,658 version-bound native-library sin/cos cases match
+at binary64 boundaries, including large-argument reduction. The numerical
+source download supplies all kernel sources and build materials; CI extracts
+and rebuilds that archive byte for byte.
+
+The separate `tools/audit_imported_math.mjs` remains a deliberately failing
+strict diagnostic: 11 of 2,057 extreme native `pow(x,1.5)` cases differ by one
+binary64 ULP, originating in the hardware FYL2X retained result. Its reference
+data is preserved. Layered Green kernels and observer callbacks also retain
+the portable path. Passing the captured sessions is not evidence of universal
+bitwise equality for those additional boundaries.
 
 The open mesh panel exposes all five shared cell sizes above the simulation
 panels. Counts run without electrical solves and use the solver's own width/

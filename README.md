@@ -82,9 +82,11 @@ Implemented so far:
   The compiled extractor matches 67 direct original-executable cases exactly
   at finite output boundaries. Complete-session checks cover 15 finite cases
   and explicit diagnostics for six original nonfinite histories.
-  All twelve captured finite eddy-off sessions additionally match every raw
-  original SI Y/Z/model output bit, with undefined coupling by classification.
-  Full bitwise equality for eddy-enabled sessions remains incomplete.
+  All fifteen captured finite eddy-off/on sessions match every raw original SI
+  Y/Z/model output bit, with undefined coupling by classification. The compiled
+  reflection Green/eddy path also matches 123 actual-original retained returns,
+  every callback point, and thirteen complete matrix stamps. Layered/observer
+  fallbacks and broader complete-session coverage still need parity work.
 - GDSII export with actual via cuts and metal landing pads. Default mapping:
   metal index + 1, via index + 100; datatype 0. GF180 presets supply their drawn
   layer numbers. Python/JSON callers can override the mapping.

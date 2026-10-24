@@ -19,7 +19,9 @@ from reasitic.filament import _compiled_filaments
 from reasitic.mutual_kernel import _compiled_mutual
 from reasitic.vias import _compiled_via_stamp
 from reasitic.network import _compiled_node
-assert all(x is not None for x in (_compiled_transform,_native_tanh,_native_cosh,_compiled_symmetric,_compiled_contact_pair,_compiled_general,_compiled_tables,_compiled_coefficients,_compiled_transformer,_compiled_filaments,_compiled_mutual,_compiled_via_stamp,_compiled_node)), "Could not initialize numerical kernels"
+from reasitic.eddy import _compiled_stamp
+from reasitic.green_integration import _compiled_reflection
+assert all(x is not None for x in (_compiled_transform,_native_tanh,_native_cosh,_compiled_symmetric,_compiled_contact_pair,_compiled_general,_compiled_tables,_compiled_coefficients,_compiled_transformer,_compiled_filaments,_compiled_mutual,_compiled_via_stamp,_compiled_node,_compiled_stamp,_compiled_reflection)), "Could not initialize numerical kernels"
 from reasitic.bridge import request_json
 `);
   self.postMessage({ ready: true });

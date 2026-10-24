@@ -1,0 +1,2417 @@
+{
+  "site_version": "97f46229fa1dc892",
+  "runtime": "Pyodide 314.0.7",
+  "method": "Three identical complete requests per case in listed order; one interpreter, geometry/table caches persist between cases. Interpreter loading and DOM rendering excluded. No original-binary timing is claimed.",
+  "cases": [
+    {
+      "label": "Pi2 0 wire",
+      "request": {
+        "action": "pi2",
+        "kind": "wire",
+        "parameters": {
+          "name": "A",
+          "length": 40,
+          "width": 5,
+          "metal": "M1",
+          "x": 10,
+          "y": 20
+        },
+        "technology": "; Sample CMOS technology file\n\n<chip>\n\n\tchipx = 128\t; dimensions of the chip in x direction\n\tchipy = 128\t; dimensions of the chip in y direction\n\tfftx = 64\t; x-fft size (must be a power of 2)\n\tffty = 64\t; y-fft size\n\tTechFile = CMOS.tek\n\tTechPath = .\n\tfreq = 2 \t\t; frequency of operation\n\teddy = 0\n\n<layer> 0 \t\t\t; p(-) bulk layer\n\trho = 1e-3\t\t; ohm-cm\n\tt   = 700 \t\t; microns\n        eps = 11.9\n\n<layer>\t1\t   \t\t; Oxide Layer\n\trho = 1e10\n\tt = 50\n\teps = 3.9\n\n<metal> 0\n        layer = 1\t\t; in oxide layer\n        rsh = 65\t\t; sheet resistance3\n        t   = 0.5\t\t; thickness\n        d = 1.3\t\t\t; distance from bottom of layer\n        name = m1\t\n        color = yellow\n\n<metal> 1\n        layer = 1\n        rsh = 55 \n        t = 0.5\n        d = 2.4 \n        name = m2\n        color = LightSkyBlue1\n\n<metal> 2\n        layer = 1\n        rsh = 55 \n        t = 0.5\n        d =  3.5\n        name = m3\n        color = medium purple\n\n<metal> 3\n        layer = 1\n        rsh = 55 \n        t = 0.5\n        d =  4.5\n        name = m4\n        color = light green\n\n<metal> 4\n        layer = 1\n        rsh = 30\n        t = 1\n        d =  6\n        name = m5\n        color = grey\n\n<via> 0                        ; metal 1 to metal 2\n        top = 1\n        bottom = 0\n        r = 4\n        width = .5\n        space = 1.1\n        overplot1 = .2         ; to metal 1\n        overplot2 = .2         ; to metal 2\n        name = via1\n        color = purple\n<via> 1                        ; metal 2 to metal 3\n        top = 2\n        bottom = 1\n        r = 4\n        width = .4\n        space = 1.1\n        overplot1 = .2         ; to metal 1\n        overplot2 = .2         ; to metal 2\n        name = via2\n        color = cyan1\n<via> 2                        ; metal 3 to metal 4\n        top = 3\n        bottom = 2\n        r = 4\n        width = .4\n        space = 1.1\n        overplot1 = .2\n        overplot2 = .2\n        name = via3\n        color = red\n\n<via> 3                        ; metal 3 to metal 4\n        top = 4\n        bottom = 3\n        r = 4\n        width = .4\n        space = 1.2\n        overplot1 = .2\n        overplot2 = .2\n        name = via4\n        color = white\n\n",
+        "frequency_hz": 1000000000,
+        "eddy": true,
+        "mesh": {
+          "length_cell": 1000,
+          "width_cell": 1000,
+          "thickness_cell": 1000,
+          "capacitance_length_cell": 1000,
+          "capacitance_width_cell": 1000
+        },
+        "ground": null
+      },
+      "seconds": [
+        0.08695073700000011,
+        0.004482571000000007,
+        0.004270549999999957
+      ],
+      "result": {
+        "frequency_hz": 1000000000,
+        "method": "ASITIC PI2, native eddy on",
+        "eddy": true,
+        "admittance_matrix": [
+          [
+            [
+              1.653500207492131,
+              -0.4803663485714978
+            ],
+            [
+              -1.6535002061198378,
+              0.4804138305713338
+            ]
+          ],
+          [
+            [
+              -1.6535002061198378,
+              0.4804138305713338
+            ],
+            [
+              1.6535002061198378,
+              -0.48041383057133374
+            ]
+          ]
+        ],
+        "scattering_matrix": [
+          [
+            [
+              0.005543899390217649,
+              -0.0007651051538278471
+            ],
+            [
+              0.9944498841297045,
+              -0.0027894484500055597
+            ]
+          ],
+          [
+            [
+              0.9944498841297045,
+              -0.0027894484500055597
+            ],
+            [
+              0.005543425206914226,
+              0.0004285251796416436
+            ]
+          ]
+        ],
+        "reference_impedance_ohm": 50,
+        "pi": {
+          "inductance_h": 2.5788815006150317e-11,
+          "resistance_ohm": 0.5576991810941727,
+          "capacitance_first_f": 7.556994988101442e-15,
+          "capacitance_second_f": 0,
+          "resistance_first_ohm": 0.6086798101209326,
+          "resistance_second_ohm": 1000000000000000,
+          "q_first": 0.29051484021285423,
+          "q_second": 0.29054355650713215,
+          "q_differential": 0.29054355650559277,
+          "shunt_single_ohm": 0.604777668287507,
+          "shunt_differential_ohm": null,
+          "resonant_frequency_hz": 360523563617.90356
+        },
+        "input_impedance_first_ohm": [
+          0.557707762050681,
+          0.16202238137762212
+        ],
+        "input_impedance_second_ohm": [
+          0.5576991810941727,
+          0.16203590353621608
+        ],
+        "differential_impedance_ohm": [
+          0.5576991810946327,
+          0.16203590353549122
+        ],
+        "contacts": 1,
+        "filaments": 1,
+        "segments": 1,
+        "warnings": [
+          "ASITIC DQAGIE did not converge (status 5); native partial result retained"
+        ],
+        "eddy_details": {
+          "mode": 1,
+          "kernel": "reflection",
+          "layers": [
+            0
+          ],
+          "green_calls": 1
+        }
+      },
+      "previous_seconds": [
+        0.12721805499999983,
+        0.04308249000000001,
+        0.04235776200000009
+      ],
+      "previous_result": {
+        "frequency_hz": 1000000000,
+        "method": "ASITIC PI2, native eddy on",
+        "eddy": true,
+        "admittance_matrix": [
+          [
+            [
+              1.653500207492131,
+              -0.4803663485714978
+            ],
+            [
+              -1.6535002061198378,
+              0.4804138305713338
+            ]
+          ],
+          [
+            [
+              -1.6535002061198378,
+              0.4804138305713338
+            ],
+            [
+              1.6535002061198378,
+              -0.48041383057133374
+            ]
+          ]
+        ],
+        "scattering_matrix": [
+          [
+            [
+              0.005543899390217649,
+              -0.0007651051538278471
+            ],
+            [
+              0.9944498841297045,
+              -0.0027894484500055597
+            ]
+          ],
+          [
+            [
+              0.9944498841297045,
+              -0.0027894484500055597
+            ],
+            [
+              0.005543425206914226,
+              0.0004285251796416436
+            ]
+          ]
+        ],
+        "reference_impedance_ohm": 50,
+        "pi": {
+          "inductance_h": 2.5788815006150317e-11,
+          "resistance_ohm": 0.5576991810941727,
+          "capacitance_first_f": 7.556994988101442e-15,
+          "capacitance_second_f": 0,
+          "resistance_first_ohm": 0.6086798101209326,
+          "resistance_second_ohm": 1000000000000000,
+          "q_first": 0.29051484021285423,
+          "q_second": 0.29054355650713215,
+          "q_differential": 0.29054355650559277,
+          "shunt_single_ohm": 0.604777668287507,
+          "shunt_differential_ohm": null,
+          "resonant_frequency_hz": 360523563617.90356
+        },
+        "input_impedance_first_ohm": [
+          0.557707762050681,
+          0.16202238137762212
+        ],
+        "input_impedance_second_ohm": [
+          0.5576991810941727,
+          0.16203590353621608
+        ],
+        "differential_impedance_ohm": [
+          0.5576991810946327,
+          0.16203590353549122
+        ],
+        "contacts": 1,
+        "filaments": 1,
+        "segments": 1,
+        "warnings": [
+          "ASITIC DQAGIE did not converge (status 5); native partial result retained"
+        ],
+        "eddy_details": {
+          "mode": 1,
+          "kernel": "reflection",
+          "layers": [
+            0
+          ],
+          "green_calls": 1
+        }
+      }
+    },
+    {
+      "label": "Pi2 1 square",
+      "request": {
+        "action": "pi2",
+        "kind": "square",
+        "parameters": {
+          "name": "A",
+          "length": 80,
+          "width": 5,
+          "spacing": 3,
+          "turns": 1,
+          "metal": "M1",
+          "exit_metal": "M2",
+          "x": 10,
+          "y": 20
+        },
+        "technology": "; Sample CMOS technology file\n\n<chip>\n\n\tchipx = 128\t; dimensions of the chip in x direction\n\tchipy = 128\t; dimensions of the chip in y direction\n\tfftx = 64\t; x-fft size (must be a power of 2)\n\tffty = 64\t; y-fft size\n\tTechFile = CMOS.tek\n\tTechPath = .\n\tfreq = 2 \t\t; frequency of operation\n\teddy = 0\n\n<layer> 0 \t\t\t; p(-) bulk layer\n\trho = 1e-3\t\t; ohm-cm\n\tt   = 700 \t\t; microns\n        eps = 11.9\n\n<layer>\t1\t   \t\t; Oxide Layer\n\trho = 1e10\n\tt = 50\n\teps = 3.9\n\n<metal> 0\n        layer = 1\t\t; in oxide layer\n        rsh = 65\t\t; sheet resistance3\n        t   = 0.5\t\t; thickness\n        d = 1.3\t\t\t; distance from bottom of layer\n        name = m1\t\n        color = yellow\n\n<metal> 1\n        layer = 1\n        rsh = 55 \n        t = 0.5\n        d = 2.4 \n        name = m2\n        color = LightSkyBlue1\n\n<metal> 2\n        layer = 1\n        rsh = 55 \n        t = 0.5\n        d =  3.5\n        name = m3\n        color = medium purple\n\n<metal> 3\n        layer = 1\n        rsh = 55 \n        t = 0.5\n        d =  4.5\n        name = m4\n        color = light green\n\n<metal> 4\n        layer = 1\n        rsh = 30\n        t = 1\n        d =  6\n        name = m5\n        color = grey\n\n<via> 0                        ; metal 1 to metal 2\n        top = 1\n        bottom = 0\n        r = 4\n        width = .5\n        space = 1.1\n        overplot1 = .2         ; to metal 1\n        overplot2 = .2         ; to metal 2\n        name = via1\n        color = purple\n<via> 1                        ; metal 2 to metal 3\n        top = 2\n        bottom = 1\n        r = 4\n        width = .4\n        space = 1.1\n        overplot1 = .2         ; to metal 1\n        overplot2 = .2         ; to metal 2\n        name = via2\n        color = cyan1\n<via> 2                        ; metal 3 to metal 4\n        top = 3\n        bottom = 2\n        r = 4\n        width = .4\n        space = 1.1\n        overplot1 = .2\n        overplot2 = .2\n        name = via3\n        color = red\n\n<via> 3                        ; metal 3 to metal 4\n        top = 4\n        bottom = 3\n        r = 4\n        width = .4\n        space = 1.2\n        overplot1 = .2\n        overplot2 = .2\n        name = via4\n        color = white\n\n",
+        "frequency_hz": 1000000000,
+        "eddy": true,
+        "mesh": {
+          "length_cell": 1000,
+          "width_cell": 1000,
+          "thickness_cell": 1000,
+          "capacitance_length_cell": 1000,
+          "capacitance_width_cell": 1000
+        },
+        "ground": null
+      },
+      "seconds": [
+        0.1156590920000001,
+        0.008132696000000123,
+        0.007850177000000031
+      ],
+      "result": {
+        "frequency_hz": 1000000000,
+        "method": "ASITIC PI2, native eddy on",
+        "eddy": true,
+        "admittance_matrix": [
+          [
+            [
+              0.19865485919314388,
+              -0.05425842247891484
+            ],
+            [
+              -0.1986518390267698,
+              0.05452033159114085
+            ]
+          ],
+          [
+            [
+              -0.1986518390267698,
+              0.05452033159114085
+            ],
+            [
+              0.19864893251168653,
+              -0.05439923404030067
+            ]
+          ]
+        ],
+        "scattering_matrix": [
+          [
+            [
+              0.04456632884504466,
+              -0.0012275433767293489
+            ],
+            [
+              0.9550312894779185,
+              -0.02127911627865515
+            ]
+          ],
+          [
+            [
+              0.9550312894779185,
+              -0.02127911627865515
+            ],
+            [
+              0.044712494297013725,
+              0.002450509646053881
+            ]
+          ]
+        ],
+        "reference_impedance_ohm": 50,
+        "pi": {
+          "inductance_h": 2.0448158930887452e-10,
+          "resistance_ohm": 4.681318411191939,
+          "capacitance_first_f": 4.168967267775219e-14,
+          "capacitance_second_f": 1.928437654650879e-14,
+          "resistance_first_ohm": 44.02221654544831,
+          "resistance_second_ohm": -198.0850730725565,
+          "q_first": 0.27312909786999784,
+          "q_second": 0.2738460929665472,
+          "q_differential": 0.27403617086353693,
+          "shunt_single_ohm": 5.033856227134829,
+          "shunt_differential_ohm": 5.033959549017496,
+          "resonant_frequency_hz": 69930755325.09447
+        },
+        "input_impedance_first_ohm": [
+          4.6844021497436215,
+          1.279446533219754
+        ],
+        "input_impedance_second_ohm": [
+          4.6828328938005805,
+          1.282375491982519
+        ],
+        "differential_impedance_ohm": [
+          4.682335696593232,
+          1.283129344992061
+        ],
+        "contacts": 5,
+        "filaments": 5,
+        "segments": 5,
+        "warnings": [
+          "ASITIC DQAGIE did not converge (status 5); native partial result retained"
+        ],
+        "eddy_details": {
+          "mode": 1,
+          "kernel": "reflection",
+          "layers": [
+            0
+          ],
+          "green_calls": 2,
+          "matrix": [
+            [
+              0.09424795273543184,
+              49.94012892010283
+            ],
+            [
+              49.94012892010283,
+              0.09424795273543184
+            ]
+          ]
+        }
+      },
+      "previous_seconds": [
+        0.15966732000000003,
+        0.0522018129999999,
+        0.05161605499999996
+      ],
+      "previous_result": {
+        "frequency_hz": 1000000000,
+        "method": "ASITIC PI2, native eddy on",
+        "eddy": true,
+        "admittance_matrix": [
+          [
+            [
+              0.19865485919314388,
+              -0.05425842247891484
+            ],
+            [
+              -0.1986518390267698,
+              0.05452033159114085
+            ]
+          ],
+          [
+            [
+              -0.1986518390267698,
+              0.05452033159114085
+            ],
+            [
+              0.19864893251168653,
+              -0.05439923404030067
+            ]
+          ]
+        ],
+        "scattering_matrix": [
+          [
+            [
+              0.04456632884504466,
+              -0.0012275433767293489
+            ],
+            [
+              0.9550312894779185,
+              -0.02127911627865515
+            ]
+          ],
+          [
+            [
+              0.9550312894779185,
+              -0.02127911627865515
+            ],
+            [
+              0.044712494297013725,
+              0.002450509646053881
+            ]
+          ]
+        ],
+        "reference_impedance_ohm": 50,
+        "pi": {
+          "inductance_h": 2.0448158930887452e-10,
+          "resistance_ohm": 4.681318411191939,
+          "capacitance_first_f": 4.168967267775219e-14,
+          "capacitance_second_f": 1.928437654650879e-14,
+          "resistance_first_ohm": 44.02221654544831,
+          "resistance_second_ohm": -198.0850730725565,
+          "q_first": 0.27312909786999784,
+          "q_second": 0.2738460929665472,
+          "q_differential": 0.27403617086353693,
+          "shunt_single_ohm": 5.033856227134829,
+          "shunt_differential_ohm": 5.033959549017496,
+          "resonant_frequency_hz": 69930755325.09447
+        },
+        "input_impedance_first_ohm": [
+          4.6844021497436215,
+          1.279446533219754
+        ],
+        "input_impedance_second_ohm": [
+          4.6828328938005805,
+          1.282375491982519
+        ],
+        "differential_impedance_ohm": [
+          4.682335696593232,
+          1.283129344992061
+        ],
+        "contacts": 5,
+        "filaments": 5,
+        "segments": 5,
+        "warnings": [
+          "ASITIC DQAGIE did not converge (status 5); native partial result retained"
+        ],
+        "eddy_details": {
+          "mode": 1,
+          "kernel": "reflection",
+          "layers": [
+            0
+          ],
+          "matrix": [
+            [
+              0.09424795273543184,
+              49.94012892010282
+            ],
+            [
+              49.94012892010282,
+              0.09424795273543184
+            ]
+          ],
+          "green_calls": 2
+        }
+      }
+    },
+    {
+      "label": "Pi2 2 square",
+      "request": {
+        "action": "pi2",
+        "kind": "square",
+        "parameters": {
+          "name": "A",
+          "length": 80,
+          "width": 5,
+          "spacing": 3,
+          "turns": 1,
+          "metal": "M1",
+          "exit_metal": "M2",
+          "x": 10,
+          "y": 20
+        },
+        "technology": "; Sample CMOS technology file\n\n<chip>\n\n\tchipx = 128\t; dimensions of the chip in x direction\n\tchipy = 128\t; dimensions of the chip in y direction\n\tfftx = 64\t; x-fft size (must be a power of 2)\n\tffty = 64\t; y-fft size\n\tTechFile = CMOS.tek\n\tTechPath = .\n\tfreq = 2 \t\t; frequency of operation\n\teddy = 0\n\n<layer> 0 \t\t\t; p(-) bulk layer\n\trho = 1e-3\t\t; ohm-cm\n\tt   = 700 \t\t; microns\n        eps = 11.9\n\n<layer>\t1\t   \t\t; Oxide Layer\n\trho = 1e10\n\tt = 50\n\teps = 3.9\n\n<metal> 0\n        layer = 1\t\t; in oxide layer\n        rsh = 65\t\t; sheet resistance3\n        t   = 0.5\t\t; thickness\n        d = 1.3\t\t\t; distance from bottom of layer\n        name = m1\t\n        color = yellow\n\n<metal> 1\n        layer = 1\n        rsh = 55 \n        t = 0.5\n        d = 2.4 \n        name = m2\n        color = LightSkyBlue1\n\n<metal> 2\n        layer = 1\n        rsh = 55 \n        t = 0.5\n        d =  3.5\n        name = m3\n        color = medium purple\n\n<metal> 3\n        layer = 1\n        rsh = 55 \n        t = 0.5\n        d =  4.5\n        name = m4\n        color = light green\n\n<metal> 4\n        layer = 1\n        rsh = 30\n        t = 1\n        d =  6\n        name = m5\n        color = grey\n\n<via> 0                        ; metal 1 to metal 2\n        top = 1\n        bottom = 0\n        r = 4\n        width = .5\n        space = 1.1\n        overplot1 = .2         ; to metal 1\n        overplot2 = .2         ; to metal 2\n        name = via1\n        color = purple\n<via> 1                        ; metal 2 to metal 3\n        top = 2\n        bottom = 1\n        r = 4\n        width = .4\n        space = 1.1\n        overplot1 = .2         ; to metal 1\n        overplot2 = .2         ; to metal 2\n        name = via2\n        color = cyan1\n<via> 2                        ; metal 3 to metal 4\n        top = 3\n        bottom = 2\n        r = 4\n        width = .4\n        space = 1.1\n        overplot1 = .2\n        overplot2 = .2\n        name = via3\n        color = red\n\n<via> 3                        ; metal 3 to metal 4\n        top = 4\n        bottom = 3\n        r = 4\n        width = .4\n        space = 1.2\n        overplot1 = .2\n        overplot2 = .2\n        name = via4\n        color = white\n\n",
+        "frequency_hz": 1000000000,
+        "eddy": true,
+        "mesh": {
+          "length_cell": 20,
+          "width_cell": 3,
+          "thickness_cell": 0.5,
+          "capacitance_length_cell": 50,
+          "capacitance_width_cell": 8
+        },
+        "ground": null
+      },
+      "seconds": [
+        0.030886568000000125,
+        0.016514946999999894,
+        0.01643870800000013
+      ],
+      "result": {
+        "frequency_hz": 1000000000,
+        "method": "ASITIC PI2, native eddy on",
+        "eddy": true,
+        "admittance_matrix": [
+          [
+            [
+              0.19783759793338807,
+              -0.055800177388271616
+            ],
+            [
+              -0.1978358983254482,
+              0.05602863883461021
+            ]
+          ],
+          [
+            [
+              -0.1978358983254482,
+              0.05602863883461021
+            ],
+            [
+              0.19783433110756904,
+              -0.05587342988075255
+            ]
+          ]
+        ],
+        "scattering_matrix": [
+          [
+            [
+              0.04465424686904202,
+              0.0007365214720673089
+            ],
+            [
+              0.9550390726042906,
+              -0.02166501421796178
+            ]
+          ],
+          [
+            [
+              0.9550390726042906,
+              -0.02166501421796178
+            ],
+            [
+              0.04473471809881599,
+              0.0026499734491619966
+            ]
+          ]
+        ],
+        "reference_impedance_ohm": 50,
+        "pi": {
+          "inductance_h": 2.109177793960205e-10,
+          "resistance_ohm": 4.679377539943078,
+          "capacitance_first_f": 3.636278084624512e-14,
+          "capacitance_second_f": 2.4704790835479935e-14,
+          "resistance_first_ohm": 32.56108533616349,
+          "resistance_second_ohm": -65.05063738167507,
+          "q_first": 0.2820504189858772,
+          "q_second": 0.282425348360656,
+          "q_differential": 0.28274084623672163,
+          "shunt_single_ohm": 5.054650938173542,
+          "shunt_differential_ohm": 5.054701454288732,
+          "resonant_frequency_hz": 63452050543.18465
+        },
+        "input_impedance_first_ohm": [
+          4.6821726821881215,
+          1.320608766775388
+        ],
+        "input_impedance_second_ohm": [
+          4.681332256850547,
+          1.3221268934329917
+        ],
+        "differential_impedance_ohm": [
+          4.680528812652035,
+          1.3233766773245943
+        ],
+        "contacts": 17,
+        "filaments": 34,
+        "segments": 17,
+        "warnings": [
+          "ASITIC DQAGIE did not converge (status 5); native partial result retained"
+        ],
+        "eddy_details": {
+          "mode": 1,
+          "kernel": "reflection",
+          "layers": [
+            0
+          ],
+          "green_calls": 2,
+          "matrix": [
+            [
+              0.09424795273543184,
+              49.94012892010283
+            ],
+            [
+              49.94012892010283,
+              0.09424795273543184
+            ]
+          ]
+        }
+      },
+      "previous_seconds": [
+        0.07446922900000004,
+        0.05949923600000011,
+        0.05962014999999997
+      ],
+      "previous_result": {
+        "frequency_hz": 1000000000,
+        "method": "ASITIC PI2, native eddy on",
+        "eddy": true,
+        "admittance_matrix": [
+          [
+            [
+              0.19783759793338807,
+              -0.055800177388271616
+            ],
+            [
+              -0.1978358983254482,
+              0.05602863883461021
+            ]
+          ],
+          [
+            [
+              -0.1978358983254482,
+              0.05602863883461021
+            ],
+            [
+              0.19783433110756904,
+              -0.05587342988075255
+            ]
+          ]
+        ],
+        "scattering_matrix": [
+          [
+            [
+              0.04465424686904202,
+              0.0007365214720673089
+            ],
+            [
+              0.9550390726042906,
+              -0.02166501421796178
+            ]
+          ],
+          [
+            [
+              0.9550390726042906,
+              -0.02166501421796178
+            ],
+            [
+              0.04473471809881599,
+              0.0026499734491619966
+            ]
+          ]
+        ],
+        "reference_impedance_ohm": 50,
+        "pi": {
+          "inductance_h": 2.109177793960205e-10,
+          "resistance_ohm": 4.679377539943078,
+          "capacitance_first_f": 3.636278084624512e-14,
+          "capacitance_second_f": 2.4704790835479935e-14,
+          "resistance_first_ohm": 32.56108533616349,
+          "resistance_second_ohm": -65.05063738167507,
+          "q_first": 0.2820504189858772,
+          "q_second": 0.282425348360656,
+          "q_differential": 0.28274084623672163,
+          "shunt_single_ohm": 5.054650938173542,
+          "shunt_differential_ohm": 5.054701454288732,
+          "resonant_frequency_hz": 63452050543.18465
+        },
+        "input_impedance_first_ohm": [
+          4.6821726821881215,
+          1.320608766775388
+        ],
+        "input_impedance_second_ohm": [
+          4.681332256850547,
+          1.3221268934329917
+        ],
+        "differential_impedance_ohm": [
+          4.680528812652035,
+          1.3233766773245943
+        ],
+        "contacts": 17,
+        "filaments": 34,
+        "segments": 17,
+        "warnings": [
+          "ASITIC DQAGIE did not converge (status 5); native partial result retained"
+        ],
+        "eddy_details": {
+          "mode": 1,
+          "kernel": "reflection",
+          "layers": [
+            0
+          ],
+          "matrix": [
+            [
+              0.09424795273543184,
+              49.94012892010282
+            ],
+            [
+              49.94012892010282,
+              0.09424795273543184
+            ]
+          ],
+          "green_calls": 2
+        }
+      }
+    },
+    {
+      "label": "Pi2 3 polygon",
+      "request": {
+        "action": "pi2",
+        "kind": "polygon",
+        "parameters": {
+          "name": "A",
+          "radius": 35,
+          "sides": 6,
+          "width": 5,
+          "spacing": 3,
+          "turns": 1.25,
+          "metal": "M4",
+          "x": 20,
+          "y": 20
+        },
+        "technology": "; Sample CMOS technology file\n\n<chip>\n\n\tchipx = 128\t; dimensions of the chip in x direction\n\tchipy = 128\t; dimensions of the chip in y direction\n\tfftx = 64\t; x-fft size (must be a power of 2)\n\tffty = 64\t; y-fft size\n\tTechFile = CMOS.tek\n\tTechPath = .\n\tfreq = 2 \t\t; frequency of operation\n\teddy = 0\n\n<layer> 0 \t\t\t; p(-) bulk layer\n\trho = 1e-3\t\t; ohm-cm\n\tt   = 700 \t\t; microns\n        eps = 11.9\n\n<layer>\t1\t   \t\t; Oxide Layer\n\trho = 1e10\n\tt = 50\n\teps = 3.9\n\n<metal> 0\n        layer = 1\t\t; in oxide layer\n        rsh = 65\t\t; sheet resistance3\n        t   = 0.5\t\t; thickness\n        d = 1.3\t\t\t; distance from bottom of layer\n        name = m1\t\n        color = yellow\n\n<metal> 1\n        layer = 1\n        rsh = 55 \n        t = 0.5\n        d = 2.4 \n        name = m2\n        color = LightSkyBlue1\n\n<metal> 2\n        layer = 1\n        rsh = 55 \n        t = 0.5\n        d =  3.5\n        name = m3\n        color = medium purple\n\n<metal> 3\n        layer = 1\n        rsh = 55 \n        t = 0.5\n        d =  4.5\n        name = m4\n        color = light green\n\n<metal> 4\n        layer = 1\n        rsh = 30\n        t = 1\n        d =  6\n        name = m5\n        color = grey\n\n<via> 0                        ; metal 1 to metal 2\n        top = 1\n        bottom = 0\n        r = 4\n        width = .5\n        space = 1.1\n        overplot1 = .2         ; to metal 1\n        overplot2 = .2         ; to metal 2\n        name = via1\n        color = purple\n<via> 1                        ; metal 2 to metal 3\n        top = 2\n        bottom = 1\n        r = 4\n        width = .4\n        space = 1.1\n        overplot1 = .2         ; to metal 1\n        overplot2 = .2         ; to metal 2\n        name = via2\n        color = cyan1\n<via> 2                        ; metal 3 to metal 4\n        top = 3\n        bottom = 2\n        r = 4\n        width = .4\n        space = 1.1\n        overplot1 = .2\n        overplot2 = .2\n        name = via3\n        color = red\n\n<via> 3                        ; metal 3 to metal 4\n        top = 4\n        bottom = 3\n        r = 4\n        width = .4\n        space = 1.2\n        overplot1 = .2\n        overplot2 = .2\n        name = via4\n        color = white\n\n",
+        "frequency_hz": 2000000000,
+        "eddy": true,
+        "mesh": {
+          "length_cell": 1000,
+          "width_cell": 1000,
+          "thickness_cell": 1000,
+          "capacitance_length_cell": 1000,
+          "capacitance_width_cell": 1000
+        },
+        "ground": null
+      },
+      "seconds": [
+        0.06639650099999994,
+        0.01262180000000012,
+        0.01249689699999999
+      ],
+      "result": {
+        "frequency_hz": 2000000000,
+        "method": "ASITIC PI2, native eddy on",
+        "eddy": true,
+        "admittance_matrix": [
+          [
+            [
+              -3.759571760767813e-05,
+              8.907132217768319e-05
+            ],
+            [
+              1.5166499851989474e-05,
+              2.858714917204363e-05
+            ]
+          ],
+          [
+            [
+              1.5166499851989474e-05,
+              2.858714917204363e-05
+            ],
+            [
+              -3.727612083157037e-05,
+              5.594442188893065e-05
+            ]
+          ]
+        ],
+        "scattering_matrix": [
+          [
+            [
+              1.003727290275881,
+              -0.007270388236065541
+            ],
+            [
+              -0.0015431181124563546,
+              -0.0028582719651323303
+            ]
+          ],
+          [
+            [
+              -0.0015431181124563546,
+              -0.0028582719651323303
+            ],
+            [
+              1.0037159275575946,
+              -0.005610920961779639
+            ]
+          ]
+        ],
+        "reference_impedance_ohm": 50,
+        "pi": {
+          "inductance_h": 2.1722585772442283e-06,
+          "resistance_ohm": -14482.245392983335,
+          "capacitance_first_f": 9.703211348829662e-15,
+          "capacitance_second_f": 7.186995102379314e-15,
+          "resistance_first_ohm": -1563.3836678036332,
+          "resistance_second_ohm": -2896.043921317053,
+          "q_first": 2.369187977927897,
+          "q_second": 1.500811260423576,
+          "q_differential": 0.7778577244929282,
+          "shunt_single_ohm": -26598.774106010707,
+          "shunt_differential_ohm": -37648.79183298172,
+          "resonant_frequency_hz": 276971272.6089568
+        },
+        "input_impedance_first_ohm": [
+          -4022.163354255622,
+          -9529.261064164566
+        ],
+        "input_impedance_second_ohm": [
+          -8248.229533424917,
+          -12379.035762322415
+        ],
+        "differential_impedance_ohm": [
+          -23456.275727319447,
+          -18245.64526233141
+        ],
+        "contacts": 7,
+        "filaments": 7,
+        "segments": 7,
+        "warnings": [
+          "ASITIC DQAGIE did not converge (status 4); native partial result retained",
+          "The native eddy calculation produced negative total conductor resistance for this geometry/process"
+        ],
+        "eddy_details": {
+          "mode": 1,
+          "kernel": "reflection",
+          "layers": [
+            0
+          ],
+          "green_calls": 8
+        }
+      },
+      "previous_seconds": [
+        0.3276674940000003,
+        0.27470633499999986,
+        0.27915634499999986
+      ],
+      "previous_result": {
+        "frequency_hz": 2000000000,
+        "method": "ASITIC PI2, native eddy on",
+        "eddy": true,
+        "admittance_matrix": [
+          [
+            [
+              -3.759571760769677e-05,
+              8.907132217767439e-05
+            ],
+            [
+              1.5166499851981424e-05,
+              2.8587149172048472e-05
+            ]
+          ],
+          [
+            [
+              1.5166499851981424e-05,
+              2.8587149172048472e-05
+            ],
+            [
+              -3.72761208315182e-05,
+              5.5944421888998575e-05
+            ]
+          ]
+        ],
+        "scattering_matrix": [
+          [
+            [
+              1.0037272902758791,
+              -0.007270388236068494
+            ],
+            [
+              -0.0015431181124555562,
+              -0.0028582719651328125
+            ]
+          ],
+          [
+            [
+              -0.0015431181124555562,
+              -0.0028582719651328125
+            ],
+            [
+              1.0037159275575893,
+              -0.005610920961786429
+            ]
+          ]
+        ],
+        "reference_impedance_ohm": 50,
+        "pi": {
+          "inductance_h": 2.1722585772445286e-06,
+          "resistance_ohm": -14482.245392975197,
+          "capacitance_first_f": 9.703211348830167e-15,
+          "capacitance_second_f": 7.186995102382871e-15,
+          "resistance_first_ohm": -1563.3836678054647,
+          "resistance_second_ohm": -2896.043921307347,
+          "q_first": 2.3691879779264884,
+          "q_second": 1.500811260427499,
+          "q_differential": 0.7778577244941601,
+          "shunt_single_ohm": -26598.77410599752,
+          "shunt_differential_ohm": -37648.79183300937,
+          "resonant_frequency_hz": 276971272.61142045
+        },
+        "input_impedance_first_ohm": [
+          -4022.1633542576874,
+          -9529.261064163793
+        ],
+        "input_impedance_second_ohm": [
+          -8248.229533406602,
+          -12379.035762327281
+        ],
+        "differential_impedance_ohm": [
+          -23456.275727308654,
+          -18245.64526235191
+        ],
+        "contacts": 7,
+        "filaments": 7,
+        "segments": 7,
+        "warnings": [
+          "ASITIC DQAGIE did not converge (status 4); native partial result retained",
+          "The native eddy calculation produced negative total conductor resistance for this geometry/process"
+        ],
+        "eddy_details": {
+          "mode": 1,
+          "kernel": "reflection",
+          "layers": [
+            0
+          ],
+          "green_calls": 8
+        }
+      }
+    },
+    {
+      "label": "Pi2 4 wire",
+      "request": {
+        "action": "pi2",
+        "kind": "wire",
+        "parameters": {
+          "name": "A",
+          "length": 40,
+          "width": 5,
+          "metal": "M1",
+          "x": 10,
+          "y": 20
+        },
+        "technology": "; Sample CMOS technology file\n\n<chip>\n\n\tchipx = 128\t; dimensions of the chip in x direction\n\tchipy = 128\t; dimensions of the chip in y direction\n\tfftx = 64\t; x-fft size (must be a power of 2)\n\tffty = 64\t; y-fft size\n\tTechFile = CMOS.tek\n\tTechPath = .\n\tfreq = 2 \t\t; frequency of operation\n\teddy = 0\n\n<layer> 0 \t\t\t; p(-) bulk layer\n\trho = 1e-3\t\t; ohm-cm\n\tt   = 700 \t\t; microns\n        eps = 11.9\n\n<layer>\t1\t   \t\t; Oxide Layer\n\trho = 1e10\n\tt = 50\n\teps = 3.9\n\n<metal> 0\n        layer = 1\t\t; in oxide layer\n        rsh = 65\t\t; sheet resistance3\n        t   = 0.5\t\t; thickness\n        d = 1.3\t\t\t; distance from bottom of layer\n        name = m1\t\n        color = yellow\n\n<metal> 1\n        layer = 1\n        rsh = 55 \n        t = 0.5\n        d = 2.4 \n        name = m2\n        color = LightSkyBlue1\n\n<metal> 2\n        layer = 1\n        rsh = 55 \n        t = 0.5\n        d =  3.5\n        name = m3\n        color = medium purple\n\n<metal> 3\n        layer = 1\n        rsh = 55 \n        t = 0.5\n        d =  4.5\n        name = m4\n        color = light green\n\n<metal> 4\n        layer = 1\n        rsh = 30\n        t = 1\n        d =  6\n        name = m5\n        color = grey\n\n<via> 0                        ; metal 1 to metal 2\n        top = 1\n        bottom = 0\n        r = 4\n        width = .5\n        space = 1.1\n        overplot1 = .2         ; to metal 1\n        overplot2 = .2         ; to metal 2\n        name = via1\n        color = purple\n<via> 1                        ; metal 2 to metal 3\n        top = 2\n        bottom = 1\n        r = 4\n        width = .4\n        space = 1.1\n        overplot1 = .2         ; to metal 1\n        overplot2 = .2         ; to metal 2\n        name = via2\n        color = cyan1\n<via> 2                        ; metal 3 to metal 4\n        top = 3\n        bottom = 2\n        r = 4\n        width = .4\n        space = 1.1\n        overplot1 = .2\n        overplot2 = .2\n        name = via3\n        color = red\n\n<via> 3                        ; metal 3 to metal 4\n        top = 4\n        bottom = 3\n        r = 4\n        width = .4\n        space = 1.2\n        overplot1 = .2\n        overplot2 = .2\n        name = via4\n        color = white\n\n",
+        "frequency_hz": 1000000000,
+        "eddy": true,
+        "mesh": {
+          "length_cell": 20,
+          "width_cell": 3,
+          "thickness_cell": 0.5,
+          "capacitance_length_cell": 20,
+          "capacitance_width_cell": 8
+        },
+        "ground": {
+          "kind": "wire",
+          "parameters": {
+            "name": "G",
+            "length": 30,
+            "width": 5,
+            "metal": "M2",
+            "x": 10,
+            "y": 50
+          }
+        }
+      },
+      "seconds": [
+        0.010514724999999999,
+        0.009428173000000015,
+        0.009356944999999997
+      ],
+      "result": {
+        "frequency_hz": 1000000000,
+        "method": "ASITIC PI2, native eddy on",
+        "eddy": true,
+        "admittance_matrix": [
+          [
+            [
+              1.6221292347739646,
+              -0.46171914975383654
+            ],
+            [
+              -1.622129233714422,
+              0.46175475903783514
+            ]
+          ],
+          [
+            [
+              -1.622129233714422,
+              0.46175475903783514
+            ],
+            [
+              1.6221292340885072,
+              -0.46174288311006245
+            ]
+          ]
+        ],
+        "scattering_matrix": [
+          [
+            [
+              0.005669812819225055,
+              -0.00017217624757452646
+            ],
+            [
+              0.9943256312855363,
+              -0.0027920456315856327
+            ]
+          ],
+          [
+            [
+              0.9943256312855363,
+              -0.0027920456315856327
+            ],
+            [
+              0.005669578169748314,
+              0.0004245216183067902
+            ]
+          ]
+        ],
+        "reference_impedance_ohm": 50,
+        "pi": {
+          "inductance_h": 2.5835829628858417e-11,
+          "resistance_ohm": 0.5702645190608541,
+          "capacitance_first_f": 5.667393573357008e-15,
+          "capacitance_second_f": 1.8901126107007836e-15,
+          "resistance_first_ohm": 0.8355875695769259,
+          "resistance_second_ohm": 2.6523781354469262,
+          "q_first": 0.28463770941048033,
+          "q_second": 0.2846523405205264,
+          "q_differential": 0.2846541715488917,
+          "shunt_single_ohm": 0.6164736930712829,
+          "shunt_differential_ohm": 0.6164736933688165,
+          "resonant_frequency_hz": 415944138527.2999
+        },
+        "input_impedance_first_ohm": [
+          0.5702711113960701,
+          0.16232066289074623
+        ],
+        "input_impedance_second_ohm": [
+          0.5702667176808924,
+          0.16232775590882428
+        ],
+        "differential_impedance_ohm": [
+          0.5702661678169371,
+          0.16232864356229149
+        ],
+        "contacts": 4,
+        "filaments": 4,
+        "segments": 2,
+        "warnings": [
+          "ASITIC DQAGIE did not converge (status 5); native partial result retained"
+        ],
+        "eddy_details": {
+          "mode": 1,
+          "kernel": "reflection",
+          "layers": [
+            0
+          ],
+          "green_calls": 3
+        }
+      },
+      "previous_seconds": [
+        0.12466646700000002,
+        0.12405326500000001,
+        0.12400912900000002
+      ],
+      "previous_result": {
+        "frequency_hz": 1000000000,
+        "method": "ASITIC PI2, native eddy on",
+        "eddy": true,
+        "admittance_matrix": [
+          [
+            [
+              1.6221292347739646,
+              -0.46171914975383654
+            ],
+            [
+              -1.622129233714422,
+              0.46175475903783514
+            ]
+          ],
+          [
+            [
+              -1.622129233714422,
+              0.46175475903783514
+            ],
+            [
+              1.6221292340885072,
+              -0.46174288311006245
+            ]
+          ]
+        ],
+        "scattering_matrix": [
+          [
+            [
+              0.005669812819225055,
+              -0.00017217624757452646
+            ],
+            [
+              0.9943256312855363,
+              -0.0027920456315856327
+            ]
+          ],
+          [
+            [
+              0.9943256312855363,
+              -0.0027920456315856327
+            ],
+            [
+              0.005669578169748314,
+              0.0004245216183067902
+            ]
+          ]
+        ],
+        "reference_impedance_ohm": 50,
+        "pi": {
+          "inductance_h": 2.5835829628858417e-11,
+          "resistance_ohm": 0.5702645190608541,
+          "capacitance_first_f": 5.667393573357008e-15,
+          "capacitance_second_f": 1.8901126107007836e-15,
+          "resistance_first_ohm": 0.8355875695769259,
+          "resistance_second_ohm": 2.6523781354469262,
+          "q_first": 0.28463770941048033,
+          "q_second": 0.2846523405205264,
+          "q_differential": 0.2846541715488917,
+          "shunt_single_ohm": 0.6164736930712829,
+          "shunt_differential_ohm": 0.6164736933688165,
+          "resonant_frequency_hz": 415944138527.2999
+        },
+        "input_impedance_first_ohm": [
+          0.5702711113960701,
+          0.16232066289074623
+        ],
+        "input_impedance_second_ohm": [
+          0.5702667176808924,
+          0.16232775590882428
+        ],
+        "differential_impedance_ohm": [
+          0.5702661678169371,
+          0.16232864356229149
+        ],
+        "contacts": 4,
+        "filaments": 4,
+        "segments": 2,
+        "warnings": [
+          "ASITIC DQAGIE did not converge (status 5); native partial result retained"
+        ],
+        "eddy_details": {
+          "mode": 1,
+          "kernel": "reflection",
+          "layers": [
+            0
+          ],
+          "green_calls": 3
+        }
+      }
+    },
+    {
+      "label": "Pi2 5 capacitor",
+      "request": {
+        "action": "pi2",
+        "kind": "capacitor",
+        "parameters": {
+          "name": "A",
+          "length": 40,
+          "width": 5,
+          "metal": "M2",
+          "bottom_metal": "M1",
+          "x": 40,
+          "y": 50
+        },
+        "technology": "; Sample CMOS technology file\n\n<chip>\n\n\tchipx = 128\t; dimensions of the chip in x direction\n\tchipy = 128\t; dimensions of the chip in y direction\n\tfftx = 64\t; x-fft size (must be a power of 2)\n\tffty = 64\t; y-fft size\n\tTechFile = CMOS.tek\n\tTechPath = .\n\tfreq = 2 \t\t; frequency of operation\n\teddy = 0\n\n<layer> 0 \t\t\t; p(-) bulk layer\n\trho = 1e-3\t\t; ohm-cm\n\tt   = 700 \t\t; microns\n        eps = 11.9\n\n<layer>\t1\t   \t\t; Oxide Layer\n\trho = 1e10\n\tt = 50\n\teps = 3.9\n\n<metal> 0\n        layer = 1\t\t; in oxide layer\n        rsh = 65\t\t; sheet resistance3\n        t   = 0.5\t\t; thickness\n        d = 1.3\t\t\t; distance from bottom of layer\n        name = m1\t\n        color = yellow\n\n<metal> 1\n        layer = 1\n        rsh = 55 \n        t = 0.5\n        d = 2.4 \n        name = m2\n        color = LightSkyBlue1\n\n<metal> 2\n        layer = 1\n        rsh = 55 \n        t = 0.5\n        d =  3.5\n        name = m3\n        color = medium purple\n\n<metal> 3\n        layer = 1\n        rsh = 55 \n        t = 0.5\n        d =  4.5\n        name = m4\n        color = light green\n\n<metal> 4\n        layer = 1\n        rsh = 30\n        t = 1\n        d =  6\n        name = m5\n        color = grey\n\n<via> 0                        ; metal 1 to metal 2\n        top = 1\n        bottom = 0\n        r = 4\n        width = .5\n        space = 1.1\n        overplot1 = .2         ; to metal 1\n        overplot2 = .2         ; to metal 2\n        name = via1\n        color = purple\n<via> 1                        ; metal 2 to metal 3\n        top = 2\n        bottom = 1\n        r = 4\n        width = .4\n        space = 1.1\n        overplot1 = .2         ; to metal 1\n        overplot2 = .2         ; to metal 2\n        name = via2\n        color = cyan1\n<via> 2                        ; metal 3 to metal 4\n        top = 3\n        bottom = 2\n        r = 4\n        width = .4\n        space = 1.1\n        overplot1 = .2\n        overplot2 = .2\n        name = via3\n        color = red\n\n<via> 3                        ; metal 3 to metal 4\n        top = 4\n        bottom = 3\n        r = 4\n        width = .4\n        space = 1.2\n        overplot1 = .2\n        overplot2 = .2\n        name = via4\n        color = white\n\n",
+        "frequency_hz": 1000000000,
+        "eddy": true,
+        "mesh": {
+          "length_cell": 1000,
+          "width_cell": 1000,
+          "thickness_cell": 1000,
+          "capacitance_length_cell": 1000,
+          "capacitance_width_cell": 1000
+        },
+        "ground": null
+      },
+      "seconds": [
+        0.009281359000000065,
+        0.008993248999999879,
+        0.009248584999999821
+      ],
+      "result": {
+        "frequency_hz": 1000000000,
+        "method": "ASITIC PI2, native eddy on",
+        "eddy": true,
+        "admittance_matrix": [
+          [
+            [
+              -4.897039563462353e-05,
+              3.388298038820579e-05
+            ],
+            [
+              4.817707966592015e-05,
+              -2.07532596701824e-06
+            ]
+          ],
+          [
+            [
+              4.817707966592015e-05,
+              -2.07532596701824e-06
+            ],
+            [
+              -4.1337965204054e-05,
+              1.7881486819106505e-05
+            ]
+          ]
+        ],
+        "scattering_matrix": [
+          [
+            [
+              1.0045341014582991,
+              -0.0025986878136345674
+            ],
+            [
+              -0.004838998003472696,
+              0.00022103042687080768
+            ]
+          ],
+          [
+            [
+              -0.004838998003472696,
+              0.00022103042687080768
+            ],
+            [
+              1.004152406323727,
+              -0.0017966092052332213
+            ]
+          ]
+        ],
+        "reference_impedance_ohm": 50,
+        "pi": {
+          "inductance_h": -1.4204317333300845e-07,
+          "resistance_ohm": -20718.312786361108,
+          "capacitance_first_f": 5.065494488888488e-15,
+          "capacitance_second_f": 2.986598885569736e-15,
+          "resistance_first_ohm": -783.6332164423303,
+          "resistance_second_ohm": 23057.738420000453,
+          "q_first": 0.6919074258867027,
+          "q_second": 0.43256814240466956,
+          "q_differential": 0.2897265236619054,
+          "shunt_single_ohm": -20420.500733977537,
+          "shunt_differential_ohm": -22087.881391257437,
+          "resonant_frequency_hz": null
+        },
+        "input_impedance_first_ohm": [
+          -13809.430695061059,
+          -9554.847645180516
+        ],
+        "input_impedance_second_ohm": [
+          -20377.834916620206,
+          -8814.802196111415
+        ],
+        "differential_impedance_ohm": [
+          -20377.374827561493,
+          -5903.86597014501
+        ],
+        "contacts": 2,
+        "filaments": 2,
+        "segments": 2,
+        "warnings": [
+          "ASITIC DQAGIE did not converge (status 4); native partial result retained",
+          "ASITIC DQAGIE did not converge (status 5); native partial result retained",
+          "The native eddy calculation produced negative total conductor resistance for this geometry/process"
+        ],
+        "eddy_details": {
+          "mode": 1,
+          "kernel": "reflection",
+          "layers": [
+            0
+          ],
+          "green_calls": 3
+        }
+      },
+      "previous_seconds": [
+        0.1147295339999996,
+        0.11453581800000029,
+        0.11509935300000007
+      ],
+      "previous_result": {
+        "frequency_hz": 1000000000,
+        "method": "ASITIC PI2, native eddy on",
+        "eddy": true,
+        "admittance_matrix": [
+          [
+            [
+              -4.897039563462353e-05,
+              3.388298038820579e-05
+            ],
+            [
+              4.817707966592015e-05,
+              -2.07532596701824e-06
+            ]
+          ],
+          [
+            [
+              4.817707966592015e-05,
+              -2.07532596701824e-06
+            ],
+            [
+              -4.1337965204054e-05,
+              1.7881486819106505e-05
+            ]
+          ]
+        ],
+        "scattering_matrix": [
+          [
+            [
+              1.0045341014582991,
+              -0.0025986878136345674
+            ],
+            [
+              -0.004838998003472696,
+              0.00022103042687080768
+            ]
+          ],
+          [
+            [
+              -0.004838998003472696,
+              0.00022103042687080768
+            ],
+            [
+              1.004152406323727,
+              -0.0017966092052332213
+            ]
+          ]
+        ],
+        "reference_impedance_ohm": 50,
+        "pi": {
+          "inductance_h": -1.4204317333300845e-07,
+          "resistance_ohm": -20718.312786361108,
+          "capacitance_first_f": 5.065494488888488e-15,
+          "capacitance_second_f": 2.986598885569736e-15,
+          "resistance_first_ohm": -783.6332164423303,
+          "resistance_second_ohm": 23057.738420000453,
+          "q_first": 0.6919074258867027,
+          "q_second": 0.43256814240466956,
+          "q_differential": 0.2897265236619054,
+          "shunt_single_ohm": -20420.500733977537,
+          "shunt_differential_ohm": -22087.881391257437,
+          "resonant_frequency_hz": null
+        },
+        "input_impedance_first_ohm": [
+          -13809.430695061059,
+          -9554.847645180516
+        ],
+        "input_impedance_second_ohm": [
+          -20377.834916620206,
+          -8814.802196111415
+        ],
+        "differential_impedance_ohm": [
+          -20377.374827561493,
+          -5903.86597014501
+        ],
+        "contacts": 2,
+        "filaments": 2,
+        "segments": 2,
+        "warnings": [
+          "ASITIC DQAGIE did not converge (status 5); native partial result retained",
+          "ASITIC DQAGIE did not converge (status 4); native partial result retained",
+          "The native eddy calculation produced negative total conductor resistance for this geometry/process"
+        ],
+        "eddy_details": {
+          "mode": 1,
+          "kernel": "reflection",
+          "layers": [
+            0
+          ],
+          "green_calls": 3
+        }
+      }
+    },
+    {
+      "label": "Pi2 6 multimetal",
+      "request": {
+        "action": "pi2",
+        "kind": "multimetal",
+        "parameters": {
+          "name": "A",
+          "length": 60,
+          "width": 5,
+          "spacing": 3,
+          "turns": 1,
+          "metal": "M5",
+          "bottom_metal": "M3",
+          "x": 10,
+          "y": 20
+        },
+        "technology": "; Sample CMOS technology file\n\n<chip>\n\n\tchipx = 128\t; dimensions of the chip in x direction\n\tchipy = 128\t; dimensions of the chip in y direction\n\tfftx = 64\t; x-fft size (must be a power of 2)\n\tffty = 64\t; y-fft size\n\tTechFile = CMOS.tek\n\tTechPath = .\n\tfreq = 2 \t\t; frequency of operation\n\teddy = 0\n\n<layer> 0 \t\t\t; p(-) bulk layer\n\trho = 1e-3\t\t; ohm-cm\n\tt   = 700 \t\t; microns\n        eps = 11.9\n\n<layer>\t1\t   \t\t; Oxide Layer\n\trho = 1e10\n\tt = 50\n\teps = 3.9\n\n<metal> 0\n        layer = 1\t\t; in oxide layer\n        rsh = 65\t\t; sheet resistance3\n        t   = 0.5\t\t; thickness\n        d = 1.3\t\t\t; distance from bottom of layer\n        name = m1\t\n        color = yellow\n\n<metal> 1\n        layer = 1\n        rsh = 55 \n        t = 0.5\n        d = 2.4 \n        name = m2\n        color = LightSkyBlue1\n\n<metal> 2\n        layer = 1\n        rsh = 55 \n        t = 0.5\n        d =  3.5\n        name = m3\n        color = medium purple\n\n<metal> 3\n        layer = 1\n        rsh = 55 \n        t = 0.5\n        d =  4.5\n        name = m4\n        color = light green\n\n<metal> 4\n        layer = 1\n        rsh = 30\n        t = 1\n        d =  6\n        name = m5\n        color = grey\n\n<via> 0                        ; metal 1 to metal 2\n        top = 1\n        bottom = 0\n        r = 4\n        width = .5\n        space = 1.1\n        overplot1 = .2         ; to metal 1\n        overplot2 = .2         ; to metal 2\n        name = via1\n        color = purple\n<via> 1                        ; metal 2 to metal 3\n        top = 2\n        bottom = 1\n        r = 4\n        width = .4\n        space = 1.1\n        overplot1 = .2         ; to metal 1\n        overplot2 = .2         ; to metal 2\n        name = via2\n        color = cyan1\n<via> 2                        ; metal 3 to metal 4\n        top = 3\n        bottom = 2\n        r = 4\n        width = .4\n        space = 1.1\n        overplot1 = .2\n        overplot2 = .2\n        name = via3\n        color = red\n\n<via> 3                        ; metal 3 to metal 4\n        top = 4\n        bottom = 3\n        r = 4\n        width = .4\n        space = 1.2\n        overplot1 = .2\n        overplot2 = .2\n        name = via4\n        color = white\n\n",
+        "frequency_hz": 1000000000,
+        "eddy": true,
+        "mesh": {
+          "length_cell": 1000,
+          "width_cell": 1000,
+          "thickness_cell": 1000,
+          "capacitance_length_cell": 1000,
+          "capacitance_width_cell": 1000
+        },
+        "ground": null
+      },
+      "seconds": [
+        0.353799295,
+        0.03745007299999997,
+        0.03766857800000002
+      ],
+      "result": {
+        "frequency_hz": 1000000000,
+        "method": "ASITIC PI2, native eddy on",
+        "eddy": true,
+        "admittance_matrix": [
+          [
+            [
+              -2.908764763881938e-05,
+              9.506108690073146e-05
+            ],
+            [
+              3.3622859806213414e-05,
+              -7.335014501989396e-06
+            ]
+          ],
+          [
+            [
+              3.3622859806213414e-05,
+              -7.335014501989396e-06
+            ],
+            [
+              -5.162839625915599e-05,
+              7.976456173890213e-05
+            ]
+          ]
+        ],
+        "scattering_matrix": [
+          [
+            [
+              1.0040165232070912,
+              -0.008782496627084184
+            ],
+            [
+              -0.003369261001333839,
+              0.0007660015214009115
+            ]
+          ],
+          [
+            [
+              -0.003369261001333839,
+              0.0007660015214009115
+            ],
+            [
+              1.0051495295320558,
+              -0.008020220665738901
+            ]
+          ]
+        ],
+        "reference_impedance_ohm": 50,
+        "pi": {
+          "inductance_h": -9.857339053202236e-07,
+          "resistance_ohm": -28390.512743507268,
+          "capacitance_first_f": 1.3999353336796898e-14,
+          "capacitance_second_f": 1.2239908298593039e-14,
+          "resistance_first_ohm": 587.734358284019,
+          "resistance_second_ohm": -3232.4533229583058,
+          "q_first": 3.2680912558176822,
+          "q_second": 1.5449746170404501,
+          "q_differential": 1.2594468587326277,
+          "shunt_single_ohm": -34378.854296400175,
+          "shunt_differential_ohm": -26299.467783270633,
+          "resonant_frequency_hz": null
+        },
+        "input_impedance_first_ohm": [
+          -2943.289107174598,
+          -9618.937394500737
+        ],
+        "input_impedance_second_ohm": [
+          -5718.775132984441,
+          -8835.362421023086
+        ],
+        "differential_impedance_ohm": [
+          -10169.129534770278,
+          -12807.478248611615
+        ],
+        "contacts": 12,
+        "filaments": 12,
+        "segments": 12,
+        "warnings": [
+          "ASITIC DQAGIE did not converge (status 4); native partial result retained",
+          "The native eddy calculation produced negative total conductor resistance for this geometry/process"
+        ],
+        "eddy_details": {
+          "mode": 1,
+          "kernel": "reflection",
+          "layers": [
+            0
+          ],
+          "green_calls": 24
+        }
+      },
+      "previous_seconds": [
+        1.0898929849999999,
+        0.7854085570000007,
+        0.7831580729999996
+      ],
+      "previous_result": {
+        "frequency_hz": 1000000000,
+        "method": "ASITIC PI2, native eddy on",
+        "eddy": true,
+        "admittance_matrix": [
+          [
+            [
+              -2.908764763885028e-05,
+              9.50610869007189e-05
+            ],
+            [
+              3.362285980621541e-05,
+              -7.335014501997888e-06
+            ]
+          ],
+          [
+            [
+              3.362285980621541e-05,
+              -7.335014501997888e-06
+            ],
+            [
+              -5.162839625923766e-05,
+              7.976456173881923e-05
+            ]
+          ]
+        ],
+        "scattering_matrix": [
+          [
+            [
+              1.004016523207097,
+              -0.008782496627079445
+            ],
+            [
+              -0.0033692610013340554,
+              0.0007660015214017541
+            ]
+          ],
+          [
+            [
+              -0.0033692610013340554,
+              0.0007660015214017541
+            ],
+            [
+              1.0051495295320643,
+              -0.008020220665730639
+            ]
+          ]
+        ],
+        "reference_impedance_ohm": 50,
+        "pi": {
+          "inductance_h": -9.857339053211494e-07,
+          "resistance_ohm": -28390.512743502746,
+          "capacitance_first_f": 1.3999353336793083e-14,
+          "capacitance_second_f": 1.2239908298585696e-14,
+          "resistance_first_ohm": 587.7343582805746,
+          "resistance_second_ohm": -3232.453322978628,
+          "q_first": 3.2680912558137782,
+          "q_second": 1.5449746170364003,
+          "q_differential": 1.2594468587309453,
+          "shunt_single_ohm": -34378.85429636365,
+          "shunt_differential_ohm": -26299.467783245225,
+          "resonant_frequency_hz": null
+        },
+        "input_impedance_first_ohm": [
+          -2943.289107177901,
+          -9618.93739450004
+        ],
+        "input_impedance_second_ohm": [
+          -5718.775132996524,
+          -8835.362421018594
+        ],
+        "differential_impedance_ohm": [
+          -10169.129534777117,
+          -12807.47824860312
+        ],
+        "contacts": 12,
+        "filaments": 12,
+        "segments": 12,
+        "warnings": [
+          "ASITIC DQAGIE did not converge (status 4); native partial result retained",
+          "The native eddy calculation produced negative total conductor resistance for this geometry/process"
+        ],
+        "eddy_details": {
+          "mode": 1,
+          "kernel": "reflection",
+          "layers": [
+            0
+          ],
+          "green_calls": 24
+        }
+      }
+    },
+    {
+      "label": "CALCTRANS 5 wire",
+      "request": {
+        "action": "calctrans",
+        "first": {
+          "kind": "wire",
+          "parameters": {
+            "name": "A",
+            "length": 40,
+            "width": 5,
+            "metal": "M4",
+            "x": 10,
+            "y": 20
+          }
+        },
+        "second": {
+          "kind": "wire",
+          "parameters": {
+            "name": "B",
+            "length": 30,
+            "width": 5,
+            "metal": "M3",
+            "x": 20,
+            "y": 50
+          }
+        },
+        "ground": {
+          "kind": "wire",
+          "parameters": {
+            "name": "G",
+            "length": 110,
+            "width": 8,
+            "metal": "M1",
+            "x": 5,
+            "y": 115
+          }
+        },
+        "frequency_hz": 1000000000,
+        "technology": "; Sample CMOS technology file\n\n<chip>\n\n\tchipx = 128\t; dimensions of the chip in x direction\n\tchipy = 128\t; dimensions of the chip in y direction\n\tfftx = 64\t; x-fft size (must be a power of 2)\n\tffty = 64\t; y-fft size\n\tTechFile = CMOS.tek\n\tTechPath = .\n\tfreq = 2 \t\t; frequency of operation\n\teddy = 0\n\n<layer> 0 \t\t\t; p(-) bulk layer\n\trho = 1e-3\t\t; ohm-cm\n\tt   = 700 \t\t; microns\n        eps = 11.9\n\n<layer>\t1\t   \t\t; Oxide Layer\n\trho = 1e10\n\tt = 50\n\teps = 3.9\n\n<metal> 0\n        layer = 1\t\t; in oxide layer\n        rsh = 65\t\t; sheet resistance3\n        t   = 0.5\t\t; thickness\n        d = 1.3\t\t\t; distance from bottom of layer\n        name = m1\t\n        color = yellow\n\n<metal> 1\n        layer = 1\n        rsh = 55 \n        t = 0.5\n        d = 2.4 \n        name = m2\n        color = LightSkyBlue1\n\n<metal> 2\n        layer = 1\n        rsh = 55 \n        t = 0.5\n        d =  3.5\n        name = m3\n        color = medium purple\n\n<metal> 3\n        layer = 1\n        rsh = 55 \n        t = 0.5\n        d =  4.5\n        name = m4\n        color = light green\n\n<metal> 4\n        layer = 1\n        rsh = 30\n        t = 1\n        d =  6\n        name = m5\n        color = grey\n\n<via> 0                        ; metal 1 to metal 2\n        top = 1\n        bottom = 0\n        r = 4\n        width = .5\n        space = 1.1\n        overplot1 = .2         ; to metal 1\n        overplot2 = .2         ; to metal 2\n        name = via1\n        color = purple\n<via> 1                        ; metal 2 to metal 3\n        top = 2\n        bottom = 1\n        r = 4\n        width = .4\n        space = 1.1\n        overplot1 = .2         ; to metal 1\n        overplot2 = .2         ; to metal 2\n        name = via2\n        color = cyan1\n<via> 2                        ; metal 3 to metal 4\n        top = 3\n        bottom = 2\n        r = 4\n        width = .4\n        space = 1.1\n        overplot1 = .2\n        overplot2 = .2\n        name = via3\n        color = red\n\n<via> 3                        ; metal 3 to metal 4\n        top = 4\n        bottom = 3\n        r = 4\n        width = .4\n        space = 1.2\n        overplot1 = .2\n        overplot2 = .2\n        name = via4\n        color = white\n\n",
+        "mesh": {
+          "length_cell": 20,
+          "width_cell": 3,
+          "thickness_cell": 0.5,
+          "capacitance_length_cell": 30,
+          "capacitance_width_cell": 8
+        },
+        "eddy": true,
+        "termination_ohm": 50
+      },
+      "seconds": [
+        0.12417480299999989,
+        0.016988246000000345,
+        0.01692232899999999
+      ],
+      "result": {
+        "frequency_hz": 1000000000,
+        "method": "ASITIC CALCTRANS, native eddy on",
+        "first_winding": "A",
+        "second_winding": "B",
+        "eddy": true,
+        "termination_ohm": 50,
+        "model": {
+          "first_inductance_h": -7.805485672015236e-08,
+          "second_inductance_h": -5.516299159081867e-09,
+          "first_resistance_ohm": -5540.142667203329,
+          "second_resistance_ohm": -3589.036918388461,
+          "ground_resistance_ohm": 49.32041724513667,
+          "mutual_h": -1.1515075546952274e-09,
+          "coupling": -0.05549360272921296
+        },
+        "admittance_matrix": [
+          [
+            [
+              -0.0001807036241049391,
+              1.6135777130566916e-05
+            ],
+            [
+              -2.5519744149200934e-06,
+              -1.195408342677929e-07
+            ]
+          ],
+          [
+            [
+              -2.5519744149200934e-06,
+              -1.195408342677929e-07
+            ],
+            [
+              -0.00028251679394662987,
+              2.759444878051186e-06
+            ]
+          ]
+        ],
+        "impedance_matrix": [
+          [
+            [
+              -5490.8222499581925,
+              -490.43312889806907
+            ],
+            [
+              49.32041724513667,
+              7.235135348767346
+            ]
+          ],
+          [
+            [
+              49.32041724513667,
+              7.235135348767346
+            ],
+            [
+              -3539.7165011433244,
+              -34.65992982635029
+            ]
+          ]
+        ],
+        "scattering_matrix": [
+          [
+            [
+              1.0234927766040083,
+              -0.0009615825405052517
+            ],
+            [
+              0.0002612255583246151,
+              1.1986686367030486e-05
+            ]
+          ],
+          [
+            [
+              0.0002612255583246151,
+              1.1986686367030486e-05
+            ],
+            [
+              1.0286564701881418,
+              -0.00028390559944432365
+            ]
+          ]
+        ],
+        "reference_impedance_ohm": 50,
+        "winding_segments": [
+          2,
+          2
+        ],
+        "contacts": 10,
+        "filaments": 8,
+        "segments": 4,
+        "warnings": [
+          "ASITIC DQAGIE did not converge (status 4); native partial result retained",
+          "The native eddy calculation produced negative total conductor resistance for this geometry/process"
+        ],
+        "eddy_details": {
+          "mode": 1,
+          "kernel": "reflection",
+          "layers": [
+            0
+          ],
+          "green_calls": 6
+        }
+      },
+      "previous_seconds": [
+        0.31550902599999975,
+        0.2119897689999998,
+        0.21133744000000024
+      ],
+      "previous_result": {
+        "frequency_hz": 1000000000,
+        "method": "ASITIC CALCTRANS, native eddy on",
+        "first_winding": "A",
+        "second_winding": "B",
+        "eddy": true,
+        "termination_ohm": 50,
+        "model": {
+          "first_inductance_h": -7.805485672070142e-08,
+          "second_inductance_h": -5.516299158985388e-09,
+          "first_resistance_ohm": -5540.142667198378,
+          "second_resistance_ohm": -3589.036918386112,
+          "ground_resistance_ohm": 49.32041724495068,
+          "mutual_h": -1.1515075546960312e-09,
+          "coupling": -0.055493602729541805
+        },
+        "admittance_matrix": [
+          [
+            [
+              -0.00018070362410507317,
+              1.6135777130706436e-05
+            ],
+            [
+              -2.5519744149143136e-06,
+              -1.1954083426779527e-07
+            ]
+          ],
+          [
+            [
+              -2.5519744149143136e-06,
+              -1.1954083426779527e-07
+            ],
+            [
+              -0.0002825167939468032,
+              2.7594448780062013e-06
+            ]
+          ]
+        ],
+        "impedance_matrix": [
+          [
+            [
+              -5490.822249953428,
+              -490.43312890151896
+            ],
+            [
+              49.32041724495068,
+              7.235135348772397
+            ]
+          ],
+          [
+            [
+              49.32041724495068,
+              7.235135348772397
+            ],
+            [
+              -3539.7165011411616,
+              -34.6599298257441
+            ]
+          ]
+        ],
+        "scattering_matrix": [
+          [
+            [
+              1.023492776604024,
+              -0.0009615825405100032
+            ],
+            [
+              0.0002612255583240276,
+              1.1986686367030233e-05
+            ]
+          ],
+          [
+            [
+              0.0002612255583240276,
+              1.1986686367030233e-05
+            ],
+            [
+              1.0286564701881595,
+              -0.00028390559943970034
+            ]
+          ]
+        ],
+        "reference_impedance_ohm": 50,
+        "winding_segments": [
+          2,
+          2
+        ],
+        "contacts": 10,
+        "filaments": 8,
+        "segments": 4,
+        "warnings": [
+          "ASITIC DQAGIE did not converge (status 4); native partial result retained",
+          "The native eddy calculation produced negative total conductor resistance for this geometry/process"
+        ],
+        "eddy_details": {
+          "mode": 1,
+          "kernel": "reflection",
+          "layers": [
+            0
+          ],
+          "green_calls": 6
+        }
+      }
+    },
+    {
+      "label": "CALCTRANS 8 transformer",
+      "request": {
+        "action": "calctrans",
+        "first": {
+          "kind": "transformer",
+          "parameters": {
+            "primary_name": "A",
+            "secondary_name": "B",
+            "length": 80,
+            "height": 70,
+            "width": 3,
+            "spacing": 2,
+            "turns": 1.25,
+            "secondary_turns": 1,
+            "metal": "M4",
+            "exit_metal": "M3",
+            "x": 10,
+            "y": 10
+          },
+          "winding": 0
+        },
+        "second": {
+          "kind": "transformer",
+          "parameters": {
+            "primary_name": "A",
+            "secondary_name": "B",
+            "length": 80,
+            "height": 70,
+            "width": 3,
+            "spacing": 2,
+            "turns": 1.25,
+            "secondary_turns": 1,
+            "metal": "M4",
+            "exit_metal": "M3",
+            "x": 10,
+            "y": 10
+          },
+          "winding": 1
+        },
+        "ground": {
+          "kind": "wire",
+          "parameters": {
+            "name": "G",
+            "length": 110,
+            "width": 8,
+            "metal": "M1",
+            "x": 5,
+            "y": 115
+          }
+        },
+        "frequency_hz": 1000000000,
+        "technology": "; Sample CMOS technology file\n\n<chip>\n\n\tchipx = 128\t; dimensions of the chip in x direction\n\tchipy = 128\t; dimensions of the chip in y direction\n\tfftx = 64\t; x-fft size (must be a power of 2)\n\tffty = 64\t; y-fft size\n\tTechFile = CMOS.tek\n\tTechPath = .\n\tfreq = 2 \t\t; frequency of operation\n\teddy = 0\n\n<layer> 0 \t\t\t; p(-) bulk layer\n\trho = 1e-3\t\t; ohm-cm\n\tt   = 700 \t\t; microns\n        eps = 11.9\n\n<layer>\t1\t   \t\t; Oxide Layer\n\trho = 1e10\n\tt = 50\n\teps = 3.9\n\n<metal> 0\n        layer = 1\t\t; in oxide layer\n        rsh = 65\t\t; sheet resistance3\n        t   = 0.5\t\t; thickness\n        d = 1.3\t\t\t; distance from bottom of layer\n        name = m1\t\n        color = yellow\n\n<metal> 1\n        layer = 1\n        rsh = 55 \n        t = 0.5\n        d = 2.4 \n        name = m2\n        color = LightSkyBlue1\n\n<metal> 2\n        layer = 1\n        rsh = 55 \n        t = 0.5\n        d =  3.5\n        name = m3\n        color = medium purple\n\n<metal> 3\n        layer = 1\n        rsh = 55 \n        t = 0.5\n        d =  4.5\n        name = m4\n        color = light green\n\n<metal> 4\n        layer = 1\n        rsh = 30\n        t = 1\n        d =  6\n        name = m5\n        color = grey\n\n<via> 0                        ; metal 1 to metal 2\n        top = 1\n        bottom = 0\n        r = 4\n        width = .5\n        space = 1.1\n        overplot1 = .2         ; to metal 1\n        overplot2 = .2         ; to metal 2\n        name = via1\n        color = purple\n<via> 1                        ; metal 2 to metal 3\n        top = 2\n        bottom = 1\n        r = 4\n        width = .4\n        space = 1.1\n        overplot1 = .2         ; to metal 1\n        overplot2 = .2         ; to metal 2\n        name = via2\n        color = cyan1\n<via> 2                        ; metal 3 to metal 4\n        top = 3\n        bottom = 2\n        r = 4\n        width = .4\n        space = 1.1\n        overplot1 = .2\n        overplot2 = .2\n        name = via3\n        color = red\n\n<via> 3                        ; metal 3 to metal 4\n        top = 4\n        bottom = 3\n        r = 4\n        width = .4\n        space = 1.2\n        overplot1 = .2\n        overplot2 = .2\n        name = via4\n        color = white\n\n",
+        "mesh": {
+          "length_cell": 1000,
+          "width_cell": 1000,
+          "thickness_cell": 1000,
+          "capacitance_length_cell": 1000,
+          "capacitance_width_cell": 1000
+        },
+        "eddy": true,
+        "termination_ohm": 50
+      },
+      "seconds": [
+        0.02913218900000038,
+        0.02795338700000002,
+        0.028551950999999916
+      ],
+      "result": {
+        "frequency_hz": 1000000000,
+        "method": "ASITIC CALCTRANS, native eddy on",
+        "first_winding": "A",
+        "second_winding": "B",
+        "eddy": true,
+        "termination_ohm": 50,
+        "model": {
+          "first_inductance_h": -1.6731181948674022e-06,
+          "second_inductance_h": -1.4678270104529209e-06,
+          "first_resistance_ohm": -6843.319698647862,
+          "second_resistance_ohm": -14177.282131325082,
+          "ground_resistance_ohm": 1820.607181445064,
+          "mutual_h": -3.4014052434077885e-07,
+          "coupling": -0.21704891950605987
+        },
+        "admittance_matrix": [
+          [
+            [
+              -3.8565956929431976e-05,
+              8.106060904784924e-05
+            ],
+            [
+              -1.0125793934455277e-05,
+              1.2830645758837454e-05
+            ]
+          ],
+          [
+            [
+              -1.0125793934455277e-05,
+              1.2830645758837454e-05
+            ],
+            [
+              -5.429132063660052e-05,
+              4.066043492844429e-05
+            ]
+          ]
+        ],
+        "impedance_matrix": [
+          [
+            [
+              -5022.712517202798,
+              -10512.511659165693
+            ],
+            [
+              1820.607181445064,
+              2137.165944914342
+            ]
+          ],
+          [
+            [
+              1820.607181445064,
+              2137.165944914342
+            ],
+            [
+              -12356.674949880018,
+              -9222.62910555913
+            ]
+          ]
+        ],
+        "scattering_matrix": [
+          [
+            [
+              1.0046427171295862,
+              -0.006113388622769717
+            ],
+            [
+              0.0010094045652753612,
+              -0.0012952106358898392
+            ]
+          ],
+          [
+            [
+              0.0010094045652753612,
+              -0.0012952106358898392
+            ],
+            [
+              1.0054352525087988,
+              -0.004089498009195368
+            ]
+          ]
+        ],
+        "reference_impedance_ohm": 50,
+        "winding_segments": [
+          6,
+          5
+        ],
+        "contacts": 17,
+        "filaments": 11,
+        "segments": 11,
+        "warnings": [
+          "ASITIC DQAGIE did not converge (status 4); native partial result retained",
+          "The native eddy calculation produced negative total conductor resistance for this geometry/process"
+        ],
+        "eddy_details": {
+          "mode": 1,
+          "kernel": "reflection",
+          "layers": [
+            0
+          ],
+          "green_calls": 17
+        }
+      },
+      "previous_seconds": [
+        0.44361976800000047,
+        0.44434516799999985,
+        0.44299082500000075
+      ],
+      "previous_result": {
+        "frequency_hz": 1000000000,
+        "method": "ASITIC CALCTRANS, native eddy on",
+        "first_winding": "A",
+        "second_winding": "B",
+        "eddy": true,
+        "termination_ohm": 50,
+        "model": {
+          "first_inductance_h": -1.6731181948674022e-06,
+          "second_inductance_h": -1.46782701045292e-06,
+          "first_resistance_ohm": -6843.319698647863,
+          "second_resistance_ohm": -14177.282131325086,
+          "ground_resistance_ohm": 1820.6071814450638,
+          "mutual_h": -3.4014052434077916e-07,
+          "coupling": -0.21704891950606012
+        },
+        "admittance_matrix": [
+          [
+            [
+              -3.8565956929432e-05,
+              8.106060904784922e-05
+            ],
+            [
+              -1.0125793934455297e-05,
+              1.283064575883745e-05
+            ]
+          ],
+          [
+            [
+              -1.0125793934455297e-05,
+              1.283064575883745e-05
+            ],
+            [
+              -5.429132063660055e-05,
+              4.066043492844427e-05
+            ]
+          ]
+        ],
+        "impedance_matrix": [
+          [
+            [
+              -5022.7125172028,
+              -10512.511659165693
+            ],
+            [
+              1820.6071814450638,
+              2137.165944914344
+            ]
+          ],
+          [
+            [
+              1820.6071814450638,
+              2137.165944914344
+            ],
+            [
+              -12356.674949880022,
+              -9222.629105559125
+            ]
+          ]
+        ],
+        "scattering_matrix": [
+          [
+            [
+              1.0046427171295862,
+              -0.006113388622769716
+            ],
+            [
+              0.0010094045652753632,
+              -0.0012952106358898388
+            ]
+          ],
+          [
+            [
+              0.0010094045652753632,
+              -0.0012952106358898388
+            ],
+            [
+              1.0054352525087988,
+              -0.004089498009195366
+            ]
+          ]
+        ],
+        "reference_impedance_ohm": 50,
+        "winding_segments": [
+          6,
+          5
+        ],
+        "contacts": 17,
+        "filaments": 11,
+        "segments": 11,
+        "warnings": [
+          "ASITIC DQAGIE did not converge (status 4); native partial result retained",
+          "The native eddy calculation produced negative total conductor resistance for this geometry/process"
+        ],
+        "eddy_details": {
+          "mode": 1,
+          "kernel": "reflection",
+          "layers": [
+            0
+          ],
+          "green_calls": 17
+        }
+      }
+    },
+    {
+      "label": "CALCTRANS 11 balun",
+      "request": {
+        "action": "calctrans",
+        "first": {
+          "kind": "balun",
+          "parameters": {
+            "name": "T",
+            "length": 80,
+            "width": 3,
+            "secondary_width": 4,
+            "spacing": 2,
+            "turns": 3,
+            "metal": "M4",
+            "secondary_metal": "M3",
+            "x": 10,
+            "y": 10
+          },
+          "winding": 0
+        },
+        "second": {
+          "kind": "balun",
+          "parameters": {
+            "name": "T",
+            "length": 80,
+            "width": 3,
+            "secondary_width": 4,
+            "spacing": 2,
+            "turns": 3,
+            "metal": "M4",
+            "secondary_metal": "M3",
+            "x": 10,
+            "y": 10
+          },
+          "winding": 1
+        },
+        "ground": {
+          "kind": "wire",
+          "parameters": {
+            "name": "G",
+            "length": 110,
+            "width": 8,
+            "metal": "M1",
+            "x": 5,
+            "y": 115
+          }
+        },
+        "frequency_hz": 1000000000,
+        "technology": "; Sample CMOS technology file\n\n<chip>\n\n\tchipx = 128\t; dimensions of the chip in x direction\n\tchipy = 128\t; dimensions of the chip in y direction\n\tfftx = 64\t; x-fft size (must be a power of 2)\n\tffty = 64\t; y-fft size\n\tTechFile = CMOS.tek\n\tTechPath = .\n\tfreq = 2 \t\t; frequency of operation\n\teddy = 0\n\n<layer> 0 \t\t\t; p(-) bulk layer\n\trho = 1e-3\t\t; ohm-cm\n\tt   = 700 \t\t; microns\n        eps = 11.9\n\n<layer>\t1\t   \t\t; Oxide Layer\n\trho = 1e10\n\tt = 50\n\teps = 3.9\n\n<metal> 0\n        layer = 1\t\t; in oxide layer\n        rsh = 65\t\t; sheet resistance3\n        t   = 0.5\t\t; thickness\n        d = 1.3\t\t\t; distance from bottom of layer\n        name = m1\t\n        color = yellow\n\n<metal> 1\n        layer = 1\n        rsh = 55 \n        t = 0.5\n        d = 2.4 \n        name = m2\n        color = LightSkyBlue1\n\n<metal> 2\n        layer = 1\n        rsh = 55 \n        t = 0.5\n        d =  3.5\n        name = m3\n        color = medium purple\n\n<metal> 3\n        layer = 1\n        rsh = 55 \n        t = 0.5\n        d =  4.5\n        name = m4\n        color = light green\n\n<metal> 4\n        layer = 1\n        rsh = 30\n        t = 1\n        d =  6\n        name = m5\n        color = grey\n\n<via> 0                        ; metal 1 to metal 2\n        top = 1\n        bottom = 0\n        r = 4\n        width = .5\n        space = 1.1\n        overplot1 = .2         ; to metal 1\n        overplot2 = .2         ; to metal 2\n        name = via1\n        color = purple\n<via> 1                        ; metal 2 to metal 3\n        top = 2\n        bottom = 1\n        r = 4\n        width = .4\n        space = 1.1\n        overplot1 = .2         ; to metal 1\n        overplot2 = .2         ; to metal 2\n        name = via2\n        color = cyan1\n<via> 2                        ; metal 3 to metal 4\n        top = 3\n        bottom = 2\n        r = 4\n        width = .4\n        space = 1.1\n        overplot1 = .2\n        overplot2 = .2\n        name = via3\n        color = red\n\n<via> 3                        ; metal 3 to metal 4\n        top = 4\n        bottom = 3\n        r = 4\n        width = .4\n        space = 1.2\n        overplot1 = .2\n        overplot2 = .2\n        name = via4\n        color = white\n\n",
+        "mesh": {
+          "length_cell": 1000,
+          "width_cell": 1000,
+          "thickness_cell": 1000,
+          "capacitance_length_cell": 1000,
+          "capacitance_width_cell": 1000
+        },
+        "eddy": true,
+        "termination_ohm": 50
+      },
+      "seconds": [
+        0.0714168880000002,
+        0.061300807000000075,
+        0.06104037100000005
+      ],
+      "result": {
+        "frequency_hz": 1000000000,
+        "method": "ASITIC CALCTRANS, native eddy on",
+        "first_winding": "T-P",
+        "second_winding": "T-S",
+        "eddy": true,
+        "termination_ohm": 50,
+        "model": {
+          "first_inductance_h": -1.5815799722845243e-06,
+          "second_inductance_h": -4.950177808009249e-07,
+          "first_resistance_ohm": -6561.216936011571,
+          "second_resistance_ohm": -6652.545099780362,
+          "ground_resistance_ohm": -1335.6948256135524,
+          "mutual_h": -2.1386296019815079e-07,
+          "coupling": -0.24170163933111244
+        },
+        "admittance_matrix": [
+          [
+            [
+              -4.695623905233906e-05,
+              6.022727438944119e-05
+            ],
+            [
+              -8.055000331876741e-06,
+              -1.4832915719694531e-05
+            ]
+          ],
+          [
+            [
+              -8.055000331876741e-06,
+              -1.4832915719694531e-05
+            ],
+            [
+              -0.00010498779194028588,
+              4.200308668946581e-05
+            ]
+          ]
+        ],
+        "impedance_matrix": [
+          [
+            [
+              -7896.911761625123,
+              -9937.36004398762
+            ],
+            [
+              -1335.6948256135524,
+              1343.7406092669537
+            ]
+          ],
+          [
+            [
+              -1335.6948256135524,
+              1343.7406092669537
+            ],
+            [
+              -7988.239925393915,
+              -3110.2884471210164
+            ]
+          ]
+        ],
+        "scattering_matrix": [
+          [
+            [
+              1.0076256348634833,
+              -0.005153378648131931
+            ],
+            [
+              0.0008193058151376675,
+              0.0014904347685133817
+            ]
+          ],
+          [
+            [
+              0.0008193058151376675,
+              0.0014904347685133817
+            ],
+            [
+              1.010544443637208,
+              -0.004243521618863661
+            ]
+          ]
+        ],
+        "reference_impedance_ohm": 50,
+        "winding_segments": [
+          16,
+          8
+        ],
+        "contacts": 30,
+        "filaments": 24,
+        "segments": 24,
+        "warnings": [
+          "ASITIC DQAGIE did not converge (status 4); native partial result retained",
+          "The native eddy calculation produced negative total conductor resistance for this geometry/process"
+        ],
+        "eddy_details": {
+          "mode": 1,
+          "kernel": "reflection",
+          "layers": [
+            0
+          ],
+          "green_calls": 44
+        }
+      },
+      "previous_seconds": [
+        1.114335274000001,
+        1.105729138999999,
+        1.111052216
+      ],
+      "previous_result": {
+        "frequency_hz": 1000000000,
+        "method": "ASITIC CALCTRANS, native eddy on",
+        "first_winding": "T-P",
+        "second_winding": "T-S",
+        "eddy": true,
+        "termination_ohm": 50,
+        "model": {
+          "first_inductance_h": -1.5815799722849895e-06,
+          "second_inductance_h": -4.950177808008249e-07,
+          "first_resistance_ohm": -6561.216936016414,
+          "second_resistance_ohm": -6652.545099784732,
+          "ground_resistance_ohm": -1335.6948256110547,
+          "mutual_h": -2.1386296019825868e-07,
+          "coupling": -0.2417016393312232
+        },
+        "admittance_matrix": [
+          [
+            [
+              -4.695623905233207e-05,
+              6.0227274389421535e-05
+            ],
+            [
+              -8.05500033188193e-06,
+              -1.4832915719670357e-05
+            ]
+          ],
+          [
+            [
+              -8.05500033188193e-06,
+              -1.4832915719670357e-05
+            ],
+            [
+              -0.00010498779194028084,
+              4.2003086689435514e-05
+            ]
+          ]
+        ],
+        "impedance_matrix": [
+          [
+            [
+              -7896.911761627469,
+              -9937.360043990544
+            ],
+            [
+              -1335.6948256110547,
+              1343.7406092676315
+            ]
+          ],
+          [
+            [
+              -1335.6948256110547,
+              1343.7406092676315
+            ],
+            [
+              -7988.2399253957865,
+              -3110.2884471203884
+            ]
+          ]
+        ],
+        "scattering_matrix": [
+          [
+            [
+              1.0076256348634827,
+              -0.005153378648129408
+            ],
+            [
+              0.0008193058151381736,
+              0.0014904347685109445
+            ]
+          ],
+          [
+            [
+              0.0008193058151381736,
+              0.0014904347685109445
+            ],
+            [
+              1.0105444436372077,
+              -0.004243521618860599
+            ]
+          ]
+        ],
+        "reference_impedance_ohm": 50,
+        "winding_segments": [
+          16,
+          8
+        ],
+        "contacts": 30,
+        "filaments": 24,
+        "segments": 24,
+        "warnings": [
+          "ASITIC DQAGIE did not converge (status 4); native partial result retained",
+          "The native eddy calculation produced negative total conductor resistance for this geometry/process"
+        ],
+        "eddy_details": {
+          "mode": 1,
+          "kernel": "reflection",
+          "layers": [
+            0
+          ],
+          "green_calls": 44
+        }
+      }
+    }
+  ],
+  "date": "2026-10-24",
+  "baseline_commit": "c638d35984054a796c77f19f6886bbd920238545",
+  "baseline_site_version": "c3c313fb2baa66e3",
+  "kernel_sha256": "60240ba361bad1877f959edcc324a923cca5d72daa1ac311407d30cb604c5f12",
+  "comparison": "Versions ran sequentially with separate interpreters and no overlapping validation processes. Identical request objects and case order; three complete requests per case. Cached timing means the third identical request. Table/geometry caches persist between cases. Original-binary speed was not measured by this experiment."
+}
