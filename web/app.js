@@ -133,6 +133,7 @@ function showFields(loaded=currentDefinition) {
     label.hidden = !visible;
     for (const input of label.querySelectorAll("input,select")) input.disabled = !visible;
   }
+  if(["symmetric_square","symmetric_polygon"].includes(kind))form.elements.namedItem("inner_gap").removeAttribute("min");
   const rectangular=["square","multimetal"].includes(kind),inner=rectangular&&$("#dimension-mode").value==="inner",interactive=rectangular&&$("#rectangular-input-mode").value==="interactive";
   for(const key of ["inner_length","inner_height",...(rectangular?["length","height"]:[])]){
     const input=form.elements.namedItem(key),hidden=key.startsWith("inner_")?!inner:inner;

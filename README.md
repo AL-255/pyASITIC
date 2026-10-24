@@ -139,6 +139,11 @@ Implemented so far:
   creators / 60,804 XYZ stores match in Python and compiled WebAssembly, with
   independent GDS readback. Eight complete Pi2/2PORT sessions match every
   captured electrical output, including eddy and binary64 interactive inputs.
+  Explicit transition-gap validation now matches 840 additional original input
+  histories. The 682 accepted creators match 92,070 XYZ stores and GDS readback,
+  including zero/negative gaps and omitted defaults that bypass native validation.
+  Two additional finite Pi2/2PORT sessions match all captured electrical stores;
+  four original NaN histories retain contact evidence and explicit browser errors.
 - Multi-metal squares preserve native copy origins, reflection history and
   deferred joins across up to five sample-process metals. All 180 original
   creators / 56,214 XYZ stores match in Python and Pyodide, with independent GDS

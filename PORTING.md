@@ -1103,3 +1103,55 @@ The browser can generate both original paths directly, rather than requiring an
 imported interactive project. Uninitialized original fields, unrestricted size
 ranges, all malformed/partial scans and exhaustive prompt states remain outside
 these claims. Source correspondence is in `native/rectangular-input-source.json`.
+
+
+### Symmetric keyword transition clearance
+
+The original SYMSQ/SYMPOLY keyword parser runs its transition-clearance test only
+when ILEN is explicitly supplied. Omission stores the retained width+spacing sum
+as binary64 and bypasses the test; an explicit equal numeric gap can be rejected.
+The recreation now preserves that distinction through generation and project
+reload. Explicit finite zero/negative gaps are accepted whenever the native
+comparison accepts them. A width exceeding the computed radius creates NaN in
+the original acos path, and its unordered x87 comparison does not reject it.
+The prior separate positive-gap/domain checks therefore rejected original input.
+
+`symmetric_inputs.py` follows the retained radius/division/atan, binary64 radius
+and acos stores, half-angle order, binary64 tangent store, retained doubled-width
+product and comparison against gap minus the binary64 1e-10 constant. Guarded
+transcendental evaluation supplies the consumed stores without reference tables
+or fitted corrections. Original square/polygon parser instruction observers
+record every explicit operand, intermediate ST0 word, binary64 store, condition
+mask and x87 control word; actual constructor entries and static exits establish
+acceptance and completed geometry independently. No inputs, allocators, code or
+descriptor fields are patched. Source correspondence and addresses are recorded
+in `native/symmetric-input-source.json`.
+
+All 840 original histories (780 explicit, 60 omitted) match accept/reject results.
+All 780 sets of consumed binary64 radius/acos/tangent stores and nonfinite
+classifications match, as do the finite retained radius and comparison operands.
+The 682 accepted creators require every one of 92,070 XYZ stores, origin
+bits, scalar widths, metals and conductor thicknesses in portable Python and the
+compiled browser path. Independent GDS readback and actual DOM regeneration,
+project save/reload and GDS-download handlers cover every accepted history.
+Zero-gap native ribbons have repeated vertices; GDS now retains their closed
+boundaries instead of rejecting or discarding those records. Separately captured
+original CIF streams also retain the corresponding degenerate polygon records.
+
+Six complete original Pi2/2PORT histories cover both creators with omitted,
+explicit zero and negative gaps. Two finite sessions match all Y/model/S and
+resonance stores in both backends and through displayed/downloaded browser
+models. Four original sessions return NaN admittance: two have collapsed FFT
+contacts and two have zero planar-length contacts with NaN physical bounds and
+INT_MIN grid indices. Raw output, independent contact observations, and separate
+plain CLI transcripts remain in the fixture. Their defined downstream model and
+S values/classifications are checked, and the public frontend retains explicit
+contact errors. This does not claim full nonfinite pipeline or fault emulation.
+
+Raw retained transcendental equality is still incomplete: 46 tangent, 20 atan,
+10 acos and 10 half-angle words differ in the 780 explicit histories, despite
+exact consumed binary64 stores and decisions. `tools/audit_transition_original.py`
+reports them; `--raw` deliberately fails until every finite ST0 word matches.
+No tolerance is used or unresolved raw record discarded. Interactive symmetric
+prompt acquisition, technology WMIN/SMIN branches, unrestricted input ranges and
+whole-simulator equivalence remain unproven.

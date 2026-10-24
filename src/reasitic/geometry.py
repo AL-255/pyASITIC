@@ -304,7 +304,7 @@ def build(kind="square", *, technology=None, native_keyword=False, native_intera
     if kind in ("symmetric_square","symmetric_polygon"):
         from .symmetric_geometry import symmetric_square, symmetric_polygon
         inner_gap = num("inner_gap",width+spacing)
-        if inner_gap<=0:
+        if not native_keyword and inner_gap<=0:
             raise ValueError("Inner transition gap must be positive")
         secondary = tech.metal_index(p.get("secondary_metal",max(0,metal-1)))
         raw_turns = num("turns",2)
@@ -325,12 +325,19 @@ def build(kind="square", *, technology=None, native_keyword=False, native_intera
         if raw_turns!=turns:
             shape.warnings.append(f"Turns quantized to {turns} (whole turns for symmetric coils).")
         shape.parameters["turns"] = turns
-        hypotenuse = math.hypot(inner_gap,spacing)
-        if width>hypotenuse:
-            raise ValueError("Need more space for transitions")
-        half = (math.pi-math.atan2(inner_gap,spacing)-math.acos(width/hypotenuse))/2
-        if 2*width*math.tan(half)>inner_gap-1e-10:
-            raise ValueError("Need more space for transitions")
+        if native_keyword:
+            # The original invokes the clearance test only for an explicit
+            # ILEN. Its unordered x87 comparison intentionally does not reject.
+            if 'inner_gap'in parameters:
+                from .symmetric_inputs import transition
+                if transition(width,spacing,inner_gap)['reject']:raise ValueError('Need more space for transitions')
+        else:
+            hypotenuse = math.hypot(inner_gap,spacing)
+            if width>hypotenuse:
+                raise ValueError("Need more space for transitions")
+            half = (math.pi-math.atan2(inner_gap,spacing)-math.acos(width/hypotenuse))/2
+            if 2*width*math.tan(half)>inner_gap-1e-10:
+                raise ValueError("Need more space for transitions")
         if kind == "symmetric_square":
             symmetric_square(shape,tech,metal,secondary,length,inner_gap,width,spacing,turns,radians,phase)
         else:

@@ -87,8 +87,9 @@ def write_gds(shapes, technology, layer_map=None):
             if not (0 <= layer <= 32767 and 0 <= datatype <= 32767):
                 raise ValueError("GDS layer and datatype must be in [0,32767]")
             coords = [(round((x+shape.origin[0])*1000),round((y+shape.origin[1])*1000)) for x,y in polygon]
-            if len(set(coords)) < 3:
-                raise ValueError("A polygon collapsed at 1 nm resolution; increase its dimensions")
+            # Original creators can retain zero-length metal ribbons (e.g.
+            # symmetric explicit ILEN=0). Preserve their closed boundaries,
+            # including repeated vertices, instead of dropping native records.
             if any(abs(c)>2147483647 for p in coords for c in p):
                 raise ValueError("Layout exceeds the signed 32-bit GDS coordinate range")
             coords.append(coords[0])

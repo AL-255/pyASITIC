@@ -1,0 +1,16 @@
+{
+  "reference_commit": "63885e808b522bdeba3f254d353afc72e643c761",
+  "source_sha256": {
+    "src/shape_prompt_symmetric.cpp": "1b0b177840937ae5d13532498c2fe643d80409b5d22f8c652b3dd194781f7945",
+    "src/symmetric_construction.cpp": "6196d35c51696172ae9dc6d977c34e76a6aae583d740353a2e224092bc403da5"
+  },
+  "original_entries": {
+    "square_keyword": "0x08084f54",
+    "polygon_keyword": "0x080856bc",
+    "square_creator": "0x08059854",
+    "polygon_creator": "0x0805a45c",
+    "square_static_exit": "0x0805a2fb",
+    "polygon_static_exit": "0x0805abea"
+  },
+  "adaptation": "Literal retained explicit-ILEN symmetric keyword clearance with original radius/acos/tangent binary64 stores, unordered comparison and omitted-default bypass. The shared geometry kernel accepts finite signed transition heights; its construction equations are unchanged. All 840 input histories, 780 consumed store sets, 682 accepted creators / 92070 XYZ stores and defined origins/scalars/metals/thickness, independent GDS and all actual DOM regeneration/project/GDS downloads are required in both backends. Two finite complete original Pi2/2PORT/resonance models match; four nonfinite histories retain original raw outputs, contacts and plain CLI/CIF transcripts, with explicit public contact errors. Raw intermediate transcendental equality remains incomplete (46 tangent, 20 atan, 10 acos and 10 half-angle words); the optional --raw audit deliberately fails. No reference outputs or fitted constants in runtime. Interactive WMIN/SMIN prompt paths, unrestricted ranges, NaN-payload/fault emulation and whole-simulator equivalence are not established."
+}
