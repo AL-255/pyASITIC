@@ -1,5 +1,9 @@
 # Mapped allocations toward native simulation parity
 
+The subsequent [shared-memory component port](SHARED_MEMORY.md) now reproduces
+native via stores and the damaged cache chains using byte-backed tcache state.
+It preserves this earlier fixture and its unresolved-input audit results.
+
 The development allocator now implements glibc's i386 mmap chunk sizing,
 alignment, unmapping, allocation statistics and dynamic mmap/trim thresholds.
 It also models the bin bitmap and maximum arena size. This extends the

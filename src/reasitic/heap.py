@@ -12,10 +12,15 @@ warranty of merchantability or fitness for a particular purpose.
 Python translation Copyright (C) 2026 pyASITIC authors.
 """
 from dataclasses import dataclass
+from .memory import MemoryFault
 
 
 class SystemAllocationRequired(NotImplementedError):
     """The arena cannot satisfy a request without an OS allocation."""
+
+
+class HeapCorruption(ValueError):
+    """A native allocator validation would reject the current guest state."""
 
 
 @dataclass
@@ -103,14 +108,77 @@ class Heap:
         self.bins=[[],*(list(b)for b in snapshot['bins'])]
         self.fastbins=[list(b)for b in snapshot['fastbins']]
         # Cached entries contain user addresses; all other lists use headers.
-        self.tcache=[[p-8 for p in b]for b in snapshot['tcache']]
+        self._tcache=[[p-8 for p in b]for b in snapshot['tcache']]
         self.tcache_enabled=bool(snapshot['tcache_address'])
+        self.cache_address=snapshot['tcache_address'];self._cache_memory=None;self._cache_key=None
+
+    def attach_cache_memory(self,memory,key):
+        """Back tcache control/links/keys with initialized shared bytes.
+
+        Other arena structures currently remain logical metadata. This is an
+        intermediate port, not a promise that arbitrary header/bin corruption
+        or complete numerical allocation history is already modeled.
+        """
+        if memory.address_space is not self.address_space:raise ValueError('Heap and cache memory must share one address space')
+        if isinstance(key,bool)or not isinstance(key,int)or not 0<=key<=0xffffffff:raise ValueError('The i386 tcache key must be an unsigned 32-bit integer')
+        self._cache_memory=memory;self._cache_key=key
+
+    def cache_state(self):
+        memory=self._cache_memory
+        if memory is None:return self._tcache,[]
+        result=[];errors=[]
+        for index in range(64):
+            chain=[];p=memory.u32(self.cache_address+128+4*index)if self.tcache_enabled else 0
+            while p:
+                if p-8 in chain or len(chain)>=100000:
+                    errors.append(dict(section=f'tcache.{index}',address=p,reason='cycle-or-limit'));break
+                try:following=memory.u32(p)
+                except MemoryFault:
+                    errors.append(dict(section=f'tcache.{index}',address=p,reason='unmapped'));break
+                chain.append(p-8);p=following^(p>>12)
+            count=memory.u16(self.cache_address+2*index)if self.tcache_enabled else 0
+            if len(chain)!=count:errors.append(dict(section=f'tcache.{index}',reason='count',count=count,observed=len(chain)))
+            result.append(chain)
+        return result,errors
+
+    @property
+    def tcache(self):return self.cache_state()[0]
+
+    def _cache_count(self,index):
+        return len(self._tcache[index])if self._cache_memory is None else self._cache_memory.u16(self.cache_address+2*index)
+
+    def _cache_put(self,p,size):
+        index=self._cache_index(size);memory=self._cache_memory
+        if memory is None:self._tcache[index].insert(0,p);return
+        head=self.cache_address+128+4*index;entry=p+8
+        memory.put_u32(entry,memory.u32(head)^(entry>>12));memory.put_u32(entry+4,self._cache_key)
+        memory.put_u32(head,entry);memory.put_u16(self.cache_address+2*index,self._cache_count(index)+1)
+
+    def _cache_get(self,size):
+        index=self._cache_index(size);memory=self._cache_memory
+        if memory is None:return self._tcache[index].pop(0)
+        head=self.cache_address+128+4*index;entry=memory.u32(head)
+        if entry%16:raise HeapCorruption('Native tcache allocation is unaligned')
+        memory.put_u32(head,memory.u32(entry)^(entry>>12));memory.put_u16(self.cache_address+2*index,self._cache_count(index)-1)
+        memory.put_u32(entry+4,0)
+        return entry-8
+
+    def _cache_check_free(self,p,size):
+        memory=self._cache_memory;index=self._cache_index(size)
+        if memory is None or not self.tcache_enabled or index>=self.parameters['tcache_bins']:return
+        entry=p+8
+        if memory.u32(entry+4)!=self._cache_key:return
+        current=memory.u32(self.cache_address+128+4*index);count=0
+        while current:
+            if count>=self.parameters['tcache_count']or current%16:raise HeapCorruption('Native tcache free-list validation failed')
+            if current==entry:raise HeapCorruption('Native tcache double free')
+            current=memory.u32(current)^(current>>12);count+=1
 
     def _cache_index(self,size):return (size-16)//16
 
     def _cache_has_space(self,size):
         index=self._cache_index(size)
-        return self.tcache_enabled and index<self.parameters['tcache_bins'] and len(self.tcache[index])<self.parameters['tcache_count']
+        return self.tcache_enabled and index<self.parameters['tcache_bins'] and self._cache_count(index)<self.parameters['tcache_count']
 
     def _unlink(self,p):
         for chain in self.bins[1:]:
@@ -143,12 +211,12 @@ class Heap:
     def malloc(self,request):
         size=request_size(request);cache_index=self._cache_index(size)
         cacheable=self.tcache_enabled and cache_index<self.parameters['tcache_bins']
-        if cacheable and self.tcache[cache_index]:return self.tcache[cache_index].pop(0)+8
+        if cacheable and self._cache_count(cache_index):return self._cache_get(size)+8
         if size<=self.max_fast:
             chain=self.fastbins[(size>>3)-2]
             if chain:
                 p=chain.pop(0)
-                while chain and self._cache_has_space(size):self.tcache[cache_index].insert(0,chain.pop(0))
+                while chain and self._cache_has_space(size):self._cache_put(chain.pop(0),size)
                 return p+8
         small=size<1008;index=bin_index(size)
         if small:
@@ -156,7 +224,7 @@ class Heap:
             if chain:
                 p=chain.pop();self._mark_in_use(p)
                 while chain and self._cache_has_space(size):
-                    other=chain.pop();self._mark_in_use(other);self.tcache[cache_index].insert(0,other)
+                    other=chain.pop();self._mark_in_use(other);self._cache_put(other,size)
                 return p+8
         elif self.have_fastchunks:self._consolidate()
         while True:
@@ -169,14 +237,14 @@ class Heap:
                 if chunk.size==size:
                     self._mark_in_use(p)
                     if self._cache_has_space(size):
-                        self.tcache[cache_index].insert(0,p);return_cached=True;continue
+                        self._cache_put(p,size);return_cached=True;continue
                     return p+8
                 self._insert_bin(p);unsorted_count+=1
                 limit=self.parameters['tcache_unsorted_limit']
-                if return_cached and limit and unsorted_count>limit:return self.tcache[cache_index].pop(0)+8
+                if return_cached and limit and unsorted_count>limit:return self._cache_get(size)+8
                 iterations+=1
                 if iterations>=10000:break
-            if return_cached:return self.tcache[cache_index].pop(0)+8
+            if return_cached:return self._cache_get(size)+8
             if not small:
                 chain=self.bins[index]
                 suitable=[p for p in chain if self.chunks[p].size>=size]
@@ -199,6 +267,8 @@ class Heap:
             if size>=self.parameters['mmap_threshold'] and self.parameters['n_mmaps']<self.parameters['n_mmaps_max']:
                 length=(size+4+15+4095)&~4095;base=self.address_space.map(length)
                 p=base+8;self.mapped[p]=Chunk(length-8,8,False)
+                if self._cache_memory is not None:
+                    self._cache_memory.zero(base,length);self._cache_memory.put_u32(p,8);self._cache_memory.put_u32(p+4,(length-8)|2)
                 self.parameters['n_mmaps']+=1;self.parameters['mmapped_mem']+=length
                 for current,maximum in (('n_mmaps','max_n_mmaps'),('mmapped_mem','max_mmapped_mem')):
                     self.parameters[maximum]=max(self.parameters[maximum],self.parameters[current])
@@ -209,6 +279,7 @@ class Heap:
             if any(start<end+extra and finish>end for start,finish in self.address_space.ranges):
                 raise SystemAllocationRequired('Contiguous brk extension overlaps a mapping')
             self.address_space.ranges.append((end,end+extra))
+            if self._cache_memory is not None:self._cache_memory.zero(end,extra)
             top.size+=extra;self.system_mem+=extra
             self.max_system_mem=max(self.max_system_mem,self.system_mem)
 
@@ -241,11 +312,13 @@ class Heap:
             if not self.parameters['no_dyn_threshold'] and self.parameters['mmap_threshold']<(chunk.size|2)<=512*1024:
                 self.parameters['mmap_threshold']=chunk.size;self.parameters['trim_threshold']=2*chunk.size
             length=chunk.previous+chunk.size;self.address_space.unmap(p-chunk.previous,length)
+            if self._cache_memory is not None:self._cache_memory.forget(p-chunk.previous,length)
             self.parameters['n_mmaps']-=1;self.parameters['mmapped_mem']-=length
             return
         if p not in self.chunks:raise ValueError('Unknown allocation')
         size=self.chunks[p].size
-        if self._cache_has_space(size):self.tcache[self._cache_index(size)].insert(0,p);return
+        self._cache_check_free(p,size)
+        if self._cache_has_space(size):self._cache_put(p,size);return
         if size<=self.max_fast:
             self.fastbins[(size>>3)-2].insert(0,p);self.have_fastchunks=True;return
         size=self._merge(p)
@@ -255,4 +328,5 @@ class Heap:
                 top=self.chunks[self.top]
                 extra=max(0,top.size-16-1-self.parameters['top_pad'])&~4095
                 self.address_space.unmap(self.top+top.size-extra,extra)
+                if self._cache_memory is not None:self._cache_memory.forget(self.top+top.size-extra,extra)
                 top.size-=extra;self.system_mem-=extra
