@@ -18,6 +18,15 @@ class StorageEvent:
     allocator: str = 'array'
 
 
+def node_storage(nodes):
+    """Folded node arrays and enclosing driver's CAP/LMAT destruction."""
+    if isinstance(nodes,bool)or not isinstance(nodes,int)or nodes<1:raise ValueError('Invalid node count')
+    sizes={'pivots':4*nodes,'lu':16*nodes*nodes,**dict.fromkeys(('drive','bias','current','rhs'),16*nodes)}
+    return ([StorageEvent('allocate','node.'+name,size)for name,size in sizes.items()]
+            +[StorageEvent('free','node.'+name)for name in ('lu','drive','bias','current','rhs','pivots')]
+            +[StorageEvent('free',name)for name in ('ind.output','cap.output')])
+
+
 def capacitance_prelude_storage(contact_counts,metals,substrates,fft_x,*,cache_mode,
                                 file_bytes=304,buffer_bytes=4096):
     """Contact construction and successful/missing-cache storage lifetimes.

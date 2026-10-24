@@ -119,3 +119,8 @@ array observations, full cleanup after node input, the incomplete older libio
 context, and known logarithm/cosine and JOIN/UNJOIN arithmetic differences
 remain unresolved. Matching this selected driver-to-node path cannot prove
 the requested whole-program equivalence or authorize deployment.
+
+The subsequent [node-history continuation](NODE_HISTORY.md) carries this same
+source memory through node work arrays, source model reports and the first
+driver return. It preserves every earlier gate and adds 399 strict whole-heap
+boundaries and complete pre-free node/driver arrays, including 64 KiB requests.

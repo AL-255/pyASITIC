@@ -6,7 +6,7 @@ Only earlier FILE bindings/control inputs enter this object. Observed native
 messages are never inputs. Buffer tails survive fflush, as in glibc libio.
 Line/unbuffered streams, IO errors and timed/dump analysis need other paths.
 """
-import struct
+import math,struct
 from .retained_scalar import Real
 
 
@@ -105,3 +105,30 @@ class ConsoleStorage:
         # The final dot precedes entry into add_via_impedance, whose own
         # scratch allocation occurs after the independent via-entry boundary.
         if event.action=='free'and event.name=='ind.reduced_inverse.work':self.dot()
+
+    def begin_nodes(self,nodes):
+        if self.inputs['progress']:self.warning(f'Solving node equations...({nodes}x{nodes})')
+
+    def report_nodes(self,ports,frequency,*,transformer=False):
+        def field(value,spec):
+            if math.isnan(value):
+                text='-nan'if struct.pack('<d',value)[-1]&128 else'nan'
+                width=spec.split('.',1)[0];return text.rjust(int(width))if width.isdecimal()else text
+            return format(value,spec)
+        def scaled(value,unit):return float(Real(value)/Real(unit))
+        ghz=field(scaled(frequency,1e9),'<4.2f')
+        if transformer:
+            from .transformer import extract_transformer_equivalent
+            model,_=extract_transformer_equivalent(ports,frequency)
+            f=lambda key:field(scaled(model[key],1e-9)if key.endswith('_h')else model[key],'6.3g')
+            self.warning('Narrowband Model at f='+ghz+' GHz:')
+            self.warning('L1='+f('first_inductance_h')+'  R1='+f('first_resistance_ohm')+'  L2='+f('second_inductance_h')+' R2='+f('second_resistance_ohm')+' M='+f('mutual_h')+' (k='+f('coupling')+') RG = '+f('ground_resistance_ohm'))
+            return model
+        from .network_metrics import _extract,_resonance
+        model=_extract(ports,frequency)
+        self.warning('Pi Model at f='+ghz+' GHz:  Q = '+','.join(field(value,'4.3f')for value in (model.quality_first,model.quality_second,model.quality_differential)))
+        self.warning('L  ='+field(scaled(model.inductance,1e-9),'6.3g')+' nH\tR  ='+field(model.resistance,'6.3g')
+                     +'\nCs1='+field(scaled(model.capacitance_second,1e-15),'6.3g')+' fF\tRs1='+field(model.resistance_second,'6.3g')
+                     +'\nCs2='+field(scaled(model.capacitance_first,1e-15),'6.3g')+' fF\tRs2='+field(model.resistance_first,'6.3g')
+                     +'\tf_res = '+field(float(_resonance(model)*Real(1e-9)),'5.2f')+'GHz')
+        return model

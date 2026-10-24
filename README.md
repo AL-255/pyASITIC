@@ -347,6 +347,14 @@ plain-process exit outcomes are recorded explicitly. Startup, other branches,
 full cleanup and known arithmetic differences remain unfinished; this is not
 whole-program equivalence or a deployed trailing-via change.
 
+The [node/driver continuation](docs/NODE_HISTORY.md) now retains source node
+work arrays, CAP folding, port outputs, reports and final matrix destruction
+in that same memory. All 134 histories pass the stronger first-driver-return
+audit, including 1,064 pre-free arrays up to 64 KiB and another 28,957,696
+heap words. The earlier native fault is preserved. Plain runs still expose
+later allocator aborts; outer parser cleanup, following commands and exit
+remain unfinished alongside the other fidelity work.
+
 Records use binary64 with selected retained-precision intermediates matching the
 reference's x87 arithmetic. The [native logarithm audit](docs/LOGARITHM_AUDIT.md)
 adds 8,182 instruction cases and 10,327 multiplier cases with complete request

@@ -141,3 +141,10 @@ secondary geometry groups, larger numerical-buffer observations, complete
 command cleanup after node input and the known logarithm/cosine and
 JOIN/UNJOIN arithmetic discrepancies. These are not whole-program parity
 results and do not authorize deployment.
+
+The later [node/driver continuation](NODE_HISTORY.md) extends the exact
+console-input experiment past this document's node-input endpoint. It verifies
+the source node solve's work arrays, port outputs, model reports and matrix
+destruction at first driver return. All older captures and required failure
+conditions remain; outer command/process cleanup and other branches are still
+outside the verified continuation.

@@ -9,7 +9,7 @@ def _subtract(a,b):return complex(float(R(a.real)-R(b.real)),float(R(a.imag)-R(b
 def _negative(a):return complex(float(-R(a.real)),float(-R(a.imag)))
 
 
-def folded(capacitance,inductance):
+def folded(capacitance,inductance,*,storage=None):
     n=len(capacitance)
     cap=[row.copy()for row in capacitance]
     for i in range(n):
@@ -34,10 +34,13 @@ def folded(capacitance,inductance):
         rhs=solve_general(lu,pivots,rhs);first=rhs[0]
         for i in range(n-1):rhs[i]=_subtract(rhs[i],rhs[i+1])
         for i in range(n):rhs[i]=_subtract(rhs[i],bias[i])
-        return first,_negative(matrix_vector(transposed,rhs)[-1])
+        current=matrix_vector(transposed,rhs)
+        if storage is not None:storage.update(drive=drive,bias=bias,rhs=rhs,current=current)
+        return first,_negative(current[-1])
     a,c=run([1+0j]+[0j]*(n-1),[0j]*n)
     b,d=run([0j]*n,[0j]*(n-1)+[1+0j])
     ar,ai,dr,di,cr,ci,br,bi=(R(v)for z in(a,d,c,b)for v in(z.real,z.imag))
     determinant=complex(float((ar*dr-ai*di)-(cr*br-ci*bi)),float((dr*ai+ar*di)-(br*ci+cr*bi)))
     offdiag=_divide(_negative(b),a)
+    if storage is not None:storage.update(lu=lu,pivots=tuple(p+1 for p in pivots))
     return dict(y11=_divide(determinant,a),y12=offdiag,y21=offdiag,y22=_scalar_divide(1.,a)),cap

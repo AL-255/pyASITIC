@@ -37,7 +37,7 @@ def expand_case(fixture,entry):
     return case
 
 
-def main(*,fixture_name='driver_history_original.json.gz',parent_name='cache_storage_original.json.gz',job_factory=None,observer=OBSERVER,command_builder=commands,extra_metadata=None):
+def main(*,fixture_name='driver_history_original.json.gz',parent_name='cache_storage_original.json.gz',job_factory=None,observer=OBSERVER,command_builder=commands,extra_metadata=None,state_fields=('allocator_states',),buffer_fields=()):
     parser=argparse.ArgumentParser(add_help=False);parser.add_argument('--full-output',type=Path)
     options,remaining=parser.parse_known_args();sys.argv=[sys.argv[0],*remaining]
     root=cache.libio.prelude.geometry.arena.lifetime.ROOT;files={};heaps={}
@@ -51,8 +51,11 @@ def main(*,fixture_name='driver_history_original.json.gz',parent_name='cache_sto
         return dict(size=len(data),sha256=hashlib.sha256(data).hexdigest(),pages=keys)
     def project_case(case):
         for record in case['cache_inputs']['files']:record.update(pages(bytes.fromhex(record.pop('data')),files))
-        for state in case['allocator_states']:
-            for region in state['memory_regions']:region.update(pages(bytes.fromhex(region.pop('data')),heaps))
+        for field in state_fields:
+            for state in case[field]:
+                for region in state['memory_regions']:region.update(pages(bytes.fromhex(region.pop('data')),heaps))
+        for field in buffer_fields:
+            for record in case[field]:record.update(pages(bytes.fromhex(record.pop('data')),heaps))
         return case
     cache.libio.prelude.geometry.arena.main(observer=observer,fixture_name=fixture_name,command_builder=command_builder,job_factory=job_factory,case_transform=project_case,
         finalize_metadata=lambda:dict(cache_file_pages=files,driver_heap_pages=heaps),
