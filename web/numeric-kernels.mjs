@@ -27,6 +27,8 @@ export async function installNumericalKernels(python, bytes) {
   const impedanceMatrix = new Float64Array(api.memory.buffer, api.impedance_matrix_buffer(), 2*256*256);
   const conductorResistance = new Float64Array(api.memory.buffer, api.conductor_resistance_buffer(), 20000*12);
   const conductorResistanceOutput = new Float64Array(api.memory.buffer, api.conductor_resistance_result_buffer(), 4);
+  const conductorMetrics = new Float64Array(api.memory.buffer, api.conductor_metrics_buffer(), 2000*16);
+  const conductorMetricsOutput = new Float64Array(api.memory.buffer, api.conductor_metrics_result_buffer(), 9);
   const symmetricConfig = new Float64Array(api.memory.buffer, api.symmetric_config_buffer(), 10);
   const symmetricEvents = new Float64Array(api.memory.buffer, api.symmetric_event_buffer(), 60000*14);
   const polygonConfig = new Float64Array(api.memory.buffer, api.polygon_config_buffer(), 6);
@@ -95,6 +97,19 @@ export async function installNumericalKernels(python, bytes) {
         impedanceWires.set(w.data);impedanceMutual.set(p.data);const status=api.impedance_assemble(n,frequency);
         if(!status)o.data.set(impedanceMatrix.subarray(0,2*n*n));return status;
       } finally {o?.release();p?.release();w?.release();}
+    },
+    conductor_metrics(input,output) {
+      let a,b;
+      try {
+        a=input.getBuffer("f64");b=output.getBuffer("f64");const count=a.data.length/16;
+        if(!Number.isInteger(count)||count<0||count>2000||b.data.length!==9)throw new Error("Conductor metric configuration is invalid");
+        for(let i=0;i<count;i++){
+          if(![0,1].includes(a.data[16*i+9]))throw new Error("Conductor metric segment type is invalid");
+          if(a.data[16*i+9]&&![10,11].every(k=>Number.isInteger(a.data[16*i+k])&&a.data[16*i+k]>=-2147483648&&a.data[16*i+k]<=2147483647))throw new Error("Conductor metric via counts are invalid");
+        }
+        conductorMetrics.set(a.data);const status=api.conductor_metrics(count);
+        if(!status)b.data.set(conductorMetricsOutput);return status;
+      } finally {b?.release();a?.release();}
     },
     conductor_resistance(input,output,operation,frequency) {
       let a,b;

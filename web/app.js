@@ -365,7 +365,7 @@ $("#simulate").addEventListener("click",()=>task(async()=>{
   const result=await request({action:"simulate",...currentDefinition,technology:technologyText,...frequencyInput()});
   $("#result-l").textContent=fmt(result.inductance_nh,6)+" nH";
   $("#result-r").textContent=fmt(result.hf_ohm,6)+" Ω";
-  $("#result-q").textContent=fmt(result.qlf,6);
+  $("#result-q").textContent=result.qlf===null?"Undefined":fmt(result.qlf,6);
   status(`Complete at ${fmt(result.frequency_hz/1e9)} GHz. ${result.warnings.join(" ")}`);
 }));
 $("#sweep").addEventListener("click",()=>task(async()=>{

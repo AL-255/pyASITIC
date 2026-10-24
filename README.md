@@ -37,6 +37,12 @@ Implemented so far:
   Another 2,094 captured original mesh-pair outputs are exact in both backends;
   2,683 separate native instruction cases check the
   elementary-function stores.
+  Whole-coil self/mutual and DC accumulation and the `Q` / `QUALITY` numerator
+  retain the original precision. Across 56 complete original command histories,
+  all 56 printed L, 392 QLF and 392 raw DC stores match in Python and WebAssembly.
+  One compiled call evaluates the whole coil; cached geometry results serve
+  repeated-frequency estimates. The broader audit retains four differing pair
+  stores and seven extended L returns as unresolved internal precision work.
 - `LMAT` filament solver with longitudinal and cross-section meshing,
   impedance assembly, inversion/reduction and via corrections. The web app
   displays L, R, series Q and the complex matrix, with full matrix CSV download.

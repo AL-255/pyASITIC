@@ -14,4 +14,5 @@ int segments_intersect_parametric(const double*,const double*,const double*,cons
 int canonicalize_segment_pair(double*,double*,IntersectionHistory&);
 void planar_segment_mutual(const double*,const double*,double*);
 void spatial_segment_mutual(const double*,const double*,double*);
+int segment_mutual_value(const double*,const double*,double*,int&);
 }

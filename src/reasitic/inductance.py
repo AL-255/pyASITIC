@@ -104,27 +104,8 @@ def _record(s,origin=(0,0)):
 
 def inductance_estimate(shape,technology):
     """Original INDUCTANCE command result in nH (frequency independent)."""
-    if len(shape.segments)>2000:
-        raise ValueError("Inductance estimate is limited to 2000 segments")
-    total = 0
-    count = len(technology.metals)
-    records = []
-    for segment in shape.segments:
-        if segment.metal<count:
-            length = segment.length*SCALE
-            width,thickness = segment.width*SCALE,technology.metals[segment.metal].thickness*SCALE
-            records.append(_record(segment))
-        else:
-            via = technology.vias[segment.metal-count]
-            length = abs(segment.end[2]-segment.start[2])*SCALE
-            width,thickness = SCALE*segment.nx*via.width,SCALE*segment.ny*via.spacing
-        if length>EPS:
-            total += 2*length*(math.log(2*length/(width+thickness))+SELF_CONSTANT+(width+thickness)/(3*length))
-    mutual = 0
-    for i,a in enumerate(records):
-        for b in records[i+1:]:
-            mutual += segment_mutual(a,b,shape.warnings)
-    return total+2*mutual
+    from .conductor_metrics import retained_estimates
+    return float(retained_estimates(shape,technology)[0])
 
 
 def coupling_estimate(first,second,technology):

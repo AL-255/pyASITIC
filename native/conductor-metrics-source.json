@@ -1,0 +1,41 @@
+{
+  "reference_commit": "63885e808b522bdeba3f254d353afc72e643c761",
+  "source_sha256": {
+    "src/analysis_commands.cpp": "8f040114bdcf59ca1f7701cc820625726e4f42519ca60bf1a074927ae4f94cc1",
+    "src/resistance.cpp": "9a5d7d73262ad0c56d08e2e6c3f095621fc8f776f100e39bd945705313b06519",
+    "src/segment.cpp": "4466963692b101b7e027afb4ad2b3a9aa710007e53e66635b4e50fe5d3172e68",
+    "src/canonicalize.cpp": "82d2c2c5b2fb27cd981b9ab9d53ca104deda18c52fcb08e2b499b88d84c6b754",
+    "src/parallel.cpp": "01587c945f8aaedd715f90eee1687b6c5f3961df200efd75765f2746a75f082a",
+    "src/planar.cpp": "b3c02d2af097d7fbc4375ed4c3f8b7c62c649412839d19675ce2d1ee8dd010d6",
+    "src/spatial.cpp": "088996bfacd5896593cbd21b3d5f72864279634a2c7d43eb93effb03044ff898",
+    "src/x87.hpp": "14452aaed86d0ec525a7611e387f3a62c9b5ab514d20de4708b2c52c9c925e9b"
+  },
+  "original_entries": {
+    "inductance": "0x0804ce78",
+    "inductance_static_return": "0x0804d038",
+    "dc": "0x0804eedc",
+    "dc_static_return": "0x0804efa4",
+    "formatted_output": "0x0804ae04",
+    "segment_mutual": "0x08061110"
+  },
+  "record_stride": 16,
+  "record_fields": [
+    "x0",
+    "y0",
+    "z0",
+    "x1",
+    "y1",
+    "z1",
+    "width",
+    "technology_thickness",
+    "sheet_or_via_resistance",
+    "is_via",
+    "via_nx",
+    "via_ny",
+    "via_width",
+    "via_spacing",
+    "primary_width",
+    "primary_thickness"
+  ],
+  "adaptation": "Literal retained conductor self terms, original unit constants and EPS, original binary64 pair stores in retained accumulation, raw DC return and Q/QUALITY operation order. Complete compiled evaluation shares the existing mutual primitive; a bounded geometry/material-key cache serves repeated frequencies. 56 intact-original complete histories require 654 consumed records, all 56 printed L and 392 QLF stores, 392 raw DC returns, and exact self operands/log arguments in both backends; actual estimate/project/plot/CSV flows and subsequent original Pi2 output are checked. Previous runtime differed in 20 L and 213 QLF outputs on these histories. The stricter --intermediates audit deliberately fails on 34 log return words, 28 self accumulation words, four internal pair binary64 stores and seven complete retained L returns. All native records remain; no fitted constants, correction tables or reference outputs in runtime. Current final-store equality does not prove every possible frequency, raw instruction, coupling aggregation, nonfinite payload or whole-simulator equality."
+}

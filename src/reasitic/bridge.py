@@ -17,6 +17,7 @@ from .transformer import solve_transformer
 from .mesh import mesh_information
 from .presets import list_presets,load_preset,identify
 from .command_numbers import frequency_ghz
+from .conductor_metrics import retained_estimates,qlf as extrapolated_q
 
 
 def _frequency(request,prefix='frequency',default=1e9):
@@ -133,10 +134,11 @@ def handle(request,*,progress=None):
         return data
     if action == "simulate":
         frequency = _frequency(request)
-        inductance = inductance_estimate(shape,tech)
-        dc = resistance_dc(shape,tech)
+        retained_l,retained_dc=retained_estimates(shape,tech)
+        inductance,dc=float(retained_l),float(retained_dc)
         hf = resistance_hf(shape,tech,frequency)
-        qlf = 2*math.pi*frequency*inductance*1e-9/dc if dc>0 else None
+        qlf = extrapolated_q(retained_l,retained_dc,frequency)
+        if not math.isfinite(qlf):qlf=None
         return dict(inductance_nh=inductance,dc_ohm=dc,hf_ohm=hf,qlf=qlf,
                     frequency_hz=frequency,method="ASITIC INDUCTANCE / RESIS / RESISHF / QLF estimates",
                     warnings=list(dict.fromkeys(shape.warnings)))
@@ -145,13 +147,16 @@ def handle(request,*,progress=None):
         count = int(request.get("count",31))
         if not all(math.isfinite(v) for v in (first,last)) or not 0<first<last or not 2<=count<=201:
             raise ValueError("Sweep needs 0 < start < stop and 2–201 points")
-        inductance,dc = inductance_estimate(shape,tech),resistance_dc(shape,tech)
+        retained_l,retained_dc=retained_estimates(shape,tech)
+        inductance,dc=float(retained_l),float(retained_dc)
         rows = []
         for i in range(count):
             f = first*(last/first)**(i/(count-1))
+            if 'first_ghz'in request or'last_ghz'in request:f=frequency_ghz(f/1e9)
             hf = resistance_hf(shape,tech,f)
+            qlf=extrapolated_q(retained_l,retained_dc,f)
             rows.append(dict(frequency_hz=f,inductance_nh=inductance,dc_ohm=dc,hf_ohm=hf,
-                             qlf=2*math.pi*f*inductance*1e-9/dc if dc>0 else None))
+                             qlf=qlf if math.isfinite(qlf)else None))
         return dict(rows=rows)
     raise ValueError(f"Unknown action: {action}")
 

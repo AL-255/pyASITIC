@@ -1,0 +1,38 @@
+{
+  "case": "transformer3d_sessions_original/5/0",
+  "segments": 52,
+  "repeats": 5,
+  "samples_ms": {
+    "previous": [
+      41.93014800000006,
+      41.85179599999999,
+      41.53916700000004,
+      37.724422000000146,
+      37.33472400000015
+    ],
+    "current": [
+      11.486869000000066,
+      11.922648000000091,
+      12.043462999999921,
+      11.399398999999866,
+      11.908610000000097
+    ]
+  },
+  "median_ms": {
+    "previous": 41.53916700000004,
+    "current": 11.908610000000097
+  },
+  "speedup": 3.488162514348837,
+  "output_bits": {
+    "previous": "598c3c4f2ae80540",
+    "current": "588c3c4f2ae80540"
+  },
+  "original_output_bits": "588c3c4f2ae80540",
+  "scope": "Uncached conductor geometry evaluation, warm pinned Pyodide numerical plans; prior per-pair Python orchestration versus complete compiled batch.",
+  "baseline_commit": "ced6e871c02b7b71e983c32869a8f10c32a1bd1a",
+  "node_version": "v24.19.0",
+  "pyodide_version": "314.0.7",
+  "original_sha256": "72bcb93444604b89a65cb64e5825bfcff0ac740a816120d0f171855206bd572f",
+  "kernel_sha256": "ad62550d7144f3fc0f6fed794ccf6a8c63bba5e27e5069eee7ecc36e40860a28",
+  "fixture_sha256": "b857f4471130058cee426a7e6a226f0744f4edb3900197ba1bef075bec9740bf"
+}

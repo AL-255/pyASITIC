@@ -379,6 +379,9 @@ int segment(const double* a,const double* b,double* out,int& warning){
 }
 static double inputs[256*18],outputs[256*6];
 }
+namespace asitic {
+int segment_mutual_value(const double* a,const double* b,double* out,int& warning){return segment(a,b,out,warning);}
+}
 extern "C" __attribute__((export_name("mutual_buffer"))) unsigned mutual_buffer(){return reinterpret_cast<unsigned>(inputs);}
 extern "C" __attribute__((export_name("mutual_result_buffer"))) unsigned mutual_result_buffer(){return reinterpret_cast<unsigned>(outputs);}
 extern "C" __attribute__((export_name("mutual_probe"))) int mutual_probe(int n){

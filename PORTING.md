@@ -12,7 +12,7 @@ Reference checkout: `~/github/asitic-re`, revision recorded in each fixture.
 | `mesh.py`, `web/app.js` | Native longitudinal subdivision and filament counts from `geometry.cpp`, `filament_setup.cpp` | Exact production-count reuse, Pi4 pad and explicit CALCTRANS winding mesh conventions; actual DOM reproduces 360-filament rejection, fits to 60 and successfully solves Pi2; presets, invalidation and project persistence |
 | `technology.py` | `technology_text.cpp`, `technology_records.cpp` | Original coordinate-height words from 41 actual CLI sessions across CMOS/BiCMOS/GF180; retained cumulative depths, separate nominal bottom distance and two-store geometry heights; broader reader commands remain to validate |
 | `resistance.py` | `resistance.cpp` | Original DC reports for nine families; twelve live C++ cases at five frequencies (1 MHz–100 GHz) |
-| `inductance.py` | `analysis_commands.cpp`, `segment.cpp`, `canonicalize.cpp`, `intersection.cpp`, `parallel.cpp`, `separation.cpp`, `planar.cpp`, `spatial.cpp` | Twelve live C++ INDUCTANCE command reports, including symmetric, nonparallel, stacked and via geometry |
+| `inductance.py`, `conductor_metrics.py`, `native/conductor_metrics.cpp` | `analysis_commands.cpp`, `resistance.cpp`, `segment.cpp`, shared mutual sources; original `0x0804ce78` / DC `0x0804eedc` | 56 intact-original INDUCTANCE/Q histories, 654 exact consumed records, 56 L / 392 QLF binary64 stores and 392 raw DC returns; all self operands/log arguments exact, complete compiled batch and actual estimate/plot/CSV handlers. Four pair binary64 stores and seven raw L returns remain unresolved under the separate strict intermediate audit |
 | `solver.py` | `geometry.cpp`, `filament_setup.cpp`, `filaments.cpp`, `impedance.cpp`, `vias.cpp`, `solver.cpp` | 36 complete C++ LMAT matrices: coarse 1 GHz, refined 2 GHz, and unequal inductive/capacitive length cells; within 1e-8 Ω per component in CPython and WebAssembly |
 | `impedance.py`, `native/impedance.cpp` | `impedance.cpp`, `geometry.cpp` | 23 actual original complete upper matrices / 4,648 exact components, 2,094 original mesh-pair outputs, immutable input and symmetric reconstruction checks; actual original longitudinal clone fields including refined polygons |
 | `polygon.py`, `native/polygon.cpp` | `spiral_construction.cpp`, `shape_construction.cpp` | 42 actual original creator calls / 12,288 raw XY stores exact in portable Python and compiled WebAssembly; fractional turns, 3–32 sides, positive/negative rotations and production inputs |
@@ -1212,3 +1212,73 @@ is established and its required state can be represented faithfully. The 86
 retained keyword-clearance intermediate differences documented above remain;
 this interactive port neither removes those records nor relaxes their audit.
 Source correspondence is in `native/symmetric-interactive-source.json`.
+
+
+### Whole-coil conductor estimates and Q/QUALITY stores
+
+`conductor_metrics.py` and `native/conductor_metrics.cpp` now retain the original
+INDUCTANCE self and mutual accumulators. Metal length uses retained
+`sqrt((dx²+dy²)+dz²)` before the unit conversion. Via length uses the absolute Z
+difference, and its width/thickness terms multiply the original integer counts
+by the via width/spacing. The self logarithm, its constant, the `3*length`
+denominator and doubled length remain live through each addition. Mutual values
+are binary64 results from the shared pair kernel, added in native linked-list
+order without spilling the complete sum. Only the final public L is converted
+to binary64.
+
+The same pass preserves the raw DC return, including its different
+`(dz²+dy²)+dx²` norm order and signed 32-bit via-count product. The Q / QUALITY
+command's low-frequency extrapolation uses the original binary64
+`0x1.afc6f70213be5p-28` constant, retained multiplication by parsed frequency and
+the retained L return, then division by raw DC. It no longer derives QLF from
+already-rounded public L/DC or reassociates the frequency/unit factors. Native
+GHz API sweep samples use the shared frequency parser at each computed sample;
+typed SI sweeps keep their distinct full-precision frequency boundary.
+
+The compiled batch evaluates the complete self, pair and DC loops in one call,
+with 2,000 input records and separate scratch geometry. The existing mutual
+primitive is shared rather than copied. A bounded eight-entry cache keys every
+consumed geometry/material word, including signed zero, primary ribbon widths
+and thicknesses, via dimensions and counts; it contains computed values only.
+Changing frequency reuses geometry without changing the original Q arithmetic.
+Caller buffers remain immutable, and invalid sizes/type/counts fail before an
+output copy. Input acquisition warnings remain attached to each shape.
+
+Fifty-six intact-original command histories cover 654 consumed segments from
+all single-winding families, GF180, full-precision symmetric prompts, capacitor
+plates and both windings of six 3D histories. Static data-only entry, instruction
+and return breakpoints record all self operands, log arguments/returns, pair
+stores and accumulators, 448 complete L returns, 392 DC returns and the actual
+sprintf binary64 arguments from INDUCTANCE and seven Q commands. Inputs,
+numerical code, allocation and runtime imports remain untouched. Unwritten via
+primary fields are excluded because these commands never consume them. All
+defined data are stored as raw words, including nonfinite classifications.
+
+Both backends require every consumed record, all 56 printed L, all 392 QLF and
+all 392 raw DC returns exactly. Self lengths/widths/thicknesses and retained log
+arguments also match exactly. Actual DOM handlers check estimate displays for
+all 56 projects, an original 1/10/100 GHz QLF plot and CSV, unchanged geometry,
+and an exact complete Pi2 solve afterward. The prior `ced6e87` runtime differs
+on 20 L and 213 QLF output stores in this matrix; reproduce that comparison with
+`tools/audit_conductor_metrics_original.py --baseline`.
+
+Intermediate parity remains incomplete. The stricter `--intermediates` audit
+deliberately fails on 34 retained log returns, 28 self-accumulator words, four
+binary64 mutual-pair stores and seven complete extended L returns. The pair
+differences are polygon case 22/pair 772 and 3D cases 46/79, 52/370 and 54/805
+in `conductor_metrics_original.json`. All original records and exact mismatches
+remain inspectable; no tolerances, fitted corrections or reference results are
+used in runtime. They do not change the captured final command stores, but this
+does not establish every possible frequency or external output. Coupling's
+translation/history and aggregate stores, GUI area/length statistics, arbitrary
+nonfinite payloads and whole-simulator equality still need separate audits.
+Source correspondence is in `native/conductor-metrics-source.json`.
+
+The pinned local Pyodide measurement in
+`docs/benchmarks/2026-10-24-conductor-metrics.json` compares uncached evaluation
+of one 52-segment 3D winding, after shared numerical-plan warmup. Five runs have
+median 41.54 ms for the prior per-pair Python orchestration and 11.91 ms for the
+complete compiled batch (3.49×). The new result also matches that original L
+store; the prior result differs by one binary64 word step. Reproduce it with
+`tools/benchmark_conductor_metrics.mjs`. This measures conductor estimation in
+that interpreter; complete Pi-family solvers have their separate timing records.
