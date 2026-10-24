@@ -10,6 +10,9 @@ at that later boundary.
 The subsequent [contact-storage comparison](CONTACT_STORAGE.md) now generates
 the initialized group/contact bytes at those predicted addresses and their
 later matrix numbering stores, checking all 130 histories at both stages.
+The [cache-store comparison](CACHE_STORES.md) also generates the control/link/key
+bytes across that history and can hand the same bytes to the cache reader
+without a reset at the later boundaries.
 
 This remains development work. Allocator state **before contact preparation**,
 preexisting geometry/cache-table objects and otherwise unknown heap bytes at
@@ -105,8 +108,8 @@ full byte-backed arena metadata and repeated complete-command cleanup still
 need integration before production can use the path. Other known numerical
 instruction and JOIN/UNJOIN discrepancies also remain open.
 
-A separate mandatory `prelude` WASM suite runs the four provenance/history
-tests and the full regenerated-matrix comparison. Every older storage, shared,
+A separate mandatory `prelude` WASM suite runs the original four provenance/history
+tests, the contact-storage/cache-store tests and the full regenerated-matrix comparison. Every older storage, shared,
 inductive, heap/mapping and JOIN/UNJOIN gate remains required.
 
 ```sh

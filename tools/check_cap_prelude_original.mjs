@@ -11,8 +11,8 @@ for(const name of ['cap_prelude_original.json.gz','cap_prelude_shared_original.j
  for(const parent of Object.keys(fixture.parents))names.add(parent);
 }
 for(const name of names)py.FS.writeFile('/prelude/tests/fixtures/'+name,readFileSync(new URL('../tests/fixtures/'+name,import.meta.url)));
-for(const name of['capture_allocator_original','capture_mapping_allocator_original','capture_shared_memory_original','capture_cap_prelude_original','capture_cap_prelude_shared_original','capture_cap_prelude_modes_original','capture_contact_storage_original','capture_trailing_via_heap_original','capture_original_symmetric','audit_cap_prelude_original','audit_cap_prelude_shared_original','audit_contact_storage_original','audit_shared_heap_original','audit_allocator_original'])py.FS.writeFile('/prelude/tools/'+name+'.py',readFileSync(new URL('../tools/'+name+'.py',import.meta.url)));
-for(const name of['test_cap_prelude_original','test_contact_storage_original'])py.FS.writeFile('/prelude/tests/'+name+'.py',readFileSync(new URL('../tests/'+name+'.py',import.meta.url)));
+for(const name of['capture_allocator_original','capture_mapping_allocator_original','capture_shared_memory_original','capture_cap_prelude_original','capture_cap_prelude_shared_original','capture_cap_prelude_modes_original','capture_contact_storage_original','capture_trailing_via_heap_original','capture_original_symmetric','audit_cap_prelude_original','audit_cap_prelude_shared_original','audit_contact_storage_original','audit_cache_stores_original','audit_shared_heap_original','audit_allocator_original'])py.FS.writeFile('/prelude/tools/'+name+'.py',readFileSync(new URL('../tools/'+name+'.py',import.meta.url)));
+for(const name of['test_cap_prelude_original','test_contact_storage_original','test_cache_stores_original'])py.FS.writeFile('/prelude/tests/'+name+'.py',readFileSync(new URL('../tests/'+name+'.py',import.meta.url)));
 py.runPython(`
 import sys,unittest
 sys.path[:0]=['/prelude/tests','/prelude/tools']
@@ -20,7 +20,8 @@ from reasitic.filament import _compiled_filaments
 assert _compiled_filaments is not None
 from test_cap_prelude_original import CapPreludeTests
 from test_contact_storage_original import ContactStorageTests
-assert unittest.TextTestRunner(verbosity=2).run(unittest.TestSuite(unittest.defaultTestLoader.loadTestsFromTestCase(cls)for cls in (CapPreludeTests,ContactStorageTests))).wasSuccessful()
+from test_cache_stores_original import CacheStoreTests
+assert unittest.TextTestRunner(verbosity=2).run(unittest.TestSuite(unittest.defaultTestLoader.loadTestsFromTestCase(cls)for cls in (CapPreludeTests,ContactStorageTests,CacheStoreTests))).wasSuccessful()
 `);
 const contactStatus=py.runPython(`
 sys.argv=['audit_contact_storage_original','--output','/prelude/contact-storage-audit.json']

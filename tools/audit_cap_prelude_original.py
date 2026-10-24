@@ -24,13 +24,13 @@ def dimensions(case):
     return [len(group)for group in groups],len(technology.metals),len(technology.substrate),nx
 
 
-def compare(case,*,return_state=False):
+def compare(case,*,return_state=False,heap=None):
     states=case['allocator_states'];initial=states[0];final=next(s for s in states if s['label']=='scope')
     assert initial['label']=='contacts_entry';counts,metals,substrates,nx=dimensions(case);abi=initial['io_abi']
     file_bytes=abi['file_plus']+abi['lock']+abi['wide_data']
     block=abi['filesystem_block_size'];buffer_bytes=min(abi['buffer_default'],block)if block>0 else abi['buffer_default']
     plan=capacitance_prelude_storage(counts,metals,substrates,nx,cache_mode=case.get('prelude_cache_mode',case['cache_mode']),file_bytes=file_bytes,buffer_bytes=buffer_bytes)
-    observed=case['prefix_events'];heap=Heap(initial);addresses={};live=set();differences=[]
+    observed=case['prefix_events'];heap=Heap(initial)if heap is None else heap;addresses={};live=set();differences=[]
     if len(plan)!=len(observed):differences.append(dict(kind='event-count',actual=len(plan),original=len(observed)))
     allocations=0
     for index,(expected,event)in enumerate(zip(plan,observed)):
