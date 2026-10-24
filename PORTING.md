@@ -779,3 +779,43 @@ post-publish failure and API failures have explicit regression checks. The
 metadata API permission is read-only; all existing numerical/creator gates
 still precede publication. See GitHub's [deployment status API](https://docs.github.com/en/rest/deployments/statuses#list-deployment-statuses)
 and [commit comparison API](https://docs.github.com/en/rest/commits/commits#compare-two-commits).
+
+
+WIRE keyword input now follows type-7 length/width/origin conversion and default
+snapping, type-10 angle stores and the integer phase rule (`0` becomes `+1`).
+Missing keyword origin Y takes the parsed conductor width, whereas typed calls
+retain origin zero. Interactive WIRE uses unsnapped binary64 inputs and the
+actual native primitive-orientation behavior: a prompt value of 37 is stored
+as 37 radians rather than converted from degrees. The explicit
+`native_interactive=True` mode preserves that behavior without changing ordinary
+typed degree inputs. Modes are mutually exclusive, with original interactive
+phase/chip bounds. New webpage WIRE definitions and shared analysis ground/pad
+strips opt into keyword parsing. Project loading restores wire defaults and
+phase direction, preserves both modes through simulation/GDS/project downloads,
+and explains the interactive angle interpretation before regeneration.
+
+All 101 unchanged-original wire captures require every XYZ/origin bit and
+scalar/primary width, thickness and metal stores; uninitialized conductor mesh
+counts remain excluded. Cases include thin widths, both current directions,
+negative/positive angles, the rotation threshold, omitted origin/metal defaults,
+integer phase coercion and full-binary64 interactive dimensions/angles. Independent
+gdstk readback and a separate browser-stream decoder check every exported ribbon
+on the 1 nm grid. Six whole Pi2/2PORT SLOW sessions require all finite Y/model/S
+bits and resonance classifications, including eddy and both input modes.
+
+Two additional unchanged-original sessions have all-NaN port matrices and are
+retained in full. The coarse-grid case's captured native contact is
+`[14,34,15,15,4]`, with zero Y span. The finer-grid case has nonzero contact area
+but still produces a native NaN model; Python reproduces its raw matrix/model
+classes and all defined metric stores. Both cases retain direct native stdout
+and independently observed physical/grid contact bounds. A raw metric replay
+requires the original finite downstream stores even for the NaN matrices.
+The webpage now gives an explicit nonfinite-admittance error instead of a generic
+JSON serialization failure; direct Python numerical returns are unchanged.
+No failing finite native history was removed or assigned a tolerance.
+
+Both WIRE input gaps in the resistance audit are closed. All original 270 finite
+retained resistance returns and two native NaNs remain unchanged; public requests
+now match the exact resistance-consumed inputs in 33 of the 34 histories. The symmetric-polygon input
+geometry gap remains explicit. Whole-simulator equivalence and other creator
+input boundaries still require work.

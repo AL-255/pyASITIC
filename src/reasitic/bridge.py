@@ -41,8 +41,11 @@ def _shape(request,tech):
 def _shapes(request,tech):
     kind=request.get('kind','square').lower();parameters=dict(request.get('parameters',{}))
     if request.get('native_keyword',False):
-        if kind not in('ring','square','polygon'):raise ValueError('Native keyword input mode currently supports ring, square and polygon geometry')
+        if kind not in('ring','square','polygon','wire'):raise ValueError('Native keyword input mode currently supports ring, square, polygon and wire geometry')
         parameters['native_keyword']=True
+    if request.get('native_interactive',False):
+        if kind!='wire':raise ValueError('Native interactive input mode currently supports wire geometry')
+        parameters['native_interactive']=True
     return build_device(kind,technology=tech,**parameters)
 
 
@@ -152,6 +155,9 @@ def handle(request,*,progress=None):
 
 def request_json(payload,progress=None):
     try:
-        return json.dumps(dict(result=handle(json.loads(payload),progress=progress)),allow_nan=False)
+        result=handle(json.loads(payload),progress=progress)
+        if 'admittance_matrix'in result and any(not math.isfinite(v)for row in result['admittance_matrix']for z in row for v in z):
+            raise ValueError('Distributed model returned nonfinite admittance; review the contact grid and conductor geometry')
+        return json.dumps(dict(result=result),allow_nan=False)
     except (ValueError,KeyError,TypeError,OverflowError,ZeroDivisionError) as error:
         return json.dumps(dict(error=str(error)))

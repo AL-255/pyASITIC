@@ -37,6 +37,10 @@ for c in json.loads(resistance_fixture)['cases']:
    try:resistance_hf(shape,tech,frequency)
    except ValueError as error:assert 'width ≥ metal thickness'in str(error)
    else:raise AssertionError('Native undefined HF resistance accepted')
+   if exact_inputs:
+    try:resistance_hf(public,tech,frequency)
+    except ValueError as error:assert 'width ≥ metal thickness'in str(error)
+    else:raise AssertionError('Native undefined public HF resistance accepted')
    undefined+=1
   else:
    assert struct.pack('<IIH',*(int(v)for v in output[1:])).hex()==e['extended_bits'],(c['label'],e)
@@ -48,8 +52,8 @@ for c in json.loads(resistance_fixture)['cases']:
     assert struct.pack('<d',actual)==struct.pack('<d',expected)
    finite+=1
  assert data.tobytes()==saved
-assert(finite,undefined,matched)==(270,2,31)
-assert pending==['analysis/1','analysis/11','wire/M5/0.1']
+assert(finite,undefined,matched)==(270,2,33)
+assert pending==['analysis/11']
 output=array('d',[3.,4.,5.,6.]);assert _compiled(array('d'),output,0,0.)==0 and list(output)==[0.,0.,0.,0.]
 valid=array('d',[0.,0.,0.,40.,0.,0.,5.,.5,.065,0.,0.,0.]);saved=valid.tobytes()
 for data,out,operation,frequency in((valid,array('d',[19.]*3),0,0.),(valid,array('d',[19.]*4),2,0.),(valid,array('d',[19.]*4),1,-1.),(valid,array('d',[19.]*4),1,math.nan),(array('d',[0.]*(12*20001)),array('d',[19.]*4),0,0.)):
@@ -61,7 +65,7 @@ for data,out,operation,frequency in((valid,array('d',[19.]*3),0,0.),(valid,array
 assert valid.tobytes()==saved
 assert _compiled(valid,array('d',[0.]*4),1,1e9)==0
 `);
-console.log("34 original histories / all 270 finite raw x87 resistance returns and two bounded native NaNs match in WebAssembly. All 31 matching public creator histories pass; three pre-existing creator input gaps remain explicit. Batch bounds, empty input, failure recovery and caller buffers pass.");
+console.log("34 original histories / all 270 finite raw x87 resistance returns and two bounded native NaNs match in WebAssembly. All 33 matching public creator histories pass; the symmetric-polygon creator input gap remains explicit. Batch bounds, empty input, failure recovery and caller buffers pass.");
 const call=py.globals.get("request_json"),{JSDOM}=await import(pathToFileURL(process.argv[3]).href),dom=new JSDOM(readFileSync(new URL("../dist/index.html",import.meta.url),"utf8"),{url:"https://example.test/",runScripts:"outside-only"}),w=dom.window,downloads=[],requests=[],responses=[];
 Object.assign(w,{circuitSVG,sweepSVG,transformerSVG,Blob});w.URL.createObjectURL=blob=>{downloads.push(blob);return"blob:test";};w.URL.revokeObjectURL=()=>{};w.HTMLAnchorElement.prototype.click=()=>{};
 w.Worker=class{constructor(){queueMicrotask(()=>this.onmessage({data:{ready:true}}));}postMessage({id,request}){requests.push(request);queueMicrotask(()=>{const result=JSON.parse(call(JSON.stringify(request)));responses.push({request,...result});this.onmessage({data:{id,...result}});});}};

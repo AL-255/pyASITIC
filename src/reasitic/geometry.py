@@ -129,6 +129,13 @@ def _square(shape, tech, metal, exit_metal, dx, dy, width, spacing, turns, angle
             s.reverse()
 
 
+def _wire(shape,tech,metal,length,width,angle,phase):
+    shape.segments.append(_segment(tech,metal,width,(0,width/2),(length,width/2),
+                                   (0,0),(length,0),(0,width),(length,width)))
+    shape.rotate(angle)
+    if phase<0:shape.segments[0].reverse()
+
+
 def _polygon(shape, tech, metal, radius, sides, width, spacing, turns, angle):
     from .polygon import vertices
     for row in vertices(radius,sides,width,spacing,turns,angle):
@@ -141,31 +148,38 @@ def _ring(shape, tech, metal, radius, sides, width, gap, angle):
         shape.segments.append(_segment(tech,metal,width,row[0:2],row[2:4],row[4:6],row[6:8],row[8:10],row[10:12]))
 
 
-def build(kind="square", *, technology=None, native_keyword=False, **parameters):
+def build(kind="square", *, technology=None, native_keyword=False, native_interactive=False, **parameters):
     """Build a shape using micrometre dimensions and degree orientation/gap.
 
     `length` / `height` are outer square dimensions; `radius` is the native
     polygon vertex radius. Fractional turns are truncated to 1/sides, as ASITIC
     does. Origin is a separate translation and is never folded into segments.
-    For rings, squares and polygon spirals, native_keyword=True applies the
+    For rings, squares, polygon spirals and wires, native_keyword=True applies the
     original parser's default 0.1 um snap grid and binary32 angle stores. Typed
-    calls retain binary64 dimensions and ordinary degree inputs.
+    calls retain binary64 dimensions and ordinary degree inputs. For WIRE,
+    native_interactive=True preserves the original interactive raw-radian
+    orientation quirk and unsnapped binary64 dimensions.
     """
     tech = technology or Technology.default()
     kind = kind.lower()
     if kind not in KINDS:
         raise ValueError(f"Unsupported generator: {kind}")
     p = dict(parameters)
+    if native_keyword and native_interactive:raise ValueError('Choose one native input mode')
+    if native_interactive and kind!='wire':raise ValueError('Native interactive input mode currently supports wire geometry')
     if native_keyword:
-        if kind not in('ring','square','polygon'):raise ValueError('Native keyword input mode currently supports ring, square and polygon geometry')
+        if kind not in('ring','square','polygon','wire'):raise ValueError('Native keyword input mode currently supports ring, square, polygon and wire geometry')
         from .command_numbers import length_um,binary32
-        if kind=='square':
+        if kind=='wire':
+            fields=(('length',100),('width',5),('x',0))
+        elif kind=='square':
             fields=(('length',100),('height',p.get('length',100)),('width',5),('spacing',2),('x',0),('y',0))
         else:
             fields=(('radius',50),('width',5),('x',0),('y',0))
             if kind=='polygon':fields+=(('spacing',2),)
         for key,default in fields:
             p[key]=length_um(p.get(key,default),grid_size=.1)
+        if kind=='wire':p['y']=length_um(p['y'],grid_size=.1)if'y'in p else p['width']
         if kind in('square','polygon'):
             p['turns']=binary32(float(p.get('turns',2)))
         if kind=='square':p.setdefault('exit_metal',len(tech.metals)-2)
@@ -186,17 +200,28 @@ def build(kind="square", *, technology=None, native_keyword=False, **parameters)
         raise ValueError("Sides must be an integer from 3 to 1024")
     angle = num("angle",0)
     if abs(angle) > 360:
-        raise ValueError("Orientation must be between −360 and 360 degrees")
+        raise ValueError("Orientation must be between −360 and 360 "+("native radians"if native_interactive else"degrees"))
+    if kind=='wire'and(native_keyword or native_interactive)and min(length,width)<1e-10:
+        raise ValueError('Wire dimensions too small after native input conversion')
     if width <= 0 or min(length,height,radius) <= 0 or spacing < 0:
         raise ValueError("Dimensions must be positive and spacing nonnegative")
     if max(width,length,height,radius) > 1e6:
         raise ValueError("Dimensions must not exceed 1,000,000 µm")
     phase = num("phase",1)
+    if kind=='wire'and(native_keyword or native_interactive):
+        if not -(1<<31)<=phase<(1<<31):raise ValueError('Phase exceeds the native integer range')
+        phase=int(phase)
+        if native_keyword:phase=phase or 1
+        if native_interactive and phase not in(-1,1):raise ValueError('Interactive WIRE phase must be +1 or -1')
+        p['phase']=phase
+    if native_interactive:
+        if max(length,width)>min(float(tech.chip.get('chipx',512)),float(tech.chip.get('chipy',512))):raise ValueError('Interactive WIRE dimensions exceed chip size')
+        if not 0<=num('x',0)<=float(tech.chip.get('chipx',512))or not 0<=num('y',0)<=float(tech.chip.get('chipy',512)):raise ValueError('Interactive WIRE origin falls outside chip boundary')
     metal = tech.metal_index(p.get("metal", len(tech.metals)-1))
     exit_value = p.get("exit_metal", -1)
     exit_metal = -1 if str(exit_value) in ("-1","none","") else tech.metal_index(exit_value)
     shape = Shape(name,kind,[num("x",0),num("y",0)],p)
-    radians = math.radians(angle)
+    radians = angle if native_interactive else math.radians(angle)
     if native_keyword:
         from .command_numbers import angle_radians
         radians=angle_radians(angle)
@@ -290,9 +315,7 @@ def build(kind="square", *, technology=None, native_keyword=False, **parameters)
                     if alternate:
                         axis = 1-axis
     elif kind in ("wire","capacitor"):
-        shape.segments.append(_segment(tech,metal,width,(0,width/2),(length,width/2),
-                                       (0,0),(length,0),(0,width),(length,width)))
-        shape.rotate(radians)
+        _wire(shape,tech,metal,length,width,radians,phase if kind=='wire'else 1)
         if kind == "capacitor":
             bottom = tech.metal_index(p.get("bottom_metal",max(0,metal-1)))
             if bottom == metal:
@@ -303,8 +326,6 @@ def build(kind="square", *, technology=None, native_keyword=False, **parameters)
             for point in second.points:
                 point[2] = m.geometry_height
             shape.segments.append(second)
-        elif phase < 0:
-            shape.segments[0].reverse()
     elif kind == "ring":
         gap = num("gap",20)
         if not 0 <= abs(gap) <= 360:

@@ -55,11 +55,17 @@ quit
 def jobs(technology):
     for parent in PARENTS:
         for i,c in enumerate(json.loads((ROOT/f'tests/fixtures/{parent}.json').read_text())['cases']):
-            request=c.get('request',c);kind=request['kind'];p=request['parameters']
+            request=c.get('request',c);kind=request['kind'];p=dict(request['parameters'])
             stop='BSAVE'if parent=='analysis'else'PI2'if parent.endswith('sessions_original')else'PI2'
             script=c['script'].split(stop,1)[0]
             if parent=='gf180_network':script=c['script'].split('PI2',1)[0]
-            native=kind in('square','ring','polygon')and parent=='analysis'
+            native=(kind in('square','ring','polygon','wire')and parent=='analysis')or(kind=='wire'and parent=='gf180_network')
+            if parent=='analysis':
+                p.setdefault('name','A')
+                if kind=='wire':
+                    fields=dict(part.split('=',1)for part in next(line for line in script.splitlines()if line.startswith('WIRE ')).split(' ',1)[1].split(':'))
+                    for source,key in(('XORG','x'),('YORG','y')):
+                        if source in fields:p.setdefault(key,float(fields[source]))
             if parent=='analysis'and kind=='square':
                 # The typed parent fixture omitted explicit EXIT=-1 because
                 # it was formerly that API's default. Keyword mode has a
@@ -69,10 +75,8 @@ def jobs(technology):
             yield dict(label=f'{parent}/{i}',technology=request.get('technology',technology),creation=script,stdin=c.get('stdin','quit\n'),public=public)
     for i,width in enumerate((.5,1,2.5,20,100,.1)):
         metal='M'+str(i+1 if i<5 else 5);p=dict(name='A',length=80,width=width,metal=metal,x=10,y=20)
-        # W=0.1 is retained as the actual snapped command value; the public
-        # typed build differs until WIRE keyword input mode is separately ported.
         script=f'WIRE NAME=A:LEN=80:WID={width:.17g}:METAL={metal}:XORG=10:YORG=20\n'
-        yield dict(label=f'wire/{metal}/{width}',technology=technology,creation=script,stdin='quit\n',public=dict(kind='wire',parameters=p,technology=technology))
+        yield dict(label=f'wire/{metal}/{width}',technology=technology,creation=script,stdin='quit\n',public=dict(kind='wire',parameters=p,technology=technology,native_keyword=True))
 
 
 def main():

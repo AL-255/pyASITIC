@@ -67,7 +67,7 @@ function definition() {
   const values = Object.fromEntries(new FormData(form));
   const kind = values.kind; delete values.kind;
   for (const key of Object.keys(values)) if (!["name", "metal", "exit_metal", "bottom_metal", "via"].includes(key)) values[key] = Number(values[key]);
-  return {kind,parameters:values,winding:0,...(["ring","square","polygon"].includes(kind)?{native_keyword:true}:{})};
+  return {kind,parameters:values,winding:0,...(["ring","square","polygon","wire"].includes(kind)?{native_keyword:true}:{})};
 }
 function restoreFormParameter(key,value){
   const input=form.elements.namedItem(key);if(!input)return;
@@ -106,9 +106,10 @@ $("#mesh-fit").addEventListener("click",()=>task(async()=>{
   const plan=await request({...meshPayload(),fit:true});applyMesh(plan.mesh);resetResults();renderMeshInfo(plan);
   status(plan.changed?"Conductor cell sizes increased to fit the filament limit. Run the simulation with this mesh.":"This mesh already fits. Run the simulation with the displayed cell sizes.");
 }));
-function showFields() {
+function showFields(loaded=currentDefinition) {
   const kind = $("#kind").value;
-  $("#ring-input-note").hidden=!["ring","square","polygon"].includes(kind);
+  $("#ring-input-note").hidden=!["ring","square","polygon","wire"].includes(kind);
+  $("#ring-input-note").textContent=kind==="wire"&&loaded?.native_interactive?"Loaded interactive WIRE angles are stored as radians. Generate layout uses degrees and the ASITIC 0.1 µm grid.":"Square, polygon, ring and wire dimensions and origins snap to the ASITIC 0.1 µm grid.";
   $("#secondary-metal").parentElement.firstChild.nodeValue=kind==="transformer3d"?"Secondary winding metal":"Crossover metal";
   for (const label of form.querySelectorAll("[data-kinds]")) {
     const visible = label.dataset.kinds.split(" ").includes(kind);
@@ -180,7 +181,7 @@ function resetResults() {
 async function generate() {
   const next = definition();
   const shape = await request({action:"build",...next,technology:technologyText});
-  current=shape; currentDefinition=next;
+  current=shape; currentDefinition=next;showFields();
   render(shape); resetResults(); status("Layout ready. Run a Pi model or frequency sweep.");
 }
 function fillTechnology(data) {
@@ -274,7 +275,7 @@ function updateModelControls(clear=true){
   if(clear)resetModel();controls();
 }
 function stripDefinition(prefix,suffix){
-  return {kind:"wire",parameters:{name:current.name.slice(0,55)+suffix,metal:$("#"+prefix+"-metal").value,
+  return {kind:"wire",native_keyword:true,parameters:{name:current.name.slice(0,55)+suffix,metal:$("#"+prefix+"-metal").value,
     length:numeric("#"+prefix+"-length"),width:numeric("#"+prefix+"-width"),x:numeric("#"+prefix+"-x"),y:numeric("#"+prefix+"-y")}};
 }
 function modelPayload(model,frequency,ghz=frequency/1e9){
@@ -599,8 +600,9 @@ $("#project-file").addEventListener("change",event=>task(async()=>{
   // Verify geometry before replacing the current project.
   const restored=await request({action:"build",...data.shape,technology:text});
   technologyText=text;fillTechnology(init);
-  $("#kind").value=data.shape.kind;showFields();
-  for(const [key,value] of Object.entries(data.shape.parameters))restoreFormParameter(key,value);
+  $("#kind").value=data.shape.kind;showFields(data.shape);
+  const restoredParameters=data.shape.kind==="wire"?{name:restored.name,length:100,width:5,metal:technology.metals.length-1,angle:0,phase:1,x:0,y:restored.parameters.y??0,...data.shape.parameters}:data.shape.parameters;
+  for(const [key,value] of Object.entries(restoredParameters))restoreFormParameter(key,key==="phase"&&data.shape.kind==="wire"?((restored.parameters.phase??value)<0?-1:1):value);
   if(restoredMesh)applyMesh(restoredMesh);
   currentDefinition=data.shape;current=restored;render(current);resetResults();status("Project restored. Run analysis on the selected winding.");
   event.target.value="";

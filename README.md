@@ -127,6 +127,13 @@ Implemented so far:
   Python and WebAssembly, including fractional turn boundaries and eddy.
   Longitudinal meshing preserves the original copy branch and independently
   normalized ribbon edges.
+- WIRE keyword input now preserves native dimension/origin snapping, angle
+  conversion, default origin Y and integer phase handling. All 101 original
+  creators / 1,818 XYZ stores match in both runtimes; independent GDS readers
+  confirm the exported ribbons.
+  Six complete finite-port Pi2 histories match original model/S/resonance
+  stores. Two original NaN histories retain their contact evidence and defined
+  downstream values, with explicit browser diagnostics.
 - Browser preview, pan/zoom, process-file import, project save/open, conductor
   estimates, selectable L/R/Q frequency plots, linear/log frequency scales,
   progressive Pi2/Pi3/Pi4 sweeps, sample-to-circuit inspection, plot SVG and CSV
@@ -199,6 +206,14 @@ The publication guard rejects builds older than the version already published;
 active validation is retained when another commit is pushed.
 
 Python API:
+
+WIRE uses ordinary degrees and unsnapped binary64 dimensions by default.
+`build("wire", native_keyword=True, ...)` applies the original command parser,
+including its 0.1 µm grid. `native_interactive=True` instead preserves the original
+interactive WIRE quirk: its orientation prompt stores the supplied value directly
+as radians, despite labeling it as degrees. The two modes are mutually exclusive.
+New webpage wires and ground/pad strips use keyword mode. Saved projects retain
+their mode until regenerated; loaded interactive projects show the angle notice.
 
 Square and ring creation preserve the original retained coordinate arithmetic,
 including origin stores and translation after square rotation. Exact gates

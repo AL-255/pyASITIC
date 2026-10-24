@@ -62,12 +62,16 @@ class OriginalResistanceTests(unittest.TestCase):
                 pending.append(c['label']);continue
             matched+=1
             for e in c['events']:
-                result=resistance_dc(shape,tech)if e['operation']=='dc'else resistance_hf(shape,tech,e['frequency_hz'])
-                self.assertEqual(struct.pack('<d',result),struct.pack('<d',unpack(e['extended_bits'])),c['label'])
+                expected_value=unpack(e['extended_bits'])
+                if math.isnan(expected_value):
+                    with self.assertRaisesRegex(ValueError,'width ≥ metal thickness'):resistance_hf(shape,tech,e['frequency_hz'])
+                else:
+                    result=resistance_dc(shape,tech)if e['operation']=='dc'else resistance_hf(shape,tech,e['frequency_hz'])
+                    self.assertEqual(struct.pack('<d',result),struct.pack('<d',expected_value),c['label'])
         # These existing creator gaps remain explicit; every one of their
         # actual original resistance input/return records is required above.
-        self.assertEqual(pending,['analysis/1','analysis/11','wire/M5/0.1'])
-        self.assertEqual(matched,31)
+        self.assertEqual(pending,['analysis/11'])
+        self.assertEqual(matched,33)
 
     def test_zero_frequency_empty_shape_and_invalid_frequency(self):
         tech=Technology.default();empty=Shape('Empty','wire',[0,0],{},[])
