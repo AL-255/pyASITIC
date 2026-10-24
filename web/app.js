@@ -59,11 +59,13 @@ async function request(payload,onProgress=null) {
 async function task(callback) {
   if (busy || !ready) return;
   busy = true; controls(); error();
+  let meshFailure=false;
   try { await callback(); } catch (e) {
     const message=e.message||String(e);error(message);status("Could not complete the operation. Check the message above.");
-    if(/mesh.*(filaments|segments)/i.test(message)){$("#mesh-settings").open=true;$("#mesh-fit").focus();}
+    meshFailure=/mesh.*(filaments|segments)/i.test(message);
+    if(meshFailure)$("#mesh-settings").open=true;
   }
-  finally { busy = false; controls(); }
+  finally { busy = false; controls();if(meshFailure)$("#mesh-fit").focus(); }
 }
 function definition() {
   const values = Object.fromEntries(new FormData(form));

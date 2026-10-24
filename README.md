@@ -188,7 +188,8 @@ Implemented so far:
   progressive Pi2/Pi3/Pi4 sweeps, sample-to-circuit inspection, plot SVG and CSV
   download. Python runs in a
   module worker using pinned Pyodide 314.0.7; the runtime loads from jsDelivr.
-- Shared mesh settings with coarse/balanced/fine presets, custom conductor and
+- Shared mesh settings start with the Python API’s coarse preset
+  (1000 µm). Coarse/balanced/fine presets, custom conductor and
   CAP cells, and a filament-count check before electrical solves. “Fit to 256
   filaments” explicitly coarsens conductor cells while preserving CAP cell
   settings. Counts include Pi4 pads or both CALCTRANS windings as selected;

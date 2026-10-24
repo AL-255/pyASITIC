@@ -24,11 +24,21 @@ async function click(id,expectedError=false){assert.equal($(id).disabled,false,i
 async function change(id,value){$(id).value=value;$(id).dispatchEvent(new w.Event("change"));await idle();}
 async function restore(project){Object.defineProperty($("#project-file"),"files",{configurable:true,value:[{text:async()=>JSON.stringify(project)}]});$("#project-file").dispatchEvent(new w.Event("change"));await idle();}
 await idle();assert.equal($("#mesh-settings").open,true);
-for(const id of["mesh-length","mesh-width","mesh-thickness","cap-length","cap-width"])assert.equal(w.document.querySelectorAll("#"+id).length,1,"One shared cell field");
+for(const id of["mesh-length","mesh-width","mesh-thickness","cap-length","cap-width"]){
+ assert.equal(w.document.querySelectorAll("#"+id).length,1,"One shared cell field");
+ assert.equal($("#"+id).value,"1000","Start with the Python solver's coarse cell defaults");
+}
+assert.equal($("#mesh-preset").value,"coarse");
+await click("#generate");await click("#mesh-check");
+assert.match($("#mesh-feedback").textContent,/10 \/ 256 filaments/);
+await change("#mesh-preset","balanced");await click("#mesh-check");
+assert.match($("#mesh-feedback").textContent,/filaments/);
+assert.equal($("#mesh-length").value,"50");assert.equal($("#mesh-width").value,"3");assert.equal($("#mesh-thickness").value,"0.5");
 const project={format:"reasitic-project",version:1,shape:{kind:"wire",parameters:{name:"Dense",length:400,width:6,metal:"M5",x:20,y:50}},mesh:{length_cell:20,width_cell:.5,thickness_cell:.5,capacitance_length_cell:1000,capacitance_width_cell:1000}};
 await restore(project);assert.equal($("#error").hidden,true,$("#error").textContent);assert.equal($("#mesh-length").value,"20");assert.equal($("#mesh-preset").value,"custom");
 const prior=requests.filter(r=>r.action==="pi2").length;
-await click("#pi2",true);assert.match($("#error").textContent,/360 filaments/);assert.equal(requests.filter(r=>r.action==="pi2").length,prior,"Over-budget mesh must stop before expensive CAP/LMAT solves");assert.equal($("#mesh-settings").open,true);
+$("#mesh-settings").open=false;
+await click("#pi2",true);assert.equal(w.document.activeElement.id,"mesh-fit","Mesh recovery must receive focus after controls are enabled");assert.match($("#error").textContent,/360 filaments/);assert.equal(requests.filter(r=>r.action==="pi2").length,prior,"Over-budget mesh must stop before expensive CAP/LMAT solves");assert.equal($("#mesh-settings").open,true);
 await click("#mesh-fit");assert.equal($("#mesh-length").value,"40");assert.equal($("#mesh-width").value,"1");assert.equal($("#mesh-thickness").value,"1");assert.match($("#mesh-feedback").textContent,/60 \/ 256 filaments/);
 assert.equal($("#cap-length").value,"1000");assert.equal($("#cap-width").value,"1000","Filament fitting preserves CAP cell settings");
 await click("#pi2");assert.equal(w.meshState().pi2Result.filaments,60);assert.equal($("#download-pi2").disabled,false);
@@ -40,4 +50,4 @@ await change("#mesh-preset","fine");assert.equal($("#mesh-width").value,"1");awa
 await change("#mesh-target","pi4");await click("#mesh-check");assert.match($("#mesh-feedback").textContent,/19 \/ 256 filaments/);
 await change("#mesh-width","0");await click("#mesh-check",true);assert.match($("#error").textContent,/positive/);
 await change("#mesh-preset","coarse");assert.equal($("#error").hidden,true,"Changing the mesh clears the stale failure message");
-call.destroy();w.close();console.log("Actual mesh DOM handlers passed: visible shared fields, 360-filament rejection before simulation, fit to 60, successful Pi2, invalidation, presets, native pad counts and project save/restore.");
+call.destroy();w.close();console.log("Actual mesh DOM handlers passed: coarse defaults, default coil mesh count, opt-in balanced preset, visible shared fields, 360-filament rejection before simulation, fit to 60, successful Pi2, invalidation, presets, native pad counts and project save/restore.");
