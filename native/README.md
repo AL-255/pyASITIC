@@ -237,6 +237,15 @@ original SI Y/Z/model output bit (undefined coupling by classification). The
 compiled reflection Green/eddy path below also closes the three captured
 eddy-enabled sessions.
 
+The portable Python path now also preserves whole-pair separation, intersection,
+canonical-basis and planar/spatial operation/store order. Both paths pass those
+2,135 original primitive outputs and another 2,094 original mesh-pair outputs;
+the portable upper-assembly gate computes those pair terms itself. A separate
+intact-original capture adds 426 threshold, reversal, translation, degeneracy
+and nonfinite whole-pair cases, required by both backends. Existing fixture
+words remain unchanged. These binary64 boundaries do not close the separately
+recorded raw extended instruction differences above.
+
 `vias.cpp` follows the original via stamp's retained height, separately scaled
 perimeter counts, integer product, logarithm and inductance association. Angular
 frequency and reactance spill to binary64 at their original boundaries; the

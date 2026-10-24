@@ -15,12 +15,13 @@ jobs:
     timeout-minutes: 10
     outputs:
       potential_matrix: ${{ steps.plan.outputs.potential_matrix }}
+      core_matrix: ${{ steps.plan.outputs.core_matrix }}
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
         with:
           python-version: '3.12'
-      - name: Plan every native potential fixture group
+      - name: Plan every Python check with complete disjoint core shards
         id: plan
         run: python tools/run_python_checks.py plan >> "$GITHUB_OUTPUT"
       - run: python tools/build_site.py
@@ -33,16 +34,20 @@ jobs:
         with:
           path: dist
   python-core:
-    name: Python · geometry and network checks
+    name: Python · core ${{ matrix.shard }} / ${{ matrix.shards }}
+    needs: build
     runs-on: ubuntu-latest
     timeout-minutes: 30
+    strategy:
+      fail-fast: false
+      matrix: ${{ fromJSON(needs.build.outputs.core_matrix) }}
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
         with:
           python-version: '3.12'
       - run: pip install gdstk==1.0.2
-      - run: python -u tools/run_python_checks.py core
+      - run: python -u tools/run_python_checks.py core --shard '${{ matrix.shard }}' --shards '${{ matrix.shards }}' --ids-sha '${{ matrix.ids_sha }}'
   kernel-build:
     name: Rebuild retained-precision WebAssembly kernel
     runs-on: ubuntu-latest

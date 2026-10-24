@@ -76,12 +76,11 @@ def cases():
     return result+production_pairs()
 
 
-def main():
-    parser=argparse.ArgumentParser(description=__doc__);parser.add_argument("--reference",type=Path,required=True)
-    ref=parser.parse_args().reference.resolve();original=ref/"run/asitic.linux.2.2";legacy=ref/"run/libs/libstdc++-2-libc6.1-1-2.9.0.so"
+def capture(ref,rows):
+    ref=ref.resolve();original=ref/"run/asitic.linux.2.2";legacy=ref/"run/libs/libstdc++-2-libc6.1-1-2.9.0.so"
     for p,sha in ((original,ORIGINAL_SHA256),(legacy,LEGACY_SHA256)):
         if hashlib.sha256(p.read_bytes()).hexdigest()!=sha:raise ValueError(f"Unexpected oracle checksum {p}")
-    rows=cases();source=ROOT/"tools/original_mutual_probe.cpp"
+    source=ROOT/"tools/original_mutual_probe.cpp"
     flags=["-m32","-O2","-mfpmath=sse","-msse2","-fno-pie","-fno-pic","-fno-stack-protector","-fno-exceptions","-fno-rtti","-nostdlib","-no-pie","-Wl,-Ttext-segment=0x10000000"]
     with tempfile.TemporaryDirectory(prefix="pyasitic-original-mutual-") as directory:
         root=Path(directory);binary=root/"probe";payload=root/"input.bin"
@@ -94,14 +93,19 @@ def main():
     for i,row in enumerate(rows):
         raw=run.stdout[2+26*i:2+26*(i+1)];row["input"]=[number(v) for v in row["input"]]
         row.update(status=struct.unpack_from("<i",raw)[0],output_bits=raw[4:12].hex(),extended_bits=raw[12:22].hex(),warnings=struct.unpack_from("<I",raw,22)[0])
-    output=ROOT/"tests/fixtures/mutual_original.json"
     cpu={}
     if Path("/proc/cpuinfo").is_file():
         for line in Path("/proc/cpuinfo").read_text().split("\n\n",1)[0].splitlines():
             key,separator,value=line.partition(":")
             if separator and key.strip() in ("vendor_id","cpu family","model","model name","stepping"):cpu[key.strip()]=value.strip()
-    output.write_text(json.dumps(dict(original_sha256=ORIGINAL_SHA256,legacy_sha256=LEGACY_SHA256,reference="Modes 0-4 execute intact original self/cross-section/separation/parallel/segment routines. Modes 5-11 separately execute matching native x87 elementary instructions in the probe; these are instruction oracles, not calls into the original binary.",native_instruction_environment=dict(cpu=cpu,control_word_before=before,control_word_after=after),probe_source=source.read_text(),compile_flags=flags,cases=rows),separators=(",",":"),allow_nan=False)+"\n")
-    print(len(rows),"original/instruction cases captured")
+    return dict(original_sha256=ORIGINAL_SHA256,legacy_sha256=LEGACY_SHA256,reference="Modes 0-4 execute intact original self/cross-section/separation/parallel/segment routines. Modes 5-11 separately execute matching native x87 elementary instructions in the probe; these are instruction oracles, not calls into the original binary.",native_instruction_environment=dict(cpu=cpu,control_word_before=before,control_word_after=after),probe_source=source.read_text(),compile_flags=flags,cases=rows)
+
+
+def main():
+    parser=argparse.ArgumentParser(description=__doc__);parser.add_argument("--reference",type=Path,required=True)
+    result=capture(parser.parse_args().reference,cases())
+    (ROOT/"tests/fixtures/mutual_original.json").write_text(json.dumps(result,separators=(",",":"),allow_nan=False)+"\n")
+    print(len(result["cases"]),"original/instruction cases captured")
 
 
 if __name__=="__main__":main()

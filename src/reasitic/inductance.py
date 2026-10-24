@@ -7,6 +7,7 @@ Intermediate units are centimetres and the result is nH, as in ASITIC.
 import math
 from fractions import Fraction
 from functools import lru_cache
+from .retained_scalar import Real
 
 EPS = 1e-10
 SCALE = 1e-4
@@ -41,52 +42,14 @@ def _round_extended(value):
 
 @lru_cache(maxsize=8192)
 def _basis_delta(start,end,z_axis):
-    a = _round_extended(Fraction(start)+5000)
-    b = _round_extended(Fraction(end)+5000)
-    return float(_round_extended(b-(a if z_axis else Fraction(float(a)))))
-
-
-def _dot(a,b):
-    return sum(x*y for x,y in zip(a,b))
-
-
-def _sub(a,b):
-    return [x-y for x,y in zip(a,b)]
-
-
-def _cross(a,b):
-    return [a[1]*b[2]-a[2]*b[1],a[2]*b[0]-a[0]*b[2],a[0]*b[1]-a[1]*b[0]]
-
-
-def _norm(a):
-    return math.sqrt(_dot(a,a))
-
-
-def _unit(a):
-    n = _norm(a)
-    return [x/n for x in a] if n > EPS else [0,0,0]
+    a = Real(start)+Real(5000.)
+    b = Real(end)+Real(5000.)
+    return float(b-(a if z_axis else Real(float(a))))
 
 
 def _intersects(p,u,q,v,la,lb):
-    xy = v[0]*u[1]-u[0]*v[1]
-    xz = v[0]*u[2]-u[0]*v[2]
-    yz = v[1]*u[2]-u[1]*v[2]
-    if all(abs(d)<EPS for d in (xy,xz,yz)):
-        axes = [i for i in range(3) if abs(u[i])>EPS]
-        if not axes:
-            return False
-        ts = [(q[i]-p[i])/u[i] for i in axes]
-        if any(abs(t-ts[0])>=EPS for t in ts[1:]) or any(abs(p[i]-q[i])>=EPS for i in range(3) if i not in axes):
-            return False
-        k = next(i for i in range(3) if u[i]!=0)
-        first,last = (q[k]-p[k])/u[k],(lb*v[k]+q[k]-p[k])/u[k]
-        return EPS<first and first+EPS<la and EPS<last and last+EPS<lb
-    i,j,k,det = (0,1,2,xy) if abs(xy)>EPS else (0,2,1,xz) if abs(xz)>EPS else (1,2,0,yz)
-    di,dj,dk = q[i]-p[i],q[j]-p[j],q[k]-p[k]
-    t,s = (dj*v[i]-di*v[j])/det,(dj*u[i]-di*u[j])/det
-    if abs(t*u[k]-s*v[k]-dk)>EPS:
-        return False
-    return EPS<t and t+EPS<la and EPS<s and s+EPS<lb
+    from .mutual_geometry import intersects
+    return intersects(p,u,q,v,la,lb)
 
 
 def _canonical(a,b):
@@ -95,49 +58,8 @@ def _canonical(a,b):
 
 
 def _nonparallel(a,b,spatial):
-    d0,d1 = math.dist(a[3:6],b[3:6]),math.dist(a[3:6],b[:3])
-    d2,d3 = math.dist(a[:3],b[:3]),math.dist(a[:3],b[3:6])
-    la,lb = math.dist(a[:3],a[3:6]),math.dist(b[:3],b[3:6])
-    p2,q2,r2,s2 = d3*d3,d2*d2,d1*d1,d0*d0
-    diff = p2-q2
-    delta = diff+r2-s2
-    magnitude = abs(delta)
-    cosine = magnitude/(2*la*lb)
-    # Guard a few ulps from geometric identities in binary64.
-    if cosine>1+1e-10:
-        raise ValueError("Invalid segment angle")
-    angle = math.atan2(math.sqrt(max(0,1-cosine*cosine)),cosine)
-    c,s = math.cos(angle),math.sin(angle)
-    if not spatial and min(abs(d) for d in (d0,d1,d2,d3))<EPS:
-        if abs(d0)<EPS:
-            d0=d2
-        elif abs(d1)<EPS:
-            d0=d3
-        elif abs(d2)>=EPS and abs(d3)<EPS:
-            d0=d1
-        return 2*c*(lb*math.atanh(la/(lb+d0))+la*math.atanh(lb/(la+d0)))
-    a2,b2 = la*la,lb*lb
-    if delta > EPS:
-        w,v = diff-b2,r2-q2-a2
-    else:
-        v,w = s2-p2-a2,q2-p2-b2
-    den = 4*a2*b2-delta*delta
-    x = la*(magnitude*w+2*b2*v)/den
-    y = lb*(2*a2*w+magnitude*v)/den
-    hb0,hb1 = math.atanh(lb/(d0+d1)),math.atanh(lb/(d2+d3))
-    ha0 = math.atanh(la/((d0+d3) if delta>EPS else (d1+d2)))
-    ha1 = math.atanh(la/((d1+d2) if delta>EPS else (d0+d3)))
-    total = (y+lb)*ha0+hb0*(x+la)-hb1*x-ha1*y
-    if not spatial:
-        return 2*c*total
-    h2 = 2*x*y*c+((q2 if delta>EPS else p2)-x*x)-y*y
-    h = math.sqrt(max(0,h2))
-    n = c*h2
-    a0 = math.atan2((x+la)*(y+lb)*s*s+n,h*(d0 if delta>EPS else d1)*s)
-    a1 = math.atan2(n+(x+la)*y*s*s,h*(d1 if delta>EPS else d0)*s)
-    a2angle = math.atan2(n+x*y*s*s,h*(d2 if delta>EPS else d3)*s)
-    a3 = math.atan2(x*(y+lb)*s*s+n,h*(d3 if delta>EPS else d2)*s)
-    return (2*total-(a0-a1+a2angle-a3)*h/s)*c
+    from .mutual_geometry import planar,spatial as spatial_mutual
+    return spatial_mutual(a,b)if spatial else planar(a,b)
 
 
 def segment_mutual(a,b,warnings=None):
@@ -148,13 +70,15 @@ def segment_mutual(a,b,warnings=None):
         value,warning=compiled
         if warning and warnings is not None:warnings.append(WARNING_MESSAGES[warning])
         return value
-    orientation = _dot(_sub(a[:3],a[3:6]),_sub(b[:3],b[3:6]))
-    if abs(orientation)<=EPS:
-        return 0
-    sign = 1 if orientation>EPS else -1
-    sep = abs(a[2]*SCALE-b[2]*SCALE)
-    a,b = [x*SCALE for x in a],[x*SCALE for x in b]
-    from .mutual_geometry import planar
+    from .mutual_geometry import dot,planar,spatial
+    da=[float(Real(a[i])-a[i+3])for i in range(3)]
+    db=[float(Real(b[i])-b[i+3])for i in range(3)]
+    orientation = dot(da,db)
+    if orientation>EPS:sign=1.
+    elif orientation<-EPS:sign=-1.
+    else:return 0.
+    sep = float(abs(Real(a[2])*Real(SCALE)-Real(b[2])*Real(SCALE)))
+    a,b = [float(Real(x)*Real(SCALE))for x in a],[float(Real(x)*Real(SCALE))for x in b]
     case = _canonical(a,b)
     if case == 0:
         from .parallel import parallel_segment_mutual
@@ -163,7 +87,7 @@ def segment_mutual(a,b,warnings=None):
     elif case == 1:
         value = planar(a,b)
     elif case == 2:
-        value = _nonparallel(a,b,True)
+        value = spatial(a,b)
     else:
         if case==3 and warnings is not None:
             warnings.append("Segments intersect; their mutual contribution is zero, as in ASITIC.")

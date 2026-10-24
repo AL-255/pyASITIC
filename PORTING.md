@@ -34,7 +34,7 @@ Reference checkout: `~/github/asitic-re`, revision recorded in each fixture.
 | `extended.py`, `linear.py` | `extended_node.cpp`, `extended_twoport.cpp`, `general.cpp`, `node_equations.cpp` | 68 native extended-node cases, including noncontiguous native strides, exact finite column stamps and systems beyond the 64-column LU panel boundary |
 | `symmetric.py`, `native/matrix_*.cpp`, `native/soft_real.hpp` | Original ZSYTF2 `0x0809bcf8` / ZSYTRI `0x08095bf8`; `symmetric.cpp`, `complex.cpp`, `blocked.cpp` | 44 directly verified original factor/inverse cases, exact compiled pivots and output bits, tiny/huge scales, signed zeros, partial singularity; complete original factor/inverse digests for 128/256-entry systems including two-entry pivots; four original dense Pi2 sessions at 189 filaments / 63 contacts; portable Python factors and six eigen rotations retain component checks |
 | `parallel.py`, `solver.py` | `parallel.cpp`, `separation.cpp`, `numerics.cpp`, `impedance.cpp` | 175 native self-integral/cross-section/separation/parallel/full-segment probes; retained filament self-impedance diagonals in complete PiX sessions |
-| `mutual_kernel.py`, `native/mutual*.cpp`, `native/retained_math.cpp` | `segment.cpp`, `canonicalize.cpp`, `intersection.cpp`, `parallel.cpp`, `separation.cpp`, `numerics.cpp`, `planar.cpp`, `spatial.cpp`, `x87.hpp` | 2,135 intact original scalar/pair outputs, including 939 whole pairs; 2,683 separately labeled native-instruction outputs; exact binary64 stores, native statuses/warnings and immutable batch inputs; all twelve finite eddy-off coupled sessions exact at raw SI output boundaries |
+| `mutual_geometry.py`, `mutual_kernel.py`, `native/mutual*.cpp`, `native/retained_math.cpp` | `segment.cpp`, `canonicalize.cpp`, `intersection.cpp`, `parallel.cpp`, `separation.cpp`, `numerics.cpp`, `planar.cpp`, `spatial.cpp`, `x87.hpp` | 2,561 intact original scalar/pair outputs, including 426 independently captured threshold/degeneracy cases; exact Python and compiled binary64 outputs, statuses and warning presence; 2,094 actual original mesh pairs feed 23 exact complete upper assemblies; 2,683 separately labeled compiled native-instruction stores; twelve finite eddy-off and three eddy-on coupled sessions exact at raw SI output boundaries |
 | `extended.py` PiX pipeline | `potential_solver.cpp`, `extended_twoport.cpp`, `extended_node.cpp`, `console_analysis.cpp` | Ten complete PIX sessions across CMOS/BiCMOS, wires, square/polygon coils, vias, joined capacitors and multimetal windings; unfolded CAP, final LMAT, node vectors, full-precision Pi/ZIN reports, direct port Y for all ten and six native 2PORTX Y/S exports |
 | `gds.py` | Native ribbon and `layout_export.cpp` via pitch conventions | Independent gdstk round-trip for nine generators, units, coordinates, layer mapping, via counts and cut area |
 | `bridge.py`, `web/worker.js` | New browser interface | Generation, estimates, sweeps and exports exercised in pinned Pyodide WebAssembly runtime |
@@ -513,10 +513,36 @@ operation instead of using Decimal guard precision alone. Their interaction had
 amplified small input differences in the polygon PiX resonance. The intact
 original polygon PiX session now has a strict portable Y/model/resonance bit
 check, alongside direct original coarse polygon mesh-pair checks. Other portable
-mutual/table fallbacks still require broader exactness work; the compiled path's
+table/matrix stages still require broader exactness work; the compiled path's
 full original-session gates remain separate.
 Parallel self/separation kernels also retain each arithmetic operation and the
 native logarithm/exponential reduction. This corrects a coupled wire case whose
 ground resistance amplified a small parallel mutual error. Range-boundary tests
 preserve nearest-even extended overflow/underflow while scalar rounding reuses
 bounded immutable powers of two and checks overflow only in the largest binade.
+
+Portable whole-pair dispatch now retains the vertical-separation products until
+their difference is stored, rather than subtracting separately rounded products.
+The spatial formula preserves its distinct distance, denominator, ordinate and
+angle stores. Planar and spatial trigonometry share native internal-Pi reduction;
+intersection projections preserve the original strict threshold and asymmetric
+end bounds. All 2,135 previous original primitive stores and all 2,094 captured
+mesh-pair stores now match in Python as well as WebAssembly. The 23 complete
+portable upper-assembly checks compute their own pair values and retain exact
+matrix comparisons. Existing captured input/output words remain unchanged.
+
+An additional 426 whole-pair cases are independently observed in the original
+executable by `tools/capture_mutual_boundaries_original.py`. These cover direction
+reversal, normalization/coplanarity thresholds, near-orthogonal angles,
+intersection endpoints, large translations, subnormal/huge lengths and nonfinite
+coordinates/cross sections. Python and compiled paths require exact finite bits
+(including signed zeros), native nonfinite classes, statuses and warning
+presence. Hardware exception flags and NaN payload equivalence remain outside
+the public API; the separately recorded raw instruction differences remain open.
+
+The Python CI runner can partition core discovery into four round-robin groups.
+Planning verifies a complete disjoint set of unique test IDs and records each
+group's digest. Each runner re-discovers its group with GDS validation installed
+and requires that digest before execution. Local unsharded discovery still runs
+the complete core suite. Deployment requires every shard and every existing
+native process/frequency and WebAssembly group.

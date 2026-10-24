@@ -28,10 +28,12 @@ Implemented so far:
   or MIM PDK models.
 - Original `Inductance` and `Coupling` estimate algorithms: segment self terms,
   signed parallel, planar and spatial mutual-inductance cases.
-  The browser's segment-pair path preserves the original retained basis,
+  Both Python and browser segment-pair paths preserve the original retained basis,
   intersection tests, cross-section separation and planar/spatial spill order.
-  A direct original-executable gate checks 2,135 scalar/pair outputs exactly at
-  binary64 boundaries; 2,683 separate native instruction cases check the
+  Direct original-executable gates check 2,561 scalar/pair outputs exactly at
+  binary64 boundaries, including 426 independent threshold/degeneracy cases.
+  Another 2,094 captured original mesh-pair outputs are exact in both backends;
+  2,683 separate native instruction cases check the
   elementary-function stores.
 - `LMAT` filament solver with longitudinal and cross-section meshing,
   impedance assembly, inversion/reduction and via corrections. The web app
@@ -44,7 +46,8 @@ Implemented so far:
   nonfinite classifications), including forced-reference cell counts.
   Self impedance and mutual-frequency weighting now preserve the original
   retained stores. Twenty-three complete original upper matrices check 4,648
-  output components exactly, including refined polygon clones.
+  output components exactly, including refined polygon clones. The portable
+  assembly checks compute every mutual term rather than supplying saved terms.
 - Optional native `EDDY ON` substrate correction, including square packing,
   segment folding, layered Green integration and convergence diagnostics.
   Preserves native negative-resistance results and reports nonfinite failures.
@@ -172,10 +175,12 @@ Install `gdstk==1.0.2` to enable the independent GDS reader tests. CI runs those
 tests and the same source archive inside the pinned WebAssembly runtime before
 deploying to Pages. No external simulation service is required.
 
-The Pages workflow runs Python core checks, every native potential-reference
+The Pages workflow runs four disjoint Python core groups, every native potential-reference
 process/frequency group, and fifteen WebAssembly groups in parallel. FFT/CAP and
 SELFRES checks print case progress. Fixture-derived grouping keeps all native
-cases covered; deployment waits for every group and publishes only the current
+cases covered. The build plan checks that every discovered core test occurs
+exactly once; each runner verifies its planned test-ID digest before execution.
+Deployment waits for every group and publishes only the current
 main commit. Active validation is retained when another commit is pushed.
 
 Python API:

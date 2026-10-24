@@ -9,13 +9,14 @@ py.unpackArchive(new Uint8Array(readFileSync(new URL("../dist/reasitic.zip",impo
 await installNumericalKernels(py,bytes);
 const fixtureText=readFileSync(new URL("../tests/fixtures/mutual_original.json",import.meta.url),"utf8");
 py.globals.set("fixture_text",fixtureText);
-py.runPython(`
+py.globals.set("boundary_text",readFileSync(new URL("../tests/fixtures/mutual_boundaries_original.json",import.meta.url),"utf8"));
+try {py.runPython(`
 import json,struct,math
 from array import array
 from reasitic.mutual_kernel import probe,_compiled_mutual,mesh_mutual
 from reasitic.inductance import segment_mutual
 assert _compiled_mutual is not None
-cases=[c for c in json.loads(fixture_text)['cases'] if c['mode']<5]
+cases=[c for c in json.loads(fixture_text)['cases']+json.loads(boundary_text)['cases'] if c['mode']<5]
 rows=[[c['mode'],*map(float,c['input'])] for c in cases]
 saved=struct.pack('<'+'d'*sum(map(len,rows)),*[v for row in rows for v in row]);actual=probe(rows);scalar_extended_differences=0
 assert saved==struct.pack('<'+'d'*sum(map(len,rows)),*[v for row in rows for v in row]),'Mutual inputs changed'
@@ -27,7 +28,7 @@ for i,(c,out) in enumerate(zip(cases,actual)):
  if c['mode']<2 and not math.isnan(expected):
   scalar_extended_differences+=struct.pack('<IIH',int(out[2]),int(out[3]),int(out[4])).hex()!=c['extended_bits']
  if c['mode']==4:
-  messages=[];value=segment_mutual(c['input'][:8],c['input'][8:16],messages)
+  args=list(map(float,c['input']));messages=[];value=segment_mutual(args[:8],args[8:16],messages)
   assert math.isnan(value) if math.isnan(expected) else struct.pack('<d',value).hex()==c['output_bits'],('Public segment output',i)
   assert bool(messages)==bool(c['warnings']),('Public warning',i)
 # Packed geometry caching preserves input bits and returns the same complete
@@ -46,7 +47,7 @@ for a,b in [(array('d',[0.]),array('d',[0.])*6),(array('d',[0.])*18,array('d',[0
  else:raise AssertionError('Invalid mutual buffer accepted')
 print(len(cases),'intact original self/cross-section/separation/parallel/whole-pair outputs and statuses passed exactly at binary64 boundaries; immutable input and packed cache checks passed.')
 print(scalar_extended_differences,'standalone scalar raw extended results differ; those words remain recorded for further validation.')
-`);
+`);} catch(error) {console.error(String(error));process.exit(1);}
 // These independently captured instruction tests are explicitly distinct from
 // calls into the original executable. They gate the consumed binary64 stores;
 // raw 80-bit differences remain recorded for further hardware validation.
