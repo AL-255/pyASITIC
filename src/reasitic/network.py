@@ -60,7 +60,7 @@ def convert_scattering(y):
 
 
 def solve_pi2(shape,technology,frequency_hz,*,ground=None,length_cell=1000,width_cell=1000,thickness_cell=1000,
-              capacitance_length_cell=1000,capacitance_width_cell=1000,max_filaments=256,max_contacts=256,include_matrices=False,eddy=False,_force_ground_mesh=True):
+              capacitance_length_cell=1000,capacitance_width_cell=1000,max_filaments=256,max_contacts=256,max_width_cells=500,include_matrices=False,eddy=False,_force_ground_mesh=True):
     """Original distributed Pi2 combination with substrate capacitance and loss."""
     if not all(math.isfinite(v) and v>0 for v in (frequency_hz,length_cell,width_cell,thickness_cell,capacitance_length_cell,capacitance_width_cell)):
         raise ValueError("Pi2 frequency and mesh sizes must be finite and positive")
@@ -68,7 +68,7 @@ def solve_pi2(shape,technology,frequency_hz,*,ground=None,length_cell=1000,width
     cap=solve_capacitance(meshed,technology,frequency_hz,ground=ground,length_cell=capacitance_length_cell,
                           width_cell=capacitance_width_cell,max_contacts=max_contacts,force_ground_mesh=_force_ground_mesh)
     ind=solve_impedance(meshed,technology,frequency_hz,width_cell=width_cell,thickness_cell=thickness_cell,
-                        max_filaments=max_filaments,admittance=True,discretized=True,eddy=eddy)
+                        max_filaments=max_filaments,max_width_cells=max_width_cells,admittance=True,discretized=True,eddy=eddy)
     y,nodal=solve_node_equations(_complex_matrix(cap["matrix"]),_complex_matrix(ind["matrix"]))
     z1,z2,zd=(two_port_impedance(y,port=1),two_port_impedance(y,port=2),two_port_impedance(y,differential=True))
     data=dict(frequency_hz=frequency_hz,method="ASITIC PI2, native eddy on" if eddy else "ASITIC PI2, eddy off",eddy=bool(eddy),

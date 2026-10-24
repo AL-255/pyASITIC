@@ -1,6 +1,7 @@
 """Cheap mesh counts and explicit coarsening; no electrical solve is performed."""
 import copy,math
 from .solver import discretize,filament_counts
+from .mesh_counts import maximum_width_cells
 from .network import _join_for_pads
 
 MESH_KEYS=("length_cell","width_cell","thickness_cell","capacitance_length_cell","capacitance_width_cell")
@@ -9,6 +10,7 @@ MESH_KEYS=("length_cell","width_cell","thickness_cell","capacitance_length_cell"
 def mesh_information(first,technology,mesh,*,model="pi2",second=None,ground=None,first_pad=None,second_pad=None,fit=False):
     cells={key:float(mesh.get(key,1000)) for key in MESH_KEYS}
     if not all(math.isfinite(v) and v>0 for v in cells.values()):raise ValueError("Mesh cell sizes must be finite and positive")
+    cells["max_width_cells"]=maximum_width_cells(mesh.get("max_width_cells",500))
     if model not in ("lmat","pi2","pi3","pi4","pix","selfres","calctrans"):raise ValueError("Unknown mesh analysis")
     def count(values):
         length,width,thickness,caplength,_=(values[key] for key in MESH_KEYS)
@@ -33,7 +35,7 @@ def mesh_information(first,technology,mesh,*,model="pi2",second=None,ground=None
         for shape in shapes:
             for segment in shape.segments:
                 if segment.metal>=len(technology.metals):continue
-                ny,nz=filament_counts(segment,width,thickness);total+=ny*nz;segments+=1
+                ny,nz=filament_counts(segment,width,thickness,values["max_width_cells"]);total+=ny*nz;segments+=1
         return dict(filaments=total,segments=segments,limit=256,within_limit=total<=256,model=model,mesh=values)
     def attempt(values):
         try:return count(values)

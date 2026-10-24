@@ -63,7 +63,7 @@ def extract_transformer_equivalent(y,frequency_hz):
 @_guard
 def solve_transformer(first,second,technology,frequency_hz,*,ground=None,termination_ohm=0,
                       length_cell=1000,width_cell=1000,thickness_cell=1000,capacitance_length_cell=1000,
-                      capacitance_width_cell=1000,max_filaments=256,max_contacts=256,include_matrices=False,eddy=False):
+                      capacitance_width_cell=1000,max_filaments=256,max_contacts=256,max_width_cells=500,include_matrices=False,eddy=False):
     """Original CALCTRANS including junction termination and both winding meshes.
 
     A missing reference, or one with the first winding's name, selects the
@@ -95,7 +95,7 @@ def solve_transformer(first,second,technology,frequency_hz,*,ground=None,termina
     capacitance[boundary][boundary]=complex(float(conductance+Decimal.from_float(cell.real)),cell.imag+0.0)
     try:
         ind=solve_impedance(joined,technology,frequency_hz,width_cell=width_cell,thickness_cell=thickness_cell,
-                            max_filaments=max_filaments,admittance=True,discretized=True,eddy=eddy)
+                            max_filaments=max_filaments,max_width_cells=max_width_cells,admittance=True,discretized=True,eddy=eddy)
     except ValueError as error:
         if "expected a positive input" in str(error) or str(error)=="math domain error":
             raise ValueError("CALCTRANS has a nonfinite inductive kernel for this reference mesh; omit the explicit first-winding reference or use a ground strip") from error

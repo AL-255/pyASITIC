@@ -201,10 +201,13 @@ Implemented so far:
   widths and include vias. GDS continues to use the original ribbon edges.
 - Shared mesh settings start with the Python API’s coarse preset
   (1000 µm). Coarse/balanced/fine presets, custom conductor and
-  CAP cells, and a filament-count check before electrical solves. “Fit to 256
-  filaments” explicitly coarsens conductor cells while preserving CAP cell
-  settings. Counts include Pi4 pads or both CALCTRANS windings as selected;
-  project downloads preserve all five cell sizes.
+  CAP cells, the original MAXNW width-division cap (default 500), and a
+  filament-count check before electrical solves. “Fit to 256 filaments” explicitly coarsens conductor cells while preserving CAP cell
+  settings and MAXNW. Counts include Pi4 pads or both CALCTRANS windings as selected;
+  project downloads preserve all five cell sizes and MAXNW. Original retained
+  count rounding matches 2,116 captured primitive cases; six complete original
+  CLI runs verify MAXNW, filament stores and LMAT reports (five finite reports
+  match bit for bit; the native invalid MAXNW=1 case remains a diagnostic).
 
 Records use binary64 with selected retained-precision intermediates matching the
 reference's x87 arithmetic.

@@ -225,7 +225,8 @@ export async function installNumericalKernels(python, bytes) {
         if(!Number.isInteger(n)||n<1||n>256||b.data.length!==n*9)throw new Error("Filament batch dimensions are invalid");
         for(let i=0;i<n;i++){
           const p=a.data.subarray(26*i,26*i+26);
-          for(const k of [18,19,20,21,22,23,24,25])if(!Number.isInteger(p[k])||p[k]<0||p[k]>65535)throw new Error("Filament count/index is invalid");
+          if(!Number.isInteger(p[18])||p[18]<1||p[18]>2147483647)throw new Error("MAXNW is invalid");
+          for(const k of [19,20,21,22,23,24,25])if(!Number.isInteger(p[k])||p[k]<0||p[k]>65535)throw new Error("Filament count/index is invalid");
           if(!p[18]||!p[22]||!p[23]||!p[24]||p[19]>=p[22]||p[20]>=p[23]||p[21]>=p[24])throw new Error("Filament index is outside its mesh");
         }
         filamentInput.set(a.data);const status=api.filaments(n);b.data.set(filamentOutput.subarray(0,n*9));return status;

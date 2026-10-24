@@ -62,7 +62,7 @@ def solve_extended_node_equations(capacitance,impedance):
 
 
 def solve_pix(shape,technology,frequency_hz,*,ground=None,length_cell=1000,width_cell=1000,thickness_cell=1000,
-              capacitance_length_cell=1000,capacitance_width_cell=1000,max_filaments=256,max_contacts=256,
+              capacitance_length_cell=1000,capacitance_width_cell=1000,max_filaments=256,max_contacts=256,max_width_cells=500,
               include_matrices=False,eddy=False):
     """Native PIX command: unfolded CAP, impedance LMAT and extended nodes.
 
@@ -76,7 +76,7 @@ def solve_pix(shape,technology,frequency_hz,*,ground=None,length_cell=1000,width
     cap=solve_capacitance(meshed,technology,frequency_hz,ground=reference,length_cell=capacitance_length_cell,
                           width_cell=capacitance_width_cell,max_contacts=max_contacts,unfolded=True)
     ind=solve_impedance(meshed,technology,frequency_hz,width_cell=width_cell,thickness_cell=thickness_cell,
-                        max_filaments=max_filaments,discretized=True,eddy=eddy,include_diagonal=include_matrices)
+                        max_filaments=max_filaments,max_width_cells=max_width_cells,discretized=True,eddy=eddy,include_diagonal=include_matrices)
     y,state=solve_extended_node_equations(_complex_matrix(cap["matrix"]),_complex_matrix(ind["matrix"]))
     z1,z2,zd=two_port_impedance(y),two_port_impedance(y,port=2),two_port_impedance(y,differential=True)
     result=dict(method="ASITIC PIX, native eddy on" if eddy else "ASITIC PIX, eddy off",frequency_hz=frequency_hz,eddy=bool(eddy),

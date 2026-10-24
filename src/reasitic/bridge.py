@@ -15,6 +15,7 @@ from .resonance import solve_self_resonance
 from .extended import solve_pix
 from .transformer import solve_transformer
 from .mesh import mesh_information
+from .mesh_counts import maximum_width_cells
 from .presets import list_presets,load_preset,identify
 from .command_numbers import frequency_ghz
 from .conductor_metrics import retained_estimates,qlf as extrapolated_q
@@ -85,6 +86,7 @@ def handle(request,*,progress=None):
         if action=="mesh":return mesh_information(first,tech,mesh,model="calctrans",second=second,ground=ground,fit=bool(request.get("fit",False)))
         return solve_transformer(first,second,tech,_frequency(request),ground=ground,
             termination_ohm=float(request.get("termination_ohm",0)),eddy=request.get("eddy",False),include_matrices=bool(request.get("include_matrices",False)),
+            max_width_cells=maximum_width_cells(mesh.get("max_width_cells",500)),
             **{key:float(mesh.get(key,1000)) for key in ("length_cell","width_cell","thickness_cell","capacitance_length_cell","capacitance_width_cell")})
     shape = _shape(request,tech)
     if shape.kind=='via'and(action=='pi2'or(action=='mesh'and request.get('model','pi2')=='pi2')):
@@ -98,6 +100,7 @@ def handle(request,*,progress=None):
         return solve_self_resonance(shape,tech,_frequency(request,'first'),_frequency(request,'last'),_frequency(request,'step'),
             ground=ground,differential=bool(request.get("differential",False)),fast=bool(request.get("fast",False)),eddy=request.get("eddy",False),
             observer=(lambda point:progress(json.dumps(point,allow_nan=False))) if progress is not None else None,
+            max_width_cells=maximum_width_cells(mesh.get("max_width_cells",500)),
             **{key:float(mesh.get(key,1000)) for key in ("length_cell","width_cell","thickness_cell","capacitance_length_cell","capacitance_width_cell")})
     if action in ("pi","pi2","pi3","pi4","pix"):
         if action=="pi":
@@ -108,6 +111,7 @@ def handle(request,*,progress=None):
         solver={"pi2":solve_pi2,"pi3":solve_pi3,"pi4":solve_pi4,"pix":solve_pix}[action]
         diagnostics={"include_matrices":bool(request.get("include_matrices",False))} if action=="pix" else {}
         return solver(shape,tech,_frequency(request),ground=ground,eddy=request.get("eddy",False),**pads,**diagnostics,
+                         max_width_cells=maximum_width_cells(mesh.get("max_width_cells",500)),
                          **{key:float(mesh.get(key,1000)) for key in ("length_cell","width_cell","thickness_cell","capacitance_length_cell","capacitance_width_cell")})
     if action == "capacitance":
         mesh=request.get("mesh",{})
@@ -121,6 +125,7 @@ def handle(request,*,progress=None):
                                length_cell=float(mesh.get("length_cell",1000)),
                                width_cell=float(mesh.get("width_cell",1000)),
                                thickness_cell=float(mesh.get("thickness_cell",1000)),
+                               max_width_cells=maximum_width_cells(mesh.get("max_width_cells",500)),
                                capacitance_length_cell=float(mesh["capacitance_length_cell"]) if "capacitance_length_cell" in mesh else None)
     if action == "build":
         data = shape.to_dict()

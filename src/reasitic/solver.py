@@ -15,6 +15,7 @@ from .filament import record as _filament_record,filament_records
 from .mutual_kernel import mesh_mutual,WARNING_MESSAGES
 from .vias import stamp as stamp_vias,active_height as active_via_height
 from .impedance import assemble as assemble_impedance,self_impedance as _filament_self_impedance
+from .mesh_counts import counts as _native_counts,maximum_width_cells
 from .retained_scalar import Real
 
 
@@ -99,13 +100,12 @@ def _checked_filament(row):
     return row[:8]
 
 
-def filament_counts(segment,width_cell,thickness_cell,max_width_cells=9):
-    if segment.nx==-1 and segment.ny==-1:return 3,3
-    return min(max_width_cells,max(1,int(segment.width/width_cell+.5))),max(1,int(segment.thickness/thickness_cell+.5))
+def filament_counts(segment,width_cell,thickness_cell,max_width_cells=500):
+    return _native_counts(segment.width,segment.thickness,width_cell,thickness_cell,max_width_cells,segment.nx,segment.ny)
 
 
 def solve_impedance(shape,technology,frequency_hz,*,length_cell=1000,width_cell=1000,
-                    thickness_cell=1000,max_width_cells=9,capacitance_length_cell=None,max_filaments=256,
+                    thickness_cell=1000,max_width_cells=500,capacitance_length_cell=None,max_filaments=256,
                     admittance=False,discretized=False,eddy=False,include_diagonal=False):
     """Return the reduced segment impedance matrix, total L/R/Q and mesh size.
 
@@ -119,8 +119,7 @@ def solve_impedance(shape,technology,frequency_hz,*,length_cell=1000,width_cell=
     values = (frequency_hz,length_cell,width_cell,thickness_cell)
     if not all(math.isfinite(v) and v>0 for v in values):
         raise ValueError("Frequency and mesh cell sizes must be finite and positive")
-    if not isinstance(max_width_cells,int) or not 1<=max_width_cells<=99:
-        raise ValueError("Maximum width cells must be an integer from 1 to 99")
+    max_width_cells=maximum_width_cells(max_width_cells)
     if not isinstance(eddy,(bool,int)) or not 0<=eddy<=255:
         raise ValueError("Eddy mode must be 0 (off), 1 (native on), or an enabled segment-folding mode")
     if capacitance_length_cell is None:

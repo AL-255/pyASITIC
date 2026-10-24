@@ -13,8 +13,8 @@ let technologyPreset=null,technologyPresets=[];
 const MODEL_NAMES={pi:"Pi",pi2:"Pi2",pi3:"Pi3",pi4:"Pi4",pix:"PiX"};
 const eddyEnabled=()=>!!$("#eddy-mode")?.checked;
 const pending = new Map();
-const MESH_FIELDS={length_cell:"mesh-length",width_cell:"mesh-width",thickness_cell:"mesh-thickness",capacitance_length_cell:"cap-length",capacitance_width_cell:"cap-width"};
-const MESH_PRESETS={coarse:[1000,1000,1000,1000,1000],balanced:[50,3,.5,1000,1000],fine:[25,1,.25,50,10]};
+const MESH_FIELDS={length_cell:"mesh-length",width_cell:"mesh-width",thickness_cell:"mesh-thickness",capacitance_length_cell:"cap-length",capacitance_width_cell:"cap-width",max_width_cells:"mesh-max-width"};
+const MESH_PRESETS={coarse:[1000,1000,1000,1000,1000,500],balanced:[50,3,.5,1000,1000,500],fine:[25,1,.25,50,10,500]};
 const meshCache=new Map();
 const frequencyFields=(hz,ghz=hz/1e9)=>({frequency_hz:hz,frequency_ghz:ghz});
 function frequencyInput(){const ghz=numeric("#frequency");return frequencyFields(ghz*1e9,ghz);}
@@ -92,9 +92,14 @@ function restoreFormParameter(key,value){
 }
 function meshSettings(){
   const mesh=Object.fromEntries(Object.entries(MESH_FIELDS).map(([key,id])=>[key,numeric("#"+id)]));
-  if(Object.values(mesh).some(v=>v<=0))throw Error("Mesh cell sizes must be positive.");return mesh;
+  validateMesh(mesh);return mesh;
+}
+function validateMesh(mesh){
+  if(Object.entries(mesh).some(([key,v])=>key!=="max_width_cells"&&(!Number.isFinite(v)||v<=0)))throw Error("Mesh cell sizes must be finite and positive.");
+  if(!Number.isInteger(mesh.max_width_cells)||mesh.max_width_cells<1||mesh.max_width_cells>2147483647)throw Error("MAXNW must be an integer from 1 to 2147483647.");
 }
 function applyMesh(mesh){
+  mesh={max_width_cells:500,...mesh};
   for(const [key,id]of Object.entries(MESH_FIELDS))$("#"+id).value=String(mesh[key]);
   const values=Object.keys(MESH_FIELDS).map(key=>mesh[key]);
   $("#mesh-preset").value=Object.keys(MESH_PRESETS).find(key=>MESH_PRESETS[key].every((v,i)=>v===values[i]))||"custom";
@@ -456,7 +461,7 @@ $("#sweep-chart").addEventListener("keydown",event=>{if(event.key==="Enter"||eve
 $("#lmat").addEventListener("click",()=>task(async()=>{
   status("Assembling and solving filament impedance matrix…");
   const result=await request({action:"lmat",...currentDefinition,technology:technologyText,...frequencyInput(),eddy:eddyEnabled(),
-    mesh:{length_cell:numeric("#mesh-length"),width_cell:numeric("#mesh-width"),thickness_cell:numeric("#mesh-thickness")}});
+    mesh:{length_cell:numeric("#mesh-length"),width_cell:numeric("#mesh-width"),thickness_cell:numeric("#mesh-thickness"),max_width_cells:meshSettings().max_width_cells}});
   matrixResult=result;
   $("#lmat-result").textContent=`L = ${fmt(result.inductance_h*1e9,6)} nH · R = ${fmt(result.resistance_ohm,6)} Ω · Series Q = ${fmt(result.series_q,6)} · ${result.filaments} filaments / ${result.segments} metal segments · Native eddy ${result.eddy?"on":"off"}`;
   const table=document.createElement("table"),head=table.createTHead().insertRow(),limit=Math.min(16,result.matrix.length);
@@ -514,7 +519,7 @@ function transformerPayload(frequency,ghz=frequency/1e9){
   const ground=mode==="first"?{...currentDefinition,winding:first}:mode==="strip"?stripDefinition("transformer-ground","_ground"):null;
   const termination_ohm=Math.fround(numeric("#transformer-termination")),f=frequency;
   if(!Number.isFinite(termination_ohm)||!Number.isFinite(f)||f<=0)throw Error("Frequency or termination exceeds the native command range.");
-  const mesh=Object.fromEntries(Object.entries(meshSettings()).map(([k,v])=>[k,Math.fround(v)]));
+  const mesh=Object.fromEntries(Object.entries(meshSettings()).map(([k,v])=>[k,k==="max_width_cells"?v:Math.fround(v)]));
   return {action:"calctrans",...currentDefinition,first_winding:first,second_winding:1-first,technology:technologyText,ground,...frequencyFields(f,ghz),termination_ohm,eddy:eddyEnabled(),mesh};
 }
 const transformerMetrics=[
@@ -633,8 +638,8 @@ $("#project-file").addEventListener("change",event=>task(async()=>{
   const file=event.target.files[0];if(!file)return;
   const data=JSON.parse(await file.text());
   if(data.format!=="reasitic-project"||data.version!==1||!data.shape) throw new Error("Unsupported project file.");
-  const restoredMesh=data.mesh?Object.fromEntries(Object.keys(MESH_FIELDS).map(key=>[key,Number(data.mesh[key])])):null;
-  if(restoredMesh&&Object.values(restoredMesh).some(v=>!Number.isFinite(v)||v<=0))throw Error("Project mesh cells must be finite and positive.");
+  const restoredMesh=data.mesh?Object.fromEntries(Object.keys(MESH_FIELDS).map(key=>[key,Number(key==="max_width_cells"&&data.mesh[key]===undefined?500:data.mesh[key])])):null;
+  if(restoredMesh)validateMesh(restoredMesh);
   const text=data.technology||"";
   const init=await request({action:"init",technology:text});
   // Verify geometry before replacing the current project.

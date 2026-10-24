@@ -95,8 +95,10 @@ if(process.argv[3]){
  Object.defineProperty($("#project-file"),"files",{configurable:true,value:[{text:async()=>JSON.stringify(project)}]});$("#project-file").dispatchEvent(new w.Event("change"));await idle();
  assert.equal($("#error").hidden,true,$("#error").textContent);
  for(const [id,key]of[["#mesh-length","length_cell"],["#mesh-width","width_cell"],["#mesh-thickness","thickness_cell"],["#cap-length","capacitance_length_cell"],["#cap-width","capacitance_width_cell"]])$(id).value=String(c.mesh[key]);
+ $("#mesh-max-width").value="2147483647";
  $("#frequency").value="1";
  await click("#transformer-run");let state=w.coupledState();
+ assert.equal(requests.filter(r=>r.action==="calctrans").at(-1).mesh.max_width_cells,2147483647,"MAXNW stays int32 through coupled payloads");
  near(state.transformerResult.model.first_inductance_h*1e9,c.metrics[0],1e-9);
  assert.ok($("#transformer-circuit svg"));assert.ok($("#transformer-circuit").textContent.includes("M ="));assert.ok($("#transformer-circuit").textContent.includes("nH"));
  await click("#download-transformer");const exported=JSON.parse(await downloads.at(-1).text());assert.equal(exported.inputs.action,"calctrans");assert.equal(exported.first_winding,"A");
