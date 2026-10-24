@@ -2,10 +2,10 @@
 
 Preserves 64-column panels, IZAMAX abs-one pivots, rounded reciprocals followed
 by scaling, and BLAS update/spill order. The compiled backend retains 80-bit
-intermediates; the portable fallback uses Decimal guard precision. Exception
-flags are not reproduced.
+intermediates; the portable fallback rounds every operation to the retained
+significand. Exception flags are not reproduced.
 """
-from decimal import Decimal
+from .retained_scalar import Real
 from array import array
 from .green import _guard,legacy_divide
 
@@ -33,7 +33,7 @@ def _compiled(matrix,n,operation,pivots=None,rhs=None):
 
 
 def _product(a,b):
-    ar,ai,br,bi=map(Decimal.from_float,(a.real,a.imag,b.real,b.imag))
+    ar,ai,br,bi=map(Real,(a.real,a.imag,b.real,b.imag))
     return ar*br-ai*bi,ai*br+ar*bi
 
 
@@ -44,7 +44,7 @@ def _scale(a,b):
 
 def _update(old,a,b,subtract=False):
     real,imag=_product(a,b)
-    r,i=Decimal.from_float(old.real),Decimal.from_float(old.imag)
+    r,i=Real(old.real),Real(old.imag)
     return complex(float(r-real if subtract else r+real),float(i-imag if subtract else i+imag))
 
 
@@ -58,9 +58,9 @@ def matrix_vector(matrix,vector):
     for row in matrix:
         real=imag=0.0
         for a,b in zip(row,vector):
-            ar,ai,br,bi=map(Decimal.from_float,(a.real,a.imag,b.real,b.imag))
-            real=float((ar*br-ai*bi)+Decimal.from_float(real))
-            imag=float((br*ai+ar*bi)+Decimal.from_float(imag))
+            ar,ai,br,bi=map(Real,(a.real,a.imag,b.real,b.imag))
+            real=float((ar*br-ai*bi)+Real(real))
+            imag=float((br*ai+ar*bi)+Real(imag))
         result.append(complex(real,imag))
     return result
 
@@ -71,7 +71,7 @@ def factor_general(matrix):
     n=_validate(matrix)
     if _compiled_general is not None and n<=514:return _compiled(matrix,n,0)
     a=[row.copy() for row in matrix];pivots=[0]*n
-    def norm(z):return abs(Decimal.from_float(z.real))+abs(Decimal.from_float(z.imag))
+    def norm(z):return abs(Real(z.real))+abs(Real(z.imag))
     block=64 if n>64 else n
     for start in range(0,n,block):
         end=min(n,start+block)

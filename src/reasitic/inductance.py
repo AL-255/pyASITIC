@@ -90,33 +90,8 @@ def _intersects(p,u,q,v,la,lb):
 
 
 def _canonical(a,b):
-    da,db = _sub(a[3:6],a[:3]),_sub(b[3:6],b[:3])
-    if abs(_dot(da,db)) < EPS:
-        return 5
-    na,nb = _norm(da),_norm(db)
-    if min(na,nb)<EPS:
-        return 6
-    u,v = _unit(da),_unit(db)
-    if _intersects(a[:3],u,b[:3],v,na,nb):
-        return 3
-    delta = [_basis_delta(a[i],a[i+3],i==2) for i in range(3)]
-    start,end = _sub(b[:3],a[:3]),_sub(b[3:6],a[:3])
-    if _norm(delta)<EPS:
-        return 4
-    e1 = _unit(delta)
-    e3 = _cross(e1,_unit(start))
-    if _norm(e3)<EPS:
-        e3 = _cross(e1,_unit(end))
-        if _norm(e3)<EPS:
-            return 0
-    e3 = _unit(e3)
-    e2 = _unit(_cross(e3,e1))
-    a[:6] = [0,0,0,_norm(delta),0,0]
-    b[:6] = [_dot(start,e1),_dot(start,e2),_dot(start,e3),_dot(end,e1),_dot(end,e2),_dot(end,e3)]
-    projection = abs(_dot(_sub(a[:3],a[3:6]),_sub(b[:3],b[3:6])))
-    if abs(projection-math.dist(b[:3],b[3:6])*math.dist(a[:3],a[3:6]))<EPS:
-        return 0
-    return 1 if abs(b[5])<EPS and abs(b[2])<EPS else 2
+    from .mutual_geometry import canonical
+    return canonical(a,b)
 
 
 def _nonparallel(a,b,spatial):
@@ -179,13 +154,16 @@ def segment_mutual(a,b,warnings=None):
     sign = 1 if orientation>EPS else -1
     sep = abs(a[2]*SCALE-b[2]*SCALE)
     a,b = [x*SCALE for x in a],[x*SCALE for x in b]
+    from .mutual_geometry import planar
     case = _canonical(a,b)
     if case == 0:
         from .parallel import parallel_segment_mutual
         status,value=parallel_segment_mutual(a,b,sep)
         if status:value=0.0
-    elif case in (1,2):
-        value = _nonparallel(a,b,case==2)
+    elif case == 1:
+        value = planar(a,b)
+    elif case == 2:
+        value = _nonparallel(a,b,True)
     else:
         if case==3 and warnings is not None:
             warnings.append("Segments intersect; their mutual contribution is zero, as in ASITIC.")

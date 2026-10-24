@@ -5,6 +5,7 @@ import unittest
 from reasitic.impedance import assemble
 from reasitic import Technology,build
 from reasitic.solver import discretize
+from reasitic.inductance import segment_mutual
 
 
 class ImpedanceTests(unittest.TestCase):
@@ -42,6 +43,9 @@ class ImpedanceTests(unittest.TestCase):
                 wires=[struct.unpack('<8d',bytes.fromhex(r['wire_bits']))for r in c['records']]
                 metadata=[(r['sheet_resistance'],r['thickness_count'])for r in c['records']]
                 pairs=[struct.unpack('<d',bytes.fromhex(v))[0]for v in c['mutual_bits']]
+                if c['fixture']=='network' and c['index']==3 and c['mesh']['length_cell']==1000:
+                    actual=[struct.pack('<d',segment_mutual(a,b)).hex()for i,a in enumerate(wires)for b in wires[i+1:]]
+                    self.assertEqual(actual,c['mutual_bits'],'Actual original polygon mesh pairs')
                 saved=repr((wires,metadata,pairs));matrix=assemble(wires,metadata,pairs,c['frequency']);n=c['n']
                 actual=b''.join(struct.pack('<dd',matrix[i][j].real,matrix[i][j].imag)for j in range(n)for i in range(j+1))
                 self.assertEqual(actual.hex(),c['upper_bits'])

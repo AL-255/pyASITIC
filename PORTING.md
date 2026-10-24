@@ -506,3 +506,12 @@ refined polygons, are checked directly against the assembly context records.
 Repeated mesh checks and frequency samples reuse a bounded cache of immutable
 subdivision coordinates keyed by every input bit. Each clone still owns fresh
 segment fields; changing one solve's geometry cannot affect later solves.
+
+The portable mutual path also retains the canonical basis and coplanar distance,
+angle and hyperbolic stores. General BLAS products/updates now round after each
+operation instead of using Decimal guard precision alone. Their interaction had
+amplified small input differences in the polygon PiX resonance. The intact
+original polygon PiX session now has a strict portable Y/model/resonance bit
+check, alongside direct original coarse polygon mesh-pair checks. Other portable
+mutual/table fallbacks still require broader exactness work; the compiled path's
+full original-session gates remain separate.

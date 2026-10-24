@@ -1,13 +1,27 @@
 import json
 import struct
+from fractions import Fraction
 from pathlib import Path
 import unittest
 from reasitic.extended import stamp_extended_node_columns,solve_extended_node_equations,solve_pix
 from reasitic import Technology,build
 from reasitic.bridge import handle
+from reasitic.network_metrics import PI_KEYS
 
 
 class ExtendedTests(unittest.TestCase):
+    def test_intact_original_polygon_pix_bits(self):
+        cases=json.loads((Path(__file__).parent/'fixtures/pi_sessions_original.json').read_text())['cases']
+        c=next(c for c in cases if c['fixture']=='pix' and c['index']==5)
+        r=handle(c['request']);y=r['admittance_matrix']
+        actual=[v for z in (y[1][1],y[1][0],y[0][1],y[0][0])for v in z]
+        self.assertEqual([struct.pack('<d',v).hex()for v in actual],c['model']['Y'])
+        actual=[r['frequency_hz'],*[r['pi'][k]for k in PI_KEYS]]
+        self.assertEqual([struct.pack('<d',v).hex()for v in actual],c['model']['M'])
+        significand,exponent=struct.unpack('<QH',bytes.fromhex(c['resonance']['extended_bits']))
+        expected=float(Fraction(significand)*Fraction(2)**((exponent&0x7fff)-16383-63))
+        self.assertEqual(struct.pack('<d',r['pi']['resonant_frequency_hz']),struct.pack('<d',expected))
+
     def test_native_column_stamps_and_node_solutions(self):
         cases=json.loads((Path(__file__).parent/"fixtures/extended_nodes.json").read_text())["cases"]
         for case in cases:
