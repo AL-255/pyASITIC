@@ -5,6 +5,9 @@ Python implementation. The native pre-via inductive matrix is no longer a
 calculation input when `--ported-ind` is selected. This extends the earlier
 [shared-memory component comparison](SHARED_MEMORY.md), whose captured-state
 and production-integration limits still apply.
+The later [continuous history](STORAGE_HISTORY.md) combines the same numerical
+buffers with preceding stores and cleanup; it no longer initializes from
+captured via-entry bytes. This earlier component mode remains required.
 
 `prepare_impedance` is the preparation used by `solve_impedance`: it performs
 the existing filament construction, mutual/self assembly, native symmetric

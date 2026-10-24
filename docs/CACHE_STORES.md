@@ -69,9 +69,10 @@ node tools/check_cap_prelude_original.mjs /path/to/pyodide.mjs /tmp/prelude-audi
 ## Remaining integration
 
 The [complete CAP buffers](CAP_STORAGE.md), contact records and these cache
-stores now have independently verified producers. They still need to be
-replayed together with subsequent numerical/allocator stores in the same
-memory before raw via-entry heap inputs can be removed. Earlier process,
+stores now have independently verified producers. The subsequent
+[continuous history](STORAGE_HISTORY.md) combines them with numerical workspaces
+and cleanup in the same memory, using earlier CAP-entry heap contents instead
+of raw via-entry initialization. Earlier process,
 scene and cache-table history, non-cache allocator bytes, numerical workspaces
 and repeated command cleanup remain unfinished. Known logarithm/cosine and
 JOIN/UNJOIN discrepancies also remain; these component matches do not establish

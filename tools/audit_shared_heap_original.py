@@ -91,7 +91,7 @@ def ported_impedance(case):
     request=case['request'];shape,technology=ported_inductance_geometry(case);mesh=_mesh(request,technology)
     # Native comparison includes larger systems. The normal solver/website
     # budget stays at 256; this explicit diagnostic budget is independent.
-    return prepare_impedance(shape,technology,_frequency(request),width_cell=mesh['width_cell'],thickness_cell=mesh['thickness_cell'],max_width_cells=mesh.get('max_width_cells',500),max_filaments=512,discretized=True,eddy=request.get('eddy',False))
+    return prepare_impedance(shape,technology,_frequency(request),width_cell=mesh['width_cell'],thickness_cell=mesh['thickness_cell'],max_width_cells=mesh.get('max_width_cells',500),max_filaments=512,discretized=True,eddy=request.get('eddy',False),include_storage=True)
 
 
 def normalized_errors(errors):

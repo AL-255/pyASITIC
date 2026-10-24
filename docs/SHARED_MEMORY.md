@@ -8,6 +8,9 @@ Python geometry, with all 132 original records/indices checked exactly.
 The subsequent [cache-store producer](CACHE_STORES.md) additionally matches
 pre-via raw cache words from earlier metadata and allocation/free history,
 with a continuous handoff to this component's byte-reading mode.
+The later [continuous history](STORAGE_HISTORY.md) replays the application
+buffers and cleanup too, replacing this mode's via-entry initialization with
+explicit earlier CAP-entry heap contents. Both modes remain required.
 
 The development port now has sparse guest byte memory, complex matrix views
 that can alias the same bytes, the original via load/store sequence, and

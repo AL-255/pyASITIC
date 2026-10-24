@@ -11,12 +11,18 @@ from audit_cap_prelude_original import compare as prelude,dimensions
 from audit_shared_heap_original import ported_inductance_geometry
 
 
-def ported_buffers(case):
+def ported_buffers(case,*,inverse_storage=None):
     shape,technology=ported_inductance_geometry(case);request=case['request'];mesh=_mesh(request,technology)
     result={}
-    solve_capacitance(shape,technology,_frequency(request),ground=shape if request['action']=='calctrans'else None,
+    data=solve_capacitance(shape,technology,_frequency(request),ground=shape if request['action']=='calctrans'else None,
                       length_cell=mesh['capacitance_length_cell'],width_cell=mesh['capacitance_width_cell'],
-                      observe_storage=lambda name,matrix:result.__setitem__(name,matrix))
+                      observe_storage=lambda name,matrix:result.__setitem__(name,matrix),include_potential=inverse_storage is not None)
+    if inverse_storage is not None:
+        from reasitic.linear import factor_general
+        potential=[[complex(*value)for value in row]for row in data['potential_matrix']]
+        lu,pivots=factor_general(potential);n=len(lu)
+        inverse_storage['cap.inverse.pivots']=tuple(p+1 for p in pivots)
+        inverse_storage['cap.inverse.work']=(complex(n*64 if n>64 else n,0),*(lu[i][0]for i in range(1,n)))
     return result
 
 

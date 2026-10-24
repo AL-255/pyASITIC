@@ -63,6 +63,12 @@ expected word is changed, exact signed-zero stores, aliasing, stride padding
 and dimension validation. The full compiled corpus is mandatory rather than
 substituted with these smaller portable cases.
 
+The separate full portable audit subsequently completed all 130 cases as well:
+its complete 520-matrix/841,328-word report is identical to the packaged report,
+with zero differences. The ongoing [continuous storage history](STORAGE_HISTORY.md)
+now uses these buffers and independently checked inverse work arrays through
+via stamping and the first node boundary.
+
 ## Required checks and remaining work
 
 The new mandatory `capstorage` WASM suite runs the tests and all 130 complete
@@ -78,11 +84,12 @@ python tools/build_site.py
 node tools/check_cap_storage_original.mjs /path/to/pyodide.mjs /tmp/cap-storage-audit.json
 ```
 
-This checks matrix bytes while all four buffers are still live. Replaying
-their cleanup, allocator metadata stores and subsequent numerical allocations
-into the same byte memory is still required before these values can replace
-the raw via-entry heap inputs. Earlier process/scene/cache history, numerical
-workspace contents and repeated-command cleanup also remain unfinished.
+This check observes matrix bytes while all four buffers are still live. The
+subsequent [continuous history](STORAGE_HISTORY.md) now replays their cleanup,
+workspace/cache stores and later numerical allocations in the same memory,
+replacing via-entry initialization with explicit earlier heap inputs.
+Earlier process/scene/cache history, non-cache allocator bytes and complete
+repeated-command execution remain unfinished.
 The production trailing-via guard remains enabled. Other known logarithm,
 cosine and JOIN/UNJOIN discrepancies continue to prevent release of this
 development branch; complete original-binary parity is not yet established.

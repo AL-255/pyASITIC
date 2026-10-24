@@ -108,15 +108,18 @@ class ImpedanceSystem:
     warnings: list
     eddy_details: object
     filaments: int
+    full_y: list | None = None
 
 
 def prepare_impedance(shape,technology,frequency_hz,*,length_cell=1000,width_cell=1000,
                       thickness_cell=1000,max_width_cells=500,capacitance_length_cell=None,
-                      max_filaments=256,discretized=False,eddy=False):
+                      max_filaments=256,discretized=False,eddy=False,include_storage=False):
     """Assemble, invert and reduce the original filament system before vias.
 
     This is the shared preparation used by solve_impedance. The returned
     reduced impedance includes native eddy correction but no via stores.
+    include_storage retains the full inverse for guest-memory history without
+    changing its calculation; normal solves release that extra reference.
     """
     values = (frequency_hz,length_cell,width_cell,thickness_cell)
     if not all(math.isfinite(v) and v>0 for v in values):
@@ -170,7 +173,7 @@ def prepare_impedance(shape,technology,frequency_hz,*,length_cell=1000,width_cel
     if eddy:
         from .eddy import add_eddy
         eddy_details=add_eddy(reduced_z,meshed,technology,frequency_hz,int(eddy),warnings)
-    return ImpedanceSystem(meshed,groups,full,reduced_y,reduced_z,warnings,eddy_details,n)
+    return ImpedanceSystem(meshed,groups,full,reduced_y,reduced_z,warnings,eddy_details,n,full_y if include_storage else None)
 
 
 def solve_impedance(shape,technology,frequency_hz,*,length_cell=1000,width_cell=1000,
