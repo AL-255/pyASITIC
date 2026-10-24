@@ -16,7 +16,7 @@ SoftReal wire_length(const double* a) {
     return x87::sqrt((dx*dx+dy*dy)+dz*dz);
 }
 SoftReal integral(double frequency,double separation,double height,double width,const EddyEnvironment& e) {
-    GreenStats stats;const auto result=integrate_reflection(frequency,separation,height,*e.state,stats);
+    GreenStats stats;const auto result=integrate_green(frequency,separation,height,e.layers,e.oscillating,*e.state,stats);
     ++*e.calls;if(stats.status>=0&&stats.status<8)++e.statuses[(stats.cycles?8:0)+stats.status];return result;
 }
 int rounded_integer(SoftReal value,unsigned short mode) {

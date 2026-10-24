@@ -43,6 +43,31 @@ R trig(R input,bool cosine){
  if(negate_result!=(!cosine&&negative))sum=neg(sum);
  return R(f128_to_extF80(sum));
 }
+R wide_trig(R input,bool cosine){
+ if(asitic::x87::abs(input)<=R(4.))return trig(input,cosine);
+ if((input.value.signExp&0x7fff)==0x7fff)return nan();
+ // FSIN/FCOS leave a finite operand unchanged when its magnitude is >=2^63.
+ if(asitic::x87::abs(input)>=R(0x1p63))return input;
+ const bool negative=input.value.signExp&0x8000;
+ const Q magnitude=extF80_to_f128(asitic::x87::abs(input).value),half=f128_div(trig_pi,integer(2));
+ const auto count=extF80_roundToInt(f128_to_extF80(f128_div(magnitude,half)),softfloat_round_near_even,false);
+ const int power=(count.signExp&0x7fff)-16383;
+ const uint64_t turns=count.signif>>(63-power);const int quadrant=turns&3;
+ const Q q=extF80_to_f128(count);
+ // Split the 69-bit native Pi constant so both integer products are exact
+ // in binary128, including large operands close to the instruction limit.
+ Q high=half;high.v[0]=0;high.v[1]&=~uint64_t(1);
+ const Q low=sub(half,high),reduced=sub(sub(magnitude,f128_mul(q,high)),f128_mul(q,low));
+ const Q x=f128_div(f128_mul(reduced,pi),trig_pi),square=neg(f128_mul(x,x));
+ const bool evaluate_cosine=cosine?!(quadrant&1):quadrant&1;
+ Q term=evaluate_cosine?one:x,sum=term;
+ for(int i=1;i<=40;i++){
+  term=f128_div(f128_mul(term,square),integer(evaluate_cosine?(2*i-1)*(2*i):(2*i)*(2*i+1)));sum=f128_add(sum,term);
+ }
+ const bool negative_result=cosine?(quadrant==1||quadrant==2):(quadrant==2||quadrant==3);
+ if(negative_result!=(!cosine&&negative))sum=neg(sum);
+ return R(f128_to_extF80(sum));
+}
 }
 namespace asitic::x87 {
 SoftReal log2(SoftReal input){
@@ -108,9 +133,16 @@ SoftReal atanh(SoftReal x){
 }
 SoftReal cos(SoftReal x){return trig(x,true);}
 SoftReal sin(SoftReal x){return trig(x,false);}
+SoftReal wide_cos(SoftReal x){return wide_trig(x,true);}
+SoftReal wide_sin(SoftReal x){return wide_trig(x,false);}
 }
 extern "C" extFloat80_t retained_exp(extFloat80_t);
+extern "C" extFloat80_t retained_sinh(extFloat80_t);
 namespace asitic::x87 {SoftReal exp(SoftReal x){return SoftReal(retained_exp(x.value));}}
+namespace asitic::x87 {
+SoftReal sinh_real(SoftReal x){return SoftReal(retained_sinh(x.value));}
+SoftReal cosh_real(SoftReal x){const auto e=exp(x);return (e+SoftReal(1.)/e)*SoftReal(.5);}
+}
 extern "C" extFloat80_t retained_exp2(extFloat80_t);
 namespace asitic::x87 {
 double error_power(double x){

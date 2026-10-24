@@ -10,6 +10,7 @@ struct RealMatrixView { double* data;int stride;double& at(int i,int j)const{ret
 struct EddyEnvironment {
  double coordinate_scale;GreenState* state;
  unsigned* calls;unsigned* statuses;
+ GreenLayers layers;bool oscillating;
 };
 SoftReal distance(const double*,const double*);
 void assemble_eddy_matrix(RealMatrixView,const SquareSpiralGeometry&,double,double,const EddyEnvironment&);

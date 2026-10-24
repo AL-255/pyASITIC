@@ -103,6 +103,7 @@ def _stamp_compiled(matrix,shape,technology,frequency,mode,state,warnings):
     else:geometry=[0.]*5;size=0
     if len(shape.segments)>2048 or n>256 or size>256:return None
     config=array("d",[1,len(shape.segments),n,len(technology.metals),mode,int(square),frequency,SCALE,*geometry,*state.history,*([0.]*8)])
+    config[16:20]=array("d",[state.layers.layer1,state.layers.layer2,state.layers.depth,float(state.kernel=="oscillating")])
     wires=array("d",(v for s in shape.segments for v in [*_wire(s),s.metal]))
     data=array("d",(v for j in range(n) for i in range(n) for v in (matrix[i][j].real,matrix[i][j].imag)))
     output=array("d",[0.])*(32+size*size)
@@ -167,7 +168,7 @@ def add_eddy(matrix,shape,technology,frequency,mode,warnings):
         warnings.append("Warning: No valid eddy current layers defined; native square correction skipped")
         return dict(mode=mode,kernel=None,layers=[],green_calls=0,skipped=True)
     state=configure_eddy(technology)
-    if _compiled_stamp is not None and state.kernel=="reflection":
+    if _compiled_stamp is not None:
         info=_stamp_compiled(matrix,shape,technology,frequency,mode,state,warnings)
         if info is not None:
             if any(not math.isfinite(z.real) or not math.isfinite(z.imag) for row in matrix for z in row):

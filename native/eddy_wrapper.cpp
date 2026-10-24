@@ -22,7 +22,8 @@ extern "C" __attribute__((export_name("eddy_stamp"))) int eddy_stamp(){
  if(conductors!=rows)return -2;
  unsigned calls=0,statuses[16]={};
  asitic::GreenState state{{config[13],config[14],config[15]}};
- const asitic::EddyEnvironment env{config[7],&state,&calls,statuses};
+ if(config[19]!=0.&&config[19]!=1.)return -1;
+ const asitic::EddyEnvironment env{config[7],&state,&calls,statuses,{config[16],config[17],config[18]},config[19]==1.};
  int size=0;
  if(config[5]&&mode==1){
   const asitic::SquareSpiralGeometry g{config[8],config[9],config[10],config[11]};

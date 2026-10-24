@@ -7,7 +7,9 @@
     "src/green.cpp": "5d9ec81243dc211291b7cceadee1b063971523663fa1245de8eb509138e84190",
     "src/green_integration.cpp": "3ee60f46a7f351c746d7c9655861bb83f274b85bb4a297a1f1dda9672d49a5d2",
     "src/x87.hpp": "14452aaed86d0ec525a7611e387f3a62c9b5ab514d20de4708b2c52c9c925e9b",
-    "include/asitic/quadrature.hpp": "47fe0e48739aa80463b4fcecb0a2ddff8920d7aee132202ad383f1c2a55d37c4"
+    "include/asitic/quadrature.hpp": "47fe0e48739aa80463b4fcecb0a2ddff8920d7aee132202ad383f1c2a55d37c4",
+    "src/legacy_complex.cpp": "a493b4d50bc88448c40b0a89526e8f806aa0219fd39a69ff09975898e0420fd1",
+    "include/asitic/green.hpp": "365c57aeb246bb07d0289105f0e4be8d679068a5e6de948bc78f250d3825cebf"
   },
-  "adaptation": "SoftFloat retained arithmetic and explicit binary64 stores. Complete infinite/Fourier algorithms; reflection callback and physical scaling; square assembly and segment folding, including zero-term stamps and via traversal. Imported binary64 sin/cos follow the observed glibc 2.39 implementation, kept separate from native FSIN/FCOS. Portable Python remains available for layered kernels and observer callbacks. Source provenance and license for the imported-math adaptation are in glibc/source.json and glibc/COPYING.LIB."
+  "adaptation": "SoftFloat retained arithmetic and explicit binary64 stores. Complete infinite/Fourier algorithms; reflection and layered callbacks, legacy complex sqrt/exp/sinh/cosh/tanh, wide native-Pi trig and physical scaling; square assembly and segment folding, including zero-term stamps and via traversal. Imported binary64 sin/cos follow the observed glibc 2.39 implementation, kept separate from native FSIN/FCOS. Observer callbacks retain portable Python. Original/legacy-DSO and complete actual-session gates record scoped exact boundaries; raw native instruction differences remain explicit strict diagnostics. Source provenance and license for the imported-math adaptation are in glibc/source.json and glibc/COPYING.LIB."
 }

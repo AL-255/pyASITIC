@@ -404,18 +404,19 @@ corresponding scaled function argument in its [x87 implementation
 article](https://www.intel.com/content/www/us/en/developer/articles/technical/the-difference-between-x87-instructions-and-mathematical-functions.html).
 The mutual kernel follows that behavior over its [-4,4] angle domain; it does
 not replace native near-zero values with mathematical zeros. These bounded
-sin/cos helpers are not suitable for arbitrary Green-integrand arguments.
+sin/cos helpers remain separate from the wide Green-integrand helpers.
 Four standalone scalar and 28 instruction raw extended results still differ
 despite matching every captured binary64 store. Their words remain recorded
-for further validation. Broader complete electrical coverage, layered eddy
-arithmetic, command-input boundaries and universal whole-simulator equality
+for further validation. Broader complete electrical coverage,
+command-input boundaries and universal whole-simulator equality
 remain open.
 
-The reflection Green and eddy paths now run the original infinite/Fourier
+The reflection/layered Green and eddy paths now run the original infinite/Fourier
 algorithms and square/segment stamps with retained operations. Direct debugger
-captures observe 123 actual original Green returns, all 54,326 callback points,
-3,930 imported cosine returns, and thirteen complete stamps across coarse/fine
-LMAT and coupled sessions. The stamp gates compare 3,228 matrix components
+captures observe 165 actual original Green returns, every callback point,
+7,740 imported cosine returns, and nineteen complete stamps across coarse/fine
+LMAT and coupled sessions. Six stamps and 42 returns are original BiCMOS
+layered sessions. The stamp gates compare 4,058 matrix components
 exactly and preserve caller wire/configuration records.
 
 The imported cosine's 53-bit glibc algorithm is separate from ASITIC's x87
@@ -429,9 +430,22 @@ and rebuilds that archive byte for byte.
 The separate `tools/audit_imported_math.mjs` remains a deliberately failing
 strict diagnostic: 11 of 2,057 extreme native `pow(x,1.5)` cases differ by one
 binary64 ULP, originating in the hardware FYL2X retained result. Its reference
-data is preserved. Layered Green kernels and observer callbacks also retain
-the portable path. Passing the captured sessions is not evidence of universal
+data is preserved. Observer callbacks retain the portable path. Passing the
+captured sessions is not evidence of universal
 bitwise equality for those additional boundaries.
+
+Layered kernels preserve the original legacy complex sqrt, exp, sinh/cosh and
+tanh, with retained arithmetic between their original binary64 stores. Separate
+wide trig helpers reduce against the native internal Pi with split products
+and preserve the instruction's unchanged-operand behavior outside |x|<2^63.
+The checksum-pinned original/DSO loader captures 3,532 original calls plus
+2,658 separately identified native FCOS/FSIN instruction calls. Every captured
+binary64 component matches; finite raw Green results also match. Twenty-five
+finite standalone trig raw extended results differ, and the explicit strict
+`tools/check_layered_green.mjs --raw-trig` diagnostic fails on them. The fixture
+keeps those words and the CPU/control-word provenance unchanged. Complete
+consumed Green returns, callback histories and eddy matrix stamps have separate
+exact gates. Broader whole-session parity remains necessary.
 
 The open mesh panel exposes all five shared cell sizes above the simulation
 panels. Counts run without electrical solves and use the solver's own width/

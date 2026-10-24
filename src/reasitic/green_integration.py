@@ -17,6 +17,11 @@ try:
 except ImportError:
     _compiled_reflection=None
 
+try:
+    from _reasitic_numeric import green_layered as _compiled_layered
+except ImportError:
+    _compiled_layered=None
+
 
 @dataclass
 class GreenIntegrationState:
@@ -57,10 +62,12 @@ def green_integral(frequency,separation,height,z_offset,state,*,observer=None):
     if not all(math.isfinite(v) for v in (frequency,separation,height,z_offset)):
         raise ValueError("Green integration parameters must be finite")
     state.frequency,state.separation,state.height,state.z_offset=frequency,separation,height,z_offset
-    if _compiled_reflection is not None and state.kernel=="reflection" and observer is None:
+    compiled=_compiled_reflection if state.kernel=="reflection" else _compiled_layered
+    if compiled is not None and observer is None:
         config=array("d",[frequency,separation,height,z_offset,*state.history,0.])
+        if state.kernel=="oscillating":config.extend([state.layers.layer1,state.layers.layer2,state.layers.depth,1.])
         output=array("d",[0.])*3032
-        status=_compiled_reflection(config,output)
+        status=compiled(config,output)
         if status:raise ValueError("Invalid Green integration configuration")
         if not status:
             state.history[:]=output[10:13]

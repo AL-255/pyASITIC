@@ -38,6 +38,8 @@ while int(gdb.parse_and_eval('$pc'))!=end:
   item=dict(kind=kind)
   if kind=='green':
    item['input_bits']=memory(esp+4,32).hex();active_green=len(green);item['trig_start']=len(trig);item['points']=[];active_green_item=item
+   item['layers']=[f64(0x80ceb40),f64(0x80ceb48),f64(0x80ceb50)]
+   item['kernel']='oscillating' if u32(0x80ceb7c)==0x80948d0 else 'reflection'
    kernel=u32(0x80ceb7c)
    if kernel not in entries:entries[kernel]='kernel';gdb.Breakpoint('*'+hex(kernel),internal=True)
   elif kind in ('cos','sin'):
@@ -68,6 +70,7 @@ while int(gdb.parse_and_eval('$pc'))!=end:
    item['extended_bits']=bytes(gdb.parse_and_eval('$st0').bytes).hex();trig.append(item)
   else:
    data,stride,rows=item.pop('data'),item.pop('stride'),item['rows']
+   item['config'][16:20]=[f64(0x80ceb40),f64(0x80ceb48),f64(0x80ceb50),int(u32(0x80ceb7c)==0x80948d0)]
    item['after_bits']=b''.join(memory(data+j*stride*16,rows*16) for j in range(rows)).hex();item['green_count']=len(green)-item['green_start'];stamps.append(item)
    if stop_after_stamp:break
  gdb.execute('continue',to_string=True)
@@ -85,6 +88,7 @@ def main():
     parser=argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--reference",type=Path,required=True)
     parser.add_argument("--library-path",help="i386 runtime search path for original CLI")
+    parser.add_argument("--layered",action="store_true",help="Capture BiCMOS LMAT sessions into a separate fixture")
     args=parser.parse_args();reference=args.reference.resolve()
     original=reference/"run/asitic.linux.2.2";legacy=reference/"run/libs/libstdc++-2-libc6.1-1-2.9.0.so"
     for path,expected in ((original,ORIGINAL_SHA256),(legacy,LEGACY_SHA256)):
@@ -93,6 +97,7 @@ def main():
     eddy_parent=ROOT/"tests/fixtures/eddy.json";eddy_cases=json.loads(eddy_parent.read_text())["cases"]
     jobs=[("coupled",i,False,cases[i]) for i in (5,8,11)]
     jobs.extend(("lmat",i,fine,c) for i,c in enumerate(eddy_cases) if c["process"]=="CMOS" for fine in (False,True))
+    if args.layered:jobs=[("lmat",i,fine,c) for i,c in enumerate(eddy_cases) if c["process"]!="CMOS" for fine in (False,True)]
     with tempfile.TemporaryDirectory(prefix="pyasitic-original-eddy-") as directory:
         for label,(source,index,fine,case) in enumerate(jobs):
             work=Path(directory)/str(label);work.mkdir();script=case["script"]
@@ -112,7 +117,7 @@ def main():
     result=dict(original_sha256=ORIGINAL_SHA256,legacy_sha256=LEGACY_SHA256,parent_fixture_sha256=hashlib.sha256(parent.read_bytes()).hexdigest(),eddy_fixture_sha256=hashlib.sha256(eddy_parent.read_bytes()).hexdigest(),coverage=coverage,
                 reference="Actual original CLI sessions stopped at the first model extraction entry (coupled) or first eddy stamp return (LMAT). Fine LMAT probes start with the fixture's fine mesh and 2 GHz. GDB entry/return breakpoints observe unmodified Green, libm and eddy matrix instructions. No numerical or runtime functions are replaced. Retained words come directly from ST0 at each actual return address; finish/unwind inference is not used.",
                 gdb_commands=COMMANDS,cases=records)
-    (ROOT/"tests/fixtures/eddy_original.json").write_text(json.dumps(result,separators=(",",":"),allow_nan=False)+"\n")
+    (ROOT/"tests/fixtures"/("layered_eddy_original.json" if args.layered else "eddy_original.json")).write_text(json.dumps(result,separators=(",",":"),allow_nan=False)+"\n")
 
 
 if __name__=="__main__":main()

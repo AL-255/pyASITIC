@@ -166,8 +166,10 @@ precision between native retained stores. It preserves the original FLDLN2
 constant, exp reduction, atanh crossover and distinct FYL2X/FYL2XP1 paths. Sin/cos
 use the internal trigonometric Pi approximation described by Intel, rather
 than replacing the native instruction with the mathematical function. Their
-domain is restricted to [-4,4], covering the mutual formulas' stored angles;
-these helpers must not be used for arbitrary Green-integrand arguments.
+original helpers remain restricted to [-4,4], covering the mutual formulas'
+stored angles. Separate `wide_sin`/`wide_cos` helpers use split native-Pi
+reduction for Green arguments and preserve FSIN/FCOS's unchanged finite operand
+at magnitudes at least 2^63. They have their own instruction-oracle coverage.
 
 `capture_mutual.py` executes intact original routines for 2,135 cases, including
 939 whole pairs from real meshes and arbitrary planar/spatial geometry. Separate
@@ -224,7 +226,7 @@ they do not substitute oracle intermediates into production simulations.
 
 `quadrature.cpp` and `oscillatory.cpp` port the original infinite/Fourier
 integration algorithms with retained arithmetic and explicit stores. The
-reflection callback, warm-up, selector, partial results and physical scaling
+reflection/layered callbacks, warm-up, selector, partial results and physical scaling
 remain in `green_integral.cpp`. `eddy.cpp` retains square packing, segment
 classification and folding, including the original zero additions and via
 column traversal. One bounded compiled call stamps a complete reduced matrix;
@@ -238,17 +240,29 @@ argument reduction, with LGPL notices and complete rebuildable sources. See
 `glibc/source.json` and `glibc/README.md` for provenance and modifications.
 
 `capture_eddy_original.py` observes actual original CLI calls without replacing
-any functions. Its thirteen coarse/fine contour and coupled stamps check 3,228
-matrix components, 123 raw retained Green returns, all 54,326 callback abscissae,
-and 3,930 imported cosine returns. Separate version-bound runtime-library
+any functions. Its nineteen coarse/fine contour and coupled stamps check 4,058
+matrix components, 165 raw retained Green returns, every callback abscissa,
+and 7,740 imported cosine returns. Six stamps and 42 returns come from original
+BiCMOS sessions (`--layered`); the original reflection fixture is preserved.
+Separate version-bound runtime-library
 fixtures check another 4,658 sin/cos outputs, including signed zeros, subnormals,
 branch boundaries and large arguments. CI also requires all fifteen complete
 finite coupled sessions to match every raw SI Y/Z/model bit. Six original
 nonfinite histories retain explicit diagnostics. `eddy-source.json` records
 the original ASITIC source hashes.
 
-Layered Green kernels and observer callbacks retain the portable Python path;
-their existing component/trace comparisons are not a universal exactness claim.
+`green.cpp` and `green_complex.cpp` preserve the layered gamma, tanh, propagation
+and oscillating formulas, legacy unscaled complex sqrt, scalar sinh/cosh,
+complex exp, binary64 spills and nonfinite behavior. Scalar sinh retains its
+F2XM1/FSCALE sequence, distinct from the clipped spectral helper. The original
+DSO is used only for capture. `capture_layered_green.py` checks 3,532 intact
+original Green/DSO calls and 2,658 separately identified FCOS/FSIN instruction
+calls. All captured binary64 components match, including signed zeros. Finite
+raw original Green results also match; 25 finite standalone trig raw extended
+results differ. `check_layered_green.mjs --raw-trig` retains a strict, deliberately
+failing audit for those words. No fixture substitution or output fitting is used.
+Observer callbacks retain the portable Python path and its existing component/
+trace comparisons; broader complete electrical coverage remains open.
 The separate `audit_imported_math.mjs` additionally checks 2,057 native
 `pow(x,1.5)` cases and deliberately fails on eleven extreme inputs differing by
 one binary64 ULP. Those differences originate in the native FYL2X retained

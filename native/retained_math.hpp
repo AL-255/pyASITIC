@@ -8,6 +8,10 @@ SoftReal atanh(SoftReal);
 // Mutual-kernel angle domain [-4,4]; not arbitrary Green-integrand arguments.
 SoftReal cos(SoftReal);
 SoftReal sin(SoftReal);
+SoftReal wide_cos(SoftReal);
+SoftReal wide_sin(SoftReal);
+SoftReal sinh_real(SoftReal);
+SoftReal cosh_real(SoftReal);
 SoftReal exp(SoftReal);
 SoftReal log2(SoftReal);
 double error_power(double);

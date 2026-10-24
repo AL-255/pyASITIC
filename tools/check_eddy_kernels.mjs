@@ -6,15 +6,19 @@ import {inflateSync} from "node:zlib";
 import {installNumericalKernels} from "../web/numeric-kernels.mjs";
 const bytes=readFileSync(new URL("../dist/numeric.wasm",import.meta.url));
 const {instance:{exports:api}}=await WebAssembly.instantiate(bytes);
-const config=new Float64Array(api.memory.buffer,api.green_config_buffer(),8),output=new Float64Array(api.memory.buffer,api.green_result_buffer(),3032);
+const config=new Float64Array(api.memory.buffer,api.green_config_buffer(),12),output=new Float64Array(api.memory.buffer,api.green_result_buffer(),3032);
 const trace=new Uint8Array(api.memory.buffer,api.green_trace_buffer(),65536*8);
-const fixture=JSON.parse(readFileSync(new URL("../tests/fixtures/eddy_original.json",import.meta.url)));
+const reflection=JSON.parse(readFileSync(new URL("../tests/fixtures/eddy_original.json",import.meta.url)));
+const layered=JSON.parse(readFileSync(new URL("../tests/fixtures/layered_eddy_original.json",import.meta.url)));
+const fixture={cases:[...reflection.cases,...layered.cases],coverage:Object.fromEntries(["green","trig","stamps"].map(k=>[k,reflection.coverage[k]+layered.coverage[k]]))};
 let green=0,trig=0;
 for(const c of fixture.cases){
  let history=[0,0,0];
  for(const row of c.green){
   const raw=Buffer.from(row.input_bits,"hex"),args=Array.from({length:4},(_,i)=>raw.readDoubleLE(8*i));
-  config.set([...args,...history,0]);assert.equal(api.green_reflection_integral(),0);
+  const oscillating=row.kernel==="oscillating";
+  config.set([...args,...history,0,...(row.layers||[0,0,0]),Number(oscillating)]);
+  assert.equal(oscillating?api.green_layered_integral():api.green_reflection_integral(),0);
   history=Array.from(output.slice(10,13));const actual=Buffer.alloc(10);
   actual.writeUInt32LE(output[13],0);actual.writeUInt32LE(output[14],4);actual.writeUInt16LE(output[15],8);
   assert.equal(actual.toString("hex"),row.extended_bits,`Original retained Green session ${c.session_index}, call ${green}`);green++;
@@ -31,7 +35,8 @@ for(const c of fixture.cases){
 }
 assert.equal(green,fixture.coverage.green);assert.equal(trig,fixture.coverage.trig);
 assert.deepEqual(fixture.cases.filter(c=>c.source==="coupled").map(c=>c.session_index),[5,8,11]);
-assert.equal(fixture.cases.filter(c=>c.source==="lmat").length,10);
+assert.equal(reflection.cases.filter(c=>c.source==="lmat").length,10);
+assert.equal(layered.cases.filter(c=>c.source==="lmat").length,6);
 console.log(`${green} actual-original retained Green returns and ${trig} imported libm returns passed exactly.`);
 const mathFixture=JSON.parse(readFileSync(new URL("../tests/fixtures/imported_math.json",import.meta.url)));
 for(const c of mathFixture.cases.filter(c=>c.operation<2)){
@@ -50,12 +55,13 @@ from fractions import Fraction
 from array import array
 from _reasitic_numeric import eddy_stamp
 from reasitic.eddy import _compiled_stamp
-from reasitic.green_integration import _compiled_reflection,GreenIntegrationState,green_integral
+from reasitic.green_integration import _compiled_reflection,_compiled_layered,GreenIntegrationState,green_integral
 from reasitic.green import GreenLayers
-assert _compiled_stamp is not None and _compiled_reflection is not None
+assert _compiled_stamp is not None and _compiled_reflection is not None and _compiled_layered is not None
 components=0;stamps=0
 for case in json.loads(fixture_text)["cases"]:
- state=GreenIntegrationState(GreenLayers(1e5,0.,0.),'reflection')
+ first=case['green'][0]
+ state=GreenIntegrationState(GreenLayers(*first.get('layers',[1e5,0.,0.])),first.get('kernel','reflection'))
  for c in case['green']:
   args=struct.unpack('<4d',bytes.fromhex(c['input_bits']));value=green_integral(*args,state)
   sig,exponent=struct.unpack('<QH',bytes.fromhex(c['extended_bits']))
@@ -83,4 +89,13 @@ for case in json.loads(fixture_text)["cases"]:
   stamps+=1
 assert stamps==json.loads(fixture_text)['coverage']['stamps']
 print(f"{stamps} complete original eddy matrix stamps / {components} exact components and immutable config/wires passed")
+for bad in (array('d',[0.])*8,array('d',[float('inf'),0.,1.,0.,0.,0.,0.,0.,1.,1.,1.,1.])):
+ try:_compiled_layered(bad,array('d',[0.])*3032)
+ except Exception:pass
+ else:raise AssertionError('Invalid layered Green configuration accepted')
+for field,value in ((19,2.),(16,float('nan'))):
+ invalid=array('d',config);invalid[field]=value
+ try:eddy_stamp(invalid,wires,matrix,output)
+ except Exception:pass
+ else:raise AssertionError('Invalid eddy layer configuration accepted')
 `);

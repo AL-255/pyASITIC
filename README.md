@@ -45,6 +45,11 @@ Implemented so far:
 - Optional native `EDDY ON` substrate correction, including square packing,
   segment folding, layered Green integration and convergence diagnostics.
   Preserves native negative-resistance results and reports nonfinite failures.
+  Both reflection and layered paths run inside the compiled browser kernel.
+  Direct original captures check 165 retained Green returns, every callback
+  point and 19 complete matrix stamps exactly. Another 3,532 original Green/
+  legacy-complex calls and 2,658 separate native trig calls match at binary64
+  boundaries; raw instruction intermediates still need parity work.
 - Original layered-substrate `CAP` solver: contact discretization, layered
   spectral Green functions, reflected FFT tables, potential-matrix inversion,
   and admittance reduction. Includes explicit ground winding selection, total
@@ -84,9 +89,9 @@ Implemented so far:
   and explicit diagnostics for six original nonfinite histories.
   All fifteen captured finite eddy-off/on sessions match every raw original SI
   Y/Z/model output bit, with undefined coupling by classification. The compiled
-  reflection Green/eddy path also matches 123 actual-original retained returns,
-  every callback point, and thirteen complete matrix stamps. Layered/observer
-  fallbacks and broader complete-session coverage still need parity work.
+  reflection and layered Green/eddy paths also match the captured boundaries
+  above. Observer fallbacks and broader complete-session coverage still need
+  parity work.
 - GDSII export with actual via cuts and metal landing pads. Default mapping:
   metal index + 1, via index + 100; datatype 0. GF180 presets supply their drawn
   layer numbers. Python/JSON callers can override the mapping.
@@ -104,9 +109,15 @@ Implemented so far:
 
 Records use binary64 with selected retained-precision intermediates matching the
 reference's x87 arithmetic.
-Bitwise numerical equality is not claimed. Original saved geometry fixtures are
+Universal bitwise numerical equality is not yet established. Original saved geometry fixtures are
 compared at their 6-decimal printed precision (5.1e-7 µm).
 Foundry design rules and layer mapping must come from the user's process.
+
+The [layered eddy benchmark](docs/benchmarks/2026-10-24-layered-eddy.json)
+records identical requests on the previous and compiled browser builds. Repeated
+BiCMOS PiX requests improve from about 1.72 s to 44 ms; a 96-filament polygon
+LMAT improves from 7.38 s to 214 ms. These measurements exclude interpreter
+loading and rendering and do not compare against original-binary speed.
 
 ## Develop
 
@@ -147,7 +158,7 @@ tests and the same source archive inside the pinned WebAssembly runtime before
 deploying to Pages. No external simulation service is required.
 
 The Pages workflow runs Python core checks, every native potential-reference
-process/frequency group, and thirteen WebAssembly groups in parallel. FFT/CAP and
+process/frequency group, and fourteen WebAssembly groups in parallel. FFT/CAP and
 SELFRES checks print case progress. Fixture-derived grouping keeps all native
 cases covered; deployment waits for every group and publishes only the current
 main commit. Active validation is retained when another commit is pushed.

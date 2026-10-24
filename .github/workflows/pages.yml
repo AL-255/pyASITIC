@@ -118,6 +118,7 @@ jobs:
               node tools/check_mutual_kernels.mjs /tmp/reasitic-pyodide/node_modules/pyodide/pyodide.mjs
               node tools/check_vias.mjs /tmp/reasitic-pyodide/node_modules/pyodide/pyodide.mjs ;;
             eddy)
+              node tools/check_layered_green.mjs
               node tools/check_eddy_kernels.mjs /tmp/reasitic-pyodide/node_modules/pyodide/pyodide.mjs ;;
             *) exit 1 ;;
           esac

@@ -1,6 +1,7 @@
 #include <stdint.h>
 #include "platform.h"
 #include "softfloat.h"
+#include "internals.h"
 typedef extFloat80_t E;
 typedef struct { double re,im; } C;
 static C buffer[66049],scratch[512];
@@ -96,6 +97,25 @@ E retained_exp2(E e){
  return extF80_mul(result,pow2(power));
 }
 E retained_exp(E x){return retained_exp2(extF80_mul(x,log2e));}
+static E scale80(E value,E power){
+ int ve=value.signExp&0x7fff,pe=power.signExp&0x7fff;
+ if((ve==0x7fff&&(value.signif&0x7fffffffffffffffULL))||(pe==0x7fff&&(power.signif&0x7fffffffffffffffULL)))return extF80_add(value,power);
+ if(pe==0x7fff){
+  if((power.signExp&0x8000)?ve==0x7fff:!value.signif)return extF80_div(load(0),load(0));
+  E result=power.signExp&0x8000?load(0):(E){.signif=0x8000000000000000ULL,.signExp=0x7fff};result.signExp|=value.signExp&0x8000;return result;
+ }
+ if(!value.signif||ve==0x7fff)return value;
+ int shift=extF80_lt(load(65536),power)?65536:extF80_lt(power,load(-65536))?-65536:extF80_to_i32(power,softfloat_round_minMag,0);
+ if(!ve){ve=1;while(!(value.signif&0x8000000000000000ULL)){value.signif<<=1;ve--;}}
+ return softfloat_roundPackToExtF80(value.signExp&0x8000,ve+shift,value.signif,0,80);
+}
+E retained_sinh(E x){
+ E a=x;a.signExp&=0x7fff;
+ E exponent=extF80_mul(a,log2e),whole_exponent=integral(exponent),part=scale80(exp2m1(extF80_sub(exponent,whole_exponent)),whole_exponent),whole=scale80(load(1),whole_exponent);
+ E q=extF80_add(extF80_sub(whole,load(1)),part);
+ E value=extF80_mul(extF80_add(q,extF80_div(q,extF80_add(q,load(1)))),load(.5));
+ return extF80_mul(value,load(extF80_lt(x,load(0))?-1:1));
+}
 static double cosh80(E x,int rounded){
  if(extF80_lt(load(500),x))return 1e15;
  if(rounded)x=load(spill(x));
