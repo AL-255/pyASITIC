@@ -116,6 +116,11 @@ differences. This is not a proof that those addresses or a row formula apply
 to other native allocation histories, and no selected-case correction enters
 the application.
 
+The broader cold/warm experiment and the source-derived allocation/free plan
+are documented in [STORAGE_LIFETIMES.md](STORAGE_LIFETIMES.md). They preserve
+130 observations and match 12,877 storage events, but physical address
+placement is still unimplemented; these two model diagnostics remain active.
+
 ## Verification
 
 ```sh
