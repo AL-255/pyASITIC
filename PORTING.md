@@ -1282,3 +1282,38 @@ complete compiled batch (3.49×). The new result also matches that original L
 store; the prior result differs by one binary64 word step. Reproduce it with
 `tools/benchmark_conductor_metrics.mjs`. This measures conductor estimation in
 that interpreter; complete Pi-family solvers have their separate timing records.
+
+
+### Complete-command mutual instruction traces
+
+`tools/capture_mutual_command_traces_original.py` observes the four differing
+pair stores in `conductor_metrics_original.json` by running their complete
+original CLI histories. It records actual helper entries/returns and before/after
+x87 instruction operands without modifying numerical code, constants, input
+records, allocator state or runtime imports. It stops after the selected pair
+returns and then terminates the inferior; this is an observation boundary, not
+an assertion that the original command exits. Original executable/legacy-library
+and parent-fixture hashes accompany the separate
+`mutual_command_traces_original.json` fixture. Existing standalone primitive and
+boundary fixtures remain unchanged.
+
+`tools/audit_mutual_command_traces_original.py` is a **strict diagnostic that
+currently exits 1**. It independently replays each helper with the actual native
+call inputs, as well as all 123 observed math instruction inputs. All four
+canonical statuses and coordinate records, all 12 self-helper raw returns, all
+49 FPATAN, one FCOS, three FRNDINT, three F2XM1 and three FSCALE words match.
+The planar pair first differs at FYL2XP1 `0x08061fcd` by one raw extended ULP.
+Each of the three 3D pairs has four equal-argument FYL2X differences at
+`0x080b3d5b`, each one raw extended ULP. Retained cross-section cancellation
+propagates those differences into the effective separation and the final
+parallel pair. The four final pair F64 stores still differ (2 ULP for the planar
+pair, 13 ULP for each 3D pair). The diagnostic reports all differences and
+accepts no numeric tolerance.
+
+A research-only rational replay of the published Bochs FYL2X/FYL2XP1 algorithm
+at commit `5a25c9014f06e0e450576b7e9f25b83368bf6a76` reproduced the problematic
+3D logarithm, but failed an existing strict separation output and increased
+complete-command self-log raw differences from 34 to 56. It was not incorporated
+into the runtime. Matching one hardware case is insufficient evidence for a
+universal instruction replacement. These observations narrow the remaining
+work without introducing fitted adjustments, fixture lookups or relaxed gates.
