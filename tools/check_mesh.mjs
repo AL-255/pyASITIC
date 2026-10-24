@@ -34,7 +34,7 @@ async function idle(){for(let i=0;i<500;i++){await new Promise(setImmediate);con
 async function click(id,expectedError=false){assert.equal($(id).disabled,false,id+" disabled");$(id).click();await idle();if(!expectedError)assert.equal($("#error").hidden,true,$("#error").textContent);}
 async function change(id,value){$(id).value=value;$(id).dispatchEvent(new w.Event("change"));await idle();}
 async function restore(project){Object.defineProperty($("#project-file"),"files",{configurable:true,value:[{text:async()=>JSON.stringify(project)}]});$("#project-file").dispatchEvent(new w.Event("change"));await idle();}
-await idle();assert.equal($("#mesh-settings").open,true);assert.equal($("#mesh-max-width").value,"500");
+await idle();assert.equal($("#mesh-settings").open,true);assert.equal($("#mesh-max-width").value,"500");assert.equal($("#mesh-auto-fit").checked,false,"Mesh resolution changes require opting in");
 for(const id of["mesh-length","mesh-width","mesh-thickness","cap-length","cap-width"]){
  assert.equal(w.document.querySelectorAll("#"+id).length,1,"One shared cell field");
  assert.equal($("#"+id).value,"1000","Start with the Python solver's coarse cell defaults");
@@ -68,4 +68,30 @@ await click("#download-project");const custom=JSON.parse(await downloads.at(-1).
 await change("#mesh-max-width","10");await click("#mesh-check");assert.match($("#mesh-feedback").textContent,/10 \/ 256 filaments/);
 for(const invalid of ["0","1.5","2147483648"]){await change("#mesh-max-width",invalid);await click("#mesh-check",true);assert.match($("#error").textContent,/MAXNW/);}
 await restore(custom);assert.equal($("#mesh-max-width").value,"2147483647");
-call.destroy();w.close();console.log("Actual mesh DOM handlers passed: coarse defaults, default coil mesh count, opt-in balanced preset, visible shared fields, 480-filament rejection before simulation, fit to 60, successful Pi2, invalidation, presets, native pad counts, original MAXNW defaults/limits, int32 LMAT payloads, and legacy/new project save/restore.");
+// Exercise opt-in fitting through the real solver and project event handlers.
+await restore(project);assert.equal($("#mesh-auto-fit").checked,false,"Legacy projects require manual fitting");
+await change("#cap-length","900");await change("#cap-width","800");
+$("#mesh-auto-fit").checked=true;$("#mesh-auto-fit").dispatchEvent(new w.Event("change"));
+const beforeAuto=requests.length;
+await click("#pi2");assert.equal(w.meshState().pi2Result.filaments,60);
+const autoRequests=requests.slice(beforeAuto),fitIndex=autoRequests.findIndex(r=>r.action==="mesh"&&r.fit);
+assert.ok(fitIndex>=0,"Opted-in over-budget analysis requests a fit");
+assert.equal(autoRequests[fitIndex+1].action,"mesh","Recount the fitted native mesh before solving");
+assert.equal(autoRequests.at(-1).action,"pi2");assert.equal(autoRequests.at(-1).mesh.length_cell,40);
+assert.equal($("#cap-length").value,"900");assert.equal($("#cap-width").value,"800");assert.equal($("#mesh-max-width").value,"500");
+await click("#download-project");const automatic=JSON.parse(await downloads.at(-1).text());assert.equal(automatic.mesh_auto_fit,true);
+await restore(saved);assert.equal($("#mesh-auto-fit").checked,false);await restore(automatic);assert.equal($("#mesh-auto-fit").checked,true);
+const fittingCount=requests.filter(r=>r.fit).length;await click("#pi2");assert.equal(requests.filter(r=>r.fit).length,fittingCount,"An in-budget mesh is never coarsened");
+await restore({...project,mesh_auto_fit:true});await click("#lmat");assert.equal(requests.filter(r=>r.action==="lmat").at(-1).mesh.length_cell,40);
+assert.equal($("#cap-length").value,"1000","LMAT fitting preserves CAP settings omitted from its payload");
+await restore({...project,mesh_auto_fit:true});await change("#sweep-count","2");await change("#sweep-first","1");await change("#sweep-last","2");
+const sweepStart=requests.length;await click("#sweep");
+const sweepSolves=requests.slice(sweepStart).filter(r=>r.action==="pi2");assert.equal(sweepSolves.length,2);assert.ok(sweepSolves.every(r=>r.mesh.length_cell===40),"Every sweep sample uses the displayed fitted mesh");
+assert.equal(requests.slice(sweepStart).filter(r=>r.fit).length,1,"Fit once before collecting sweep samples");assert.equal($("#download-csv").disabled,false);
+await restore({...project,mesh:{...project.mesh,length_cell:.1},mesh_auto_fit:true});await click("#lmat");
+assert.ok(requests.filter(r=>r.action==="lmat").at(-1).mesh.length_cell>.1,"Automatic fitting also recovers longitudinal segment overflow");
+await restore({...project,shape:{kind:"square",parameters:{name:"TooMany",length:1000,width:1,spacing:1,turns:80,metal:"M5"}},mesh_auto_fit:true});
+const beforeIrreducible=requests.filter(r=>r.action==="pi2").length;await click("#pi2",true);
+assert.match($("#error").textContent,/coarsest.*filaments/);assert.equal(requests.filter(r=>r.action==="pi2").length,beforeIrreducible,"Irreducible geometry must never reach the solver");
+await restore({...project,mesh_auto_fit:"yes"});assert.match($("#error").textContent,/mesh_auto_fit/);assert.equal($("#mesh-auto-fit").checked,true,"Invalid projects preserve the current preference");
+call.destroy();w.close();console.log("Actual mesh DOM handlers passed: coarse defaults, shared presets/cells/MAXNW, rejection before simulation, manual and opt-in automatic fitting, native recount before Pi2, LMAT and sweep solves, preserved CAP settings, consistent sweep meshes, longitudinal overflow recovery, irreducible geometry diagnostics, and legacy/new project save/restore.");

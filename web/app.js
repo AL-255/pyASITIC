@@ -47,15 +47,34 @@ function controls() {
   for(const id of ["download-transformer","download-transformer-svg","download-transformer-ports"])$("#"+id).disabled=busy||!transformerResult;
   for(const id of ["download-transformer-sweep","download-transformer-plot"])$("#"+id).disabled=busy||!transformerRows.length;
 }
-async function request(payload,onProgress=null) {
+async function prepareMesh(payload) {
   if(["lmat","pi2","pi3","pi4","pix","selfres","calctrans"].includes(payload.action)){
     $("#mesh-target").value=["pi3","pix","selfres"].includes(payload.action)?"pi2":payload.action;
     const {frequency_hz,frequency_ghz,first_hz,first_ghz,last_hz,last_ghz,step_hz,step_ghz,eddy,termination_ohm,include_matrices,...geometry}=payload,key=inputJSON(geometry);
     let plan=meshCache.get(key);
-    if(!plan){plan=await request({...payload,action:"mesh",model:payload.action});if(meshCache.size>=8)meshCache.delete(meshCache.keys().next().value);meshCache.set(key,plan);}
+    if(!plan){
+      try{plan=await request({...payload,action:"mesh",model:payload.action});}
+      catch(error){if(!$("#mesh-auto-fit").checked||!/Longitudinal mesh exceeds/.test(error.message))throw error;plan={within_limit:false};}
+      if(plan.filaments!==undefined){if(meshCache.size>=8)meshCache.delete(meshCache.keys().next().value);meshCache.set(key,plan);}
+    }
+    if(!plan.within_limit&&$("#mesh-auto-fit").checked){
+      const fitted=await request({...payload,action:"mesh",model:payload.action,fit:true});
+      // Preserve the user's CAP cells and MAXNW, including for LMAT payloads
+      // that omit CAP settings. Only conductor cells are explicitly coarsened.
+      const cells=Object.fromEntries(["length_cell","width_cell","thickness_cell"].map(key=>[key,fitted.mesh[key]]));
+      applyMesh({...meshSettings(),...cells});resetResults();
+      payload.mesh={...payload.mesh,...cells};
+      // Count again after native input snapping; never trust an unsnapped fit
+      // or send an over-budget mesh to the electrical solver.
+      plan=await request({...payload,action:"mesh",model:payload.action});
+      $("#mesh-settings").open=true;
+    }
     renderMeshInfo(plan);
     if(!plan.within_limit)throw Error(`Mesh needs ${plan.filaments} filaments; the browser limit is ${plan.limit}. Use Mesh settings → Fit to 256 filaments, or enter larger cells.`);
   }
+}
+async function request(payload,onProgress=null) {
+  await prepareMesh(payload);
   const id = ++nextId;
   return new Promise((resolve, reject) => { pending.set(id, {resolve,reject,onProgress}); worker.postMessage({id,request:JSON.parse(inputJSON(payload))}); });
 }
@@ -128,6 +147,7 @@ $("#mesh-preset").addEventListener("change",()=>{
   applyMesh(Object.fromEntries(Object.keys(MESH_FIELDS).map((key,i)=>[key,values[i]])));changedMesh();
 });
 for(const id of Object.values(MESH_FIELDS))$("#"+id).addEventListener("change",()=>{$("#mesh-preset").value="custom";changedMesh();});
+$("#mesh-auto-fit").addEventListener("change",()=>{error();status($("#mesh-auto-fit").checked?"Automatic mesh fitting enabled. Over-budget simulations will use larger conductor cells; their sizes will be displayed.":"Automatic mesh fitting disabled. Adjust or fit the mesh manually before solving.");});
 $("#mesh-check").addEventListener("click",()=>task(async()=>{renderMeshInfo(await request(meshPayload()));status("Mesh counted without running the electrical solver.");}));
 $("#mesh-fit").addEventListener("click",()=>task(async()=>{
   const plan=await request({...meshPayload(),fit:true});applyMesh(plan.mesh);resetResults();renderMeshInfo(plan);
@@ -438,6 +458,7 @@ $("#sweep").addEventListener("click",()=>task(async()=>{
   if(!(first>0&&last>first&&Number.isInteger(count)&&count>=2&&count<=101))throw new Error("Sweep needs 0 < start < stop and 2–101 points.");
   const log=$("#sweep-scale").value==="log";
   const base=model==="estimates"?{action:"simulate",...currentDefinition,technology:technologyText}:modelPayload(model,first,firstGHz);
+  await prepareMesh(base);
   sweepRows=[];sweepModels=[];sweepContext={model,firstHz:first,lastHz:last,eddy:model!=="estimates"&&base.eddy};
   for(let i=0;i<count;i++){
     const f=log?first*(last/first)**(i/(count-1)):first+(last-first)*i/(count-1);
@@ -604,6 +625,7 @@ $("#transformer-run").addEventListener("click",()=>task(async()=>{
 $("#transformer-sweep").addEventListener("click",()=>task(async()=>{
   const firstGHz=numeric("#sweep-first"),lastGHz=numeric("#sweep-last"),first=firstGHz*1e9,last=lastGHz*1e9,count=numeric("#sweep-count"),log=$("#sweep-scale").value==="log";
   if(!(first>0&&last>first&&Number.isInteger(count)&&count>=2&&count<=101))throw Error("Sweep needs 0 < start < stop and 2–101 points.");
+  await prepareMesh(transformerPayload(first,firstGHz));
   resetTransformer();
   transformerRange={firstHz:first,lastHz:last};
   for(let i=0;i<count;i++){
@@ -690,13 +712,14 @@ $("#download-gds").addEventListener("click",()=>task(async()=>{
   download(Uint8Array.from(atob(result.base64),c=>c.charCodeAt(0)),"application/octet-stream",filename(".gds"));
   status("GDSII exported: metals use index + 1, vias use index + 100, datatype 0; 1 nm grid.");
 }));
-$("#download-project").addEventListener("click",()=>task(async()=>download(inputJSON({format:"reasitic-project",version:1,shape:currentDefinition,technology:technologyText,...meshInputs()},2),"application/json",filename(".json"))));
+$("#download-project").addEventListener("click",()=>task(async()=>download(inputJSON({format:"reasitic-project",version:1,shape:currentDefinition,technology:technologyText,...meshInputs(),mesh_auto_fit:$("#mesh-auto-fit").checked},2),"application/json",filename(".json"))));
 $("#project-file").addEventListener("change",event=>task(async()=>{
   const file=event.target.files[0];if(!file)return;
   const data=JSON.parse(await file.text());
   if(data.format!=="reasitic-project"||data.version!==1||!data.shape) throw new Error("Unsupported project file.");
   const restoredMesh=data.mesh?Object.fromEntries(Object.keys(MESH_FIELDS).map(key=>[key,Number(key==="max_width_cells"&&data.mesh[key]===undefined?500:data.mesh[key])])):null;
   if(restoredMesh)validateMesh(restoredMesh);
+  if(data.mesh_auto_fit!==undefined&&typeof data.mesh_auto_fit!=="boolean")throw Error("Project mesh_auto_fit must be true or false.");
   const text=data.technology||"";
   const init=await request({action:"init",technology:text});
   // Verify geometry before replacing the current project.
@@ -729,6 +752,7 @@ $("#project-file").addEventListener("change",event=>task(async()=>{
   if(data.shape.kind==="via")for(const key of ["nx","ny"])restoredParameters[key]=restored.parameters[key]??restored.segments[0][key];
   for(const [key,value] of Object.entries(restoredParameters))restoreFormParameter(key,key==="phase"&&(data.shape.kind==="wire"||symmetric||multimetal||primitive||paired||data.shape.kind==="square")?((restored.parameters.phase??value)<0?-1:1):value);
   if(restoredMesh)applyMesh(restoredMesh);
+  $("#mesh-auto-fit").checked=data.mesh_auto_fit===true;
   currentDefinition=data.shape;current=restored;showFields(data.shape);render(current);resetResults();status("Project restored. Run analysis on the selected winding.");
   event.target.value="";
 }));

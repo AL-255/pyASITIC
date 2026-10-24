@@ -204,7 +204,10 @@ Implemented so far:
   CAP cells, the original MAXNW width-division cap (default 500), and a
   filament-count check before electrical solves. “Fit to 256 filaments” explicitly coarsens conductor cells while preserving CAP cell
   settings and MAXNW. Counts include Pi4 pads or both CALCTRANS windings as selected;
-  project downloads preserve all five cell sizes and MAXNW. Original retained
+  project downloads preserve all five cell sizes and MAXNW. Optional automatic
+  fitting coarsens over-budget conductor meshes before solving, displays the
+  adjusted cells and checks the count again after native input snapping. It is
+  off by default; projects preserve the preference. Original retained
   count rounding matches 2,116 captured primitive cases; six complete original
   CLI runs verify MAXNW, filament stores and LMAT reports (five finite reports
   match bit for bit; the native invalid MAXNW=1 case remains a diagnostic).
