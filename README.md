@@ -42,6 +42,9 @@ Implemented so far:
   Via corrections preserve the original retained arithmetic and matrix stores;
   1,214 direct-original stamps check 2,428 output components (finite bits and
   nonfinite classifications), including forced-reference cell counts.
+  Self impedance and mutual-frequency weighting now preserve the original
+  retained stores. Twenty-three complete original upper matrices check 4,648
+  output components exactly, including refined polygon clones.
 - Optional native `EDDY ON` substrate correction, including square packing,
   segment folding, layered Green integration and convergence diagnostics.
   Preserves native negative-resistance results and reports nonfinite failures.
@@ -73,9 +76,10 @@ Implemented so far:
   Pi metrics, ZIN and S conversion preserve every retained operation and store
   in both Python and WebAssembly: 3,435 original records check 96,180 binary64
   outputs and 6,673 finite retained returns. Pi3 preserves its ordinary reference
-  mesh, distinct from Pi2's forced reference mesh. Thirty-four of 41 new complete
-  original Pi sessions match every finite Y/model/S output and resonance value;
-  seven upstream geometry/solver differences remain in the strict full audit.
+  mesh, distinct from Pi2's forced reference mesh. All 41 captured complete
+  original Pi sessions match every finite Y/model/S output and resonance value.
+  The strict audit is mandatory in CI; broader device/process coverage remains
+  necessary for universal original-binary parity.
 - Extended `PIX` two-port model with unfolded capacitance, segment impedance
   and the original extended node equations. Includes circuit display, PiX
   sweeps and Y/S/model exports. Python/JSON callers can request matrix and
@@ -102,6 +106,11 @@ Implemented so far:
   metal index + 1, via index + 100; datatype 0. GF180 presets supply their drawn
   layer numbers. Python/JSON callers can override the mapping.
   Units are micrometres, with a 1 nm export grid.
+- Polygon spirals retain native radial decrement, angle spills, vertex stores
+  and recentering. Forty-two complete original creators check 12,288 XY
+  components exactly in Python and WebAssembly, including fractional turns,
+  3–32 sides and positive/negative rotations. Longitudinal meshing preserves
+  the original copy branch and independently normalized ribbon edges.
 - Browser preview, pan/zoom, process-file import, project save/open, conductor
   estimates, selectable L/R/Q frequency plots, linear/log frequency scales,
   progressive Pi2/Pi3/Pi4 sweeps, sample-to-circuit inspection, plot SVG and CSV

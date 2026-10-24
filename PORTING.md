@@ -14,6 +14,8 @@ Reference checkout: `~/github/asitic-re`, revision recorded in each fixture.
 | `resistance.py` | `resistance.cpp` | Original DC reports for nine families; twelve live C++ cases at five frequencies (1 MHz–100 GHz) |
 | `inductance.py` | `analysis_commands.cpp`, `segment.cpp`, `canonicalize.cpp`, `intersection.cpp`, `parallel.cpp`, `separation.cpp`, `planar.cpp`, `spatial.cpp` | Twelve live C++ INDUCTANCE command reports, including symmetric, nonparallel, stacked and via geometry |
 | `solver.py` | `geometry.cpp`, `filament_setup.cpp`, `filaments.cpp`, `impedance.cpp`, `vias.cpp`, `solver.cpp` | 36 complete C++ LMAT matrices: coarse 1 GHz, refined 2 GHz, and unequal inductive/capacitive length cells; within 1e-8 Ω per component in CPython and WebAssembly |
+| `impedance.py`, `native/impedance.cpp` | `impedance.cpp`, `geometry.cpp` | 23 actual original complete upper matrices / 4,648 exact components, 2,094 original mesh-pair outputs, immutable input and symmetric reconstruction checks; actual original longitudinal clone fields including refined polygons |
+| `polygon.py`, `native/polygon.cpp` | `spiral_construction.cpp`, `shape_construction.cpp` | 42 actual original creator calls / 12,288 raw XY stores exact in portable Python and compiled WebAssembly; fractional turns, 3–32 sides, positive/negative rotations and production inputs |
 | `potential.py` | `potential_tables.cpp`, `potential.cpp`, `contacts.cpp`, `potential_solver.cpp` | Eight CAP sessions across CMOS/BiCMOS: full potential snapshots, folded admittance matrices, and actual cache FFT samples for every metal pair; browser runtime checks cover all eight reduced matrices |
 | `fft.py`, `native/fft.c` | Original machine-code routine at `0x080912c0`; `potential_tables.cpp` | 83 direct original-binary FFT/reflected-grid cases, 17,342 bit-identical binary64 output components including signed zeros/subnormals, verified in Python and compiled WebAssembly; pinned compiler reproduces the module byte for byte |
 | `x87_math.py`, `native/fft.c` | Original clipped cosh at `0x0809123c`, tanh through transfer-up at `0x0808f004`; `potential_tables.cpp` | 20,014 direct original-binary scalar cases match bit for bit in Python and compiled WebAssembly; retained argument formation and exponent reduction fix the grounded-wire raw-potential reference without widening tolerance |
@@ -479,9 +481,28 @@ kept separately; Pi3's type-0 reference can differ from a later type-8 2PORT
 history. Original coordinate-height words independently check the reader's two
 stored subtractions. Nominal process height and geometry coordinate height stay
 separate. At identical Y inputs every captured CLI metric/S stage matches.
-Thirty-four of 41 complete sessions additionally match all finite Y/model/S
-outputs and resonance. The explicit strict `tools/check_pi_sessions.mjs
-/path/to/pyodide.mjs --audit-full` still fails on seven upstream square/via-exit
-and polygon histories. Those captured outputs remain unchanged; the ordinary
-suite requires the 34 established complete-session boundaries. This is scoped
-progress, not universal original-binary parity.
+All 41 complete sessions additionally match all finite Y/model/S outputs and
+resonance. The strict `tools/check_pi_sessions.mjs /path/to/pyodide.mjs` audit
+is mandatory in CI without exclusions; `--audit-full` remains compatible.
+Original captured words remain unchanged. This is scoped progress, not universal
+original-binary parity.
+
+The remaining square/via discrepancy was isolated at identical native filament
+inputs: two diagonal resistances rounded differently when Decimal guard digits
+were converted to binary64. Assembly now rounds every retained operation and
+preserves the native angular-frequency/nanosecond stores. Twenty-three actual
+original upper assemblies check 4,648 output components; independent original
+pair replay checks 2,094 geometry-only terms. Production always computes those
+terms and never reads oracle data.
+
+Polygon spirals now preserve the original distinct sector spills, decrement
+cancellation and radius history, native-Pi trig and vertex/recentering stores.
+Forty-two complete original creators check 12,288 raw XY components in both
+backends. The native clone's coarse branch copies existing endpoints unchanged;
+re-evaluating end = start + (end - start) had changed the final two whole-session
+results. Actual subdivision follows independently normalized primary/outer/inner
+directions, retained distances and stores. Original clone fields, including
+refined polygons, are checked directly against the assembly context records.
+Repeated mesh checks and frequency samples reuse a bounded cache of immutable
+subdivision coordinates keyed by every input bit. Each clone still owns fresh
+segment fields; changing one solve's geometry cannot affect later solves.

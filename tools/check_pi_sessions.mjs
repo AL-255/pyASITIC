@@ -1,5 +1,5 @@
 // Strict original input-stage checks and complete-session parity audit.
-// --audit-full additionally fails on the seven recorded upstream differences.
+// Every complete captured session is mandatory; --audit-full remains compatible.
 import {readFileSync} from "node:fs";
 import {pathToFileURL} from "node:url";
 import {installNumericalKernels} from "../web/numeric-kernels.mjs";
@@ -7,7 +7,6 @@ const {loadPyodide}=await import(pathToFileURL(process.argv[2]).href),py=await l
 py.unpackArchive(new Uint8Array(readFileSync(new URL("../dist/reasitic.zip",import.meta.url))),"zip");
 await installNumericalKernels(py,readFileSync(new URL("../dist/numeric.wasm",import.meta.url)));
 for(const [key,name]of [["sessions_text","pi_sessions_original"],["metrics_text","network_metrics_original"]])py.globals.set(key,readFileSync(new URL(`../tests/fixtures/${name}.json`,import.meta.url),"utf8"));
-py.globals.set("audit_full",process.argv.includes("--audit-full"));
 try {py.runPython(`
 import json,struct,math
 from fractions import Fraction
@@ -26,7 +25,6 @@ def resonance(bits):
  sig,exp=struct.unpack('<QH',bytes.fromhex(bits))
  if exp&0x7fff==0x7fff:return math.nan if sig&0x7fffffffffffffff else math.copysign(math.inf,-1 if exp&0x8000 else 1)
  return float(Fraction(sig)*Fraction(2)**((exp&0x7fff)-16383-63)*(-1 if exp&0x8000 else 1))
-open_sessions={('network',1),('network',3),('network_eddy',1),('network_eddy',3),('pix',2),('pix',5),('gf180_network',2)}
 differences=[];exact=0;components=0
 for i,c in enumerate(sessions):
  # The full actual CLI metric stage must match at its independently captured Y.
@@ -53,9 +51,8 @@ for i,c in enumerate(sessions):
   differences.append(label)
   print(label,'different output components Y/model/S:',counts,'resonance equal:',res_ok)
  else:exact+=1
- if label not in open_sessions:assert not any(counts) and res_ok,('Required complete original Pi session',label,counts)
+ assert not any(counts) and res_ok,('Required complete original Pi session',label,counts)
 assert len(sessions)==41 and len(captured)==41
 print(f'All {len(sessions)} actual-original CLI metric/S stages passed at identical Y inputs. {exact}/{len(sessions)} complete sessions match every raw Y/model/S finite output and resonance; undefined metrics retain public nulls.')
-print('Seven complete upstream geometry/solver differences remain visible; --audit-full deliberately fails while any session differs.')
-if audit_full and differences:raise AssertionError(f'{len(differences)} complete original Pi sessions still differ')
+assert exact==len(sessions)
 `);} catch(error) {console.error(String(error));process.exitCode=1;}

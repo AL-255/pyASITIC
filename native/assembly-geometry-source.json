@@ -1,0 +1,13 @@
+{
+  "reference_commit": "63885e808b522bdeba3f254d353afc72e643c761",
+  "source_sha256": {
+    "src/impedance.cpp": "ba5f10caf337464f379ffdc1c4efab74e81b25e10580a755cd258474f606b46e",
+    "src/geometry.cpp": "23885f0c700e9a29301a0be31036d080acfd4c8d8e9011cc5eb4584277b6939d",
+    "src/spiral_construction.cpp": "ed4eac77ce39dea4a92b55f97bde9b1a1bdf122a7e4f62e73fabf6a61be1a404",
+    "src/shape_construction.cpp": "cfa061f327ed4d29c232602f64a38f8dbab7dc587ee9d69cf2e9686b8b66008d",
+    "src/x87.hpp": "14452aaed86d0ec525a7611e387f3a62c9b5ab514d20de4708b2c52c9c925e9b",
+    "include/asitic/impedance.hpp": "475ceb8aa1568c09f22a5827a4c2c1f81ebdd45b973387e2a0f6a833782f0401",
+    "include/asitic/filaments.hpp": "1a16ad031ef9ff6cc5df2fee2ebd785c16dc61f6801f58a447a5818ae070828e"
+  },
+  "adaptation": "Retained SoftFloat assembly of filament self impedances and stored-frequency-weighted mutual terms, preserving every original association and binary64 store. Geometry-only mutual values retain the existing computed cache. Polygon creation preserves sector spills, radius/decrement history, FSIN/FCOS native-Pi semantics, vertex stores, linked order and recentering. Portable Python follows these formulas with retained rational arithmetic and guarded elementary functions. Longitudinal cloning preserves the native unchanged-copy branch and per-edge normalization/stores. Actual original matrix, filament, clone and creator records establish tested boundaries; no oracle data enters runtime. Hardware exception flags/NaN payloads and universal elementary-instruction equality are not claimed."
+}

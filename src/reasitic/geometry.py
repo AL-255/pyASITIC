@@ -125,26 +125,9 @@ def _square(shape, tech, metal, exit_metal, dx, dy, width, spacing, turns, angle
 
 
 def _polygon(shape, tech, metal, radius, sides, width, spacing, turns, angle):
-    ribbon = width/math.cos(math.pi/sides)
-    shrink = ((width+spacing)*turns)/math.cos(math.pi/sides)
-    decrement = (radius-(radius-shrink))/(turns*sides)
-    for turn in range(1, int(turns+1)+1):
-        def vertex(theta, r):
-            return ((math.cos(theta)*r,math.sin(theta)*r),
-                    (math.cos(theta)*(r-ribbon/2),math.sin(theta)*(r-ribbon/2)),
-                    (math.cos(theta)*(r-ribbon),math.sin(theta)*(r-ribbon)))
-        outer, center, inner = vertex(angle, radius)
-        count = int((turns-math.floor(turns))*sides+1/(sides*2)) if turn == int(turns+1) else sides
-        for side in range(1,count+1):
-            radius -= decrement
-            if radius < 1e-10:
-                raise ValueError("Spiral radius exhausted")
-            next_outer, next_center, next_inner = vertex(2*math.pi*side/sides+angle, radius)
-            shape.segments.append(_segment(tech, metal, width, center, next_center,
-                                           outer, next_outer, inner, next_inner))
-            outer, center, inner = next_outer, next_center, next_inner
-    x0,y0,x1,y1 = shape.bounds
-    shape.offset((x1-x0)/2,(y1-y0)/2)
+    from .polygon import vertices
+    for row in vertices(radius,sides,width,spacing,turns,angle):
+        shape.segments.append(_segment(tech,metal,width,row[0:2],row[2:4],row[4:6],row[6:8],row[8:10],row[10:12]))
 
 
 def _ring(shape, tech, metal, radius, sides, width, gap, angle):

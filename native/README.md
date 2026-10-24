@@ -38,11 +38,10 @@ operations clear unrelated output fields and preserve caller input buffers.
 
 `capture_pi_sessions.py` independently observes 41 actual original CLI sessions.
 Pi4's intermediate pad report and final de-embedded report remain separate.
-All captured metric/S stages match at identical Y inputs. Thirty-four complete
-sessions also match every finite Y/model/S output and resonance. The separate
-`check_pi_sessions.mjs --audit-full` deliberately fails on seven remaining
-upstream square/via-exit and polygon histories. Those original words remain
-unchanged; production calculations never load fixture data. Source hashes and
+All captured metric/S stages match at identical Y inputs. All 41 complete
+sessions also match every finite Y/model/S output and resonance. The strict
+`check_pi_sessions.mjs` audit is mandatory in CI, without session exclusions.
+The original words remain unchanged; production calculations never load fixture data. Source hashes and
 adaptations are recorded in `network-source.json`.
 
 Technology geometry heights preserve the reader's two binary64 stores:
@@ -50,6 +49,29 @@ Technology geometry heights preserve the reader's two binary64 stores:
 spectral preparation and process display. Pi3 preserves its parser-type-0
 reference mesh; Pi2/Pi4 retain type-8 marking. These input histories are covered
 by the complete-session gates rather than being inferred from isolated kernels.
+
+`impedance.cpp` preserves self-distance/log/resistance arithmetic and the
+binary64 angular-frequency/nanosecond stores before retained mutual weighting.
+The unscaled geometry-only pair cache remains computed by the existing kernel.
+Python's former 25-digit Decimal resistance evaluation changed an exact
+binary64 rounding tie (`0.9750000000000001` became `0.975`). Both backends now
+preserve every retained operation and store. `capture_impedance_original.py`
+observes 23 actual original fill calls, exact filament records and all defined
+upper cells. Another intact-original pair replay supplies unscaled test inputs.
+All 4,648 upper components match in Python and WebAssembly; 2,094 actual-mesh
+pair outputs also match. The native lower triangle is undefined; the production
+API reconstructs the symmetric matrix without changing the tested upper cells.
+
+`polygon.cpp` and the portable `polygon.py` preserve the original distinct
+retained/stored sector arguments, shrink/decrement cancellation, radius history,
+vertex spills, native-Pi FSIN/FCOS behavior and bounds/recentering order. Actual
+original CLI captures check 42 creators / 12,288 XY components, including
+fractional turns, 3–32 sides and rotated inputs. Longitudinal cloning now copies
+an unchanged segment when the native threshold selects that branch; actual
+subdivision retains the original per-edge normalized directions and stores.
+Original clone records include refined polygon meshes. Source hashes are in
+`assembly-geometry-source.json`. These gates establish captured boundaries;
+raw elementary-instruction differences documented below remain open.
 
 The spectral helpers retain `k * (a - b)` until the original store, then follow
 the original FLDL2E / FRNDINT / F2XM1 / FSCALE exponent reduction. The F2XM1

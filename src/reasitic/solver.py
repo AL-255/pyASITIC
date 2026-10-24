@@ -7,14 +7,15 @@ parallel kernels. CAP uses the original general LU and inverse path.
 import copy
 import math
 import struct
-from decimal import Decimal,localcontext
 from functools import lru_cache
-from .inductance import segment_mutual, SELF_CONSTANT
+from .inductance import segment_mutual
 from .symmetric import inverse_symmetric
 from .linear import inverse_general
 from .filament import record as _filament_record,filament_records
 from .mutual_kernel import mesh_mutual,WARNING_MESSAGES
 from .vias import stamp as stamp_vias,active_height as active_via_height
+from .impedance import assemble as assemble_impedance,self_impedance as _filament_self_impedance
+from .retained_scalar import Real
 
 
 @lru_cache(maxsize=32768)
@@ -35,23 +36,36 @@ def _sum_complex(values):
     return complex(real,imag)
 
 
-def _filament_self_impedance(wire,sheet_resistance,thickness_cells,omega_nh):
-    """Native retained length/log arithmetic and binary64 L/R stores."""
-    with localcontext() as context:
-        context.prec=25
-        d=Decimal.from_float
-        dx,dy,dz=(d(wire[i+3])-d(wire[i]) for i in range(3))
-        length=((dx*dx+dy*dy)+dz*dz).sqrt()
-        if length<=d(float.fromhex("0x1.b7cdfd9d7bdbbp-34")):return 0j
-        width,thickness=d(wire[6]),d(wire[7]);total=width+thickness
-        inductance=float((length*d(2e-4))*((((length+length)/total).ln()+d(SELF_CONSTANT))+total/(length*3)))
-        resistance=float(((length/width)*d(sheet_resistance))*thickness_cells)
-        return complex(resistance,float(d(omega_nh)*d(inductance)))
-
-
 def inverse(matrix):
     """Invert a dense complex matrix through the native general LU path."""
     return inverse_general(matrix)
+
+
+@lru_cache(maxsize=32)
+def _subdivision(record):
+    # Frequency sweeps reuse geometry. Cache immutable coordinates, including
+    # every input bit, while each returned segment remains a fresh object.
+    values=struct.unpack("=20d",record)
+    length_step,half_width=values[:2];coordinates=values[2:]
+    def length(a,b):
+        dx,dy,dz=(Real(b[k])-a[k]for k in range(3))
+        return ((dx*dx+dy*dy)+dz*dz).sqrt()
+    maximum=float(length(coordinates[:3],coordinates[3:6]))
+    if not min(length_step,half_width)<maximum:return None
+    count=math.ceil((Real(maximum)/Real(half_width)).value)
+    if count>2000:raise ValueError("Longitudinal mesh exceeds 2000 segments")
+    rows=[[]for _ in range(count)]
+    for offset in (0,6,12):
+        a,b=coordinates[offset:offset+3],coordinates[offset+3:offset+6]
+        delta=[float(Real(b[k])-a[k])for k in range(3)]
+        norm=((Real(delta[0])*delta[0]+Real(delta[1])*delta[1])+Real(delta[2])*delta[2]).sqrt()
+        direction=[float(Real(v)/norm)for v in delta]
+        edge_length=length(a,b)
+        for index,row in enumerate(rows):
+            first=(edge_length*Real(index))/Real(count);last=(edge_length*Real(index+1))/Real(count)
+            for distance in (first,last):
+                row.extend(float(distance*Real(direction[axis])+Real(a[axis])) if axis<2 else float(Real(a[axis])+distance*Real(direction[axis])) for axis in range(3))
+    return tuple(tuple(row)for row in rows)
 
 
 def discretize(shape,length_step,half_width):
@@ -59,16 +73,18 @@ def discretize(shape,length_step,half_width):
     result = copy.deepcopy(shape)
     result.segments = []
     for source in shape.segments:
-        count = math.ceil(source.length/half_width) if min(length_step,half_width)<source.length else 1
-        if len(result.segments)+count>2000:
+        fields=(source.start,source.end,source.inner_start,source.inner_end,source.outer_start,source.outer_end)
+        rows=_subdivision(struct.pack("=20d",length_step,half_width,*(v for field in fields for v in field)))
+        if rows is None:
+            if len(result.segments)>=2000:raise ValueError("Longitudinal mesh exceeds 2000 segments")
+            result.segments.append(copy.deepcopy(source))
+            continue
+        if len(result.segments)+len(rows)>2000:
             raise ValueError("Longitudinal mesh exceeds 2000 segments")
-        for index in range(count):
+        for row in rows:
             segment = copy.deepcopy(source)
-            for start,end in ((segment.start,segment.end),(segment.inner_start,segment.inner_end),(segment.outer_start,segment.outer_end)):
-                a,b = start.copy(),end.copy()
-                for axis in range(3):
-                    start[axis] = a[axis]+(b[axis]-a[axis])*index/count
-                    end[axis] = a[axis]+(b[axis]-a[axis])*(index+1)/count
+            for i,field in enumerate((segment.start,segment.end,segment.inner_start,segment.inner_end,segment.outer_start,segment.outer_end)):
+                field[:]=row[3*i:3*i+3]
             result.segments.append(segment)
     return result
 
@@ -133,13 +149,10 @@ def solve_impedance(shape,technology,frequency_hz,*,length_cell=1000,width_cell=
         groups.append(indices)
     filaments=[(_checked_filament(row),metal,nz) for row,(metal,nz) in zip(filament_records(filament_inputs),metadata)]
     omega = 2*math.pi*frequency_hz
-    omega_nh=omega*1e-9
     n = len(filaments)
-    full = [[0j]*n for _ in range(n)]
     warnings = []
-    native=mesh_mutual(b"".join(struct.pack("=8d",*wire) for wire,_,_ in filaments));pair=0
+    native=mesh_mutual(b"".join(struct.pack("=8d",*wire) for wire,_,_ in filaments));pair=0;pairs=[]
     for row,(a,metal,nz) in enumerate(filaments):
-        full[row][row]=_filament_self_impedance(a,technology.metals[metal].resistance,nz,omega_nh)
         for col in range(row+1,n):
             if native is not None and native[3*pair]==0:
                 mutual=native[3*pair+1];warning=int(native[3*pair+2])
@@ -147,7 +160,8 @@ def solve_impedance(shape,technology,frequency_hz,*,length_cell=1000,width_cell=
             else:mutual,notices = _filament_mutual(struct.pack("=16d",*a,*filaments[col][0]))
             pair+=1
             warnings.extend(notices)
-            full[row][col] = full[col][row] = complex(0,omega*1e-9*mutual)
+            pairs.append(mutual)
+    full=assemble_impedance([wire for wire,_,_ in filaments],[(technology.metals[metal].resistance,nz)for _,metal,nz in filaments],pairs,frequency_hz)
     full_y = inverse_symmetric(full)
     reduced_y = [[_sum_complex(full_y[r][c] for r in rows for c in columns)
                   for columns in groups] for rows in groups]

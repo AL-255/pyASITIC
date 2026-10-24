@@ -22,6 +22,11 @@ export async function installNumericalKernels(python, bytes) {
   const transformerData = new Float64Array(api.memory.buffer, api.transformer_buffer(), 24);
   const networkMetricInput = new Float64Array(api.memory.buffer, api.network_metric_buffer(), 256*26);
   const networkMetricOutput = new Float64Array(api.memory.buffer, api.network_metric_result_buffer(), 256*42);
+  const impedanceWires = new Float64Array(api.memory.buffer, api.impedance_wire_buffer(), 256*10);
+  const impedanceMutual = new Float64Array(api.memory.buffer, api.impedance_mutual_buffer(), 256*255/2);
+  const impedanceMatrix = new Float64Array(api.memory.buffer, api.impedance_matrix_buffer(), 2*256*256);
+  const polygonConfig = new Float64Array(api.memory.buffer, api.polygon_config_buffer(), 6);
+  const polygonVertices = new Float64Array(api.memory.buffer, api.polygon_vertex_buffer(), 20000*12);
   const filamentInput = new Float64Array(api.memory.buffer, api.filament_buffer(), 256*26);
   const filamentOutput = new Float64Array(api.memory.buffer, api.filament_result_buffer(), 256*9);
   const mutualInput = new Float64Array(api.memory.buffer, api.mutual_buffer(), 256*18);
@@ -55,6 +60,25 @@ export async function installNumericalKernels(python, bytes) {
     } finally {o?.release();c?.release();}
   }
   python.registerJsModule("_reasitic_numeric", {
+    polygon_spiral(config,output) {
+      let c,o;
+      try {
+        c=config.getBuffer("f64");o=output.getBuffer("f64");
+        if(c.data.length!==6||!Array.from(c.data).every(Number.isFinite)||!Number.isInteger(c.data[1])||c.data[1]<3||c.data[1]>1024||c.data[1]*c.data[4]>20000||o.data.length>20000*12)throw new Error("Polygon geometry configuration is invalid");
+        polygonConfig.set(c.data);const count=api.polygon_spiral();
+        if(count>0){if(o.data.length<count*12)throw new Error("Polygon geometry output is too small");o.data.set(polygonVertices.subarray(0,count*12));}return count;
+      } finally {o?.release();c?.release();}
+    },
+    impedance_assemble(wires,mutual,output,frequency) {
+      let w,p,o;
+      try {
+        w=wires.getBuffer("f64");p=mutual.getBuffer("f64");o=output.getBuffer("f64");const n=w.data.length/10;
+        if(!Number.isInteger(n)||n<1||n>256||p.data.length!==n*(n-1)/2||o.data.length!==2*n*n)throw new Error("Filament assembly dimensions are invalid");
+        for(let i=0;i<n;i++)if(!Number.isInteger(w.data[10*i+1])||w.data[10*i+1]<1||w.data[10*i+1]>2147483647)throw new Error("Filament thickness count is invalid");
+        impedanceWires.set(w.data);impedanceMutual.set(p.data);const status=api.impedance_assemble(n,frequency);
+        if(!status)o.data.set(impedanceMatrix.subarray(0,2*n*n));return status;
+      } finally {o?.release();p?.release();w?.release();}
+    },
     network_metrics(input,output,operation=3) {
       let a,b;
       try {
