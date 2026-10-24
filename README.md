@@ -193,8 +193,10 @@ process/frequency group, and fifteen WebAssembly groups in parallel. FFT/CAP and
 SELFRES checks print case progress. Fixture-derived grouping keeps all native
 cases covered. The build plan checks that every discovered core test occurs
 exactly once; each runner verifies its planned test-ID digest before execution.
-Deployment waits for every group and publishes only the current
-main commit. Active validation is retained when another commit is pushed.
+Deployment waits for every group. A validated commit on the current main
+history can advance the published site while newer commits are still checking.
+The publication guard rejects builds older than the version already published;
+active validation is retained when another commit is pushed.
 
 Python API:
 

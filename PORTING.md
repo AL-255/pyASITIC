@@ -763,3 +763,19 @@ caller buffers and recovery after invalid requests are tested. Actual DOM
 checks compare preview DC, fractional-GHz HF estimates, the original 1/10/100
 GHz resistance sweep and CSV values, followed by an exact original Pi2 solve
 in the same interpreter to check shared-buffer/elementary-plan isolation.
+
+
+Pages promotion compares a fully validated candidate against actual site-URL
+receipts in GitHub's deployment history, then checks commit ancestry. The
+previous tip-only guard skipped 8b41e73's Deploy step after all 31 checks passed
+because a newer main commit existed; repeated pushes could therefore keep the
+site on an older release. The new guard accepts validated ancestors of current
+main when they advance the published version, rejects rollback/divergent
+candidates, and retains the serialized Pages deployment job. Successful skipped
+environment jobs have empty site URLs and do not count as publication. A site
+URL is conservatively retained after a later job failure. Pagination, initial
+publication, rebuilds, skipped jobs, out-of-order completion, divergent commits,
+post-publish failure and API failures have explicit regression checks. The
+metadata API permission is read-only; all existing numerical/creator gates
+still precede publication. See GitHub's [deployment status API](https://docs.github.com/en/rest/deployments/statuses#list-deployment-statuses)
+and [commit comparison API](https://docs.github.com/en/rest/commits/commits#compare-two-commits).

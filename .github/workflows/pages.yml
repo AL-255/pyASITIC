@@ -146,24 +146,21 @@ jobs:
       cancel-in-progress: false
     permissions:
       contents: read
+      deployments: read
       pages: write
       id-token: write
     environment:
       name: github-pages
       url: ${{ steps.deployment.outputs.page_url }}
     steps:
-      - name: Publish only the current main commit
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - name: Advance the published version without rollback
         id: current
         env:
           GH_TOKEN: ${{ github.token }}
-        run: |
-          current_commit="$(gh api "repos/$GITHUB_REPOSITORY/git/ref/heads/main" --jq '.object.sha')"
-          if [ "$current_commit" = "$GITHUB_SHA" ]; then
-            echo 'publish=true' >> "$GITHUB_OUTPUT"
-          else
-            echo 'publish=false' >> "$GITHUB_OUTPUT"
-            echo 'A newer main commit exists; retaining validation results without publishing an older build.'
-          fi
+        run: python3 tools/pages_promotion.py
       - name: Deploy
         if: steps.current.outputs.publish == 'true'
         id: deployment
