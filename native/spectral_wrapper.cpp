@@ -32,15 +32,17 @@ static int load_config(){
  for(int i=0;i<=nl;i++)depths[i]=config[offset++];
  return 0;
 }
-extern "C" __attribute__((export_name("spectral_tables"))) int spectral_tables(){
+static int table_operation(bool samples_only){
  int status=load_config();if(status)return status;
  const int nx=config[1],ny=config[2],nl=config[4];
  const int count=2*nx+2*ny+((nx+1)*(ny+1)>nx*(nx+1)+ny+1?(nx+1)*(ny+1):nx*(nx+1)+ny+1);
  for(int i=0;i<count;i++)tables[i]={0,0};
  const PotentialTableGeometry geometry{nx,ny,config[7],config[8],metals,{coefficients+1,depths},nl};
- generate_potential_tables(config[5],config[6],geometry,{tables,tables+2*nx,tables+2*nx+2*ny});
+ generate_potential_tables(config[5],config[6],geometry,{tables,tables+2*nx,tables+2*nx+2*ny},samples_only);
  return 0;
 }
+extern "C" __attribute__((export_name("spectral_tables"))) int spectral_tables(){return table_operation(false);}
+extern "C" __attribute__((export_name("spectral_samples"))) int spectral_samples(){return table_operation(true);}
 extern "C" __attribute__((export_name("spectral_probe"))) int spectral_probe(int kind,int source,int target,int last,double k,double sh,double th){
  int status=load_config();if(status)return status;
  const int nl=config[4];

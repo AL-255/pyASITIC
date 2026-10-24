@@ -24,14 +24,14 @@ from .contact_math import (potential as _contact_potential,indices as _indices,
                            transfer as _zero_transfer,zero_potential as _zero_potential)
 from .contact_geometry import groups as _contact_groups
 
-def _tables(source,target,nx,ny,width,height,metal_records,coefficients,depth_records,*,include_storage=False):
+def _tables(source,target,nx,ny,width,height,metal_records,coefficients,depth_records,*,include_storage=False,samples_only=False):
     # Tuple equality merges +0 and -0. Keep every input store in the cache
     # key, including signed zeros and the original nonfinite coefficient bits.
-    return _cached_tables(configuration(source,target,nx,ny,width,height,metal_records,coefficients,depth_records).tobytes(),include_storage)
+    return _cached_tables(configuration(source,target,nx,ny,width,height,metal_records,coefficients,depth_records).tobytes(),include_storage,samples_only)
 
 
 @lru_cache(maxsize=16)
-def _cached_tables(key,include_storage=False):
+def _cached_tables(key,include_storage=False,samples_only=False):
     config=array('d');config.frombytes(key)
     _,nx,ny,nm,nl,source,target,width,height=config[:9]
     nx,ny,nm,nl,source,target=map(int,(nx,ny,nm,nl,source,target))
@@ -39,9 +39,9 @@ def _cached_tables(key,include_storage=False):
     metal_records=tuple((int(config[i]),config[i+1],config[i+2])for i in range(offset,offset+3*nm,3));offset+=3*nm
     coefficients=tuple(complex(config[i],config[i+1])for i in range(offset,offset+2*nl,2));offset+=2*nl
     depth_records=tuple(config[offset:])
-    compiled=generate_tables(source,target,nx,ny,width,height,metal_records,coefficients,depth_records,include_storage=include_storage)
+    compiled=generate_tables(source,target,nx,ny,width,height,metal_records,coefficients,depth_records,include_storage=include_storage,samples_only=samples_only)
     if compiled is not None:return compiled
-    return _retained_tables(source,target,nx,ny,width,height,metal_records,coefficients,depth_records,include_storage=include_storage)
+    return _retained_tables(source,target,nx,ny,width,height,metal_records,coefficients,depth_records,include_storage=include_storage,samples_only=samples_only)
 
 
 @dataclass(frozen=True)

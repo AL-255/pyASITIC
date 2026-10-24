@@ -13,11 +13,12 @@ from audit_allocator_original import state_differences
 from audit_cap_prelude_original import compare as prelude
 
 
-def compare(case,*,return_state=False,include_prelude=True,observe_headers=False):
+def compare(case,*,return_state=False,include_prelude=True,observe_headers=False,initial_regions=()):
     context=case['setup_context'];output=case['setup_output'];initial=case['allocator_states'][0]
     assert initial['label']=='driver_entry'
     heap=Heap(initial);memory=Memory(heap.address_space)
     for region in context['memory_regions']:memory.write(region['address'],bytes.fromhex(region['data']))
+    for address,data in initial_regions:memory.write(address,data)
     strings=context['strings'];memory.write(strings['address'],bytes.fromhex(strings['data']))
     geometry=GeometryStorage(heap,memory,context['head'])
     geometry.strings=LegacyStrings(memory,geometry.string_allocate,geometry.release,nil_address=strings['nil_address'],pool_address=strings['pool_address'])

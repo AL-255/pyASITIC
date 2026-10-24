@@ -114,7 +114,7 @@ ComplexValue potential_spectral_a(int source,int target,int last,double k,double
 ComplexValue potential_spectral_b(int source,int target,int last,double k,double source_height,double target_height,const PotentialTableLayers& layers) {
     return spectral_kernel(false,source,target,last,k,source_height,target_height,layers);
 }
-void generate_potential_tables(int source,int target,const PotentialTableGeometry& g,PotentialTableOutput out) {
+void generate_potential_tables(int source,int target,const PotentialTableGeometry& g,PotentialTableOutput out,bool samples_only) {
     constexpr double pi=0x1.921fb54442d18p+1;
     const auto sample=[&](double k,bool y_axis) {
         const auto& sm=g.metals[source];const auto& tm=g.metals[target];
@@ -138,7 +138,7 @@ void generate_potential_tables(int source,int target,const PotentialTableGeometr
         const ComplexValue dx{static_cast<double>(x),0},dy{static_cast<double>(y),0};
         z=legacy::divide(z,dx);z=legacy::divide(z,dx);z=legacy::divide(z,dy);z=legacy::divide(z,dy);
     }
-    retained_grid(out.xy,g.nx,g.ny);
+    if(!samples_only)retained_grid(out.xy,g.nx,g.ny);
     for(int x=0;x<=g.nx;++x) {
         auto& z=out.x[x];if(x==0 || x==g.nx) { z={0,0};continue; }
         z=sample(binary64((static_cast<SoftReal>(x)*pi)/g.width),false);
@@ -153,6 +153,6 @@ void generate_potential_tables(int source,int target,const PotentialTableGeometr
     }
     for(int x=g.nx;x<2*g.nx;++x)out.x[x]=out.x[2*g.nx-x];
     for(int y=g.ny;y<2*g.ny;++y)out.y[y]=out.y[2*g.ny-y];
-    retained_fft(out.x,2*g.nx);retained_fft(out.y,2*g.ny);
+    if(!samples_only){retained_fft(out.x,2*g.nx);retained_fft(out.y,2*g.ny);}
 }
 }

@@ -78,7 +78,8 @@ def spectral(down,source,target,last,k,source_height,target_height,coefficients,
     return _divide(weighted,complex(k,0.))
 
 
-def tables(source,target,nx,ny,width,height,metal_records,coefficients,depth_records,*,include_storage=False):
+def tables(source,target,nx,ny,width,height,metal_records,coefficients,depth_records,*,include_storage=False,samples_only=False):
+    if samples_only and include_storage:raise ValueError('Samples do not have a transformed FFT workspace')
     depths=list(depth_records)
     @lru_cache(maxsize=None)
     def interface(i,j):return _divide(coefficient(coefficients,i),coefficient(coefficients,j))
@@ -103,7 +104,8 @@ def tables(source,target,nx,ny,width,height,metal_records,coefficients,depth_rec
             for divisor in (x,x,y,y):value=_divide(value,complex(divisor,0.))
             xy[x*(nx+1)+y]=value
     workspace=[]
-    _transform_grid(xy,nx,ny,observe_storage=workspace.extend if include_storage else None);tx=[0j]*(2*nx);ty=[0j]*(2*ny)
+    if not samples_only:_transform_grid(xy,nx,ny,observe_storage=workspace.extend if include_storage else None)
+    tx=[0j]*(2*nx);ty=[0j]*(2*ny)
     for i in range(1,nx):
         value=sample(float((R(i)*R(PI))/R(width)),False);divisor=complex(i,0.)
         tx[i]=_divide(_divide(value,divisor),divisor)
@@ -112,5 +114,5 @@ def tables(source,target,nx,ny,width,height,metal_records,coefficients,depth_rec
         ty[i]=_divide(_divide(value,divisor),divisor)
     for i in range(nx,2*nx):tx[i]=tx[2*nx-i]
     for i in range(ny,2*ny):ty[i]=ty[2*ny-i]
-    _fft(tx);_fft(ty)
+    if not samples_only:_fft(tx);_fft(ty)
     return (tx,ty,xy,tuple(workspace))if include_storage else(tx,ty,xy)

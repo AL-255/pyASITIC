@@ -54,7 +54,7 @@ export async function installNumericalKernels(python, bytes) {
   const eddyMatrix = new Float64Array(api.memory.buffer, api.eddy_matrix_buffer(), 2*256*256);
   const eddyInfo = new Float64Array(api.memory.buffer, api.eddy_info_buffer(), 32);
   const eddySquare = new Float64Array(api.memory.buffer, api.eddy_square_buffer(), 256*256);
-  function spectralCall(config,output,probe,scratch) {
+  function spectralCall(config,output,probe,scratch,samples=false) {
     let c,o,s;
     try {
       c=config.getBuffer("f64");o=output.getBuffer("f64");
@@ -66,7 +66,7 @@ export async function installNumericalKernels(python, bytes) {
       if(o.data.length!==count)throw new Error("Spectral output length is invalid");
       if(scratch){s=scratch.getBuffer("f64");if(probe||s.data.length!==4*nx)throw new Error("Spectral workspace length is invalid");}
       spectralConfig.set(c.data);
-      const status=probe?api.spectral_probe(...probe):api.spectral_tables();
+      const status=probe?api.spectral_probe(...probe):samples?api.spectral_samples():api.spectral_tables();
       if(probe){o.data.set(spectralTables.subarray(0,2));o.data.set(spectralDepths.subarray(0,nl+1),2);}
       else o.data.set(spectralTables.subarray(0,count));
       if(s)s.data.set(new Float64Array(api.memory.buffer,api.fft_scratch_buffer(),4*nx));
@@ -255,6 +255,7 @@ export async function installNumericalKernels(python, bytes) {
       } finally {view.release();}
     },
     spectral_tables: (config,output,scratch) => spectralCall(config,output,undefined,scratch),
+    spectral_samples: (config,output) => spectralCall(config,output,undefined,undefined,true),
     spectral_probe: (config,output,...args) => spectralCall(config,output,args),
     tanh_argument: (k,a,b) => api.tanh_argument(k,a,b),
     cosh_argument: (k,a,b,rounded) => api.cosh_argument(k,a,b,rounded),

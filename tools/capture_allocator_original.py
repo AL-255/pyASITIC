@@ -77,7 +77,7 @@ def commands(debug_directory,observer=OBSERVER):
     return text
 
 
-def main(*,observer=OBSERVER,fixture_name='allocator_state_original.json.gz',extra_metadata=None,command_builder=None,job_factory=None):
+def main(*,observer=OBSERVER,fixture_name='allocator_state_original.json.gz',extra_metadata=None,command_builder=None,job_factory=None,case_transform=None,finalize_metadata=None):
     parser=argparse.ArgumentParser(add_help=False)
     parser.add_argument('--debug-directory',type=Path,required=True)
     parser.add_argument('--libc',type=Path,default=Path('/lib/i386-linux-gnu/libc.so.6'))
@@ -91,7 +91,7 @@ def main(*,observer=OBSERVER,fixture_name='allocator_state_original.json.gz',ext
     metadata=dict(allocator_provenance=dict(libc_sha256=hashlib.sha256(options.libc.read_bytes()).hexdigest(),libc_build_id=BUILD_ID,debug_sha256=hashlib.sha256(debug.read_bytes()).hexdigest(),libc_version='Ubuntu GLIBC 2.39-0ubuntu8.9',pointer_bytes=4,alignment=16,observer=observer,parent_sha256=hashlib.sha256((lifetime.ROOT/'tests/fixtures/trailing_via_heap_original.json.gz').read_bytes()).hexdigest()))
     if extra_metadata:metadata.update(extra_metadata)
     builder=commands if command_builder is None else command_builder
-    lifetime.main(commands=builder(options.debug_directory,observer),fixture_name=fixture_name,extra_metadata=metadata,job_factory=job_factory)
+    lifetime.main(commands=builder(options.debug_directory,observer),fixture_name=fixture_name,extra_metadata=metadata,job_factory=job_factory,case_transform=case_transform,finalize_metadata=finalize_metadata)
 
 
 if __name__=='__main__':main()

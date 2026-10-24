@@ -4,9 +4,11 @@ from decimal import Decimal,localcontext,InvalidOperation,DivisionByZero,Overflo
 from .fft import _fft_extended,_fft_spill
 try:
     from _reasitic_numeric import spectral_tables as _compiled_tables
+    from _reasitic_numeric import spectral_samples as _compiled_samples
     from _reasitic_numeric import layer_coefficients as _compiled_coefficients
 except ImportError:
     _compiled_tables=None
+    _compiled_samples=None
     _compiled_coefficients=None
 
 
@@ -50,14 +52,16 @@ def configuration(source,target,nx,ny,width,height,records,coefficients,depths):
     return result
 
 
-def generate_tables(source,target,nx,ny,width,height,records,coefficients,depths,*,include_storage=False):
-    if _compiled_tables is None or max(len(records),len(coefficients))>256:return None
+def generate_tables(source,target,nx,ny,width,height,records,coefficients,depths,*,include_storage=False,samples_only=False):
+    function=_compiled_samples if samples_only else _compiled_tables
+    if function is None or max(len(records),len(coefficients))>256:return None
+    if samples_only and include_storage:raise ValueError('Samples do not have a transformed FFT workspace')
     config=configuration(source,target,nx,ny,width,height,records,coefficients,depths)
     count=2*nx+2*ny+max((nx+1)*(ny+1),nx*(nx+1)+ny+1)
     output=array("d",[0.0])*(2*count)
     if include_storage:
-        scratch=array('d',[0.])*(4*nx);status=_compiled_tables(config,output,scratch)
-    else:status=_compiled_tables(config,output)
+        scratch=array('d',[0.])*(4*nx);status=function(config,output,scratch)
+    else:status=function(config,output)
     if status:raise ValueError("Invalid spectral table configuration")
     values=[complex(output[i],output[i+1]) for i in range(0,len(output),2)]
     result=values[:2*nx],values[2*nx:2*nx+2*ny],values[2*nx+2*ny:]

@@ -11,7 +11,7 @@ from reasitic.allocation_plan import combined_network_storage
 from reasitic.heap import Heap,SystemAllocationRequired
 
 
-def state_differences(heap,state):
+def state_differences(heap,state,*,memory=None):
     differences=[]
     raw=bytes.fromhex(state['arena_bytes'])
     bitmap=[int.from_bytes(raw[offset:offset+4],'little')for offset in range(1080,1096,4)]
@@ -21,11 +21,19 @@ def state_differences(heap,state):
     for field,actual in [('top',heap.top),('last_remainder',heap.last_remainder),('have_fastchunks',int(heap.have_fastchunks)),('system_mem',heap.system_mem),('bins',heap.bins[1:]),('fastbins',heap.fastbins),('tcache',[[p+8 for p in b]for b in heap.tcache])]:
         if actual!=state[field]:differences.append(dict(kind='state',boundary=state['label'],field=field,actual=actual,original=state[field]))
     original={c['address']:c for c in state['chunks']}
-    if set(heap.chunks)!=set(original):differences.append(dict(kind='chunk-addresses',boundary=state['label'],extra=sorted(set(heap.chunks)-set(original)),missing=sorted(set(original)-set(heap.chunks))))
-    for address in heap.chunks.keys()&original.keys():
-        actual=heap.chunks[address];native=original[address];word=actual.size|int(actual.previous_in_use)
-        if word!=native['size_word']:differences.append(dict(kind='chunk-header',boundary=state['label'],address=address,actual=word,original=native['size_word']))
-        if not actual.previous_in_use and actual.previous!=native['prev_size']:differences.append(dict(kind='previous-size',boundary=state['label'],address=address,actual=actual.previous,original=native['prev_size']))
+    if memory is None:
+        if set(heap.chunks)!=set(original):differences.append(dict(kind='chunk-addresses',boundary=state['label'],extra=sorted(set(heap.chunks)-set(original)),missing=sorted(set(original)-set(heap.chunks))))
+        for address in heap.chunks.keys()&original.keys():
+            actual=heap.chunks[address];native=original[address];word=actual.size|int(actual.previous_in_use)
+            if word!=native['size_word']:differences.append(dict(kind='chunk-header',boundary=state['label'],address=address,actual=word,original=native['size_word']))
+            if not actual.previous_in_use and actual.previous!=native['prev_size']:differences.append(dict(kind='previous-size',boundary=state['label'],address=address,actual=actual.previous,original=native['prev_size']))
+    else:
+        # Read the same physical header walk as the independent native
+        # observer. Its stopping error is compared, never ignored or repaired.
+        chunks,errors=header_walk(memory,heap.parameters['sbrk_base'],heap.top)
+        if chunks!=state['chunks']:differences.append(dict(kind='physical-chunks',boundary=state['label'],actual=chunks,original=state['chunks']))
+        native=[e for e in state['errors']if e['section']=='chunks']
+        if errors!=native:differences.append(dict(kind='physical-header-errors',boundary=state['label'],actual=errors,original=native))
     if 'mapping_policy'in state:
         for field,original in state['parameters'].items():
             if heap.parameters[field]!=original:differences.append(dict(kind='malloc-parameter',boundary=state['label'],field=field,actual=heap.parameters[field],original=original))
@@ -41,6 +49,20 @@ def state_differences(heap,state):
         actual=merge(heap.address_space.ranges);original=merge((m['start'],m['end'])for m in state['maps'])
         if actual!=original:differences.append(dict(kind='mapped-ranges',boundary=state['label'],actual=actual,original=original))
     return differences
+
+
+def header_walk(memory,base,top):
+    cursor=base+(-(base+8)%16);chunks=[];errors=[]
+    while cursor<=top:
+        previous=memory.u32(cursor);word=memory.u32(cursor+4);size=word&~7
+        if size<16 or(cursor!=top and size%16):
+            errors.append(dict(section='chunks',address=cursor,size_word=word));break
+        chunks.append(dict(address=cursor,prev_size=previous,size_word=word))
+        if cursor==top:break
+        if cursor+size>top:
+            errors.append(dict(section='chunks',address=cursor,size_word=word));break
+        cursor+=size
+    return chunks,errors
 
 
 def compare(case):

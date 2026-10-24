@@ -101,6 +101,13 @@ all four additional strict cases and the full ambiguous-binding rejection.
 It remains nonzero on that rectangular heap-state case. Every prior gate is
 still required; nothing is skipped to make this branch deployable.
 
+The subsequent [cache storage replay](CACHE_STORAGE.md) captures the missing
+earlier cache allocations and complete external file bodies in new native
+runs. It reproduces the actual rectangular overflow and damaged physical
+walk; all 134 new histories match. The earlier fixture and its strict logical
+audit above remain intact and nonzero. The new result does not repair that
+older run with inputs observed in another process.
+
 ```sh
 PYTHONPATH=src python tools/capture_libio_storage_original.py --debug-directory /tmp/debug/usr/lib/debug --reference /path/to/asitic-re --library-path /path/to/native-libraries --full-output /tmp/libio-storage-full.json.gz
 PYTHONPATH=src python tools/capture_libio_storage_extended_original.py --debug-directory /tmp/debug/usr/lib/debug --reference /path/to/asitic-re --library-path /path/to/native-libraries
@@ -109,8 +116,8 @@ python tools/build_site.py
 node tools/check_libio_storage_original.mjs /path/to/pyodide.mjs /tmp/libio-audit.json /tmp/libio-extra-audit.json /tmp/binding-audit.json
 ```
 
-Remaining integration includes source cache-table allocations/stores at actual
-guest addresses, bin/fastbin bytes, non-cache corruption-aware allocator reads,
+Remaining integration includes source startup cache-table allocations,
+bin/fastbin bytes, corruption-aware allocator reads,
 and joining this earlier memory to the subsequent numerical history. Earlier
 scene/process startup, contact stack-state words, secondary segment groups,
 later command cleanup and the known logarithm/cosine and JOIN/UNJOIN numerical

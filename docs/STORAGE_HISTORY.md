@@ -25,8 +25,10 @@ and coupled JOIN addresses and full records from driver-entry state, then
 continues the same allocator through contact/cache preparation.
 [Pre-CAP storage](PRELUDE_STORAGE.md) generates FFT scratch and stream-buffer
 bytes, and [libio storage](LIBIO_STORAGE.md) adds FILE/header and head/footer
-stores. Joining that earlier memory to this numerical replay still requires
-cache-table stores and the remaining allocator byte history.
+stores. [Shared cache storage](CACHE_STORAGE.md) now reproduces all selected
+table stores and the rectangular overflow from explicit earlier cache inputs.
+Joining that earlier memory to this numerical replay still requires the
+remaining allocator byte history and source process-startup allocations.
 
 The complete initial bytes matter: name padding left untouched in a contact
 group can later become an allocator validation word after reuse. Supplying

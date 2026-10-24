@@ -17,8 +17,10 @@ from audit_allocator_original import state_differences
 from project_prelude_storage_original import expand_case
 
 
-def compare(case,*,return_state=False):
-    before,heap,addresses,memory=geometry(case,return_state=True,include_prelude=False,observe_headers=True)
+def compare(case,*,return_state=False,cache_files=None):
+    from reasitic.cache_storage import CacheStorage,initial_regions
+    cached=cache_files is not None
+    before,heap,addresses,memory=geometry(case,return_state=True,include_prelude=False,observe_headers=True,initial_regions=initial_regions(case['cache_inputs'])if cached else())
     result=dict(label=case['label'],cache_mode=case['cache_mode'],geometry=before,events_checked=0,allocations_checked=0,file_records_checked=0,header_arrays_checked=0,workspaces_checked=0,file_buffers_checked=0,bytes_checked=0,unknown_bytes=0,differences=list(before['differences']))
     if result['differences']:return result
     initial=next(s for s in case['allocator_states']if s['label']=='contacts_entry')
@@ -27,6 +29,7 @@ def compare(case,*,return_state=False):
     objects={e.name:e for e in plan if e.action=='allocate'};observed={r['event_index']:r for r in case['prelude_storage']}
     inputs=case['libio_inputs'];files=FileStorage(memory,inputs)
     technology=Technology.from_text(case['request']['technology']);frequency=_frequency(case['request']);contacts=ported_records(case);prepared=False
+    cache=CacheStorage(memory,case['cache_inputs'],technology,frequency,cache_files)if cached else None
     if len(plan)!=len(case['prefix_events']):result['differences'].append(dict(kind='event-count',actual=len(plan),original=len(case['prefix_events'])))
     for index,(event,native)in enumerate(zip(plan,case['prefix_events'])):
         name=event.name
@@ -35,13 +38,22 @@ def compare(case,*,return_state=False):
             write_prepared(memory,contacts,addresses);prepared=True
         if event.action=='allocate':
             if event.size!=native['request']:result['differences'].append(dict(kind='request',index=index));break
+            if cache is not None and name.startswith('cache.fft.'):
+                source,target=map(int,name.split('.')[-2:]);cache.begin(source,target)
             address=heap.malloc(event.size);addresses[name]=address;result['allocations_checked']+=1
             if name.endswith('.file'):files.initialize(address)
             if name=='cache.reader.buffer':
-                prefix=struct.pack('<iid',int(technology.chip['fftx']),int(technology.chip['ffty']),frequency)
-                matches=[r for r in inputs['cache_files']if bytes.fromhex(r['header']).startswith(prefix)]
+                if cache is not None:
+                    # These histories have one earlier external input file.
+                    # Resolve that explicit path, not its frequency payload.
+                    matches=inputs['cache_files']
+                else:
+                    prefix=struct.pack('<iid',int(technology.chip['fftx']),int(technology.chip['ffty']),frequency)
+                    matches=[r for r in inputs['cache_files']if bytes.fromhex(r['header']).startswith(prefix)]
                 if len(matches)!=1:raise ValueError('Missing or ambiguous earlier cache-file header')
-                copy_cache_headers(memory,addresses['cache.header.substrates'],addresses['cache.header.metals'],bytes.fromhex(matches[0]['header']),substrates,metals)
+                header=cache.input_file(matches[0]['name'])if cache is not None else bytes.fromhex(matches[0]['header'])
+                copy_cache_headers(memory,addresses['cache.header.substrates'],addresses['cache.header.metals'],header,substrates,metals)
+                if cache is not None:cache.load(matches[0]['name'])
         else:
             address=addresses[name]
             if name.endswith('.file'):
@@ -50,10 +62,15 @@ def compare(case,*,return_state=False):
                 key='file_records_checked'
             elif name.startswith('cache.header.'):key='header_arrays_checked'
             elif name.startswith('cache.fft.'):
-                source,target=map(int,name.split('.')[-2:]);*tables,scratch=table_storage(technology,frequency,source,target)
-                memory.write(address,complex_bytes(scratch));key='workspaces_checked'
+                if cache is not None:cache.transform(address)
+                else:
+                    source,target=map(int,name.split('.')[-2:]);*tables,scratch=table_storage(technology,frequency,source,target)
+                    memory.write(address,complex_bytes(scratch))
+                key='workspaces_checked'
             elif name.endswith('.buffer'):
-                store_file_buffer(memory,address,objects[name].size,case['cache_mode'],technology,frequency);key='file_buffers_checked'
+                if cache is not None:cache.file_buffer(address,objects[name].size,case['cache_mode'])
+                else:store_file_buffer(memory,address,objects[name].size,case['cache_mode'],technology,frequency)
+                key='file_buffers_checked'
             else:raise ValueError('Unimplemented pre-CAP free store: '+name)
             record=observed[index];assert record['address']==address and record['size']==objects[name].size
             expected=bytes.fromhex(record['data']);result[key]+=1
@@ -65,9 +82,10 @@ def compare(case,*,return_state=False):
                 result['bytes_checked']+=size
                 if actual!=expected[offset:offset+size]:result['differences'].append(dict(kind='bytes',name=name,offset=offset,actual=actual.hex(),original=expected[offset:offset+size].hex()))
             heap.free(address)
+            if cache is not None and name.startswith('cache.fft.'):cache.finish()
         if address!=native['address']:result['differences'].append(dict(kind='address',index=index,name=name,actual=address,original=native['address']))
         result['events_checked']+=1
-    result['differences'].extend(state_differences(heap,next(s for s in case['allocator_states']if s['label']=='scope')))
+    result['differences'].extend(state_differences(heap,next(s for s in case['allocator_states']if s['label']=='scope'),memory=memory if cached else None))
     if return_state:return result,heap,addresses,memory
     return result
 

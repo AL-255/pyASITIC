@@ -313,6 +313,16 @@ source allocator footer writes and external cache-header padding. The added
 rectangular case still fails strict heap-state validation from native
 cache-table corruption; that failure remains a required gate.
 
+The subsequent [shared cache replay](docs/CACHE_STORAGE.md) now adds actual
+table allocations/content as earlier inputs and reproduces the original
+rectangular overwrite at its guest addresses. All 134 newly captured histories
+match complete table digests, pre-free buffers and physical heap walks,
+including the damaged walk: 6,030 tables / 535,324,320 bytes. All four small
+histories also match in portable Python. A clipping negative control leaves
+final table digests unchanged but correctly fails physical-walk checks. The
+older incomplete-context `libio` audit remains nonzero and required; startup,
+allocator byte decisions and joining the later numerical history remain open.
+
 Records use binary64 with selected retained-precision intermediates matching the
 reference's x87 arithmetic. The [native logarithm audit](docs/LOGARITHM_AUDIT.md)
 adds 8,182 instruction cases and 10,327 multiplier cases with complete request

@@ -22,5 +22,5 @@ ComplexValue potential_source_up(int,double,double,const PotentialTableLayers&);
 ComplexValue potential_source_down(int,int,double,double,const PotentialTableLayers&);
 ComplexValue potential_spectral_a(int,int,int,double,double,double,const PotentialTableLayers&);
 ComplexValue potential_spectral_b(int,int,int,double,double,double,const PotentialTableLayers&);
-void generate_potential_tables(int,int,const PotentialTableGeometry&,PotentialTableOutput);
+void generate_potential_tables(int,int,const PotentialTableGeometry&,PotentialTableOutput,bool samples_only=false);
 }

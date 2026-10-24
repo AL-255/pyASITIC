@@ -12,11 +12,12 @@ just to fill a buffer. Direct block transfers deliberately bypass the buffer.
 
 
 class FileBytes:
-    def __init__(self,chunks):
+    def __init__(self,chunks,*,read_sizes=None):
         self.chunks=[];self.size=0
         for data,size in chunks:
             if data is not None and len(data)!=size:raise ValueError('File chunk length differs from its storage')
             self.chunks.append((self.size,self.size+size,data));self.size+=size
+        self.read_sizes=tuple(stop-start for start,stop,data in self.chunks)if read_sizes is None else tuple(read_sizes)
 
     def store(self,memory,address,offset,size):
         end=offset+size
@@ -46,8 +47,7 @@ def write_buffer(memory,address,capacity,file):
 def read_buffer(memory,address,capacity,file):
     """Run successful fread calls and underflow fills, retaining unused tail."""
     position=pointer=end=0
-    for start,stop,_ in file.chunks:
-        want=stop-start
+    for want in file.read_sizes:
         while want:
             available=end-pointer
             if want<=available:pointer+=want;break

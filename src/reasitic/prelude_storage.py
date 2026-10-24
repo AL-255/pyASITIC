@@ -10,14 +10,14 @@ from .file_buffer_storage import FileBytes,read_buffer,write_buffer
 import struct
 
 
-def table_storage(technology,frequency_hz,source,target):
+def table_storage(technology,frequency_hz,source,target,*,samples_only=False):
     """The complete table outputs and final grid FFT scratch before delete[]."""
     depths=[0.]*(len(technology.substrate)+1)
     for i in range(len(technology.substrate)-1,-1,-1):depths[i]=float(Real(depths[i+1])+technology.substrate[i]['t'])
     coefficients=layer_coefficients(technology.substrate,frequency_hz)
     metals=tuple((m.layer,float(Real(depths[m.layer])-m.height),m.thickness)for m in technology.metals)
     chip=technology.chip;nx=int(chip['fftx']);ny=int(chip['ffty'])
-    return _tables(source,target,nx,ny,float(chip['chipx']),float(chip['chipy']),metals,coefficients,tuple(depths),include_storage=True)
+    return _tables(source,target,nx,ny,float(chip['chipx']),float(chip['chipy']),metals,coefficients,tuple(depths),include_storage=not samples_only,samples_only=samples_only)
 
 
 def complex_bytes(values):return b''.join(struct.pack('<2d',z.real,z.imag)for z in values)
