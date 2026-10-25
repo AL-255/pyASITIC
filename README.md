@@ -484,12 +484,18 @@ The [formatter source and required audits](docs/PRINTF_FORMAT.md) now
 implement entry/literal output, narrow strings, decimal width/precision
 parsing and scalar padding. Its complete CPU report and merged eight-shard
 browser report agree for all 134 histories. All 4,105 entry prefixes and
-1,733 complete literal/string calls execute with exact register, FP and
+2,129 complete literal/string/integer calls execute with exact register, FP and
 helper behavior. Every conversion and complete pthread owner remains
-required: 2,372 unfinished conversions and 562 complete-call rseq CPU-field
+required: 1,976 unfinished floating-point calls and 762 complete-call rseq CPU-field
 words still fail; the prefix gate retains 380 rseq word differences.
 This work is not connected to continuing replay and does not establish
 formatter parity.
+
+The [integer formatter](docs/PRINTF_INTEGER.md) also matches all 5,472
+independent native int32 output requests in CPU Python and Pyodide.
+Its seven tests cover integer boundaries, flags/modifiers/precision,
+earlier table ownership, changed inputs and request-memory lifetime.
+These output probes supplement the complete ASITIC state gates.
 
 Records use binary64 with selected retained-precision intermediates matching the
 reference's x87 arithmetic. The [native logarithm audit](docs/LOGARITHM_AUDIT.md)

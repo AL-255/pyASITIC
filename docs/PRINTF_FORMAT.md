@@ -5,7 +5,8 @@
 literal spans, narrow strings, decimal width/precision parsing, scalar
 string probes and padding stores. They use the same guest memory and
 buffer writer as `PrintfFile`. They do not call host string formatting,
-load expected output, or substitute a later native snapshot. Numeric,
+load expected output, or substitute a later native snapshot. The
+[integer component](PRINTF_INTEGER.md) adds native int32 paths. Floating,
 wide, positional, registered-handler, null-string and flush/error paths
 remain explicit unfinished source branches.
 
@@ -45,12 +46,13 @@ bytes and 139,570 registers at 4,105 search-helper boundaries. Registers,
 FP and helpers match; 380 kernel-maintained rseq CPU-field words remain
 required memory differences.
 
-The complete audit attempts all 4,105 calls and executes 1,733 complete
-literal/string calls, including the nine-column `%-11.11s` format. It
-compares 578,797,845 four-byte units, 29,461 final registers, 4,228,520 FP
-bytes and 624,308 registers at 18,362 helper boundaries. Registers, FP
-and helpers match. The gate still fails on 2,372 unimplemented
-conversions and 562 rseq CPU-field words. No conversion cohort is
+The complete audit attempts all 4,105 calls and executes 2,129 complete
+literal/string/integer calls, including the nine-column `%-11.11s` format
+and all 132 native `asctime` formatters. It compares
+710,969,455 four-byte units, 36,193 final registers, 5,194,760 FP bytes and
+933,980 registers at 27,470 helper boundaries. Registers, FP and helpers
+match. The gate still fails on 1,976 unimplemented floating-point
+calls and 762 rseq CPU-field words. No conversion cohort is
 removed, and no unexecuted call or its helpers are declared complete.
 
 The full CPU report and merged eight-shard browser report are identical
@@ -86,6 +88,6 @@ node tools/check_printf_format_original.mjs /path/to/pyodide.mjs /tmp/format-par
 
 No formatter call boundary initializes continuing replay. The broader
 continuing gate's 198 required differences remain unresolved.
-The verified source package is `29d3f8355dab185a`; the compiled numerical
+The verified source package is `487886e57d1cec75`; the compiled numerical
 module remains unchanged at SHA-256
 `c7869e98f4c18b5414dc172d836e7144ab3ebc0de2de0d1f2eec1a4fe1709186`.
