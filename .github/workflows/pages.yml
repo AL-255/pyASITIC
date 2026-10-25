@@ -157,6 +157,7 @@ jobs:
           - {suite: breakup, shard: 1, shards: 1}
           - {suite: shunt, shard: 1, shards: 1}
           - {suite: phase-origin, shard: 1, shards: 1}
+          - {suite: shunt-storage, shard: 1, shards: 1}
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
@@ -308,6 +309,8 @@ jobs:
               node tools/check_shunt_original.mjs /tmp/reasitic-pyodide/node_modules/pyodide/pyodide.mjs /tmp/reasitic-pyodide/node_modules/jsdom/lib/api.js ;;
             phase-origin)
               node tools/check_phase_origin_original.mjs /tmp/reasitic-pyodide/node_modules/pyodide/pyodide.mjs ;;
+            shunt-storage)
+              node tools/check_shunt_geometry_storage_original.mjs /tmp/reasitic-pyodide/node_modules/pyodide/pyodide.mjs ;;
             printf-transition)
               node tools/check_printf_transition_original.mjs /tmp/reasitic-pyodide/node_modules/pyodide/pyodide.mjs '' "$SHARD" "$SHARDS" ;;
             capstorage)

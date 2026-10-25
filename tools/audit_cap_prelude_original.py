@@ -10,17 +10,27 @@ from audit_allocator_original import state_differences
 
 
 def dimensions(case):
-    from reasitic.bridge import _shapes,_mesh
+    from reasitic.bridge import _shapes,_shape,_mesh
     from reasitic.solver import discretize
     from reasitic.network import _join_for_pads
     from reasitic.potential import _contacts
+    from reasitic.model import copy_geometry
     request=case['request'];technology=Technology.from_text(request['technology']);shapes=_shapes(request,technology);mesh=_mesh(request,technology)
+    ground=_shape(request['ground'],technology)if request.get('ground')else None
+    if ground is not None:
+        for winding in shapes:
+            if winding.name==ground.name:
+                for segment in winding.segments:segment.nx=segment.ny=-1
     if request['action']=='pi2':shape=discretize(shapes[request['winding']],mesh['capacitance_length_cell'],mesh['length_cell'])
     else:
         first,second=(discretize(shapes[request[key]],mesh['capacitance_length_cell'],mesh['length_cell'])for key in ('first_winding','second_winding'))
-        second.segments.reverse();shape=_join_for_pads(first,second)
+        first,second=copy_geometry(first),copy_geometry(second);second.reverse_segments();shape=_join_for_pads(first,second);shape.name=first.name+'_'
+        if ground is not None and ground.name==first.name:ground=None
     chip=technology.chip;nx=int(chip['fftx']);ny=int(chip['ffty'])
     groups=_contacts(shape,technology,nx,ny,float(chip['chipx']),float(chip['chipy']),mesh['capacitance_length_cell'],mesh['capacitance_width_cell'])
+    if ground is not None and ground.name!=shape.name:
+        for segment in ground.segments:segment.nx=segment.ny=-1
+        groups.extend(_contacts(ground,technology,nx,ny,float(chip['chipx']),float(chip['chipy']),mesh['capacitance_length_cell'],mesh['capacitance_width_cell']))
     return [len(group)for group in groups],len(technology.metals),len(technology.substrate),nx
 
 

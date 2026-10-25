@@ -332,6 +332,15 @@ The same allocator continues through contact/cache preparation. Integrating
 those earlier bytes with the numerical history and fixing the remaining exact
 parity failures are still required; production trailing-via guards stay enabled.
 
+[Secondary-group storage](docs/SHUNT_STORAGE.md) extends that replay with
+28 original clone/COPY/JOIN observations and 19 consecutive-command episodes.
+Python and Pyodide match complete branch records, allocation/free order,
+physical allocator boundaries and all 53 raw dispatch phase words. Each command
+episode retains one heap across both joins; each analysis setup retains its
+allocator through CAP preparation.
+The typed API still lacks the complete startup memory; its six raw phase-word
+failures and the broader numerical/process gates remain required.
+
 [Pre-CAP storage](docs/PRELUDE_STORAGE.md) additionally reproduces all 975 FFT
 scratch arrays and 130 stream buffers in the 130 selected native histories:
 4,526,080 bytes match exactly in the compiled browser backend. Four added small

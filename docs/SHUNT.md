@@ -81,7 +81,9 @@ reproduced from genuine resolver-entry memory, but complete startup memory
 is not yet connected to the typed scene API. Two result from native command 421 falling through to PHASE
 with a deleted source descriptor address as its argument. Negative phase
 therefore reverses all endpoints and stores that positive process address.
-The typed API reproduces the endpoint reversal and positive direction, but
+The [shared-memory dispatcher](SHUNT_STORAGE.md) now reproduces the raw
+pointer store from its earlier scene on a continuing source heap. The typed
+API reproduces the endpoint reversal and positive direction, but
 does not have that absolute native process address: it returns
 `electrical_phase: null` and `electrical_phase_sign: 1` for this state.
 The webpage displays the known direction. No captured address is substituted

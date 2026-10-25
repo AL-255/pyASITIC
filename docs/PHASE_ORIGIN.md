@@ -84,9 +84,11 @@ command between resolver entry and capacitor creation. The typed webpage
 API still lacks that complete shared startup memory. Its four capacitor
 phase-word differences and the two JOINSHUNT deleted-source-address
 differences remain in the strict zero-difference gate; none is exempted or
-replaced with a recovered constant. Initial scene construction, secondary
-groups in shared-memory geometry setup and integration into the continuing
-process remain required work, along with the known numerical/heap gates.
+replaced with a recovered constant. [Secondary groups and consecutive
+JOINSHUNT dispatches](SHUNT_STORAGE.md) now execute in shared-memory geometry,
+including exact deleted-source-pointer phase stores. Initial scene construction
+and integration into the complete continuing process remain required work,
+along with the known numerical/heap gates.
 The development branch remains undeployed.
 
 ```sh

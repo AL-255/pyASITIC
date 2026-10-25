@@ -88,8 +88,12 @@ must also be generated before joining these histories without a reset. Earlier
 scene/process construction also remains an input. Non-cache arena metadata
 still uses logical decisions, rather than arbitrary byte-corruption handling.
 
-Secondary segment groups, rejected via-layer JOINs, allocation failures,
-concurrent pool access and COPY name collisions without an explicit caller
+The [secondary-group extension](SHUNT_STORAGE.md) now covers full group
+clone/COPY/JOIN bytes, consecutive JOINSHUNT dispatches and native pointer
+phase writes on one continuing source heap. The typed scene API and full
+numerical/process integration still require that earlier memory history.
+
+Rejected via-layer JOINs, allocation failures, concurrent pool access and COPY name collisions without an explicit caller
 random-byte stream are outside this component's current execution scope.
 Known logarithm/cosine and JOIN/UNJOIN discrepancies, repeated command cleanup
 after node entry and other original analysis branches also remain unfinished.

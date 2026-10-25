@@ -60,7 +60,10 @@ def compare(case,*,return_state=False,include_prelude=True,observe_headers=False
             actual=list(geometry.segments(shape['address']));native=[s['address']for s in shape['segments']]
             if actual!=native:differences.append(dict(kind='segment-owners',field=field,actual=actual,original=native))
             for segment in shape['segments']:
-                assert not segment['children'];check(segment['address'],segment['data'],'geometry_bytes_checked')
+                check(segment['address'],segment['data'],'geometry_bytes_checked')
+                actual=list(geometry.children(segment['address']));native=[s['address']for s in segment['children']]
+                if actual!=native:differences.append(dict(kind='secondary-owners',field=field,parent=segment['address'],actual=actual,original=native))
+                for child in segment['children']:check(child['address'],child['data'],'geometry_bytes_checked')
         strings=output['strings'];check(strings['address'],strings['data'],'string_bytes_checked')
         for chain in strings['chains']:
             for entry in chain:check(entry['address'],entry['data'],'string_bytes_checked')
