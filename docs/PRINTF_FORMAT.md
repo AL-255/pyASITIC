@@ -6,7 +6,9 @@ literal spans, narrow strings, decimal width/precision parsing, scalar
 string probes and padding stores. They use the same guest memory and
 buffer writer as `PrintfFile`. They do not call host string formatting,
 load expected output, or substitute a later native snapshot. The
-[integer component](PRINTF_INTEGER.md) adds native int32 paths. Floating,
+[integer component](PRINTF_INTEGER.md) adds native int32 paths. The separate
+[decimal component](PRINTF_FLOAT_DIGITS.md) computes binary64 e/f/g digits
+but is not yet bound to the original formatter ABI or produced FP state. Floating,
 wide, positional, registered-handler, null-string and flush/error paths
 remain explicit unfinished source branches.
 

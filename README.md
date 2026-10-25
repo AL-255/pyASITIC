@@ -497,6 +497,13 @@ Its seven tests cover integer boundaries, flags/modifiers/precision,
 earlier table ownership, changed inputs and request-memory lifetime.
 These output probes supplement the complete ASITIC state gates.
 
+The [binary64 decimal component](docs/PRINTF_FLOAT_DIGITS.md) computes the
+original multiprecision scaling and rounding for `e/f/g`. Its independent
+native probe checks 73,360 text outputs and 70,281 finite mantissa
+extractions, including all binary64 exponents and four rounding modes.
+The complete floating formatter ABI and its produced FP state remain
+unfinished; the original floating-call gates are unchanged.
+
 Records use binary64 with selected retained-precision intermediates matching the
 reference's x87 arithmetic. The [native logarithm audit](docs/LOGARITHM_AUDIT.md)
 adds 8,182 instruction cases and 10,327 multiplier cases with complete request

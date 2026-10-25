@@ -122,6 +122,7 @@ jobs:
           - {suite: printf-format, shard: 7, shards: 8}
           - {suite: printf-format, shard: 8, shards: 8}
           - {suite: printf-integer}
+          - {suite: printf-float-digits}
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
@@ -247,6 +248,8 @@ jobs:
               node tools/check_printf_format_original.mjs /tmp/reasitic-pyodide/node_modules/pyodide/pyodide.mjs '' "$SHARD" "$SHARDS" ;;
             printf-integer)
               node tools/check_printf_integer_original.mjs /tmp/reasitic-pyodide/node_modules/pyodide/pyodide.mjs ;;
+            printf-float-digits)
+              node tools/check_printf_float_digits_original.mjs /tmp/reasitic-pyodide/node_modules/pyodide/pyodide.mjs ;;
             capstorage)
               node tools/check_cap_storage_original.mjs /tmp/reasitic-pyodide/node_modules/pyodide/pyodide.mjs ;;
             workspaces)
