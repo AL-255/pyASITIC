@@ -122,6 +122,7 @@ class ImpedanceSystem:
     filaments: int
     full_y: list | None = None
     pre_eddy_z: list | None = None
+    integrals: list | None = None
 
 
 def _filament_geometry(shape,technology,width_cell,thickness_cell,max_width_cells,max_filaments):
@@ -187,10 +188,12 @@ def prepare_impedance(shape,technology,frequency_hz,*,length_cell=1000,width_cel
     reduced_z = inverse_symmetric(reduced_y)
     pre_eddy_z=[row.copy()for row in reduced_z]if include_storage and eddy else None
     eddy_details=None
+    integrals=[]if include_storage and eddy else None
     if eddy:
         from .eddy import add_eddy
-        eddy_details=add_eddy(reduced_z,meshed,technology,frequency_hz,int(eddy),warnings)
-    return ImpedanceSystem(meshed,groups,full,reduced_y,reduced_z,warnings,eddy_details,n,full_y if include_storage else None,pre_eddy_z)
+        observe=(lambda *values:integrals.append(values))if integrals is not None else None
+        eddy_details=add_eddy(reduced_z,meshed,technology,frequency_hz,int(eddy),warnings,observe_integral=observe)
+    return ImpedanceSystem(meshed,groups,full,reduced_y,reduced_z,warnings,eddy_details,n,full_y if include_storage else None,pre_eddy_z,integrals)
 
 
 def solve_impedance(shape,technology,frequency_hz,*,length_cell=1000,width_cell=1000,

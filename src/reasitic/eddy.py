@@ -163,13 +163,13 @@ def assemble_square(dimension,width,spacing,turns,frequency,height,integral):
 
 
 @_guard
-def add_eddy(matrix,shape,technology,frequency,mode,warnings):
+def add_eddy(matrix,shape,technology,frequency,mode,warnings,*,observe_integral=None):
     """Stamp the reduced impedance matrix in place; preserve native mesh indices."""
     if shape.kind=="square" and mode==1 and not technology.eddy_layers:
         warnings.append("Warning: No valid eddy current layers defined; native square correction skipped")
         return dict(mode=mode,kernel=None,layers=[],green_calls=0,skipped=True)
     state=configure_eddy(technology)
-    if _compiled_stamp is not None:
+    if _compiled_stamp is not None and observe_integral is None:
         info=_stamp_compiled(matrix,shape,technology,frequency,mode,state,warnings)
         if info is not None:
             if any(not math.isfinite(z.real) or not math.isfinite(z.imag) for row in matrix for z in row):
@@ -180,6 +180,7 @@ def add_eddy(matrix,shape,technology,frequency,mode,warnings):
         nonlocal calls
         calls+=1
         result=green_integral(f,separation,height,width,state)
+        if observe_integral is not None:observe_integral(f,separation,height,width,result)
         if result.status:
             warnings.append(f"ASITIC {result.method} did not converge (status {result.status}); native partial result retained")
         return result.retained_value

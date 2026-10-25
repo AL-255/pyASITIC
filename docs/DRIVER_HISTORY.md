@@ -142,6 +142,11 @@ command cleanup after node input and the known logarithm/cosine and
 JOIN/UNJOIN arithmetic discrepancies. These are not whole-program parity
 results and do not authorize deployment.
 
+The later [branch driver history](SHUNT_DRIVER_HISTORY.md) extends this source
+path to all 28 selected secondary-group histories, including explicit ground,
+coupled windings and both eddy paths. It additionally checks complete contacts
+and CAP-entry heaps and derives the temporary contact index from earlier ESP.
+
 The later [node/driver continuation](NODE_HISTORY.md) extends the exact
 console-input experiment past this document's node-input endpoint. It verifies
 the source node solve's work arrays, port outputs, model reports and matrix

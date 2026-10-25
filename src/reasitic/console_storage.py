@@ -98,7 +98,7 @@ class ConsoleStorage:
     def table_ready(self):
         self.emit('status','Computing FFTs...            ')
 
-    def before_numerical(self,event,filaments,has_vias):
+    def before_numerical(self,event,filaments,has_corrections):
         name=event.name;allocate=event.action=='allocate'
         if allocate and name=='cap.inverse.pivots':self.dot()
         if not allocate and name=='contact.0.0':self.dot()
@@ -107,12 +107,21 @@ class ConsoleStorage:
         if allocate and name=='ind.full_inverse.work':
             self.dot();self.warning('Inverting matrix...')
         if allocate and name=='ind.zero_temporary':self.dot()
-        if (allocate and name=='ind.reduced_inverse.work')or(not allocate and name=='ind.full'and not has_vias):self.dot()
+        if (allocate and name=='ind.reduced_inverse.work')or(not allocate and name=='ind.full'and not has_corrections):self.dot()
 
-    def after_numerical(self,event):
+    def after_numerical(self,event,eddy_details=None,integrals=None):
         # The final dot precedes entry into add_via_impedance, whose own
         # scratch allocation occurs after the independent via-entry boundary.
-        if event.action=='free'and event.name=='ind.reduced_inverse.work':self.dot()
+        if event.action!='free':return
+        if event.name=='ind.reduced_inverse.work':
+            if eddy_details is not None and 'matrix'in eddy_details:return
+        elif event.name!='ind.eddy.matrix':return
+        from .green_diagnostics import messages
+        for frequency,separation,height,width,result in integrals or():
+            # The Green runtime uses printf directly, without adding a console
+            # call or writing the log/recording streams. The next dot flushes it.
+            for text in messages(result,frequency,separation,height):self._write('stdout',text,flush=False)
+        self.dot()
 
     def begin_nodes(self,nodes):
         if self.inputs['progress']:self.warning(f'Solving node equations...({nodes}x{nodes})')

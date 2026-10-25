@@ -347,8 +347,15 @@ including full allocation/free order and child cleanup. A reused contact-header
 bug is fixed; all 1,064 prepared/numbered contact/group records match their
 defined fields. All 28 branch histories additionally match the 476 captured
 released buffers, 12,576 first-node matrix words and 14 via stores through the
-actual shared storage hooks, including both eddy paths. Complete heap-byte,
-earlier cache and startup integration remain unfinished.
+actual shared storage hooks, including both eddy paths.
+
+[Continuous branch driver memory](docs/SHUNT_DRIVER_HISTORY.md) additionally
+connects the earlier cache/FILE/FFT and numerical stores on one heap. All 28
+histories match 94 complete later heaps / 23,773,184 words, 1,260 cache tables,
+754 console calls and 338 builder frames. Incoming contact indices now derive
+from earlier driver ESP; direct integration diagnostics and eddy progress dots
+follow the original output paths. Complete startup, caller/FP state and outer
+command continuation remain unfinished; the strict phase/math gates still fail.
 
 [Pre-CAP storage](docs/PRELUDE_STORAGE.md) additionally reproduces all 975 FFT
 scratch arrays and 130 stream buffers in the 130 selected native histories:

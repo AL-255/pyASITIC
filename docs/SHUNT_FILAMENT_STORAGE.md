@@ -66,6 +66,12 @@ metadata. The separate numerical replay below additionally checks all captured
 bounded released arrays and complete first-node matrices. Neither comparison
 claims complete final heap-byte equality.
 
+The later [continuous branch driver comparison](SHUNT_DRIVER_HISTORY.md)
+connects earlier cache/file/FFT stores and derives the incoming contact word
+from driver ESP. It requires all 94 complete contacts/CAP/via/node output heaps
+across the same 28 cases, including the eddy diagnostic buffers. The numerical
+array checks in this document remain independently required.
+
 ## Contact-group header fix
 
 The new record comparison exposed a separate bug in the secondary contact

@@ -17,7 +17,7 @@ from audit_allocator_original import state_differences
 from project_prelude_storage_original import expand_case
 
 
-def compare(case,*,return_state=False,cache_files=None,console=None,initial_regions=()):
+def compare(case,*,return_state=False,cache_files=None,console=None,initial_regions=(),observe_boundary=None):
     from reasitic.cache_storage import CacheStorage,initial_regions as cache_regions
     cached=cache_files is not None
     console_regions=console.initial_regions(tuple((r['address'],bytes.fromhex(r['data']))for r in case['setup_context']['memory_regions']))if console is not None else()
@@ -35,15 +35,20 @@ def compare(case,*,return_state=False,cache_files=None,console=None,initial_regi
         errno_address=(memory.u32(tls)+memory.u32(got+0xa0))&0xffffffff
     files=FileStorage(memory,inputs,errno_address=errno_address)
     technology=Technology.from_text(case['request']['technology']);frequency=_frequency(case['request']);contacts=ported_records(case);prepared=False
+    driver=next(s for s in case['allocator_states']if s['label']=='driver_entry');history_index=None
+    if 'esp'in driver:
+        from reasitic.contact_stack import contact_frames
+        history_index=contact_frames(case['setup_context']['driver'],driver['esp'])['index']
     cache=CacheStorage(memory,case['cache_inputs'],technology,frequency,cache_files)if cached else None
     if console is not None:
         console.bind(memory);console.position['setup_events']=before['events_checked'];console.begin_capacitance(frequency)
+    if observe_boundary is not None:observe_boundary('contacts_entry',heap,addresses,memory)
     if len(plan)!=len(case['prefix_events']):result['differences'].append(dict(kind='event-count',actual=len(plan),original=len(case['prefix_events'])))
     for index,(event,native)in enumerate(zip(plan,case['prefix_events'])):
         name=event.name
         if (event.action,event.allocator)!=(native['kind'],native['allocator']):result['differences'].append(dict(kind='interface',index=index));break
         if not prepared and name.startswith('cache.'):
-            write_prepared(memory,contacts,addresses);prepared=True
+            write_prepared(memory,contacts,addresses,history_index=history_index);prepared=True
             if cache is not None and 'coefficient_address'in case['cache_inputs']:cache.write_coefficients()
             if console is not None:console.contacts_ready(sum(counts))
         if event.action=='allocate':
@@ -110,6 +115,7 @@ def compare(case,*,return_state=False,cache_files=None,console=None,initial_regi
         result['events_checked']+=1
         if console is not None:console.position['prefix_events']=result['events_checked']
     result['differences'].extend(state_differences(heap,next(s for s in case['allocator_states']if s['label']=='scope'),memory=memory if cached else None))
+    if observe_boundary is not None:observe_boundary('scope',heap,addresses,memory)
     if return_state:return result,heap,addresses,memory
     return result
 

@@ -102,7 +102,7 @@ def compare(case,initial_regions=(),*,context=None,return_state=False,console=No
         if event['kind']in ('allocate','free'):
             expected=next(plan);assert (expected.action,expected.allocator)==(event['kind'],event['allocator'])
             if console is not None:
-                console.position['events']=event_index;console.before_numerical(expected,prepared.filaments,bool(records))
+                console.position['events']=event_index;console.before_numerical(expected,prepared.filaments,bool(records)or prepared.eddy_details is not None)
             history.before(expected)
             if expected.action=='allocate':
                 assert expected.size==event['request']
@@ -122,7 +122,7 @@ def compare(case,initial_regions=(),*,context=None,return_state=False,console=No
                     result['differences'].append(dict(kind='unknown-allocator-read',name=expected.name,address=error.address));break
             result['events_checked']+=1
             if console is not None:
-                console.position['events']=event_index+1;console.after_numerical(expected)
+                console.position['events']=event_index+1;console.after_numerical(expected,prepared.eddy_details,prepared.integrals)
         elif event['kind']=='via_entry':
             if context is not None:
                 if addresses['geometry.descriptor']!=case['via']['shape_address']:result['differences'].append(dict(kind='via-shape-owner',actual=addresses['geometry.descriptor'],original=case['via']['shape_address']))

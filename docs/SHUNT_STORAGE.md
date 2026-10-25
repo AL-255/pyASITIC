@@ -137,6 +137,11 @@ contact/cache history through the complete numerical driver remain required. Kno
 FCOS/logarithm, trailing-via aliases and continuing-process failures remain
 required; this development branch is undeployed.
 
+The later [continuous branch driver check](SHUNT_DRIVER_HISTORY.md) now joins
+the earlier cache/contact and numerical stores for all 28 selected cases,
+requiring 94 complete output heaps and source-derived temporary contact words.
+Earlier process startup and outer command continuation remain separate work.
+
 Source package: `54b403a4fef7caed`; numerical WASM remains SHA-256
 `c7869e98f4c18b5414dc172d836e7144ab3ebc0de2de0d1f2eec1a4fe1709186`.
 
