@@ -1,14 +1,36 @@
 """Lossless native snapshot references preserve all byte and owner targets."""
-import base64,copy,hashlib,sys,unittest,zlib
+import base64,copy,gzip,hashlib,json,sys,tempfile,unittest,zlib
 from pathlib import Path
 ROOT=Path(__file__).resolve().parents[1]
 sys.path.insert(0,str(ROOT/'tools'))
 from getline_fixture import record_id
 from printf_fixture import data,expand_state,unpack_state,pack_state,compact_pages,memory_for
 from reasitic.memory import MemoryFault,UnknownMemory
+from printf_archive import read_fixture,split_archive
 
 
 class PrintfFixtureTests(unittest.TestCase):
+    def test_split_archive_streams_across_headers_without_changing_any_byte(self):
+        with tempfile.TemporaryDirectory()as directory:
+            root=Path(directory);source=root/'dense.json.gz';target=root/'fixture.manifest.json';fixture=dict(cases=[{'label':'sample'}],parents={'parent':'sha'},registers=[1,2,3]);raw=gzip.compress(json.dumps(fixture).encode(),mtime=0);source.write_bytes(raw)
+            manifest=split_archive(source,target,histories=1,parents=fixture['parents'],part_bytes=7);self.assertGreater(len(manifest['parts']),2)
+            self.assertEqual(b''.join((root/p['file']).read_bytes()for p in manifest['parts']),raw);self.assertEqual(read_fixture(target),fixture);self.assertEqual(read_fixture(source),fixture)
+
+    def test_split_archive_rejects_corruption_missing_parts_and_metadata(self):
+        with tempfile.TemporaryDirectory()as directory:
+            root=Path(directory);source=root/'dense.json.gz';target=root/'fixture.manifest.json';fixture=dict(cases=[{}],parents={});source.write_bytes(gzip.compress(json.dumps(fixture).encode(),mtime=0));manifest=split_archive(source,target,histories=1,parents={},part_bytes=7)
+            for field,value in (('sha256','bad'),('histories',2),('parents',{'changed':'sha'})):
+                changed=dict(manifest,**{field:value});target.write_text(json.dumps(changed))
+                with self.assertRaises(ValueError):read_fixture(target)
+            changed=copy.deepcopy(manifest);changed['parts'][0]['file']='../outside';target.write_text(json.dumps(changed))
+            with self.assertRaises(ValueError):read_fixture(target)
+            target.write_text(json.dumps(manifest));part=root/manifest['parts'][0]['file'];original=part.read_bytes();part.write_bytes(bytes([original[0]^1])+original[1:])
+            with self.assertRaises(ValueError):read_fixture(target)
+            part.unlink()
+            # A complete dense archive is present, but an invalid manifest
+            # must never silently fall back to it.
+            with self.assertRaises(FileNotFoundError):read_fixture(target)
+
     def fixture(self):
         f=dict(loader_pages={},loader_records={},loader_record_keys=[])
         for address,raw in ((0x1000,b'AB'),(0x1004,b'CD')):
