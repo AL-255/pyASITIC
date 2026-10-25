@@ -36,6 +36,14 @@ def add_flags(left,right,flags):
     return (flags&~0x8d5)|bits
 
 
+def subtract_flags(left,right,flags):
+    left&=0xffffffff;right&=0xffffffff;value=(left-right)&0xffffffff
+    bits=(int(left<right)|int(not value)<<6|((value>>31)&1)<<7|
+          int((value&255).bit_count()%2==0)<<2|int(bool((left^right^value)&16))<<4|
+          int(bool(((left^right)&(left^value))&0x80000000))<<11)
+    return (flags&~0x8d5)|bits
+
+
 def bsd_signal(memory,registers,*,libc_base,guard,intr_mask,old_action,has_vdso):
     """Execute one successful BSD signal wrapper with explicit kernel state."""
     m=memory;s=registers['esp'];sig=m.u32(s+4);handler=m.u32(s+8)
@@ -71,7 +79,7 @@ def bsd_signal(memory,registers,*,libc_base,guard,intr_mask,old_action,has_vdso)
     return dict(registers=result,action=dict(handler=handler,flags=flags,restorer=0,mask=mask),number=sig)
 
 
-def install_console_signals(memory,workspace,libc_base):
+def install_console_signals(memory,workspace,libc_base,*,loader=None,loader_context=None,incoming=None):
     """Original console install sequence after the direct script returns.
 
     This startup path has not enabled readline or called siginterrupt. Its
@@ -79,12 +87,19 @@ def install_console_signals(memory,workspace,libc_base):
     """
     m=memory;script_frame=workspace+4460;main=m.u32(script_frame);inputs=startup(m,main)
     registers=dict(eax=0,ebx=m.u32(workspace-12),esi=m.u32(workspace-8),edi=m.u32(workspace-4),ebp=main,esp=script_frame+8,eflags=0x202)
+    if incoming:registers.update(incoming)
+    if loader is not None:registers['eflags']=add_flags(script_frame+8,4,registers['eflags'])
     m.put_u32(script_frame+8,0x804b057);m.put_u32(script_frame+4,main)
     registers['ebp']=script_frame+4;registers['esp']=script_frame+4;actions={}
     for number,handler,pc in ((2,0x804c2c4,0x804c23b),(6,0x804c2c4,0x804c26c),(3,0x804c33c,0x804c29c)):
         for address,value in ((script_frame,handler),(script_frame-4,number),(script_frame-8,pc)):m.put_u32(address,value)
         registers['esp']=script_frame-8
+        if loader is not None:
+            context=loader_context;map_=context['main_map'];plt=next(item['plt']for item in context['maps']if item['address']==map_)
+            binding=loader.bind_import(registers,map_,b'signal',plt);registers=binding['registers']
+            if binding['target']!=libc_base+0x3bfa0:raise NotImplementedError('Interposed signal implementation is not bound')
         call=bsd_signal(m,registers,libc_base=libc_base,guard=inputs['guard'],intr_mask=0,
                         old_action=dict(handler=0,flags=0,restorer=0,mask=0),has_vdso=bool(inputs['auxv'].get(32)))
         registers=call['registers'];actions[number]=call['action']
+        if loader is not None:registers['eflags']=subtract_flags(registers['eax'],0xffffffff,registers['eflags'])
     return dict(main_frame=main,line=main-1024,actions=actions)

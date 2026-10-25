@@ -383,6 +383,14 @@ FP bytes match. Its snapshots are component inputs only; connecting the
 resolver through earlier loader state and the PLT caller frames remains
 unfinished, so the continuing gate retains all 816 required differences.
 
+The first `signal` binding now runs through the [PLT trampoline and
+fixup](docs/PLT_FIXUP.md) in the existing simulation memory, using loader
+metadata recorded before simulation. With identical fresh inputs, this
+resolves 158 stack-word differences (816 to 658). The independent complete
+PLT component matches all eight observed target entries, including the CPU
+IFUNC selection. Older fixtures lacking loader state still retain their
+816 required failures alongside the new strict continuing audit.
+
 Records use binary64 with selected retained-precision intermediates matching the
 reference's x87 arithmetic. The [native logarithm audit](docs/LOGARITHM_AUDIT.md)
 adds 8,182 instruction cases and 10,327 multiplier cases with complete request

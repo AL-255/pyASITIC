@@ -100,6 +100,11 @@ regions/registers. It does not initialize the continuing replay from those
 later call frames. Earlier loader state, PLT trampoline and `_dl_fixup`
 integration remain required; the 816 differences below are unchanged.
 
+The later [PLT fixup integration](PLT_FIXUP.md) connects the first signal
+binding using loader metadata captured before simulation. It resolves 158
+stack words on the fresh complete histories, leaving 658 required differences.
+Earlier fixtures and checkpoint results below remain separately retained.
+
 All 83 affected CPU tests pass, including the nine new regression tests. The
 nine tests and the complete 390-call audit also pass in packaged Pyodide,
 version `a95b925e330e962b`. The full compiled continuing audit was rerun: all

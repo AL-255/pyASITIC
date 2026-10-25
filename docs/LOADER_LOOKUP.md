@@ -8,6 +8,12 @@ now matches its complete independent return comparison. Connecting these
 stores to the continuing replay remains unfinished; its 816 required boundary
 differences have not been removed or exempted.
 
+The subsequent [PLT fixup integration](PLT_FIXUP.md) executes the first signal
+binding from earlier loader metadata in continuing memory. It resolves 158
+stack words on the fresh complete histories, leaving 658 required differences.
+Older incomplete-context histories remain separately required with their
+existing 816 differences. The independent evidence below is unchanged.
+
 ## Source decisions and ABI
 
 The search follows [glibc 2.39's

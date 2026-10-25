@@ -12,6 +12,7 @@ from .stdio_storage import InputStream,OutputStream
 from .port_header_storage import NativePortStack,calendar,header
 from .heap import HeapCorruption
 from .signal_install_storage import install_console_signals
+from .plt_fixup_storage import PltFixup
 
 
 class CommandTransition:
@@ -141,11 +142,26 @@ class CommandTransition:
         if previous is None:m.put_u32(head,following)
         else:m.put_u32(previous+layout['_chain']['offset'],following)
         buffer=m.u32(address+28);FileStorage(m,abi).closed_byte_stream(address)
-        self.release('script.buffer',buffer);self.release('script.file',address)
+        self.release('script.buffer',buffer)
+        loader_context=self.inputs.get('loader_context');incoming=None;loader=None
+        if loader_context:
+            size=m.u32(address-4)&~7
+            if not self.heap._cache_has_space(size):raise NotImplementedError('Closing FILE without a tcache return needs its volatile-register path')
+            index=self.heap._cache_index(size)
+            libc_bases={s['address']-s['offset']for s in abi['libc_symbols'].values()}
+            if len(libc_bases)!=1:raise ValueError('Inconsistent earlier libc bindings')
+            libc_base=libc_bases.pop()
+            # __libc_free restores errno through its TLS offset in ECX;
+            # successful tcache insertion leaves the size-class index in EDX.
+            # fclose returns its saved success status in EAX. No later PLT
+            # entry observation supplies any of these incoming registers.
+            incoming=dict(eax=0,ecx=m.u32(libc_base+0x22fe34+0xa0),edx=index)
+            loader=PltFixup(m,loader_context['loader_base'],tls_base=loader_context['tls_base'])
+        self.release('script.file',address)
         if self.inputs['repl']['history_enabled']:raise NotImplementedError('Readline signal installation needs its initial action state')
         bases={symbol['address']-symbol['offset']for symbol in abi['libc_symbols'].values()}
         if len(bases)!=1:raise ValueError('Inconsistent earlier libc symbol bindings')
-        installed=install_console_signals(m,self.inputs['workspace_address'],bases.pop())
+        installed=install_console_signals(m,self.inputs['workspace_address'],bases.pop(),loader=loader,loader_context=loader_context,incoming=incoming)
         self.console.emit('message',b'ASITIC>  ',False)
         stdin=self.inputs['stdin_stream'];raw=bytes.fromhex(stdin['data']);base,end=struct.unpack_from('<I',raw,28)[0],struct.unpack_from('<I',raw,8)[0]
         if base:raise NotImplementedError('Earlier buffered interactive input offset is not yet bound')
