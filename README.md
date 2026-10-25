@@ -391,6 +391,13 @@ PLT component matches all eight observed target entries, including the CPU
 IFUNC selection. Older fixtures lacking loader state still retain their
 816 required failures alongside the new strict continuing audit.
 
+The subsequent [history and quit dispatch stores](docs/DISPATCH_STORAGE.md)
+connect `add_history`, normalization and the resolved `kill` entry in the same
+Memory. All three independently captured caller operations match complete
+regions/registers/FP state. The fresh continuing comparison improves from
+658 to 618 differing words; newly exposed later overwrites remain required
+failures alongside all older gates.
+
 Records use binary64 with selected retained-precision intermediates matching the
 reference's x87 arithmetic. The [native logarithm audit](docs/LOGARITHM_AUDIT.md)
 adds 8,182 instruction cases and 10,327 multiplier cases with complete request

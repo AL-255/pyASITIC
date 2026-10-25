@@ -13,6 +13,7 @@ from .port_header_storage import NativePortStack,calendar,header
 from .heap import HeapCorruption
 from .signal_install_storage import install_console_signals
 from .plt_fixup_storage import PltFixup
+from .dispatch_storage import DispatchStorage,enter_dispatch
 
 
 class CommandTransition:
@@ -179,10 +180,16 @@ class CommandTransition:
         self.console.write_stream(repl['input_log'],text+(b'\n'if history else b''))
         self.console.write_stream(self.console.inputs['streams']['log']['address'],b'ASITIC>  '+text+(b'\n\n'if history else b''))
         self.characters.normalize(m,line,0x8e)
+        dispatch=None;registers=None
+        if loader is not None:
+            parent=installed['main_registers'];registers=enter_dispatch(m,self.inputs['workspace_address'],installed['main_frame'],line,ebx=parent['ebx'],edi=parent['edi'],flags=parent['eflags'])
+            dispatch=DispatchStorage(m,self.characters,loader,loader_context)
+            registers=dispatch.before_parser(dispatch.history(registers))
         self.point('parse')
         records=script_frame-12-4160
         identity=self.parser.parse(line,records,[ScanHistory(None,None,None)for _ in range(15)])
         if identity!=-1:raise NotImplementedError('Interactive command transition requires the outer dispatcher')
+        if dispatch is not None:dispatch.quit_binding(dispatch.parser_return(registers,identity,line))
         # console_analysis.cpp releases the cache in descending packed pairs.
         metals=len(bytes.fromhex(self.technology[1]))//236
         for index in reversed(range(metals*(metals+1)//2)):

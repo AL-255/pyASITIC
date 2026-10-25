@@ -44,9 +44,11 @@ class LoaderTransitionTests(unittest.TestCase):
             before=dict(registers);source=engine.m.u32(w+4180);result=resolve(engine,registers)
             observed.append((before,source,engine.m.u32(w+4180)));return result
         with patch.object(PltFixup,'resolve',record):report,heap,addresses,memory=compare(self.fixture,case,return_state=True)
-        self.assertEqual(len(observed),1);registers,previous,current=observed[0]
-        native=next(c for c in load('plt_fixup_original.json.gz')['cases']if c['plt_calls'])['plt_calls'][0]['before']['registers']
-        for name,value in registers.items():self.assertEqual(value,native[name],name)
+        self.assertEqual(len(observed),3);registers,previous,current=observed[0]
+        calls=next(c for c in load('plt_fixup_original.json.gz')['cases']if c['plt_calls'])['plt_calls']
+        for source,index in zip(observed,(0,6,7)):
+            native=calls[index]['before']['registers']
+            for name,value in source[0].items():self.assertEqual(value,native[name],(index,name))
         self.assertEqual(previous,int.from_bytes(b'RECT','little'));self.assertEqual(current,1)
         self.assertEqual(memory.u32(w+3852),current)
         native_point=case['transition_points'][1]['regions'][0];self.assertEqual(bytes.fromhex(native_point['data'])[3852:3856],memory.read(w+3852,4))

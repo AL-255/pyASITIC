@@ -27,18 +27,24 @@ class Characters:
         self.upper=struct.unpack('<384i',bytes.fromhex(inputs['uppercase']))
         self.lower=struct.unpack('<384i',bytes.fromhex(inputs['lowercase']))
 
-    def normalize(self,memory,address,flags):
+    def normalize(self,memory,address,flags,*,abi=None):
         out=source=address;space=content=quoted=False;quote=0
         while True:
             c=memory.read(source,1)[0];source+=1
+            if abi is not None:abi.source(source)
             if not c:break
             if quoted:
                 memory.write(out,bytes([c]));out+=1
-                if c==quote:quoted=False
+                if c==quote:
+                    quoted=False
+                    if abi is not None:abi.end_quote()
                 continue
             if flags&16 and c in (34,39):
-                memory.write(out,bytes([c]));out+=1;space=False;content=True;quoted=True;quote=c;continue
+                memory.write(out,bytes([c]));out+=1;space=False;content=True;quoted=True;quote=c
+                if abi is not None:abi.begin_quote(c)
+                continue
             index=c if c<128 else c-256;classification=self.classification[index+128]
+            if abi is not None:abi.character(index)
             if classification&0x2000 and index>=0:
                 if flags&1 or flags&2 and not content:continue
                 if flags&8:
@@ -47,6 +53,7 @@ class Characters:
                 if flags&128 and classification&2:continue
             else:
                 space=False;content=True
+                if abi is not None:abi.content()
                 if classification&2 and index>=0:
                     if flags&128:continue
                 elif index>=0:
@@ -57,6 +64,7 @@ class Characters:
         if flags&4:
             while True:
                 out-=1;c=memory.read(out,1)[0];index=c if c<128 else c-256
+                if abi is not None:abi.trim(c,index,self.classification[index+128])
                 if not self.classification[index+128]&0x2000 or index<0 or out<address:break
                 memory.write(out,b'\0')
         return address

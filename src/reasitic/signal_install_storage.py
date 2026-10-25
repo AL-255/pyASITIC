@@ -102,4 +102,4 @@ def install_console_signals(memory,workspace,libc_base,*,loader=None,loader_cont
                         old_action=dict(handler=0,flags=0,restorer=0,mask=0),has_vdso=bool(inputs['auxv'].get(32)))
         registers=call['registers'];actions[number]=call['action']
         if loader is not None:registers['eflags']=subtract_flags(registers['eax'],0xffffffff,registers['eflags'])
-    return dict(main_frame=main,line=main-1024,actions=actions)
+    return dict(main_frame=main,line=main-1024,actions=actions,main_registers=dict(registers,ebp=main,esp=script_frame+12,eip=0x804b057))

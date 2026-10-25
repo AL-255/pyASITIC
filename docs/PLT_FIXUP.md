@@ -7,6 +7,12 @@ On identical fresh inputs this resolves 158 previously differing stack words,
 reducing the strict rectangular continuation from 816 to 658 differences.
 All remaining differences and all older fixtures remain required failures.
 
+The subsequent [dispatch stores](DISPATCH_STORAGE.md) connect the history
+and quit bindings and the intervening normalization caller. The fresh audit
+now retains 618 differing words, including newly exposed later overwrites.
+The 658-word results below describe this earlier PLT checkpoint and remain
+retained with all original evidence.
+
 ## Source operations and earlier inputs
 
 `plt_fixup_storage.py` follows [glibc 2.39
