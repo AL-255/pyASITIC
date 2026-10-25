@@ -11,8 +11,9 @@ from .command_storage import string
 
 
 class StdinStorage:
-    def __init__(self,memory,loader,context,profile,*,libc_base,tls_base):
+    def __init__(self,memory,loader,context,profile,*,libc_base,tls_base,heap=None):
         self.m,self.loader,self.context,self.profile=memory,loader,context,profile
+        self.heap=heap
         self.libc,self.tls,self.got=libc_base,tls_base,libc_base+0x22fe34
         self.legacy=next(x for x in context['maps']if x['name'].endswith('/libstdc++-libc6.1-1.so.2'))
         if self.legacy['plt']['elf_sha256']!='bca97b602b1eec9f0b591bec0fa4dc5f84f1382636cc8f10094f1da8a3c77d34':
@@ -99,13 +100,19 @@ class StdinStorage:
             r=dict(self.underflow,eax=0,edx=0,edi=self.got,esi=a,ebp=u,esp=local-20,eip=self.libc+0x85440,
                 eflags=subtract_flags(local,12,self.underflow['eflags']))
             self.malloc_entry=self.allocation.before_malloc(r)
+            if self.profile.get('malloc_abi'):
+                from .malloc_storage import MallocStorage
+                if self.heap is None:raise ValueError('Malloc ABI requires the continuing guest heap')
+                self.malloc_storage=MallocStorage(self.heap,m,libc_base=self.libc,tls_base=self.tls)
+                self.malloc_storage.enter(self.malloc_entry)
 
     def after_allocate(self,buffer,capacity):
         if 'statx'in self.profile:
-            # Heap.malloc computes this pointer on the same guest allocator.
-            # Its internal ABI is still missing; _IO_setb overwrites both
-            # volatile ECX/EDX before using them in the implemented path.
-            r=dict(self.malloc_entry,eax=buffer,esp=self.malloc_entry['esp']+4,eip=self.libc+0x75523)
+            if self.profile.get('malloc_abi'):r=self.malloc_storage.returned(buffer)
+            else:
+                # Older inputs lack malloc controls. Its internal ABI remains
+                # absent there; _IO_setb overwrites volatile ECX/EDX before use.
+                r=dict(self.malloc_entry,eax=buffer,esp=self.malloc_entry['esp']+4,eip=self.libc+0x75523)
             self.allocation.after_malloc(r)
 
     def before_read(self,buffer,capacity):

@@ -1,5 +1,10 @@
 # Native file-stat and buffer-allocation callers
 
+This records the 298-difference allocation-caller checkpoint. The subsequent
+[malloc ABI integration](MALLOC_STORAGE.md) adds the internal unsorted
+exact-fit path and reduces the continuing comparison to 284 differences.
+This checkpoint's native fixture and strict 298-difference gate remain.
+
 The source now executes `_IO_doallocbuf`, the legacy C++ doallocate/stat
 wrappers, `_IO_file_doallocate`, the fstat/fstatat callers and `_IO_setb`
 in the continuing simulation Memory. It constructs both the kernel's

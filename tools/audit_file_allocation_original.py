@@ -31,7 +31,11 @@ def compare(fixture,case):
             owners=lambda state:[(r['address'],r['size'])for r in state['regions']]
             if owners(a)!=owners(b):result['differences'].append(dict(kind='file-allocation-region-owners',phase=phase,call=index))
             for r in b['regions']:
-                expected=data(fixture,r);check(m.read(r['address'],len(expected)),expected,'file-allocation-memory-word',address=r['address']);result['words_checked']+=(len(expected)+3)//4
+                expected=data(fixture,r)
+                try:actual=m.read(r['address'],len(expected))
+                except ValueError as error:result['differences'].append(dict(kind='file-allocation-memory-unavailable',phase=phase,call=index,address=r['address'],reason=str(error)))
+                else:check(actual,expected,'file-allocation-memory-word',address=r['address'])
+                result['words_checked']+=(len(expected)+3)//4
             if set(registers)!=set(b['registers']):result['differences'].append(dict(kind='file-allocation-register-set',phase=phase,call=index))
             for key,value in b['registers'].items():
                 if registers.get(key)!=value:result['differences'].append(dict(kind='file-allocation-register',phase=phase,call=index,name=key,actual=registers.get(key),original=value))

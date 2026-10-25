@@ -425,6 +425,14 @@ the continuing histories resolves 84 more differences, from 382 to 298,
 with no newly differing address/phase pairs. Malloc's internal ABI and the
 other unfinished child frames remain required failures.
 
+The subsequent [malloc ABI integration](docs/MALLOC_STORAGE.md) connects the
+single-threaded unsorted exact-fit path to that same guest heap. All three
+independent stat/malloc/buffer operations match complete memory, registers,
+FP and allocator boundaries. The continuing comparison improves from 298 to
+284 required differences without introducing new address/phase mismatches.
+Other malloc branches and the remaining kernel/library/parser frames are
+still unfinished; the strict publication gates retain their failures.
+
 Records use binary64 with selected retained-precision intermediates matching the
 reference's x87 arithmetic. The [native logarithm audit](docs/LOGARITHM_AUDIT.md)
 adds 8,182 instruction cases and 10,327 multiplier cases with complete request

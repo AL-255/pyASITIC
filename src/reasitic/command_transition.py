@@ -181,7 +181,7 @@ class CommandTransition:
             # source work; every later byte remains in the strict comparison.
             registers=repl_storage.before_input(orient=not stdio.get('input_abi'))
             if stdio.get('input_abi'):
-                input_storage=StdinStorage(m,loader,loader_context,stdio['input_abi'],libc_base=libc_base,tls_base=loader_context['tls_base'])
+                input_storage=StdinStorage(m,loader,loader_context,stdio['input_abi'],libc_base=libc_base,tls_base=loader_context['tls_base'],heap=self.heap)
                 input_storage.enter(registers)
         stdin=self.inputs['stdin_stream'];raw=bytes.fromhex(stdin['data']);base,end=struct.unpack_from('<I',raw,28)[0],struct.unpack_from('<I',raw,8)[0]
         if base:raise NotImplementedError('Earlier buffered interactive input offset is not yet bound')
