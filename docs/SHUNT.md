@@ -76,7 +76,9 @@ tests), and the compiled mesh controls/solve/project workflow pass.
 
 The required geometry test asserts **zero differences** and currently fails
 on six raw phase words. Four are the previously opaque capacitor constructor
-phase value. Two result from native command 421 falling through to PHASE
+phase value. Its [earlier loader origin](PHASE_ORIGIN.md) is now traced and
+reproduced from genuine resolver-entry memory, but complete startup memory
+is not yet connected to the typed scene API. Two result from native command 421 falling through to PHASE
 with a deleted source descriptor address as its argument. Negative phase
 therefore reverses all endpoints and stores that positive process address.
 The typed API reproduces the endpoint reversal and positive direction, but

@@ -36,10 +36,15 @@ class PltFixup(LoaderLookup):
         raise ValueError('Named import absent from the ELF PLT relocations')
     def _ifunc(self,provider,symbol,stack):
         m=self.m;offset=m.u32(symbol+4);base=m.u32(provider)
-        if offset!=0xa3c30:raise NotImplementedError('This IFUNC resolver source path is not implemented')
-        # strcat's i386 IFUNC selector follows CPU usable/preference bits.
+        if offset not in(0xa3c30,0xa3e10):raise NotImplementedError('This IFUNC resolver source path is not implemented')
+        # i386 IFUNC selectors follow CPU usable/preference bits.
         # Its PC thunk writes a return word but has no frame or FP effects.
-        got=base+0x22fe34;self._put(stack-4,base+0xa3c39);cpu=m.u32(got+0x10c)
+        got=base+0x22fe34;self._put(stack-4,base+offset+9);cpu=m.u32(got+0x10c)
+        if offset==0xa3e10:
+            # strcmp.c: SSE4.2, then SSSE3, then the ia32 implementation.
+            features=m.u32(cpu+0x74)
+            if features&0x100000:return got-0x96b34
+            return got-0x9ea24 if features&0x200 else got-0x173c14
         if self._byte(cpu+0x7b)&4 and self._byte(cpu+0x19c)&1:return got-0x1796a4
         return got-0x17b114 if self._byte(cpu+0x75)&2 else got-0x1741d4
     def resolve(self,registers):

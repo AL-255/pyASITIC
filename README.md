@@ -317,6 +317,13 @@ node-matrix words match exactly in Python and packaged Pyodide, as do all
 required failing gate; this feature remains undeployed with the other exact
 numerical and process-state gaps.
 
+[Capacitor phase provenance](docs/PHASE_ORIGIN.md) now identifies the earlier
+`strcmp` lazy-binding stack save that becomes the uninitialized interactive
+phase word. The shared-memory loader adds the native `strcmp` IFUNC selector
+and exactly reproduces four complete resolver states and later phase words.
+Connecting complete startup/prompt memory to the typed API remains unfinished;
+the six required phase-word failures above remain unchanged.
+
 Development [geometry storage replay](docs/GEOMETRY_STORAGE.md) now derives
 clone/COPY/JOIN addresses and complete records from earlier process state.
 All 140 native observations match 2,750 allocation/free events, 1,017,272
