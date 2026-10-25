@@ -463,6 +463,14 @@ entry/return register. Lossless archive parts retain every original target.
 Printf's parent formatting algorithms still need integration, so the
 198-difference continuing gate remains required and failing.
 
+The [printf FILE setup/completion source](docs/PRINTF_FILE.md) matches all
+7,946 calls across the same 134-history cohort in CPU Python and Pyodide,
+including 132 buffer allocations through bin searches, consolidation and
+top splits. Complete reports agree on all owned memory, heap state,
+registers, FP bytes and 12,975 captured helper calls. Corrupted cache
+diagnostics remain checked. The continuing gate still has the same 198
+required differences; printf parent formatting and integration remain unfinished.
+
 Records use binary64 with selected retained-precision intermediates matching the
 reference's x87 arithmetic. The [native logarithm audit](docs/LOGARITHM_AUDIT.md)
 adds 8,182 instruction cases and 10,327 multiplier cases with complete request

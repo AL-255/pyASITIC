@@ -56,8 +56,15 @@ The first complete eight-shard browser run retained 59 failures for fitting
 free-bin allocation paths. Those paths have now been implemented. A separate
 diagnostic checks every one of the 132 allocation calls, including all heap,
 memory, register, FP and captured-child targets, with zero differences.
-The complete 7,946-call CPU and eight-shard browser reruns are pending.
-Diagnostic allocation selection does not replace either full gate.
+The complete CPU rerun and all eight browser shards pass all 11 tests.
+The browser indices partition all 134 histories exactly once. Both match
+all 7,946 calls, 1,902,446,488 four-byte units, 135,082 return registers,
+19,388,240 FP bytes and 441,150 captured helper entry/return registers,
+with zero differences. Units include overlapping owners and partial-word
+tails. The complete unsharded CPU report equals the merged browser report
+in every counter and per-case result. Diagnostic allocation selection did
+not replace either full gate. The earlier failed reports remain local;
+no target, tolerance, cohort or required assertion was changed to pass.
 
 Already-corrupted cache chains are re-observed from produced guest bytes.
 The audit derives all physical chunk, bin-link, fastbin and tcache errors,
@@ -70,6 +77,12 @@ The compact archive is 47,707,132 bytes in two checksummed parts:
 ```text
 50810f69485e6883b76aba0cb4420c86378ecd61e0c519081daa5a75b2615047
 ```
+
+Lossless conversion verifies all 15,892 complete snapshots and all 52,795
+unique page payloads. The archive has 46,563 region records, 925 factored
+contexts and 928 FP images. Earlier ELF metadata records the pinned libc
+SHA-256 `e936bd40e5479b27721efeade1b502623436a8be2bd8bd0f0ccf8c4f7229a0d0`;
+its detached symbols match build ID `9596d2907557f8966ee5796efe796849ce95de88`.
 
 Twenty-nine allocator, shared-memory, mapping, stat and storage regression
 checks pass in CPU Python. The complete 134-history continuing Pyodide
@@ -94,6 +107,9 @@ python tools/build_site.py
 node tools/check_printf_file_original.mjs /path/to/pyodide.mjs /tmp/printf-file-part.json 1 8
 ```
 
+The verified source package is `0e764e1a906deba9`. The unchanged compiled
+numerical module SHA-256 is
+`c7869e98f4c18b5414dc172d836e7144ab3ebc0de2de0d1f2eec1a4fe1709186`.
 All eight disjoint browser shards are required. Reports stay local.
 Alternate vtables, terminal/unbuffered/error paths, owned-buffer replacement,
 large direct output writes, small/tcache/system malloc ABI and the printf parser and
