@@ -1,0 +1,23 @@
+{
+  "format": "printf-capture-parts",
+  "version": 1,
+  "histories": 134,
+  "parents": {
+    "trailing_via_heap_mixed_cache_original.json.gz": "91cf7da1cbd338e0e4918d2421b484b074997be8fc1e294142cc525e02336aa6",
+    "printf_file_original.manifest.json": "c96e2609c056fdb0972888fcd96ba67750ce5ec2079db990ec15e67072d4add4"
+  },
+  "bytes": 46399324,
+  "sha256": "54c0415c44ffd9cf37c78a825c326f433782d90fa920a74eff69dcd163a2d327",
+  "parts": [
+    {
+      "file": "vfprintf_original.json.gz.001",
+      "bytes": 33554432,
+      "sha256": "621ad52e24bd093d2d1d3b94294b7af7ab6d4ed6c413d7a71c5bcf026f4d30c0"
+    },
+    {
+      "file": "vfprintf_original.json.gz.002",
+      "bytes": 12844892,
+      "sha256": "4b291cda27163a3ecfba4171ac39b2eee1053fca300fbed02ebfc149aa26c2f1"
+    }
+  ]
+}

@@ -58,12 +58,12 @@ def engine(fixture,state):
     return m,PrintfFile(m,libc_base=base,tls_base=state['tls_base'],heap=heap,io=io)
 
 
-def compare(fixture,case):
+def compare(fixture,case,*,storage_factory=engine):
     result=dict(label=case['label'],cache_mode=case['cache_mode'],calls_checked=0,words_checked=0,registers_checked=0,fp_bytes_checked=0,children_checked=0,child_registers_checked=0,differences=[])
     for index,call in enumerate(case['printf_calls']):
         if 'after'not in call:result['differences'].append(dict(kind='printf-missing-return',call=index));continue
         a,b=(expand_state(fixture,call[p])for p in ('before','after'))
-        try:m,storage=engine(fixture,a);registers=getattr(storage,call['kind'])(a['registers'])
+        try:m,storage=storage_factory(fixture,a);registers=getattr(storage,call['kind'])(a['registers'])
         except (ValueError,NotImplementedError)as error:result['differences'].append(dict(kind='printf-runtime',call=index,reason=str(error)));continue
         result['calls_checked']+=1
         heap=storage.heap;target=b['heap'];result['differences'].extend(dict(call=index,**d)for d in state_differences(heap,target,memory=m))
