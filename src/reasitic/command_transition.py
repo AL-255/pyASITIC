@@ -11,6 +11,7 @@ from .libio_storage import FileStorage
 from .stdio_storage import InputStream,OutputStream
 from .port_header_storage import NativePortStack,calendar,header
 from .heap import HeapCorruption
+from .signal_install_storage import install_console_signals
 
 
 class CommandTransition:
@@ -141,6 +142,10 @@ class CommandTransition:
         else:m.put_u32(previous+layout['_chain']['offset'],following)
         buffer=m.u32(address+28);FileStorage(m,abi).closed_byte_stream(address)
         self.release('script.buffer',buffer);self.release('script.file',address)
+        if self.inputs['repl']['history_enabled']:raise NotImplementedError('Readline signal installation needs its initial action state')
+        bases={symbol['address']-symbol['offset']for symbol in abi['libc_symbols'].values()}
+        if len(bases)!=1:raise ValueError('Inconsistent earlier libc symbol bindings')
+        installed=install_console_signals(m,self.inputs['workspace_address'],bases.pop())
         self.console.emit('message',b'ASITIC>  ',False)
         stdin=self.inputs['stdin_stream'];raw=bytes.fromhex(stdin['data']);base,end=struct.unpack_from('<I',raw,28)[0],struct.unpack_from('<I',raw,8)[0]
         if base:raise NotImplementedError('Earlier buffered interactive input offset is not yet bound')
@@ -149,7 +154,7 @@ class CommandTransition:
         # input line is EBP-0x400; dispatch_command_line subsequently reserves
         # its own 0x1040-byte command records. Both reuse the original stack.
         script_frame=self.inputs['workspace_address']+4460
-        line=m.u32(script_frame)-1024
+        line=installed['line']
         if source.readline(line,1024)is None:raise NotImplementedError('Interactive EOF shutdown requires its own source path')
         # repl_read_stdio appends a newline even when fgets already retained
         # the input newline. finish() logs those bytes before normalization.

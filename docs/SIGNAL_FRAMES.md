@@ -7,6 +7,11 @@ Pyodide. This independently verifies the kernel stack-writing component
 needed by the rectangular command-continuation fault; it does not supply the
 missing interrupted CPU state to that continuation.
 
+The later [signal-installation integration](SIGNAL_INSTALL.md) adds earlier
+source wrapper stores and reduces the continuing-history difference to 816
+words. The 912-word figure below records this signal-frame checkpoint's
+unchanged continuation measurement.
+
 ## Inputs and stores
 
 The legacy i386 record retains its historical unused FP area. The active

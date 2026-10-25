@@ -366,8 +366,15 @@ An independent [Linux i386 signal-frame model](docs/SIGNAL_FRAMES.md) now
 matches all 130 observed deliveries across the same 134 histories, including
 complete stacks, handler registers/masks and FP state. Four native histories
 fault before delivery and remain explicit. This verifies the signal-writing
-component; the continuing command replay still needs its interrupted CPU
-state derived and retains all 912 required stack-word differences.
+component. At that checkpoint the continuing replay still needed its
+interrupted CPU state derived and retained 912 required stack-word differences.
+
+The subsequent [signal-installation stores](docs/SIGNAL_INSTALL.md) now run
+in the continuing process memory, deriving the guard from earlier startup
+entropy and preserving uninitialized mask bytes. All 390 independently
+observed calls match their full stacks/registers. The continuing rectangular
+case improves to 816 differing boundary words; every remaining word stays
+required, with loader and later caller-stack work still unfinished.
 
 Records use binary64 with selected retained-precision intermediates matching the
 reference's x87 arithmetic. The [native logarithm audit](docs/LOGARITHM_AUDIT.md)

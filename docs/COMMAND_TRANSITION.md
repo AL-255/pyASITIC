@@ -7,6 +7,11 @@ stops at the next numerical driver entry or native fault. The rectangular
 audit remains nonzero; this checkpoint does not establish whole-program
 equivalence or change the deployed trailing-via guard.
 
+The measurements below describe the original command-continuation checkpoint.
+The subsequent [signal-installation integration](SIGNAL_INSTALL.md) reduces
+the current remaining comparison to 816 words; the older captures and every
+comparison remain required.
+
 ## Source behavior
 
 `command_storage.py` implements the fixed 260-byte command/argument records,
