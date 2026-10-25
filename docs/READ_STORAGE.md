@@ -1,5 +1,9 @@
 # Native stdin read ABI and descriptor positions
 
+The subsequent [scalar getline checkpoint](GETLINE_BYTES.md) implements
+internal memchr/memcpy and their stdin callers. This read fixture, its
+399 descriptor assertions and its strict 284-difference gate remain required.
+
 `read_storage.py` now models the regular-file `_IO_file_read` tail call,
 single-threaded libc `__read` frame, i386 VDSO saved registers and successful
 read return. The source copies only the returned byte range and advances the

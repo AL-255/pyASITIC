@@ -9,13 +9,26 @@ from reasitic.loader_lookup_storage import LoaderLookup
 
 
 def data(fixture,region):
-    raw=bytes.fromhex(fixture['loader_regions'][region['sha256']])
+    if 'pages'in region:
+        pages=[]
+        for key in region['pages']:
+            page=bytes.fromhex(fixture['loader_pages'][key])
+            if hashlib.sha256(page).hexdigest()!=key:raise ValueError('Invalid loader page content')
+            pages.append(page)
+        raw=b''.join(pages)
+    else:raw=bytes.fromhex(fixture['loader_regions'][region['sha256']])
     if len(raw)!=region['size']or hashlib.sha256(raw).hexdigest()!=region['sha256']:raise ValueError('Invalid loader region content')
     return raw
 
 
 def memory_for(fixture,before):
-    memory=Memory(AddressSpace([dict(start=r['address'],end=r['address']+r['size'])for r in before['regions']]))
+    # Preserve the exact region union, including gaps, while avoiding a sort
+    # of thousands of overlapping ELF owners on every guest memory access.
+    ranges=[]
+    for start,end in sorted((r['address'],r['address']+r['size'])for r in before['regions']):
+        if ranges and start<=ranges[-1][1]:ranges[-1][1]=max(ranges[-1][1],end)
+        else:ranges.append([start,end])
+    memory=Memory(AddressSpace([dict(start=start,end=end)for start,end in ranges]))
     for r in before['regions']:memory.write(r['address'],data(fixture,r))
     return memory
 

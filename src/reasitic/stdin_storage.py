@@ -117,6 +117,7 @@ class StdinStorage:
 
     def before_read(self,buffer,capacity):
         m=self.m;u=self.underflow_frame;local=u-40;a=self.stream;vt=self.vtable
+        if self.profile.get('getline_bytes_abi'):self.read_offset=int.from_bytes(m.read(a+76,8),'little')
         m.put_u32(local-16,a);m.put_u32(local-20,self.libc+0x82f0f)
         sw=local-20;m.put_u32(sw-4,a);m.put_u32(sw-8,self.got-0x734)
         # Source _IO_switch_to_get_mode, followed by underflow's area reset.
@@ -135,21 +136,43 @@ class StdinStorage:
             from .read_storage import ReadStorage
             storage=ReadStorage(self.m,libc_base=self.libc,tls_base=self.tls)
             self.read_result=storage.read(self.read_entry,file_data,position)
+            if self.profile.get('getline_bytes_abi')and self.read_offset!=0xffffffffffffffff:
+                self.m.write(self.stream+76,((self.read_offset+len(self.read_result['data']))&0xffffffffffffffff).to_bytes(8,'little'))
             return self.read_result['data'],self.read_result['position']
         data=file_data[position:position+self.capacity];self.m.write(self.buffer,data)
         return data,position+len(data)
+
+    def buffered_line(self,destination,remaining,consumed):
+        """The getline loop after its first source uflow character."""
+        from .getline_bytes import GetlineBytes
+        m=self.m;a=self.stream;local=self.info_local;source=m.u32(a+4);available=min(m.u32(a+8)-source,remaining)
+        if consumed!=1 or destination!=self.line+1 or source!=self.buffer+1:
+            raise NotImplementedError('Additional getline refill/scan callers need their source ABI')
+        m.put_u32(local+8,destination)
+        for offset,value in ((8,available),(12,10),(16,source),(20,self.libc+0x77343)):m.put_u32(local-offset,value)
+        r=dict(self.entry,eax=destination,ebx=source,ecx=self.read_offset&0xffffffff,edx=self.line,
+               esi=available,edi=remaining,ebp=a,esp=local-20,eip=self.libc+0xbb650,
+               eflags=subtract_flags(local,4,self.entry['eflags']))
+        storage=GetlineBytes(m,libc_base=self.libc,shr1_af=self.profile.get('shr1_af'));found=storage.memchr(r)
+        if not found['eax']:raise NotImplementedError('Undelimited buffered getline needs its remaining caller loop')
+        end=found['eax']+1;length=end-source;m.put_u32(local+8,end)
+        for offset,value in ((8,length),(12,source),(16,destination),(20,self.libc+0x773f6)):m.put_u32(local-offset,value)
+        r=dict(found,eax=1,ebx=self.got,ecx=destination,edx=end,esi=length,edi=consumed,
+               esp=local-20,eip=self.libc+0xbbae0,eflags=subtract_flags(local,4,found['eflags']))
+        storage.memcpy(r);m.put_u32(a+4,end)
+        return length
 
     def returned(self,count):
         m=self.m;a=self.stream;local=self.info_local
         text=m.read(self.line,count)
         if not text.endswith(b'\n')or count<2:raise NotImplementedError('Stdin getline EOF/delimiter-first return ABI is not bound')
-        # The first char comes from uflow; getline scans/copies the remaining
-        # buffered bytes. Child memchr/memcpy ISA state remains separate work.
-        for offset,value in ((8,count-1),(12,10),(16,self.buffer+1),(20,self.libc+0x77343)):
-            m.put_u32(local-offset,value)
-        m.put_u32(local+8,self.buffer+count)
-        for offset,value in ((8,count-1),(12,self.buffer+1),(16,self.line+1),(20,self.libc+0x773f6)):
-            m.put_u32(local-offset,value)
+        if not self.profile.get('getline_bytes_abi'):
+            # Older contexts retain their missing child effects as failures.
+            for offset,value in ((8,count-1),(12,10),(16,self.buffer+1),(20,self.libc+0x77343)):
+                m.put_u32(local-offset,value)
+            m.put_u32(local+8,self.buffer+count)
+            for offset,value in ((8,count-1),(12,self.buffer+1),(16,self.line+1),(20,self.libc+0x773f6)):
+                m.put_u32(local-offset,value)
         m.put_u32(a,m.u32(a)|(self.flags&32));lock=m.u32(a+72);m.put_u32(lock+8,0);m.put_u32(lock,0)
         return dict(self.entry,eax=self.line,ecx=m.u32(self.tls+12),edx=lock,esp=self.entry['esp']+4,
                     eip=m.u32(self.entry['esp']),eflags=logical_flags(m.u32(lock+4),self.entry['eflags']))

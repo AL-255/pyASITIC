@@ -16,6 +16,9 @@ class InputStream:
         m=self.memory;a=self.address;count=0
         while count<size-1:
             flags,rp,re,rb,wb,wp,we,bb,be=struct.unpack('<9I',m.read(a,36))
+            if rp<re and count and abi and abi.profile.get('getline_bytes_abi'):
+                copied=abi.buffered_line(destination+count,size-1-count,count)
+                count+=copied;break
             if rp>=re:
                 if flags&16:break
                 if flags&4:raise ValueError('Source fgets stream has no read access')

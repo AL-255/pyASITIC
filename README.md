@@ -441,6 +441,14 @@ offset, including four histories already at byte 51 before the first driver.
 Its 284 remaining memory differences stay required; later library, kernel
 and parser effects are still unfinished.
 
+The [scalar getline search/copy implementation](docs/GETLINE_BYTES.md)
+reproduces every captured internal memchr/memcpy operation: 268 calls with
+complete regions, registers and unchanged FP state. Its stdin caller now
+executes the same routines on the continuing buffer and Memory, with all
+generated entry/return registers exact. The continuing gate retains its
+284 required differences; later overwrites and other child frames remain
+unfinished.
+
 Records use binary64 with selected retained-precision intermediates matching the
 reference's x87 arithmetic. The [native logarithm audit](docs/LOGARITHM_AUDIT.md)
 adds 8,182 instruction cases and 10,327 multiplier cases with complete request

@@ -83,7 +83,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        suite: [baseline, dependencies, resonance, extended, technologies, fft, matrix, contacts, general, spectral, transformer, composition, splitting, storage, geometry, heap, mappings, shared, inductive, prelude, prestorage, libio, cachestore, driverhist, console, nodehistory, commandtransition, signalframes, signalinstall, loaderlookup, pltfixup, loadertransition, dispatchstore, pollstore, stdiotransition, inputtransition, fileallocation, stattransition, mallocstore, malloctransition, readstore, readtransition, capstorage, workspaces, history, filaments, mutual, eddy, metrics]
+        suite: [baseline, dependencies, resonance, extended, technologies, fft, matrix, contacts, general, spectral, transformer, composition, splitting, storage, geometry, heap, mappings, shared, inductive, prelude, prestorage, libio, cachestore, driverhist, console, nodehistory, commandtransition, signalframes, signalinstall, loaderlookup, pltfixup, loadertransition, dispatchstore, pollstore, stdiotransition, inputtransition, fileallocation, stattransition, mallocstore, malloctransition, readstore, readtransition, getlinebytes, getlinetransition, capstorage, workspaces, history, filaments, mutual, eddy, metrics]
         include:
           - {suite: erasure, shard: 1, shards: 4}
           - {suite: erasure, shard: 2, shards: 4}
@@ -196,6 +196,10 @@ jobs:
               node tools/check_read_storage_original.mjs /tmp/reasitic-pyodide/node_modules/pyodide/pyodide.mjs ;;
             readtransition)
               node tools/check_read_transition_original.mjs /tmp/reasitic-pyodide/node_modules/pyodide/pyodide.mjs ;;
+            getlinebytes)
+              node tools/check_getline_bytes_original.mjs /tmp/reasitic-pyodide/node_modules/pyodide/pyodide.mjs ;;
+            getlinetransition)
+              node tools/check_getline_transition_original.mjs /tmp/reasitic-pyodide/node_modules/pyodide/pyodide.mjs ;;
             capstorage)
               node tools/check_cap_storage_original.mjs /tmp/reasitic-pyodide/node_modules/pyodide/pyodide.mjs ;;
             workspaces)
