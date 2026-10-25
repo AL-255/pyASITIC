@@ -10,6 +10,7 @@ from .strchrnul_storage import StrchrnulStorage
 from .strlen_storage import StrlenStorage
 from .printf_buffer import PrintfBuffer
 from .printf_padding import PrintfPadding
+from .printf_integer import PrintfInteger
 from .dispatch_storage import logical_flags
 from .getline_bytes import cmp8
 
@@ -22,6 +23,7 @@ class PrintfFormat:
         self.heap=file_storage.heap;self.children=file_storage.children
         self.strings=StrchrnulStorage(self.m,libc_base=self.libc);self.writer=PrintfBuffer(self.m,libc_base=self.libc,shr1_af=shr1_af)
         self.lengths=StrlenStorage(self.m,libc_base=self.libc,shr1_af=shr1_af);self.padding=PrintfPadding(file_storage)
+        self.integers=PrintfInteger(self)
 
     def before_initial_write(self,registers):
         m=self.m;r=dict(registers);s=r['esp'];local=s-1252
@@ -45,7 +47,7 @@ class PrintfFormat:
         if reserve:r=dict(r,eflags=subtract_flags(base,reserve,r['eflags']))
         for value in reversed(args):p-=4;m.put_u32(p,value)
         p-=4;m.put_u32(p,self.libc+return_offset)
-        functions={'write':self._write,'strchrnul':self.strings.search,'strlen-ia32':self.lengths.length,'strnlen-ia32':self.lengths.bounded,'pad':self.padding.pad}
+        functions={'write':self._write,'strchrnul':self.strings.search,'strlen-ia32':self.lengths.length,'strnlen-ia32':self.lengths.bounded,'pad':self.padding.pad,'itoa-word':self.integers.digits.word}
         return self.file._child(kind,dict(r,esp=p,eip=self.libc+offset),functions[kind])
 
     def _read_int(self,r,base,slot,return_offset):
@@ -68,11 +70,26 @@ class PrintfFormat:
 
     def _parse(self,r,base):
         m=self.m
-        while r['ecx']!=self.libc+0x60ce0:
+        while r['ecx']not in(self.libc+0x60ce0,self.libc+0x612c8,self.libc+0x612a0,self.libc+0x61240,self.libc+0x61180):
             handler=r['ecx']-self.libc
             if handler==0x60c00: # '-' flag, through the original first-step table.
                 p=m.u32(base+0x84)+1;m.put_u32(base+0x84,p);r['edx']=m.read(p,1)[0];m.write(base+0x76,b' ');m.put_u32(base+0x18,1)
                 r=self._dispatch(r,base,-0x72e34,first=True)
+            elif handler in(0x60c98,0x60a90,0x60b30,0x60b80):
+                if handler==0x60b30:
+                    if not m.u32(base+0x18):m.write(base+0x76,b'0')
+                else:m.put_u32(base+{0x60c98:0x24,0x60a90:0x2c,0x60b80:0x28}[handler],1)
+                p=m.u32(base+0x84)+1;m.put_u32(base+0x84,p);r['edx']=m.read(p,1)[0]
+                r=self._dispatch(r,base,-0x72e34,first=True)
+            elif handler in(0x61328,0x61390,0x61438,0x60940,0x60944):
+                p=m.u32(base+0x84)+1;m.put_u32(base+0x84,p);r['edx']=m.read(p,1)[0]
+                if handler==0x61328:m.put_u32(base+0x30,1);table=-0x730b4
+                elif handler==0x61390:m.put_u32(base+0x44,1);table=-0x72fb4
+                else:
+                    if handler==0x61438:m.put_u32(base+0x50,1);m.put_u32(base+0x44,0)
+                    else:m.put_u32(base+0x30,0);m.put_u32(base,0)
+                    table=-0x73034
+                r=self._dispatch(r,base,table)
             elif handler==0x61000: # Literal decimal width.
                 r=self._read_int(r,base,base+0x84,0x61010);m.put_u32(base+0x20,r['eax'])
                 if r['eax']==MASK:raise NotImplementedError('Overflowing printf width needs its error source')
@@ -87,6 +104,7 @@ class PrintfFormat:
                     if r['eax']==MASK:raise NotImplementedError('Overflowing printf precision needs its error source')
                     r['edx']=m.read(m.u32(base+0x84),1)[0]
                 r=self._dispatch(r,base,-0x72f34)
+            elif handler in(0x60788,0x6078c):raise NotImplementedError('Floating-point printf needs its original formatter source and produced FP state')
             else:raise NotImplementedError('Printf conversion parser and numeric formatter need their source implementation')
         return r
 
@@ -131,7 +149,7 @@ class PrintfFormat:
             jump=m.u32(r['esi']+4*r['eax']);r['ecx']=(jump+r['ebx'])&MASK;r['eflags']=add_flags(jump,r['ebx'],r['eflags'])
             for offset in (0x50,0x30,0x44,0,0x38,0x24,0x18,0x2c,0x28):m.put_u32(base+offset,0)
             r=self._parse(r,base)
-            r=self._string(r,base)
+            r=self._string(r,base)if r['ecx']==self.libc+0x60ce0 else self.integers.convert(r,base)
             # 608a0: search and write the next literal span after conversion.
             r['eax']=m.u32(base+0x84);n=m.u32(base+0x34);m.put_u32(base+0x34,n+1)
             r['esi']=(r['eax']+1)&MASK
