@@ -62,12 +62,14 @@ This is a decimal digit component, **not a completed formatter ABI**.
 floating formatter calls remain required and unfinished, alongside all
 earlier memory/register/FP/helper comparisons and rseq differences.
 No text-only path is wired in while claiming that unchanged incoming FP
-state is a produced result. Original stack allocations, limb helper
-boundaries, x87 argument preparation/classification, FP exception/status
-behavior, complete return state, long double, hexadecimal floating
-conversion, locale and allocation/error paths still need implementation
-and independent state checks. Whole-parent and continuing replay remain
-unfinished.
+state is a produced result. The separate [x87 state component](X87_FORMAT_STATE.md)
+now produces the masked binary64 argument-copy and classification state
+against independent native instruction targets. Binding the components
+to original stack allocations, GPR stores, limb helper boundaries and
+complete return state remains unfinished, along with fault/rounding cases
+beyond that component, long double, hexadecimal floating conversion,
+locale and allocation/error paths. Whole-parent and continuing replay
+remain unfinished.
 
 ```sh
 python tools/capture_printf_float_digits_original.py

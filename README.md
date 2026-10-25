@@ -504,6 +504,12 @@ extractions, including all binary64 exponents and four rounding modes.
 The complete floating formatter ABI and its produced FP state remain
 unfinished; the original floating-call gates are unchanged.
 
+The separate [x87 formatter-state component](docs/X87_FORMAT_STATE.md)
+also checks a continuous 41,072-instruction native chain and 2,420 full
+Linux XSAVE observations. It produces masked argument-copy/classification
+state, including sticky exceptions, physical stack slots and comparison
+flags. Binding these components to the complete formatter remains unfinished.
+
 Records use binary64 with selected retained-precision intermediates matching the
 reference's x87 arithmetic. The [native logarithm audit](docs/LOGARITHM_AUDIT.md)
 adds 8,182 instruction cases and 10,327 multiplier cases with complete request

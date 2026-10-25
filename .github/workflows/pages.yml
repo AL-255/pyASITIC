@@ -123,6 +123,7 @@ jobs:
           - {suite: printf-format, shard: 8, shards: 8}
           - {suite: printf-integer}
           - {suite: printf-float-digits}
+          - {suite: x87-formatter-state}
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
@@ -250,6 +251,8 @@ jobs:
               node tools/check_printf_integer_original.mjs /tmp/reasitic-pyodide/node_modules/pyodide/pyodide.mjs ;;
             printf-float-digits)
               node tools/check_printf_float_digits_original.mjs /tmp/reasitic-pyodide/node_modules/pyodide/pyodide.mjs ;;
+            x87-formatter-state)
+              node tools/check_x87_formatter_instructions_native.mjs /tmp/reasitic-pyodide/node_modules/pyodide/pyodide.mjs ;;
             capstorage)
               node tools/check_cap_storage_original.mjs /tmp/reasitic-pyodide/node_modules/pyodide/pyodide.mjs ;;
             workspaces)
