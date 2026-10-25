@@ -83,6 +83,14 @@ Only `prelude/fft/16/8/cold` differs: 83 point words and 115 final component
 words. Its complete CPU and Pyodide reports agree. The 181 focused Python
 tests and all eleven new component/integration tests in Pyodide pass.
 
+The complete regression sweep also reran all eight older continuing
+browser gates against this checkpoint. Their required results are
+unchanged: getline/read/malloc each retain 284 differences, stat 298,
+input 382, stdio 556 and loader 618. The original command set remains
+exact across 130 histories; its four extended histories retain 816
+differences. Each nonzero gate still exits with failure. No earlier
+fixture, expected word or accepted threshold changed.
+
 The independent and continuing captures ran at different times. The
 continuing write test therefore obtains every expected write byte from
 its own complete native later heap, after source execution has finished.
