@@ -13,6 +13,15 @@ from reasitic.heap import Heap,SystemAllocationRequired
 
 def state_differences(heap,state,*,memory=None):
     differences=[]
+    # Optional later external-node bytes are assertion targets only. Never
+    # seed them into the continuing source memory or recover them from it.
+    for target in state.get('cache_node_targets',()):
+        native=bytes.fromhex(target['data']);actual=None
+        if memory is not None:
+            from reasitic.memory import UnknownMemory,MemoryFault
+            try:actual=memory.read(target['address'],len(native))
+            except (UnknownMemory,MemoryFault):pass
+        if actual!=native:differences.append(dict(kind='external-cache-node',boundary=state['label'],address=target['address'],actual=actual.hex()if actual is not None else None,original=native.hex()))
     raw=bytes.fromhex(state['arena_bytes'])
     bitmap=[int.from_bytes(raw[offset:offset+4],'little')for offset in range(1080,1096,4)]
     if heap.binmap!=bitmap:differences.append(dict(kind='binmap',boundary=state['label'],actual=heap.binmap,original=bitmap))

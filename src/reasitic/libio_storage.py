@@ -16,8 +16,8 @@ CLOSED=0x2000|4|8|0x400
 
 
 class FileStorage:
-    def __init__(self,memory,abi):
-        self.memory=memory;self.abi=abi
+    def __init__(self,memory,abi,*,errno_address=None):
+        self.memory=memory;self.abi=abi;self.errno_address=errno_address
         if (abi['file']['size'],abi['plus']['size'],abi['lock_size'],abi['wide']['size'])!=(148,152,12,140):
             raise ValueError('FILE storage requires the i386 glibc 2.39 ABI')
 
@@ -42,9 +42,12 @@ class FileStorage:
         self._put(address,'file','_chain',self.abi['list_head']if list_head is None else list_head)
         self._put(address,'file','_fileno',-1)
 
-    def failed_open(self,address):
+    def failed_open(self,address,*,error_number=None):
         # Unlink clears _IO_LINKED, but does not clear the saved _chain.
         self._put(address,'file','_flags',MAGIC|CLOSED)
+        if self.errno_address is not None:
+            if error_number is None:raise ValueError('Failed open needs its earlier filesystem error')
+            self.memory.put_u32(self.errno_address,error_number)
 
     def closed_byte_stream(self,address):
         # First narrow IO sets orientation to -1. Closing releases the buffer

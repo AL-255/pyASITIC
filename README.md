@@ -497,8 +497,9 @@ parent entry. All 3,973 parents, 7,946 produced inner-boundary states and
 reports. Final and helper registers, produced FP state and non-kernel
 memory match. The strict gate retains 8,028 assertions on the two rseq
 CPU words across overlapping TLS owners and all three boundaries. No
-later formatter snapshot supplies execution. Connecting this parent to
-continuing command/console output remains unfinished.
+later formatter snapshot supplies execution. The subsequent
+[continuing integration](docs/PRINTF_TRANSITION.md) connects prompt/log
+output through the public entries while preserving this independent gate.
 
 The [public printf entry source](docs/PRINTF_ENTRY.md) now carries actual
 variadic arguments through that whole parent on shared memory. Its complete
@@ -506,8 +507,17 @@ capture retains all 3,973 calls and 123,122 helpers across the unchanged
 134 histories. An independent 18-call native probe covers all three public
 entries, extreme binary64 inputs and the old stdout allocation/output
 chain. It exposed and fixed two multiprecision PC-flow omissions. All
-kernel-owned fields stay required; continuing command integration remains
-unfinished.
+kernel-owned fields stay required. Prompt/log calls now also execute in
+the continuing command history; broader integration remains unfinished.
+
+The [continuing printf comparison](docs/PRINTF_TRANSITION.md) starts once
+at first-driver entry and runs all 134 histories on the same source heap
+and memory. The complete browser report matches all three reached printf
+GP pairs and checks every byte of 103,364,142 retained later regions.
+Its strict gate retains 34 differences in the rectangular REPL case;
+the other 133 histories match. All earlier failing gates remain required.
+The complete CPU comparison is still running; this is not a parity or
+deployment claim.
 
 The [integer formatter](docs/PRINTF_INTEGER.md) also matches all 5,472
 independent native int32 output requests in CPU Python and Pyodide.

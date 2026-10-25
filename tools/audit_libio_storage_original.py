@@ -29,7 +29,11 @@ def compare(case,*,return_state=False,cache_files=None,console=None,initial_regi
     counts,metals,substrates,nx=dimensions(case);abi=initial['io_abi'];block=abi['filesystem_block_size']
     plan=capacitance_prelude_storage(counts,metals,substrates,nx,cache_mode=case['cache_mode'],file_bytes=abi['file_plus']+abi['lock']+abi['wide_data'],buffer_bytes=min(abi['buffer_default'],block)if block>0 else abi['buffer_default'])
     objects={e.name:e for e in plan if e.action=='allocate'};observed={r['event_index']:r for r in case['prelude_storage']}
-    inputs=case['libio_inputs'];files=FileStorage(memory,inputs)
+    inputs=case['libio_inputs'];stdio=case.get('transition_inputs',{}).get('stdio_context',{});errno_address=None
+    if stdio.get('printf_abi'):
+        tls=case['transition_inputs']['loader_context']['tls_base'];got=inputs['libc_base']+0x22fe34
+        errno_address=(memory.u32(tls)+memory.u32(got+0xa0))&0xffffffff
+    files=FileStorage(memory,inputs,errno_address=errno_address)
     technology=Technology.from_text(case['request']['technology']);frequency=_frequency(case['request']);contacts=ported_records(case);prepared=False
     cache=CacheStorage(memory,case['cache_inputs'],technology,frequency,cache_files)if cached else None
     if console is not None:
@@ -67,7 +71,15 @@ def compare(case,*,return_state=False,cache_files=None,console=None,initial_regi
         else:
             address=addresses[name]
             if name.endswith('.file'):
-                if name=='cache.reader.file'and case['cache_mode']=='cold':files.failed_open(address)
+                if name=='cache.reader.file'and case['cache_mode']=='cold':
+                    error=None
+                    if errno_address is not None:
+                        # Earlier inputs declare the current directory and
+                        # its complete initial .dat manifest. The requested
+                        # cache file is absent; Linux open returns ENOENT.
+                        if inputs['cache_files']or bytes.fromhex(case['console_inputs']['directory'])!=b'.':raise NotImplementedError('Other failed cache paths need their earlier filesystem error')
+                        error=2
+                    files.failed_open(address,error_number=error)
                 else:files.closed_byte_stream(address)
                 key='file_records_checked'
             elif name.startswith('cache.header.'):key='header_arrays_checked'

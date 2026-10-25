@@ -10,10 +10,11 @@ MASK=0xffffffff
 
 
 class VfprintfStorage:
-    def __init__(self,file_storage,*,shr1_af=None,xstate=None):
+    def __init__(self,file_storage,*,shr1_af=None,xstate=None,preserve_fp=False):
         self.file=file_storage;self.m=file_storage.m;self.libc=file_storage.libc;self.got=file_storage.got;self.tls=file_storage.tls
         self.heap=file_storage.heap;self.children=file_storage.children
         self.shr1_af=shr1_af;self.xstate=None if xstate is None else bytes(xstate);self.observer=None
+        self.preserve_fp=preserve_fp
         self.formatter_children_start=None;self.formatter_children_end=None
 
     def before_formatter(self,registers):
@@ -55,7 +56,7 @@ class VfprintfStorage:
         return self.file._return4(dict(r,eax=count,eflags=add_flags(local,204,r['eflags'])),s)
 
     def call(self,registers,formatter=None):
-        if formatter is None and(self.shr1_af is None or self.xstate is None):raise NotImplementedError('Vfprintf parser and numeric formatter requires actual earlier CPU/FP inputs')
+        if formatter is None and(self.shr1_af is None or(self.xstate is None and not self.preserve_fp)):raise NotImplementedError('Vfprintf parser and numeric formatter requires actual earlier CPU/FP inputs')
         incoming=self.before_formatter(registers)
         self.formatter_children_start=len(self.children)
         if self.observer:self.observer('formatter-before',dict(incoming),self.xstate)

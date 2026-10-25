@@ -1,8 +1,9 @@
 """Original main/acquisition/stdio caller stores around source stream IO.
 
-Complete successful fflush executes when its earlier ABI inputs are present.
-Older contexts retain their missing child effects. printf child frames and
-kernel polling remain separate work, checked by the continuing comparison.
+Public printf/fprintf and successful fflush execute when their earlier ABI
+inputs are present, on the continuing heap and memory. Older contexts retain
+their missing child effects. Kernel polling remains separate work, checked
+by the continuing comparison.
 
 The fflush/sync and orientation stores follow glibc 2.39 iofflush.c,
 fileops.c and genops.c, Copyright (C) 1993-2024 Free Software Foundation,
@@ -13,13 +14,25 @@ from .signal_install_storage import add_flags
 
 
 class ReplStorage:
-    def __init__(self,memory,context,*,libc_base,tls_base,loader=None,loader_context=None):
+    def __init__(self,memory,context,*,libc_base,tls_base,loader=None,loader_context=None,heap=None):
         self.m,self.context,self.libc_base,self.tls_base=memory,context,libc_base,tls_base
         self.flush_storage=None
         if context.get('flush_abi'):
             from .flush_storage import FlushStorage
             if loader is None or loader_context is None:raise ValueError('Flush ABI needs earlier loader inputs')
             self.flush_storage=FlushStorage(memory,loader,loader_context,libc_base=libc_base,tls_base=tls_base)
+        self.printf_storage=None;self.printf_calls=[]
+        if context.get('printf_abi'):
+            from .printf_file import PrintfFile
+            from .printf_entry_storage import PrintfEntryStorage
+            if self.flush_storage is None or heap is None:raise ValueError('Printf ABI needs the continuing heap and flush/loader source')
+            self.printf_storage=PrintfEntryStorage(PrintfFile(memory,libc_base=libc_base,tls_base=tls_base,heap=heap,io=self.flush_storage),shr1_af=context['input_abi']['shr1_af'],preserve_fp=True)
+
+    def _printf(self,registers,name):
+        r=self.flush_storage._bind(registers,name)
+        before=dict(r);result=self.printf_storage.entry(r)
+        self.printf_calls.append(dict(kind=name.decode(),before=before,after=dict(result)))
+        return result
 
     def _flush_return(self,registers):
         """Known caller/prologue stores and successful unlocked return ABI.
@@ -61,8 +74,14 @@ class ReplStorage:
         m.put_u16(f-1040,0);m.put_u32(f-1044,prompt);m.put_u32(f-1048,0x804b5d1)
         message=f-1052;m.put_u32(message,f);m.put_u32(message-4,line);m.put_u32(message-8,parent['ebx'])
         m.put_u32(message-12,prompt);m.put_u32(message-16,0x80b4891);m.put_u32(message-20,0x804c012)
+        result=None
+        if self.printf_storage:
+            # MOV EAX,[stdio EBP+8] survives the message prologue; MOV BL,0
+            # changes only the logging byte of the inherited EBX.
+            r=dict(parent,eax=prompt,ebx=parent['ebx']&~255,esi=prompt,ebp=message,esp=message-20,eflags=add_flags(f-1036,0xfffffffe,parent['eflags']))
+            result=self._printf(r,b'printf')
         m.put_u32(message-20,m.u32(0x80d7d68));m.put_u32(message-24,0x804c01d)
-        registers=dict(parent,eax=0,ebx=parent['ebx']&~255,esi=prompt,ebp=message,esp=message-24)
+        registers=dict(result if result is not None else parent,**({}if result is not None else dict(eax=0,ebx=parent['ebx']&~255,esi=prompt,ebp=message)),esp=message-24)
         result=self._flush_return(registers)
         # Message's disabled log/record branches restore the stdio caller;
         # its ADD ESP,8 supplies the flags at the subsequent poll call.
@@ -85,23 +104,32 @@ class ReplStorage:
         if orient and not mode:m.put_u32(stream+104,0xffffffff)
         return dict(result,esp=f-1056,eip=self.libc_base+0x75f70)
 
-    def finish_line(self,characters,input_log,output_log,*,write_output=None):
+    def finish_line(self,characters,input_log,output_log,*,write_output=None,incoming=None):
         """Append/log caller frames and the real normalization local stores."""
         m=self.m;f=self.frame;parent=self.poll_registers;line=parent['esi'];prompt=0x80b4821
         for offset,value in ((1040,0x80b4895),(1044,line),(1048,0x804b617),
                              (1048,prompt),(1052,line),(1056,0x804b621)):
             m.put_u32(f-offset,value)
         log=f-1060;m.put_u32(log,f);m.put_u32(log-4,line);m.put_u32(log-8,parent['ebx'])
-        for offset,value in ((12,line),(16,0x80b4b01),(20,input_log),(24,0x804be86),
-                             (24,input_log),(28,0x804be91)):
+        for offset,value in ((12,line),(16,0x80b4b01),(20,input_log),(24,0x804be86)):
             m.put_u32(log-offset,value)
         registers=dict(parent,ebx=line,esi=prompt,ebp=log,esp=log-28)
-        self._flush_return(registers)
+        if self.printf_storage:
+            if incoming is None:raise ValueError('Printf log caller needs the source strcat return registers')
+            registers=self._printf(dict(incoming,eax=prompt,ebx=line,esi=prompt,ebp=log,esp=log-24,eflags=logical_flags(0,incoming['eflags'])),b'fprintf')
+            registers=dict(registers,esp=log-28)
+        m.put_u32(log-24,input_log);m.put_u32(log-28,0x804be91)
+        result=self._flush_return(registers)
         if write_output:write_output()
-        for offset,value in ((28,line),(32,prompt),(36,0x80b4c16),(40,output_log),(44,0x804bea3),
-                             (12,output_log),(16,0x804beb1)):
+        for offset,value in ((28,line),(32,prompt),(36,0x80b4c16),(40,output_log),(44,0x804bea3)):
             m.put_u32(log-offset,value)
-        result=self._flush_return(dict(registers,esp=log-16))
+        if self.printf_storage:
+            # The input-log arguments remain on stack while the output-log
+            # arguments are pushed. ADD ESP,32 follows the second printf.
+            result=self._printf(dict(result,esp=log-44),b'fprintf')
+            result=dict(result,eflags=add_flags(log-40,32,result['eflags']))
+        m.put_u32(log-12,output_log);m.put_u32(log-16,0x804beb1)
+        result=self._flush_return(dict(result if self.printf_storage else registers,esp=log-16))
         m.put_u32(f-1056,0x8e);m.put_u32(f-1060,line);m.put_u32(f-1064,0x804b62c)
         incoming=dict(result,ebx=parent['ebx'],esi=line,ebp=f,esp=f-1064)
         abi=NormalizeFrame(m,incoming,0x8e);characters.normalize(m,line,0x8e,abi=abi)

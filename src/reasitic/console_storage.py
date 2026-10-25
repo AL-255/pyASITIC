@@ -55,11 +55,15 @@ class ConsoleStorage:
         # the put pointer until source fflush resets it, preserving tails.
         memory.put_u32(address+20,bb if flush else wp)
 
-    def emit(self,kind,text,to_log=True,*,flush=True):
+    def record(self,kind,text,to_log=True):
         text=text.encode()if isinstance(text,str)else bytes(text)
         record=dict(kind=kind,text=text.hex(),**self.position)
         if kind in ('message','error'):record['to_log']=bool(to_log)
         self.calls.append(record)
+        return text
+
+    def emit(self,kind,text,to_log=True,*,flush=True):
+        text=self.record(kind,text,to_log)
         if kind=='status':self._write('stdout',b'\r'+text,flush=flush);return
         if kind=='output':
             self._write('stdout',text,flush=flush);self._write('log',text,flush=flush)

@@ -101,9 +101,11 @@ differences across 98,167,038 owned four-byte units, 7,038 registers,
 The verified source package is `ca0716496014d7f0`; the numerical module
 remains unchanged at SHA-256
 `c7869e98f4c18b5414dc172d836e7144ab3ebc0de2de0d1f2eec1a4fe1709186`.
-This component does not yet connect public printf into the
-continuing ASITIC command/console path. Its broader 198-difference gate,
-all earlier component gates and complete simulator fidelity remain
+The subsequent [continuing printf integration](PRINTF_TRANSITION.md)
+connects the REPL prompt and both input/output log calls from the earlier
+first-driver state, with no per-call input snapshot. This independent
+public-entry gate, the earlier 198-difference continuation gate and all
+other fidelity gates remain required. Complete simulator fidelity remains
 unfinished.
 
 ```sh

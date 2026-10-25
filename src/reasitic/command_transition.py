@@ -23,7 +23,7 @@ class CommandTransition:
     def __init__(self,heap,memory,console,inputs,*,head,strings,libio,technology,cells,script,cache_arrays):
         self.heap=heap;self.memory=memory;self.console=console;self.inputs=inputs;self.libio=libio
         self.technology=technology;self.cells=cells;self.script=script;self.events=[];self.freed=[];self.files=[];self.calendar_calls=[];self.result=None;self.points=[]
-        self.cache_arrays=cache_arrays
+        self.cache_arrays=cache_arrays;self.printf_calls=[]
         self.stdin_position=inputs['stdin_stream'].get('file_position',0)
         self.geometry=GeometryStorage(heap,memory,head)
         self.strings=LegacyStrings(memory,lambda size,allocator:self.allocate('filename',size,allocator),lambda address,allocator:self.release('filename',address,allocator),nil_address=strings['nil_address'],pool_address=strings['pool_address'])
@@ -172,9 +172,12 @@ class CommandTransition:
         if stdio:
             m.write(0x80cbab0,b'\0');m.put_u32(0x80cbab4,0);m.write(0x80cba60,b'\0')
         flush_abi=bool(stdio and stdio.get('flush_abi'))
-        self.console.emit('message',b'ASITIC>  ',False,flush=not flush_abi)
+        printf_abi=bool(stdio and stdio.get('printf_abi'))
+        if printf_abi:self.console.record('message',string(m,0x80b4821),False)
+        else:self.console.emit('message',b'ASITIC>  ',False,flush=not flush_abi)
         if stdio:
-            repl_storage=ReplStorage(m,stdio,libc_base=libc_base,tls_base=loader_context['tls_base'],loader=loader,loader_context=loader_context)
+            repl_storage=ReplStorage(m,stdio,libc_base=libc_base,tls_base=loader_context['tls_base'],loader=loader,loader_context=loader_context,heap=self.heap)
+            self.printf_calls=repl_storage.printf_calls
             registers=repl_storage.before_poll(installed['main_registers'],installed['line'])
             registers=poll_select(m,registers,loader,loader_context)
             select64_entry(m,registers,libc_base=libc_base,tls_base=loader_context['tls_base'],sar31_af=stdio['sar31_af'])
@@ -201,13 +204,13 @@ class CommandTransition:
         # repl_read_stdio appends a newline even when fgets already retained
         # the input newline. finish() logs those bytes before normalization.
         if input_storage:
-            registers=input_storage.returned(len(read));input_storage.append_newline(registers,repl_storage.frame);text=string(m,line)
+            registers=input_storage.returned(len(read));registers=input_storage.append_newline(registers,repl_storage.frame);text=string(m,line)
         else:text=string(m,line)+b'\n';m.write(line,text+b'\0')
         repl=self.inputs['repl'];history=repl['history_enabled']
-        self.console.write_stream(repl['input_log'],text+(b'\n'if history else b''),flush=not flush_abi)
+        if not printf_abi:self.console.write_stream(repl['input_log'],text+(b'\n'if history else b''),flush=not flush_abi)
         output_log=self.console.inputs['streams']['log']['address']
         def write_output():self.console.write_stream(output_log,b'ASITIC>  '+text+(b'\n\n'if history else b''),flush=not flush_abi)
-        if flush_abi:repl_storage.finish_line(self.characters,repl['input_log'],output_log,write_output=write_output)
+        if flush_abi:repl_storage.finish_line(self.characters,repl['input_log'],output_log,write_output=None if printf_abi else write_output,incoming=registers if printf_abi else None)
         elif repl_storage:
             write_output();repl_storage.finish_line(self.characters,repl['input_log'],output_log)
         else:write_output()

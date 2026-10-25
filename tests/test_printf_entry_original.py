@@ -96,6 +96,12 @@ class PrintfEntryTests(unittest.TestCase):
         m.put_u32(s+12,s+16);m.put_u32(s+16,string);m.write(string,b'NEW\0');result=storage.entry(r);end=m.u32(a['file']+20)
         self.assertEqual(result['eax'],5);self.assertEqual(m.read(end-5,5),b'\nNEW\n');self.assertEqual(storage.children[0]['before']['eax'],r['eax'])
 
+    def test_string_calls_preserve_opaque_fp_and_floating_reads_still_fail(self):
+        call=self.one['printf_calls'][0];a=expand_state(self.fixture,call['before']);m,storage=audit.engine(self.fixture,a);storage.xstate=None;storage.preserve_fp=True
+        result=storage.entry(a['registers']);self.assertEqual(result,unpack_state(self.fixture,call['after'])['registers']);self.assertIsNone(storage.xstate,'String instructions must preserve unknown FP, not invent its bytes')
+        call=next(c for c in self.case['printf_calls']if any(ch['kind']=='fp-l-buffer'for ch in c['children']));a=expand_state(self.fixture,call['before']);m,storage=audit.engine(self.fixture,a);storage.xstate=None;storage.preserve_fp=True
+        with self.assertRaisesRegex(ValueError,'actual earlier XSAVE'):storage.entry(a['registers'])
+
     def test_missing_binding_fp_or_foreign_entry_fails(self):
         a=expand_state(self.fixture,self.one['printf_calls'][0]['before']);m,storage=audit.engine(self.fixture,a);m.forget(storage.got+0xb8,4)
         with self.assertRaises(UnknownMemory):storage.entry(a['registers'])

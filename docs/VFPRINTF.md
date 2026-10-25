@@ -105,10 +105,12 @@ All eight disjoint browser shards are required. Reports stay local.
 The verified source package is `82393d56d37332a0`; the compiled numerical
 module remains unchanged at SHA-256
 `c7869e98f4c18b5414dc172d836e7144ab3ebc0de2de0d1f2eec1a4fe1709186`.
-This component does not establish complete formatting, continuing-call
-integration or whole-program parity. The broader gate still retains its
-198 unresolved differences.
+This component does not establish whole-program parity. The earlier
+continuation gate still retains its 198 unresolved differences.
 The separate [formatter component](PRINTF_FORMAT.md) now implements all
 captured literal/string/integer/binary64 paths with produced FP state.
 The [whole-parent audit](VFPRINTF_WHOLE.md) adds continuous parent execution
 while preserving this independent caller-phase audit and its inputs.
+The later [continuing integration](PRINTF_TRANSITION.md) connects the REPL
+prompt and log calls through their actual public printf entries, starting
+from the first-driver state without supplying per-call snapshots.

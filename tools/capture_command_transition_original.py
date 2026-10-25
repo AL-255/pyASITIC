@@ -106,6 +106,12 @@ def expand_case(fixture,entry):
         return dict(record,data=data.hex())
     case['transition_states']=[dict(state,memory_regions=[region(r)for r in state['memory_regions']])for state in case['transition_states']]
     case['transition_buffers']=[region(record)for record in case['transition_buffers']]
+    def component(r):
+        if 'data'in r:return r
+        from audit_loader_lookup_original import data
+        return dict(address=r['address'],data=data(fixture,r).hex())
+    case['transition_states']=[dict(s,component_regions=[component(r)for r in s['component_regions']])for s in case['transition_states']]
+    case['transition_points']=[dict(p,regions=[component(r)for r in p['regions']])for p in case['transition_points']]
     return case
 
 

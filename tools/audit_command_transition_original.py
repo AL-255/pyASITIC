@@ -22,6 +22,7 @@ def compare(fixture,entry,*,return_state=False):
         initial+=tuple((r['address'],loader_data(fixture,r))for r in inputs['loader_context']['regions'])
     before,heap,addresses,memory=node(fixture,entry,return_state=True,console=console,initial_regions=initial)
     result=dict(label=entry['label'],cache_mode=entry['cache_mode'],before=before,differences=list(before['differences']),events_checked=0,buffers_checked=0,buffer_bytes_checked=0,heap_words_checked=0,component_words_checked=0,points_checked=0,point_words_checked=0,unknown_bytes=0,console_calls_checked=0,calendar_calls_checked=0,files_checked=0,file_bytes_checked=0,faults_checked=0,stdin_positions_checked=0)
+    if 'printf_transition_calls'in entry:result.update(printf_calls_checked=0,printf_registers_checked=0,point_bytes_checked=0,component_bytes_checked=0)
     if entry['post_driver']is None:
         if entry['transition_events']or entry['transition_states']:result['differences'].append(dict(kind='transition-before-driver-return'))
         return (result,heap,addresses,memory)if return_state else result
@@ -71,6 +72,7 @@ def compare(fixture,entry,*,return_state=False):
             if actual['address']!=original['address']:result['differences'].append(dict(kind='transition-point-owner',index=index))
             check(original['address'],bytes.fromhex(original['data']),'transition-point-word',actual=actual['data'],point=index)
             result['point_words_checked']+=len(original['data'])//8
+            if 'point_bytes_checked'in result:result['point_bytes_checked']+=len(original['data'])//2
     if len(history.points)!=len(case['transition_points']):result['differences'].append(dict(kind='transition-point-count',actual=len(history.points),original=len(case['transition_points'])))
     for state in case['transition_states']:
         if 'stdin_position'in state:
@@ -82,6 +84,7 @@ def compare(fixture,entry,*,return_state=False):
             data=bytes.fromhex(r['data']);check(r['address'],data,'transition-heap-word');result['heap_words_checked']+=len(data)//4
         for r in state['component_regions']:
             data=bytes.fromhex(r['data']);check(r['address'],data,'transition-component-word');result['component_words_checked']+=len(data)//4
+            if 'component_bytes_checked'in result:result['component_bytes_checked']+=len(data)
     if case['transition_end']is not None:
         if history.result!=dict(driver=case['transition_end']['driver'],arguments=case['transition_end']['arguments']):result['differences'].append(dict(kind='transition-next-driver',actual=history.result,original=case['transition_end']))
         for a,b in zip(history.files,case['transition_end']['files']):
@@ -97,6 +100,17 @@ def compare(fixture,entry,*,return_state=False):
         if a!=b:result['differences'].append(dict(kind='transition-console',index=index,actual=a,original=b))
         result['console_calls_checked']+=1
     if len(generated)!=len(case['transition_calls']):result['differences'].append(dict(kind='transition-console-count',actual=len(generated),original=len(case['transition_calls'])))
+    if 'printf_transition_calls'in case:
+        native=case['printf_transition_calls'];actual=history.printf_calls;result.update(printf_calls_checked=0,printf_registers_checked=0)
+        if len(actual)!=len(native):result['differences'].append(dict(kind='transition-printf-count',actual=len(actual),original=len(native)))
+        for index,(a,b)in enumerate(zip(actual,native)):
+            result['printf_calls_checked']+=1
+            if a['kind']!=b['kind']:result['differences'].append(dict(kind='transition-printf-kind',index=index,actual=a['kind'],original=b['kind']))
+            for phase in('before','after'):
+                if set(a[phase])!=set(b[phase]):result['differences'].append(dict(kind='transition-printf-register-set',index=index,phase=phase))
+                for name,value in b[phase].items():
+                    result['printf_registers_checked']+=1
+                    if a[phase].get(name)!=value:result['differences'].append(dict(kind='transition-printf-register',index=index,phase=phase,name=name,actual=a[phase].get(name),original=value))
     if return_state:return result,heap,addresses,memory
     return result
 
@@ -108,6 +122,8 @@ def main():
         result=compare(fixture,entry);results.append(result);print(entry['label']+'/'+entry['cache_mode']+': '+str(len(result['differences']))+' differences',flush=True)
     report=dict(cases=len(results),differences=sum(len(r['differences'])for r in results),results=results)
     for key in ('events_checked','buffers_checked','buffer_bytes_checked','heap_words_checked','component_words_checked','points_checked','point_words_checked','unknown_bytes','console_calls_checked','calendar_calls_checked','files_checked','file_bytes_checked','faults_checked','stdin_positions_checked'):report[key]=sum(r[key]for r in results)
+    if any('printf_transition_calls'in c for c in fixture['cases']):
+        for key in('printf_calls_checked','printf_registers_checked','point_bytes_checked','component_bytes_checked'):report[key]=sum(r.get(key,0)for r in results)
     if args.output:args.output.write_text(json.dumps(report,indent=2)+'\n')
     print(json.dumps({k:v for k,v in report.items()if k!='results'},separators=(',',':')))
     raise SystemExit(int(bool(report['differences'])))

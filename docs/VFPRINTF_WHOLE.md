@@ -77,9 +77,11 @@ state comparison fails. No shard has an execution error.
 The verified source package is `9306f25876f0836b`; the numerical module
 remains unchanged at SHA-256
 `c7869e98f4c18b5414dc172d836e7144ab3ebc0de2de0d1f2eec1a4fe1709186`.
-This does not yet connect vfprintf into the continuing command/console
-path or resolve the broader 198-difference gate. Whole-program parity
-remains unfinished.
+The subsequent [continuing printf integration](PRINTF_TRANSITION.md)
+connects this parent through the actual public prompt/log entries, using
+the earlier first-driver state. This independent whole-parent gate and
+the earlier 198-difference continuation gate remain required.
+Whole-program parity remains unfinished.
 
 ```sh
 python tools/capture_vfprintf_whole_original.py --reference ~/github/asitic-re \

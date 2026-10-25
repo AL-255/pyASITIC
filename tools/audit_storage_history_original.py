@@ -76,10 +76,18 @@ def compare(case,initial_regions=(),*,context=None,return_state=False,console=No
         if other_errors:result['differences'].append(dict(kind='unsupported-allocator-errors',boundary=state['label'],original=other_errors))
         result['predicted_cache_errors'].extend(dict(boundary=state['label'],**error)for error in errors)
         expected=type(memory)(heap.address_space);seed(expected,state)
+        # These later bytes belong only to the assertion store. Corrupt
+        # chains may reach readable stack nodes outside captured heap pages.
+        # They never initialize the continuously produced source memory.
+        for target in state.get('cache_node_targets',()):expected.write(target['address'],bytes.fromhex(target['data']))
         ranges=[(heap.cache_address,384)]if heap.tcache_enabled else[]
         ranges.extend((p,8)for chain in state['tcache']for p in chain)
         for address,size in ranges:
-            actual=memory.read(address,size);native=expected.read(address,size);result['cache_words_checked']+=size//4
+            actual=memory.read(address,size)
+            try:native=expected.read(address,size)
+            except UnknownMemory:
+                result['differences'].append(dict(kind='native-cache-unavailable',boundary=state['label'],address=address,size=size));continue
+            result['cache_words_checked']+=size//4
             if actual!=native:result['differences'].append(dict(kind='cache-word',boundary=state['label'],address=address,actual=actual.hex(),original=native.hex()))
         result['cache_boundaries']+=1
         if context is not None:
