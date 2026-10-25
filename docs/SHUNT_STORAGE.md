@@ -128,9 +128,11 @@ allocation, affinity or returned result is replaced.
 The typed webpage API still uses a geometry-only arena without complete
 startup/prompt memory. Its four capacitor phase-word and two JOINSHUNT
 source-address differences remain in the strict zero-difference gate.
-This shared-memory result does not waive them. Full integration must also
-extend subsequent filament-array lifetimes/cleanup to secondary groups and
-connect earlier contact/cache bytes through the numerical driver. Known
+This shared-memory result does not waive them. [Filament-array storage](SHUNT_FILAMENT_STORAGE.md)
+now covers branch table bytes and complete lifetimes/cleanup across all 28
+runs, including native reused contact headers and two actual coarse-wire
+numerical histories. Broader numerical-byte/eddy/via integration and earlier
+contact/cache history through the complete numerical driver remain required. Known
 FCOS/logarithm, trailing-via aliases and continuing-process failures remain
 required; this development branch is undeployed.
 

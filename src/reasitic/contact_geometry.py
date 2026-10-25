@@ -17,11 +17,12 @@ def groups(shape,technology,nx,ny,width,height,length_step,width_step,max_contac
     result=[];count=0
     for parent in shape.segments:
         if parent.metal>=len(technology.metals):continue
-        combined=[]
+        combined=[];metadata=[]
         for segment in(parent,*getattr(parent,'secondary',())):
             if segment.metal>=len(technology.metals):raise ValueError('Native shunt contact references a via layer as a metal')
-            part=_groups(SimpleNamespace(origin=shape.origin,segments=[segment]),technology,nx,ny,width,height,length_step,width_step,max_contacts-count,contact,observe=observe,observe_group=observe_group)[0]
+            part=_groups(SimpleNamespace(origin=shape.origin,segments=[segment]),technology,nx,ny,width,height,length_step,width_step,max_contacts-count,contact,observe=observe,observe_group=(lambda *values:metadata.append(values))if observe_group is not None else None)[0]
             combined=part+combined;count+=len(part)
+        if observe_group is not None:observe_group(*metadata[-1])
         result.append(combined)
     return result
 

@@ -58,29 +58,42 @@ def ported_capacitance(case):
     from reasitic.potential import solve_capacitance
     from reasitic.network import _join_for_pads
     from reasitic.retained_scalar import Real as R
-    request=case['request'];technology=Technology.from_text(request['technology'])
-    shapes=_shapes(request,technology);mesh=_mesh(request,technology);boundary=None
-    if request['action']=='pi2':shape=discretize(shapes[request['winding']],mesh['capacitance_length_cell'],mesh['length_cell']);ground=None
-    else:
-        first,second=(discretize(shapes[request[key]],mesh['capacitance_length_cell'],mesh['length_cell'])for key in ('first_winding','second_winding'))
-        boundary=sum(segment.metal<len(technology.metals)for segment in first.segments)
-        second.segments.reverse();shape=_join_for_pads(first,second);ground=shape
+    request=case['request'];shape,technology=ported_inductance_geometry(case);mesh=_mesh(request,technology);boundary=None
+    ground=ported_reference(case,shape,technology)
+    if request['action']=='calctrans':
+        shapes=_shapes(request,technology);first=discretize(shapes[request['first_winding']],mesh['capacitance_length_cell'],mesh['length_cell']);boundary=sum(segment.metal<len(technology.metals)for segment in first.segments)
     result=solve_capacitance(shape,technology,_frequency(request),ground=ground,length_cell=mesh['capacitance_length_cell'],width_cell=mesh['capacitance_width_cell'])['matrix']
     if boundary is not None:
         result[boundary][boundary][0]=float(R(1e15)+R(result[boundary][boundary][0]));result[boundary][boundary][1]+=0.
     return result
 
 
+def ported_reference(case,shape,technology):
+    from reasitic.bridge import _shape
+    request=case['request']
+    if not request.get('ground'):return shape
+    ground=_shape(request['ground'],technology)
+    if ground.name==shape.name:return shape
+    for segment in ground.segments:segment.nx=segment.ny=-1
+    return ground
+
+
 def ported_inductance_geometry(case):
-    from reasitic.bridge import _shapes,_mesh
+    from reasitic.bridge import _shapes,_shape,_mesh
     from reasitic.solver import discretize
     from reasitic.network import _join_for_pads
+    from reasitic.model import copy_geometry
     request=case['request'];technology=Technology.from_text(request['technology'])
     shapes=_shapes(request,technology);mesh=_mesh(request,technology)
+    if request.get('ground'):
+        ground=_shape(request['ground'],technology)
+        for shape in shapes:
+            if shape.name==ground.name:
+                for segment in shape.segments:segment.nx=segment.ny=-1
     if request['action']=='pi2':shape=discretize(shapes[request['winding']],mesh['capacitance_length_cell'],mesh['length_cell'])
     else:
         first,second=(discretize(shapes[request[key]],mesh['capacitance_length_cell'],mesh['length_cell'])for key in ('first_winding','second_winding'))
-        second.segments.reverse();shape=_join_for_pads(first,second)
+        first,second=copy_geometry(first),copy_geometry(second);second.reverse_segments();shape=_join_for_pads(first,second)
     return shape,technology
 
 

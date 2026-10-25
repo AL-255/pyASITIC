@@ -1,0 +1,134 @@
+# Filament tables and cleanup for secondary groups
+
+`filament_storage.py` now generates the original group/physical-segment
+layout, pointer tables and filament counts from source geometry. The shared
+`StorageHistory` uses that writer. `combined_network_storage` sizes its
+arrays for physical records, retains group-sized arrays where the original
+does, and releases every child before its parent. Geometry addresses are
+derived from the earlier source replay and live group links.
+
+The reference paths are `filament_setup.cpp`, `solver.cpp`, `geometry.cpp`,
+`contacts.cpp` and `eddy.cpp` under `recomp_cpp/src/`.
+
+## Correct native dimensions and ordering
+
+The original keeps separate counts for electrical conductor groups and
+physical indexed segments. `extra_segments` has one integer per conductor
+group. `segments`, `width_counts` and `thickness_counts` have one entry for
+each primary/secondary record in a conductor group. The index order is parent
+then its group chain. Via indices retain their group positions, including
+trailing positions. Children attached to a via primary are omitted from the
+conductor index but still released during geometry cleanup.
+
+The source layout reads actual secondary pointers from the same earlier
+guest memory. Typed geometry without that memory cannot invent physical
+branch addresses. Cleanup identities follow the source chain order rather
+than allocation order; native prepend operations reverse that order.
+
+The lifetime plan also retains the selected eddy inverse branches. Folded
+eddy correction needs both small-matrix inverse wrappers; packed square
+correction additionally allocates its source-derived real matrix. Successful
+array allocation/inverse paths are covered. Allocation failures and arbitrary
+corrupted-list cleanup remain separate work.
+
+## Native comparisons
+
+The new observer retains every fourteen-session/cold-warm parent from
+[secondary geometry storage](SHUNT_STORAGE.md), giving 28 original runs.
+It records the actual filament context at the first impedance fill, complete
+pointer/count arrays, geometry, prepared/numbered contact records and every
+array release after CAP scope and before first node whose original request is at most 16,384 bytes.
+Every plain run and native outcome remains present. Later bytes and pointers
+are assertions only.
+
+Python and packaged Pyodide produce identical full reports:
+
+| Check | Exact coverage |
+| --- | ---: |
+| Native allocation/free events after CAP scope | 1,950 |
+| Allocation addresses | 542 |
+| Filament arrays at impedance fill | 122 / 4,736 bytes |
+| Same arrays immediately before release | 122 / 4,736 bytes |
+| Live geometry at impedance fill | 92,144 bytes |
+| Geometry records released in native order | 362 |
+| Final logical allocator states | 28 |
+
+The earlier source geometry and CAP preparation use one continuing allocator.
+Full native lifetimes include coarse/refined cells, repeated branches,
+explicit reference, coupled models, eddy correction and a longer child that
+controls its parent's subdivision. No final context dimension chooses an
+allocation size, pointer or cleanup owner. Changing a later expected table
+word or free pointer produces a required failure without changing the source
+tables or allocator execution.
+
+This table/lifetime comparison does not claim all captured numerical
+workspaces or complete final heap bytes are generated for all 28 runs. Their
+observations are retained for the remaining numerical integration. Final
+allocator comparison here checks the logical state and chunk metadata; it is
+distinct from a complete numerical-byte replay.
+
+## Contact-group header fix
+
+The new record comparison exposed a separate bug in the secondary contact
+observer path. Native `prepare_potential_contact_group(..., reuse=true)`
+overwrites the shared group header for each child. The final header therefore
+contains the last child's coordinates, cell counts and metal. The old observer
+reported one header per physical record, although the returned contacts were
+already folded per electrical group. `contact_storage.records` consequently
+paired later groups with the wrong metadata.
+
+The source now reports the final reused header once per group, while keeping
+the native combined contact order. All **1,064** prepared/numbered group and
+contact observations match their **61,584 defined bytes**, including explicit
+ground and coupled names. The independent component check also requires
+**28,096** uninitialized padding/index bytes to stay unknown until the source
+defines them. Initial contact index words are overwritten by numbering;
+unwritten name padding is preserved by a continuing memory caller. No unknown
+value is silently replaced with zero. The numerical contact geometry is shared
+with the production CAP solver.
+
+## Actual branch storage hooks through node entry
+
+The cold and warm coarse-wire branch cases additionally execute the actual
+`StorageHistory` hooks through first node entry. CAP and LMAT buffers and
+inverse workspaces come from the source numerical algorithms, and contacts
+come from the production record generator. The initial driver heap and
+source-generated geometry continue through preparation, numerical arrays,
+branch tables and geometry cleanup without a later byte reset.
+
+Both histories match all 72 allocation/free events, every one of their 28
+released arrays / 696 bytes, final allocator state and all eight CAP/inductive
+node words. This is a two-case complete branch-history check. The broader
+28-case numerical-byte/eddy/via integration remains unfinished; passing table
+checks do not replace it. Existing full storage-history gates remain required.
+
+Six new tests pass in Python and packaged Pyodide. Fourteen existing CPU
+contact/geometry/lifetime/storage tests pass too. The prior complete
+130-case browser storage-history audit retains zero differences across
+12,877 events and all checked numerical/cache/node words, including its
+native fault and predicted cache errors. The shunt webpage regression also
+passes all 124 geometry histories, GDS/project flows and twelve displayed/
+downloaded models; its six raw phase-word assertions remain required failures.
+The required
+`shunt-filaments` Pages job executes the complete new report and mutation
+tests. The earlier phase, JOIN/UNJOIN, heap and continuing-process gates are
+unchanged; the six typed-API raw phase-word failures still prevent deployment.
+
+The archive `shunt_filament_storage_original.json.gz` is 790,475 bytes,
+SHA-256 `afda63afc5d3e7bebd0f0ad5e654207e9a553fab7e418078bee43d8f68a8268a`.
+It retains scripts/plain outcomes, observer commands, initial whole heap,
+parent hashes, minimal environments and original binary/library digests.
+It is not included in the runtime package. No native instruction, numerical
+input, register, memory, allocation, affinity or returned result is replaced.
+
+Source package: `2af6019d24c14554`; numerical WASM remains SHA-256
+`c7869e98f4c18b5414dc172d836e7144ab3ebc0de2de0d1f2eec1a4fe1709186`.
+
+```sh
+python tools/capture_shunt_filament_storage_original.py --reference ~/github/asitic-re \
+  --library-path /path/to/i386/libs --debug-directory /path/to/libc/debug
+PYTHONPATH=src:tests python -m unittest test_shunt_filament_storage_original -v
+python tools/audit_shunt_filament_storage_original.py --output /tmp/filament-cpu.json
+python tools/build_site.py
+node tools/check_shunt_filament_storage_original.mjs /path/to/pyodide.mjs /tmp/filament-wasm.json
+```

@@ -7,7 +7,7 @@ This is not connected to production trailing-via execution.
 import struct
 from .memory import Memory,ComplexView
 from .contact_storage import write_prepared,number_contacts,number_groups
-from .solver import filament_counts
+from .filament_storage import FilamentLayout
 
 
 def symmetric_inverse_storage(matrix,prefix):
@@ -31,6 +31,8 @@ class StorageHistory:
         self.contacts=contacts;self.capacitance=capacitance;self.impedance=impedance
         self.capacitance_producer=capacitance_producer
         self.technology=technology;self.mesh=mesh;self.geometry_addresses=geometry_addresses;self.via_records=via_records
+        self.filament_layout=FilamentLayout(impedance.meshed,len(technology.metals))
+        self.filament_pointers=self.filament_layout.pointers(memory,geometry_addresses,addresses=addresses)
         self.termination_boundary=termination_boundary;self.cap_written=False;self.sizes={}
         self.termination_ohm=termination_ohm
         self.inverse_storage={}if inverse_storage is None else inverse_storage
@@ -50,6 +52,7 @@ class StorageHistory:
 
     def before(self,event):
         name=event.name;allocate=event.action=='allocate'
+        if allocate:self.filament_layout.before(name,self.memory,self.addresses,self.filament_pointers,self.mesh)
         if not self.cap_written and name.startswith('contact'):
             for buffer,matrix in self.capacitance.items():self.matrix(buffer,matrix)
             if self.capacitance_producer is None:
@@ -61,17 +64,6 @@ class StorageHistory:
             k=self.termination_boundary;old=view.get(k,k)
             shunt=R(1e15)if R(self.termination_ohm)<R(float.fromhex('0x1.b7cdfd9d7bdbbp-34'))else R(1)/R(self.termination_ohm)
             view.set(k,k,complex(float(shunt+R(old.real)),old.imag+0.))
-        if allocate and name=='ind.segments':
-            n=len(self.impedance.groups);self.integers('ind.extra_segments',[0]*n)
-            if self.via_records:self.integers('ind.via_indices',[index for index,record in self.via_records])
-        if allocate and name=='ind.width_counts':
-            metal_count=len(self.technology.metals)
-            pointers=[p for segment,p in zip(self.impedance.meshed.segments,self.geometry_addresses)if segment.metal<metal_count]
-            self.memory.write(self.addresses['ind.segments'],b''.join(struct.pack('<I',p)for p in pointers))
-        if allocate and name=='ind.full':
-            conductors=[s for s in self.impedance.meshed.segments if s.metal<len(self.technology.metals)]
-            counts=[filament_counts(s,self.mesh['width_cell'],self.mesh['thickness_cell'],self.mesh.get('max_width_cells',500))for s in conductors]
-            self.integers('ind.width_counts',[y for y,z in counts]);self.integers('ind.thickness_counts',[z for y,z in counts])
         if allocate and name=='ind.reduced_inverse.work':self.matrix('ind.output',self.impedance.reduced_y)
         if not allocate:
             # With no vias/eddy and admittance output, native LMAT reduces

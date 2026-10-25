@@ -74,6 +74,8 @@ def compare(case,*,return_state=False,include_prelude=True,observe_headers=False
     else:addresses=geometry.addresses
     addresses['geometry.descriptor']=first
     addresses.update((f'geometry.segment.{i}',address)for i,address in enumerate(geometry.segments(first)))
+    for i,parent in enumerate(geometry.segments(first)):
+        addresses.update((f'geometry.segment.{i}.secondary.{j}',address)for j,address in enumerate(geometry.children(parent)))
     if return_state:return result,heap,addresses,memory
     return result
 

@@ -6,7 +6,7 @@ sys.path.insert(0,str(ROOT/'src'))
 from reasitic.contact_storage import records,write_prepared,number_contacts,number_groups
 from reasitic.memory import Memory,UnknownMemory
 import audit_cap_prelude_original as prelude
-from audit_shared_heap_original import ported_inductance_geometry
+from audit_shared_heap_original import ported_inductance_geometry,ported_reference
 
 
 def ported_records(case):
@@ -20,8 +20,11 @@ def ported_records(case):
         if name in {s.name for s in _shapes(request,technology)}:
             raise NotImplementedError('Native automatic-copy name collision needs its random-state history')
     chip=technology.chip
-    return records(shape,technology,int(chip['fftx']),int(chip['ffty']),float(chip['chipx']),float(chip['chipy']),
+    result=records(shape,technology,int(chip['fftx']),int(chip['ffty']),float(chip['chipx']),float(chip['chipy']),
                    mesh['capacitance_length_cell'],mesh['capacitance_width_cell'],name=name)
+    ground=ported_reference(case,shape,technology)
+    if ground.name!=shape.name:result+=records(ground,technology,int(chip['fftx']),int(chip['ffty']),float(chip['chipx']),float(chip['chipy']),mesh['capacitance_length_cell'],mesh['capacitance_width_cell'])
+    return result
 
 
 def compare(case):

@@ -4,8 +4,8 @@ This describes allocation/free order, not physical heap placement. It is not
 yet used to allow out-of-range via writes. The reference paths are contacts.cpp,
 potential_cache.cpp, potential_tables.cpp, potential_solver.cpp, solver.cpp,
 filament_setup.cpp and combined_network.cpp /
-later_analysis.cpp. The current plan covers successful inverse branches,
-eddy disabled, and independent segment chains (no secondary groups).
+later_analysis.cpp. The plan covers successful inverse branches, explicit
+secondary group/cleanup counts, and supplied eddy-mode/matrix dimensions.
 """
 from dataclasses import dataclass
 
@@ -90,7 +90,7 @@ def capacitance_storage(contact_counts,conductors):
     return events
 
 
-def combined_network_storage(contact_counts,conductors,filaments,vias,*,clone_segments=None):
+def combined_network_storage(contact_counts,conductors,filaments,vias,*,clone_segments=None,group_segments=None,clone_children=None,eddy=False,eddy_matrix_size=0):
     """Return source-generated array lifetimes and preexisting scalar frees.
 
     contact_counts follows the native linked contact-group order. No addresses,
@@ -104,6 +104,12 @@ def combined_network_storage(contact_counts,conductors,filaments,vias,*,clone_se
     if len(contact_counts)<conductors or not sum(contact_counts):raise ValueError('CAP needs contact groups for every conductor')
     if clone_segments is None:clone_segments=conductors+vias
     if isinstance(clone_segments,bool)or not isinstance(clone_segments,int)or clone_segments<conductors+vias:raise ValueError('Invalid cloned segment count')
+    group_segments=(1,)*conductors if group_segments is None else tuple(group_segments)
+    clone_children=(0,)*clone_segments if clone_children is None else tuple(clone_children)
+    if len(group_segments)!=conductors or any(isinstance(n,bool)or not isinstance(n,int)or n<1 for n in group_segments):raise ValueError('Invalid conductor group segment counts')
+    if len(clone_children)!=clone_segments or any(isinstance(n,bool)or not isinstance(n,int)or n<0 for n in clone_children):raise ValueError('Invalid cloned secondary segment counts')
+    if isinstance(eddy_matrix_size,bool)or not isinstance(eddy_matrix_size,int)or eddy_matrix_size<0 or(eddy_matrix_size and not eddy):raise ValueError('Invalid eddy matrix size')
+    indexed=sum(group_segments)
     events=capacitance_storage(contact_counts,conductors)
     def allocate(name,size):events.append(StorageEvent('allocate',name,size))
     def free(name,allocator='array',size=0):events.append(StorageEvent('free',name,size,allocator))
@@ -112,16 +118,19 @@ def combined_network_storage(contact_counts,conductors,filaments,vias,*,clone_se
         free(prefix+'.inverse_work');free(prefix+'.pivots');free(prefix+'.work')
     allocate('ind.extra_segments',4*conductors)
     if vias:allocate('ind.via_indices',4*vias)
-    allocate('ind.segments',4*conductors);allocate('ind.width_counts',4*conductors);allocate('ind.thickness_counts',4*conductors)
+    allocate('ind.segments',4*indexed);allocate('ind.width_counts',4*indexed);allocate('ind.thickness_counts',4*indexed)
     allocate('ind.full',16*filaments*filaments);symmetric_inverse('ind.full_inverse',filaments)
     allocate('ind.zero_temporary',16*conductors*conductors);allocate('ind.output',16*conductors*conductors);free('ind.zero_temporary')
-    if vias:
+    if vias or eddy:
         symmetric_inverse('ind.reduced_inverse',conductors)
-        allocate('ind.via_scratch',4*vias);free('ind.via_scratch')
+        if eddy_matrix_size:allocate('ind.eddy.matrix',8*eddy_matrix_size**2);free('ind.eddy.matrix')
+        if vias:allocate('ind.via_scratch',4*vias);free('ind.via_scratch')
         symmetric_inverse('ind.final_inverse',conductors)
     free('ind.full')
     for name in('segments','extra_segments','width_counts','thickness_counts'):free('ind.'+name)
     if vias:free('ind.via_indices')
-    for i in range(clone_segments):free(f'geometry.segment.{i}','scalar',0xf0)
+    for i in range(clone_segments):
+        for j in range(clone_children[i]):free(f'geometry.segment.{i}.secondary.{j}','scalar',0xf0)
+        free(f'geometry.segment.{i}','scalar',0xf0)
     free('geometry.descriptor','scalar',0xbc)
     return events

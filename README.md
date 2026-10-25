@@ -341,6 +341,14 @@ allocator through CAP preparation.
 The typed API still lacks the complete startup memory; its six raw phase-word
 failures and the broader numerical/process gates remain required.
 
+[Branch filament storage](docs/SHUNT_FILAMENT_STORAGE.md) now matches all
+122 native pointer/count tables at construction and release across 28 runs,
+including full allocation/free order and child cleanup. A reused contact-header
+bug is fixed; all 1,064 prepared/numbered contact/group records match their
+defined fields. Two coarse branch histories additionally match every released
+array and first-node matrix through the actual shared storage hooks. Broader
+numerical-byte and startup integration remains unfinished.
+
 [Pre-CAP storage](docs/PRELUDE_STORAGE.md) additionally reproduces all 975 FFT
 scratch arrays and 130 stream buffers in the 130 selected native histories:
 4,526,080 bytes match exactly in the compiled browser backend. Four added small

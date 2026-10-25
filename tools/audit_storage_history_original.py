@@ -54,7 +54,8 @@ def compare(case,initial_regions=(),*,context=None,return_state=False,console=No
     geometry_addresses=[addresses[f'geometry.segment.{i}']for i in range(len(prepared.meshed.segments))]
     history=StorageHistory(heap,addresses,initial_regions=initial_regions,key=key,contacts=contacts,capacitance=buffers,impedance=prepared,technology=technology,mesh=_mesh(case['request'],technology),geometry_addresses=geometry_addresses,via_records=records,termination_boundary=boundary,termination_ohm=float(case['request'].get('termination_ohm',0)),inverse_storage=inverse_storage,geometry_shape_address=addresses['geometry.descriptor'],memory=memory,capacitance_producer=producer)
     memory=history.memory;counts,*_=dimensions(case)
-    plan=iter(combined_network_storage(counts,len(prepared.groups),prepared.filaments,len(records),clone_segments=len(prepared.meshed.segments)))
+    layout=history.filament_layout;eddy=case['request'].get('eddy',False)
+    plan=iter(combined_network_storage(counts,len(prepared.groups),prepared.filaments,len(records),clone_segments=len(prepared.meshed.segments),group_segments=layout.group_segments,clone_children=layout.clone_children,eddy=eddy,eddy_matrix_size=layout.eddy_matrix_size(technology,int(eddy))))
     workspaces={r['event_index']:r for r in case.get('workspace_storage',())}if context is not None else{}
     def check_bytes(address,native,kind,**identity):
         try:actual=memory.read(address,len(native))

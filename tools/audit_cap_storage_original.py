@@ -8,13 +8,13 @@ from reasitic.bridge import _mesh,_frequency
 from reasitic.potential import solve_capacitance
 from reasitic.memory import Memory,ComplexView
 from audit_cap_prelude_original import compare as prelude,dimensions
-from audit_shared_heap_original import ported_inductance_geometry
+from audit_shared_heap_original import ported_inductance_geometry,ported_reference
 
 
 def ported_buffers(case,*,inverse_storage=None,table_provider=None,potential_view=None):
     shape,technology=ported_inductance_geometry(case);request=case['request'];mesh=_mesh(request,technology)
     result={}
-    data=solve_capacitance(shape,technology,_frequency(request),ground=shape if request['action']=='calctrans'else None,
+    data=solve_capacitance(shape,technology,_frequency(request),ground=ported_reference(case,shape,technology),
                       length_cell=mesh['capacitance_length_cell'],width_cell=mesh['capacitance_width_cell'],
                       observe_storage=lambda name,matrix:result.__setitem__(name,matrix),include_potential=inverse_storage is not None,
                       table_provider=table_provider,potential_view=potential_view)
