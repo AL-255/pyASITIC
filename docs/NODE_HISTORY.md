@@ -21,6 +21,12 @@ folding is written back to the live CAP allocation; the source port values
 are compared as raw binary64 words. Both node dimensions and allocation sizes
 come from computed earlier geometry, not the observed later node descriptor.
 
+The later [branch continuation](SHUNT_NODE_HISTORY.md) also adds the original
+guest-global port stores after workspace release. Both computed results and
+their actual memory cells are now checked at node/driver return; later observed
+port addresses cannot redirect those stores. It extends this source path to
+all 28 selected secondary-group histories and retains every older gate.
+
 After the six constructor allocations, `NodeStorage` reads the actual live
 CAP/inductive bytes, including the already reproduced via effects. It checks
 that all numerical input/work ranges are disjoint before using the existing

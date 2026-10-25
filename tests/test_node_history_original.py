@@ -74,7 +74,9 @@ class NodeHistoryTests(unittest.TestCase):
             if field=='ports':output['ports'][0]['data']='00'+output['ports'][0]['data'][2:]
             else:output['capacitance']='00'+output['capacitance'][2:]
             result=compare(self.extended,entry)
-            self.assertEqual({d['kind']for d in result['differences']},{'node-port'if field=='ports'else'node-cap-word'})
+            # Both the computed result and its actual guest-global stores
+            # remain independent of the changed later port observation.
+            self.assertEqual({d['kind']for d in result['differences']},{'node-port','node-port-memory'}if field=='ports'else{'node-cap-word'})
 
     def test_later_node_extent_does_not_control_source_allocations(self):
         entry=copy.deepcopy(self.extended['cases'][1]);entry['post_node']['size']=99

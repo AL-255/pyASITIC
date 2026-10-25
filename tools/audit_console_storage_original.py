@@ -7,9 +7,14 @@ from reasitic.console_storage import ConsoleStorage
 from audit_driver_history_original import compare as driver
 
 
-def compare(fixture,entry,*,return_state=False,observe_boundary=None):
-    console=ConsoleStorage(entry['console_inputs'])
-    result,heap,addresses,memory=driver(fixture,entry,return_state=True,console=console,observe_boundary=observe_boundary)
+def compare(fixture,entry,*,return_state=False,observe_boundary=None,console=None,check_calls=True,initial_regions=()):
+    if console is None:console=ConsoleStorage(entry['console_inputs'])
+    result,heap,addresses,memory=driver(fixture,entry,return_state=True,console=console,observe_boundary=observe_boundary,initial_regions=initial_regions)
+    if not check_calls:
+        # A continuing caller compares the complete trace after its later
+        # source emitters execute, using this same object and memory.
+        if return_state:return result,heap,addresses,memory
+        return result
     original=entry['console_calls'];result['console_calls_checked']=min(len(original),len(console.calls))
     if len(console.calls)!=len(original):result['differences'].append(dict(kind='console-call-count',actual=len(console.calls),original=len(original)))
     for index,(actual,expected)in enumerate(zip(console.calls,original)):

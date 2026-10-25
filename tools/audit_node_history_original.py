@@ -5,7 +5,7 @@ ROOT=Path(__file__).resolve().parents[1]
 sys.path.insert(0,str(ROOT/'src'))
 from reasitic.allocation_plan import node_storage
 from reasitic.console_storage import ConsoleStorage
-from reasitic.node_storage import NodeStorage
+from reasitic.node_storage import NodeStorage,PORT_ADDRESSES
 from reasitic.memory import UnknownMemory
 from reasitic.heap import HeapCorruption
 from reasitic.bridge import _frequency
@@ -14,11 +14,12 @@ from audit_allocator_original import state_differences
 from capture_node_history_original import expand_case
 
 
-def compare(fixture,entry,*,return_state=False,console=None,initial_regions=()):
+def compare(fixture,entry,*,return_state=False,console=None,initial_regions=(),driver_compare=None):
     if console is None:console=ConsoleStorage(entry['console_inputs'])
     console.position['post_events']=0
-    before,heap,addresses,memory=driver(fixture,entry,return_state=True,console=console,initial_regions=initial_regions)
-    result=dict(label=entry['label'],cache_mode=entry['cache_mode'],before=before,differences=list(before['differences']),events_checked=0,allocations_checked=0,buffers_checked=0,buffer_bytes_checked=0,heap_boundaries_checked=0,heap_words_checked=0,unknown_heap_bytes=0,port_words_checked=0,console_calls_checked=0,faults_checked=0)
+    producer=driver if driver_compare is None else driver_compare
+    before,heap,addresses,memory=producer(fixture,entry,return_state=True,console=console,initial_regions=initial_regions)
+    result=dict(label=entry['label'],cache_mode=entry['cache_mode'],before=before,differences=list(before['differences']),events_checked=0,allocations_checked=0,buffers_checked=0,buffer_bytes_checked=0,heap_boundaries_checked=0,heap_words_checked=0,unknown_heap_bytes=0,port_words_checked=0,port_memory_words_checked=0,unknown_port_bytes=0,console_calls_checked=0,faults_checked=0)
     case=expand_case(fixture,entry)
     def check(address,native,kind,**identity):
         try:complete=memory.read(address,len(native))
@@ -39,9 +40,16 @@ def compare(fixture,entry,*,return_state=False,console=None,initial_regions=()):
     def ports(original,actual):
         for key,record in zip(('y11','y12','y21','y22'),original):
             z=actual[key];raw=struct.pack('<2d',z.real,z.imag);native=bytes.fromhex(record['data'])
+            address=PORT_ADDRESSES[key]
+            if record['address']!=address:result['differences'].append(dict(kind='node-port-owner',name=key,actual=address,original=record['address']))
             for offset in range(0,16,8):
                 if raw[offset:offset+8]!=native[offset:offset+8]:result['differences'].append(dict(kind='node-port',name=key,offset=offset,actual=raw[offset:offset+8].hex(),original=native[offset:offset+8].hex()))
                 result['port_words_checked']+=1
+                try:stored=memory.read(address+offset,8)
+                except UnknownMemory:
+                    result['unknown_port_bytes']+=8;result['differences'].append(dict(kind='unknown-node-port-memory',name=key,address=address+offset));continue
+                if stored!=native[offset:offset+8]:result['differences'].append(dict(kind='node-port-memory',name=key,offset=offset,actual=stored.hex(),original=native[offset:offset+8].hex()))
+                result['port_memory_words_checked']+=1
     if case['node']is not None and not result['differences']:
         # The source CAP output extent is the number of conductor groups,
         # reconstructed from earlier geometry, never the later node size.
@@ -66,6 +74,7 @@ def compare(fixture,entry,*,return_state=False,console=None,initial_regions=()):
                     if not solved:
                         history.solve();solved=True;boundary('node_release')
                     if event.name=='ind.output':
+                        history.publish_ports()
                         boundary('node_return');ports(case['post_output']['ports'],history.ports)
                         if case['post_output']['status']!=1:result['differences'].append(dict(kind='node-status',actual=1,original=case['post_output']['status']))
                         cap=bytes.fromhex(case['post_output']['capacitance']);check(addresses['cap.output'],cap,'node-cap-word')
@@ -101,7 +110,7 @@ def main():
     for entry in fixture['cases']:
         result=compare(fixture,entry);results.append(result);print(entry['label']+'/'+entry['cache_mode']+': '+str(len(result['differences']))+' differences',flush=True)
     report=dict(cases=len(results),differences=sum(len(r['differences'])for r in results),results=results)
-    for key in ('events_checked','allocations_checked','buffers_checked','buffer_bytes_checked','heap_boundaries_checked','heap_words_checked','unknown_heap_bytes','port_words_checked','console_calls_checked','faults_checked'):report[key]=sum(r[key]for r in results)
+    for key in ('events_checked','allocations_checked','buffers_checked','buffer_bytes_checked','heap_boundaries_checked','heap_words_checked','unknown_heap_bytes','port_words_checked','port_memory_words_checked','unknown_port_bytes','console_calls_checked','faults_checked'):report[key]=sum(r[key]for r in results)
     if args.output:args.output.write_text(json.dumps(report,indent=2)+'\n')
     print(json.dumps({k:v for k,v in report.items()if k!='results'},separators=(',',':')))
     raise SystemExit(int(bool(report['differences'])))

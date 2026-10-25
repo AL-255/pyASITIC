@@ -357,6 +357,13 @@ from earlier driver ESP; direct integration diagnostics and eddy progress dots
 follow the original output paths. Complete startup, caller/FP state and outer
 command continuation remain unfinished; the strict phase/math gates still fail.
 
+[Branch node/driver continuation](docs/SHUNT_NODE_HISTORY.md) now extends those
+same 28 histories through the node solve, complete model report and first
+driver cleanup. All 224 added released arrays, 84 later heaps and the computed
+and guest-memory port values are checked. The combined replay requires 178
+complete output heaps / 45,574,144 words. Source port publication now follows
+the native store order; complete process continuation remains unfinished.
+
 [Pre-CAP storage](docs/PRELUDE_STORAGE.md) additionally reproduces all 975 FFT
 scratch arrays and 130 stream buffers in the 130 selected native histories:
 4,526,080 bytes match exactly in the compiled browser backend. Four added small

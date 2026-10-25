@@ -3,6 +3,10 @@ import struct
 from .memory import ComplexView
 from .node_math import folded
 
+# Fixed ET_EXEC bindings used by the original node instructions at
+# 0x805489d..0x80549fe, independently of later port-record observations.
+PORT_ADDRESSES=dict(y11=0x80d8da8,y12=0x80d8db8,y21=0x80d8dd8,y22=0x80d8de8)
+
 
 class NodeStorage:
     def __init__(self,memory,addresses,nodes):
@@ -26,3 +30,9 @@ class NodeStorage:
         ComplexView(memory,addresses['node.lu'],n).write(values.pop('lu'))
         memory.write(addresses['node.pivots'],struct.pack('<'+'i'*n,*values.pop('pivots')))
         for name,vector in values.items():memory.write(addresses['node.'+name],b''.join(struct.pack('<2d',z.real,z.imag)for z in vector))
+
+    def publish_ports(self):
+        """Store results after ordered workspace release, before node return."""
+        if self.ports is None:raise ValueError('Node ports are unavailable before solving')
+        for name in('y22','y11','y21','y12'):
+            z=self.ports[name];self.memory.write(PORT_ADDRESSES[name],struct.pack('<2d',z.real,z.imag))
