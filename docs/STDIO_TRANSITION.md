@@ -13,6 +13,11 @@ select64 entry and four lazy-resolver entries (`signal`, `select`,
 including the earlier segment selectors and `orig_eax`. No call snapshots
 seed the continuing path.
 
+The subsequent [stdin/append integration](INPUT_TRANSITION.md) connects all
+eight binding register sets and reduces the newly expanded audit to 382
+required differences. The 556-difference fixture here remains a separate
+required comparison and is not replaced.
+
 ## Earlier inputs and broader assertions
 
 `capture_stdio_transition_original.py` repeats all 67 existing jobs cold and

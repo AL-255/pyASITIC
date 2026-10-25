@@ -66,17 +66,18 @@ class ReplStorage:
         self.poll_registers=result
         return dict(result)
 
-    def before_input(self):
+    def before_input(self,*,orient=True):
         """The regular-file stdin path's flush and fgets caller arguments."""
         m=self.m;f=self.frame;registers=self.poll_registers
         m.put_u32(f-1040,m.u32(0x80d7ddc));m.put_u32(f-1044,0x804b5f8)
-        self._flush_return(dict(registers,esp=f-1044))
+        result=self._flush_return(dict(registers,esp=f-1044))
         for offset,value in ((1044,m.u32(0x80d7ddc)),(1048,1024),(1052,registers['esi']),(1056,0x804b609)):
             m.put_u32(f-offset,value)
         stream=m.u32(0x80d7ddc);mode=m.u32(stream+104)
         if mode not in (0,0xffffffff):raise NotImplementedError('Wide-oriented stdin needs its separate read path')
         # The first narrow __underflow sets orientation through _IO_fwide.
-        if not mode:m.put_u32(stream+104,0xffffffff)
+        if orient and not mode:m.put_u32(stream+104,0xffffffff)
+        return dict(result,esp=f-1056,eip=self.libc_base+0x75f70)
 
     def finish_line(self,characters,input_log,output_log):
         """Append/log caller frames and the real normalization local stores."""

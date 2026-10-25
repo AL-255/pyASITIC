@@ -12,7 +12,7 @@ class InputStream:
     def __init__(self,memory,address,data,position,allocate):
         self.memory=memory;self.address=address;self.data=data;self.position=position;self.allocate=allocate
 
-    def readline(self,destination,size):
+    def readline(self,destination,size,*,abi=None):
         m=self.memory;a=self.address;count=0
         while count<size-1:
             flags,rp,re,rb,wb,wp,we,bb,be=struct.unpack('<9I',m.read(a,36))
@@ -20,8 +20,11 @@ class InputStream:
                 if flags&16:break
                 if flags&4:raise ValueError('Source fgets stream has no read access')
                 if not bb:
-                    bb=self.allocate('stdin.buffer',4096);be=bb+4096
+                    if abi:abi.before_allocate()
+                    capacity=abi.buffer_size if abi else 4096
+                    bb=self.allocate('stdin.buffer',capacity);be=bb+capacity
                     m.put_u32(a+28,bb);m.put_u32(a+32,be)
+                if abi:abi.before_read(bb,be-bb)
                 for offset in (4,8,12,16,20,24):m.put_u32(a+offset,bb)
                 data=self.data[self.position:self.position+be-bb]
                 if not data:m.put_u32(a,flags|16);break

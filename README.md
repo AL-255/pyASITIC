@@ -409,6 +409,13 @@ poll/select64 boundaries. With expanded static-region comparisons, the fresh
 continuing audit improves from 618 to 556 differences. Kernel effects and
 printf/libio child frames remain required unfinished work; older gates remain.
 
+The subsequent [stdin and append integration](docs/INPUT_TRANSITION.md)
+connects all eight lazy-binding register sets, including the three legacy
+stream wrappers and CPU-selected `strcat`. Buffer allocation follows earlier
+file-stat inputs. The expanded audit also checks the complete main input
+buffer and improves from 556 to 382 required differences. Stat/allocator,
+kernel, string-copy, parser and other child-frame work remains unfinished.
+
 Records use binary64 with selected retained-precision intermediates matching the
 reference's x87 arithmetic. The [native logarithm audit](docs/LOGARITHM_AUDIT.md)
 adds 8,182 instruction cases and 10,327 multiplier cases with complete request

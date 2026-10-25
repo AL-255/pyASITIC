@@ -16,6 +16,7 @@ from .plt_fixup_storage import PltFixup
 from .dispatch_storage import DispatchStorage,enter_dispatch
 from .poll_storage import poll_select,select64_entry
 from .repl_storage import ReplStorage
+from .stdin_storage import StdinStorage
 
 
 class CommandTransition:
@@ -166,7 +167,7 @@ class CommandTransition:
         bases={symbol['address']-symbol['offset']for symbol in abi['libc_symbols'].values()}
         if len(bases)!=1:raise ValueError('Inconsistent earlier libc symbol bindings')
         installed=install_console_signals(m,self.inputs['workspace_address'],bases.pop(),loader=loader,loader_context=loader_context,incoming=incoming)
-        repl_storage=None
+        repl_storage=None;input_storage=None
         if stdio:
             m.write(0x80cbab0,b'\0');m.put_u32(0x80cbab4,0);m.write(0x80cba60,b'\0')
         self.console.emit('message',b'ASITIC>  ',False)
@@ -178,7 +179,10 @@ class CommandTransition:
             # The external input is the launcher's regular answers file.
             # Kernel timeout copyback and the child IO frames remain missing
             # source work; every later byte remains in the strict comparison.
-            repl_storage.before_input()
+            registers=repl_storage.before_input(orient=not stdio.get('input_abi'))
+            if stdio.get('input_abi'):
+                input_storage=StdinStorage(m,loader,loader_context,stdio['input_abi'],libc_base=libc_base,tls_base=loader_context['tls_base'])
+                input_storage.enter(registers)
         stdin=self.inputs['stdin_stream'];raw=bytes.fromhex(stdin['data']);base,end=struct.unpack_from('<I',raw,28)[0],struct.unpack_from('<I',raw,8)[0]
         if base:raise NotImplementedError('Earlier buffered interactive input offset is not yet bound')
         source=InputStream(m,stdin['address'],bytes.fromhex(stdin['file_data']),0,self.allocate)
@@ -187,10 +191,13 @@ class CommandTransition:
         # its own 0x1040-byte command records. Both reuse the original stack.
         script_frame=self.inputs['workspace_address']+4460
         line=installed['line']
-        if source.readline(line,1024)is None:raise NotImplementedError('Interactive EOF shutdown requires its own source path')
+        read=source.readline(line,1024,abi=input_storage)
+        if read is None:raise NotImplementedError('Interactive EOF shutdown requires its own source path')
         # repl_read_stdio appends a newline even when fgets already retained
         # the input newline. finish() logs those bytes before normalization.
-        text=string(m,line)+b'\n';m.write(line,text+b'\0')
+        if input_storage:
+            registers=input_storage.returned(len(read));input_storage.append_newline(registers,repl_storage.frame);text=string(m,line)
+        else:text=string(m,line)+b'\n';m.write(line,text+b'\0')
         repl=self.inputs['repl'];history=repl['history_enabled']
         self.console.write_stream(repl['input_log'],text+(b'\n'if history else b''))
         self.console.write_stream(self.console.inputs['streams']['log']['address'],b'ASITIC>  '+text+(b'\n\n'if history else b''))
