@@ -433,6 +433,14 @@ FP and allocator boundaries. The continuing comparison improves from 298 to
 Other malloc branches and the remaining kernel/library/parser frames are
 still unfinished; the strict publication gates retain their failures.
 
+The [stdin read ABI](docs/READ_STORAGE.md) now executes the libc/VDSO caller
+stores and regular-file byte/offset changes from earlier external inputs.
+Its independent full-region/register/FP audit is exact in CPU Python and
+Pyodide. The continuing audit additionally checks every later descriptor
+offset, including four histories already at byte 51 before the first driver.
+Its 284 remaining memory differences stay required; later library, kernel
+and parser effects are still unfinished.
+
 Records use binary64 with selected retained-precision intermediates matching the
 reference's x87 arithmetic. The [native logarithm audit](docs/LOGARITHM_AUDIT.md)
 adds 8,182 instruction cases and 10,327 multiplier cases with complete request

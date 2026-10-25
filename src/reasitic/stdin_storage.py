@@ -3,7 +3,7 @@
 Follows glibc 2.39 iofgets.c, iogetline.c, genops.c and fileops.c,
 Copyright (C) 1993-2024 Free Software Foundation, Inc., LGPL-2.1-or-later;
 see web/GLIBC-LGPL-2.1.txt. The legacy streambuf wrappers use their pinned
-i386 ABI. Stat/allocator/read syscall child frames remain unfinished.
+i386 ABI. Additional stat/allocator/read paths remain unfinished.
 """
 from .dispatch_storage import logical_flags
 from .signal_install_storage import add_flags,subtract_flags
@@ -128,7 +128,16 @@ class StdinStorage:
         if m.u32(vt+56)!=self.legacy_base+0x22190:raise NotImplementedError('Stdin read vtable branch is not bound')
         r=self._wrapper(r,0x22190,0x1ca1f,b'_IO_file_read',[a,buffer,capacity])
         if r['eip']!=self.libc+0x83e40:raise NotImplementedError('Stdin file read interposition is not bound')
-        self.buffer=buffer
+        self.buffer=buffer;self.capacity=capacity;self.read_entry=r
+
+    def read_buffer(self,file_data,position):
+        if self.profile.get('read_abi'):
+            from .read_storage import ReadStorage
+            storage=ReadStorage(self.m,libc_base=self.libc,tls_base=self.tls)
+            self.read_result=storage.read(self.read_entry,file_data,position)
+            return self.read_result['data'],self.read_result['position']
+        data=file_data[position:position+self.capacity];self.m.write(self.buffer,data)
+        return data,position+len(data)
 
     def returned(self,count):
         m=self.m;a=self.stream;local=self.info_local

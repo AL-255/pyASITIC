@@ -24,6 +24,7 @@ class CommandTransition:
         self.heap=heap;self.memory=memory;self.console=console;self.inputs=inputs;self.libio=libio
         self.technology=technology;self.cells=cells;self.script=script;self.events=[];self.freed=[];self.files=[];self.calendar_calls=[];self.result=None;self.points=[]
         self.cache_arrays=cache_arrays
+        self.stdin_position=inputs['stdin_stream'].get('file_position',0)
         self.geometry=GeometryStorage(heap,memory,head)
         self.strings=LegacyStrings(memory,lambda size,allocator:self.allocate('filename',size,allocator),lambda address,allocator:self.release('filename',address,allocator),nil_address=strings['nil_address'],pool_address=strings['pool_address'])
         self.characters=Characters(inputs['character_tables'])
@@ -185,13 +186,16 @@ class CommandTransition:
                 input_storage.enter(registers)
         stdin=self.inputs['stdin_stream'];raw=bytes.fromhex(stdin['data']);base,end=struct.unpack_from('<I',raw,28)[0],struct.unpack_from('<I',raw,8)[0]
         if base:raise NotImplementedError('Earlier buffered interactive input offset is not yet bound')
-        source=InputStream(m,stdin['address'],bytes.fromhex(stdin['file_data']),0,self.allocate)
+        if input_storage and input_storage.profile.get('read_abi')and'file_position'not in stdin:
+            raise ValueError('Read ABI needs the earlier descriptor position')
+        source=InputStream(m,stdin['address'],bytes.fromhex(stdin['file_data']),self.stdin_position,self.allocate)
         # execute_command_script's 0x116c-byte frame has returned. main's
         # input line is EBP-0x400; dispatch_command_line subsequently reserves
         # its own 0x1040-byte command records. Both reuse the original stack.
         script_frame=self.inputs['workspace_address']+4460
         line=installed['line']
         read=source.readline(line,1024,abi=input_storage)
+        self.stdin_position=source.position
         if read is None:raise NotImplementedError('Interactive EOF shutdown requires its own source path')
         # repl_read_stdio appends a newline even when fgets already retained
         # the input newline. finish() logs those bytes before normalization.
@@ -224,4 +228,6 @@ class CommandTransition:
         address=self.inputs['workspace_address']
         regions=[dict(address=address,data=self.memory.read(address,4460)),dict(address=0x80d8660,data=self.memory.read(0x80d8660,120))]
         regions.extend(dict(address=r['address'],data=self.memory.read(r['address'],r['size']))for r in self.inputs.get('stdio_context',{}).get('regions',()))
-        self.points.append(dict(kind=kind,events=len(self.events),regions=regions))
+        point=dict(kind=kind,events=len(self.events),regions=regions)
+        if 'file_position'in self.inputs['stdin_stream']:point['stdin_position']=self.stdin_position
+        self.points.append(point)

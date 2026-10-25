@@ -1,5 +1,9 @@
 # Native malloc ABI in continuing stdin allocation
 
+The subsequent [read ABI checkpoint](READ_STORAGE.md) implements the stdin
+libc/VDSO read caller and adds complete descriptor-position assertions. This
+malloc fixture and its strict 284-difference gate remain required.
+
 The stdin buffer allocation now emits the pinned i386 `__libc_malloc` and
 `_int_malloc` stack/register effects for the single-threaded unsorted-bin
 exact-fit path. The existing `Heap.malloc` still computes the returned

@@ -27,9 +27,11 @@ class InputStream:
                     m.put_u32(a+28,bb);m.put_u32(a+32,be)
                 if abi:abi.before_read(bb,be-bb)
                 for offset in (4,8,12,16,20,24):m.put_u32(a+offset,bb)
-                data=self.data[self.position:self.position+be-bb]
+                if abi:data,self.position=abi.read_buffer(self.data,self.position)
+                else:
+                    data=self.data[self.position:self.position+be-bb];m.write(bb,data);self.position+=len(data)
                 if not data:m.put_u32(a,flags|16);break
-                m.write(bb,data);self.position+=len(data);rp=bb;re=bb+len(data);m.put_u32(a+8,re)
+                rp=bb;re=bb+len(data);m.put_u32(a+8,re)
             value=m.read(rp,1);m.write(destination+count,value);m.put_u32(a+4,rp+1);count+=1
             if value==b'\n':break
         if not count:return None
