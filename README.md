@@ -475,9 +475,21 @@ The [vfprintf caller source](docs/VFPRINTF.md) matches all 7,946 phases around
 3,973 formatter calls across 134 histories in CPU Python and Pyodide. The
 complete reports agree on every caller-owned region, heap/error state,
 register, FP byte and 20,921 captured caller helpers. Formatter boundaries
-are independent component inputs, never continuing-replay seeds; all 3,973
-formatter calls and 30,267 middle helpers remain pending. The parser,
-numeric formatting and the 198-difference continuing gate remain unfinished.
+are independent component inputs, never continuing-replay seeds. This caller
+audit does not execute the 3,973 formatter bodies or their 30,267 middle
+helpers; whole-parent integration and the 198-difference continuing gate
+remain unfinished.
+
+The [formatter source and required audits](docs/PRINTF_FORMAT.md) now
+implement entry/literal output, narrow strings, decimal width/precision
+parsing and scalar padding. Its complete CPU report and merged eight-shard
+browser report agree for all 134 histories. All 4,105 entry prefixes and
+1,733 complete literal/string calls execute with exact register, FP and
+helper behavior. Every conversion and complete pthread owner remains
+required: 2,372 unfinished conversions and 562 complete-call rseq CPU-field
+words still fail; the prefix gate retains 380 rseq word differences.
+This work is not connected to continuing replay and does not establish
+formatter parity.
 
 Records use binary64 with selected retained-precision intermediates matching the
 reference's x87 arithmetic. The [native logarithm audit](docs/LOGARITHM_AUDIT.md)

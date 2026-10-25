@@ -107,3 +107,6 @@ module remains unchanged at SHA-256
 This component does not establish complete formatting, continuing-call
 integration or whole-program parity. The broader gate still retains its
 198 unresolved differences.
+The separate [formatter component](PRINTF_FORMAT.md) now implements
+literal/narrow-string paths and retains complete nonzero formatter gates;
+it does not change this caller audit into whole-parent execution.

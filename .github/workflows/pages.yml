@@ -113,6 +113,14 @@ jobs:
           - {suite: vfprintf, shard: 6, shards: 8}
           - {suite: vfprintf, shard: 7, shards: 8}
           - {suite: vfprintf, shard: 8, shards: 8}
+          - {suite: printf-format, shard: 1, shards: 8}
+          - {suite: printf-format, shard: 2, shards: 8}
+          - {suite: printf-format, shard: 3, shards: 8}
+          - {suite: printf-format, shard: 4, shards: 8}
+          - {suite: printf-format, shard: 5, shards: 8}
+          - {suite: printf-format, shard: 6, shards: 8}
+          - {suite: printf-format, shard: 7, shards: 8}
+          - {suite: printf-format, shard: 8, shards: 8}
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
@@ -234,6 +242,8 @@ jobs:
               node tools/check_printf_file_original.mjs /tmp/reasitic-pyodide/node_modules/pyodide/pyodide.mjs '' "$SHARD" "$SHARDS" ;;
             vfprintf)
               node tools/check_vfprintf_original.mjs /tmp/reasitic-pyodide/node_modules/pyodide/pyodide.mjs '' "$SHARD" "$SHARDS" ;;
+            printf-format)
+              node tools/check_printf_format_original.mjs /tmp/reasitic-pyodide/node_modules/pyodide/pyodide.mjs '' "$SHARD" "$SHARDS" ;;
             capstorage)
               node tools/check_cap_storage_original.mjs /tmp/reasitic-pyodide/node_modules/pyodide/pyodide.mjs ;;
             workspaces)
