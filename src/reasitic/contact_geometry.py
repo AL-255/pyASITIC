@@ -12,6 +12,21 @@ def _integer(value):
 
 
 def groups(shape,technology,nx,ny,width,height,length_step,width_step,max_contacts,contact,*,observe=None,observe_group=None):
+    if not any(getattr(s,'secondary',())for s in shape.segments):return _groups(shape,technology,nx,ny,width,height,length_step,width_step,max_contacts,contact,observe=observe,observe_group=observe_group)
+    from types import SimpleNamespace
+    result=[];count=0
+    for parent in shape.segments:
+        if parent.metal>=len(technology.metals):continue
+        combined=[]
+        for segment in(parent,*getattr(parent,'secondary',())):
+            if segment.metal>=len(technology.metals):raise ValueError('Native shunt contact references a via layer as a metal')
+            part=_groups(SimpleNamespace(origin=shape.origin,segments=[segment]),technology,nx,ny,width,height,length_step,width_step,max_contacts-count,contact,observe=observe,observe_group=observe_group)[0]
+            combined=part+combined;count+=len(part)
+        result.append(combined)
+    return result
+
+
+def _groups(shape,technology,nx,ny,width,height,length_step,width_step,max_contacts,contact,*,observe=None,observe_group=None):
     result=[];contact_count=0;pitch=R(max(width,height))/R(min(nx,ny))
     for s in shape.segments:
         if s.metal>=len(technology.metals):continue

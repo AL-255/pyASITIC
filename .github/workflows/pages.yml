@@ -155,6 +155,7 @@ jobs:
           - {suite: parser-callers, shard: 1, shards: 1}
           - {suite: unjoin-assembly, shard: 1, shards: 1}
           - {suite: breakup, shard: 1, shards: 1}
+          - {suite: shunt, shard: 1, shards: 1}
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
@@ -302,6 +303,8 @@ jobs:
               node tools/check_unjoin_assembly_original.mjs /tmp/reasitic-pyodide/node_modules/pyodide/pyodide.mjs ;;
             breakup)
               node tools/check_breakup_original.mjs /tmp/reasitic-pyodide/node_modules/pyodide/pyodide.mjs /tmp/reasitic-pyodide/node_modules/jsdom/lib/api.js ;;
+            shunt)
+              node tools/check_shunt_original.mjs /tmp/reasitic-pyodide/node_modules/pyodide/pyodide.mjs /tmp/reasitic-pyodide/node_modules/jsdom/lib/api.js ;;
             printf-transition)
               node tools/check_printf_transition_original.mjs /tmp/reasitic-pyodide/node_modules/pyodide/pyodide.mjs '' "$SHARD" "$SHARDS" ;;
             capstorage)

@@ -84,7 +84,9 @@ def solve_transformer(first,second,technology,frequency_hz,*,ground=None,termina
     boundary=sum(s.metal<len(technology.metals) for s in a.segments)
     second_count=sum(s.metal<len(technology.metals) for s in b.segments)
     if not boundary or not second_count:raise ValueError("CALCTRANS requires metal conductors in both windings")
-    b.segments.reverse()
+    from .model import copy_geometry
+    a,b=copy_geometry(a),copy_geometry(b)
+    b.reverse_segments()
     joined=_join_for_pads(a,b);joined.name=first.name+"_"
     reference=joined if ground is None or ground.name==first.name else ground
     cap=solve_capacitance(joined,technology,frequency_hz,ground=reference,length_cell=capacitance_length_cell,

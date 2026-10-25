@@ -136,7 +136,7 @@ def handle(request,*,progress=None):
         ground=_shape(request["ground"],tech) if request.get("ground") else None
         pads={"first_pad":_shape(request["first_pad"],tech),"second_pad":_shape(request["second_pad"],tech)} if action=="pi4" else {}
         solver={"pi2":solve_pi2,"pi3":solve_pi3,"pi4":solve_pi4,"pix":solve_pix}[action]
-        diagnostics={"include_matrices":bool(request.get("include_matrices",False))} if action=="pix" else {}
+        diagnostics={"include_matrices":bool(request.get("include_matrices",False))}
         return solver(shape,tech,_frequency(request),ground=ground,eddy=request.get("eddy",False),**pads,**diagnostics,
                          max_width_cells=maximum_width_cells(mesh.get("max_width_cells",500)),
                          **{key:float(mesh.get(key,1000)) for key in ("length_cell","width_cell","thickness_cell","capacitance_length_cell","capacitance_width_cell")})
@@ -163,7 +163,7 @@ def handle(request,*,progress=None):
         data['history_targets']=windings.history_targets
         data['winding']=next(i for i,w in enumerate(windings)if w is shape)
         # Render exactly the polygons exported to GDS, including individual cuts.
-        if sum(s.nx*s.ny for w in windings for s in w.segments) > 100000:
+        if sum(s.nx*s.ny for w in windings for s in w.all_segments) > 100000:
             raise ValueError("Preview supports at most 100,000 via cuts")
         data["polygons"] = [dict(metal=metal,points=[[point[0]+w.origin[0]-shape.origin[0],point[1]+w.origin[1]-shape.origin[1]] for point in points])
                             for w in windings for metal,points in layout_polygons(w,tech)]

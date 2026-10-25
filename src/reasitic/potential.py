@@ -57,7 +57,8 @@ def _contacts(shape,technology,nx,ny,width,height,length_step,width_step,max_con
     # Byte keys distinguish every binary64 input, including signed zero.
     # Frequency/process coefficients do not participate in contact geometry.
     metal_count=len(technology.metals)
-    segments=tuple((s.metal,s.nx,s.ny,struct.pack('=8d',*s.start,*s.end,s.width,s.width if s.primary_width is None else s.primary_width))for s in shape.segments if s.metal<metal_count)
+    def record(s):return(s.metal,s.nx,s.ny,struct.pack('=8d',*s.start,*s.end,s.width,s.width if s.primary_width is None else s.primary_width))
+    segments=tuple((record(s),tuple(record(c)for c in getattr(s,'secondary',())))for s in shape.segments if s.metal<metal_count)
     config=((nx,ny,metal_count,max_contacts),struct.pack('=6d',width,height,length_step,width_step,*shape.origin[:2]),segments)
     return [list(group)for group in _cached_contact_groups(config)]
 
@@ -67,9 +68,12 @@ def _cached_contact_groups(config):
     (nx,ny,metal_count,maximum),raw,segments=config
     width,height,length_step,width_step,ox,oy=struct.unpack('=6d',raw)
     records=[]
-    for metal,snx,sny,values in segments:
+    def decode(record):
+        metal,snx,sny,values=record
         values=struct.unpack('=8d',values)
-        records.append(SimpleNamespace(start=values[:3],end=values[3:6],width=values[6],primary_width=values[7],metal=metal,nx=snx,ny=sny))
+        return SimpleNamespace(start=values[:3],end=values[3:6],width=values[6],primary_width=values[7],metal=metal,nx=snx,ny=sny)
+    for parent,children in segments:
+        node=decode(parent);node.secondary=[decode(child)for child in children];records.append(node)
     shape=SimpleNamespace(origin=(ox,oy),segments=records);technology=SimpleNamespace(metals=range(metal_count))
     result=_contact_groups(shape,technology,nx,ny,width,height,length_step,width_step,maximum,Contact)
     # Contacts are frozen; fresh list containers above isolate each caller.

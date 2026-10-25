@@ -98,10 +98,15 @@ def _join_for_pads(target,source):
     result=copy.deepcopy(target)
     other=copy.deepcopy(source)
     delta=[Real(source.origin[axis])-Real(target.origin[axis]) for axis in range(2)]
+    from .model import copy_record
     for segment in other.segments:
-        for point in segment.points:
-            for axis in range(2):point[axis]=float(delta[axis]+Real(point[axis]))
-    result.segments.extend(other.segments)
+        for node in(segment,*segment.secondary):
+            for point in node.points:
+                for axis in range(2):point[axis]=float(delta[axis]+Real(point[axis]))
+        node=copy_record(segment,groups=True)
+        for child in node.secondary:child._native_next=result.segments[-1]if result.segments else None
+        result.segments.append(node)
+    result.link_primary()
     if target.kind=="wire" and source.kind in ("square","polygon"):
         result.origin=source.origin.copy()
         result.parameters=copy.deepcopy(source.parameters)

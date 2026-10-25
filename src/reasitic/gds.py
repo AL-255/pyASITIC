@@ -37,7 +37,7 @@ def layout_polygons(shape, technology):
     pads include the technology's respective overplot.
     """
     count = len(technology.metals)
-    for s in shape.segments:
+    for s in shape.all_segments:
         if s.metal < count:
             yield s.metal, s.polygon
             continue

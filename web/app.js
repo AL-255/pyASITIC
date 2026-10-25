@@ -33,7 +33,7 @@ function controls() {
   $("#transformer-mesh-settings").disabled=busy||!hasPair;
   for(const el of document.querySelectorAll(".layout-edits input,.layout-edits select,.layout-edits button"))el.disabled=!ready||busy||!hasWindings;
   for(const id of["edit-undo","edit-reset"])$("#"+id).disabled=!ready||busy||!currentDefinition?.edits?.length;
-  if($("#edit-command").value==="JOIN"&&(current?.windings.length??0)<2)$("#edit-apply").disabled=true;
+  if(["JOIN","JOINSHUNT"].includes($("#edit-command").value)&&(current?.windings.length??0)<2)$("#edit-apply").disabled=true;
   if($("#edit-command").value==="SPTOWIRE"&&!hasSegments)$("#edit-apply").disabled=true;
   $("#generate").disabled = !ready || busy;
   for (const id of ["simulate", "sweep", "lmat", "capacitance", "pi2", "selfres"]) $("#"+id).disabled = !ready || busy || !hasSegments;
@@ -231,11 +231,12 @@ function svgElement(tag,attributes={},text) {
 function showEditFields(){
   const command=$("#edit-command").value,copy=command==="COPY",position=copy&&$("#edit-metal").value!==""&&!$("#edit-keep-origin").checked;
   $("#edit-erase-field").hidden=command!=="ERASE";
-  $("#edit-join-field").hidden=command!=="JOIN";$("#edit-join-note").hidden=command!=="JOIN";
+  $("#edit-join-field").hidden=!["JOIN","JOINSHUNT"].includes(command);$("#edit-join-note").hidden=!["JOIN","JOINSHUNT"].includes(command);
+  $("#edit-join-note").textContent=command==="JOINSHUNT"?"Source segments become parallel branches of the active winding, matched from the end. A source must have no more segments than the active winding. Undo restores the source windings.":"Selected source windings become part of the active winding. Undo restores them.";
   $("#edit-index-field").hidden=command!=="UNJOIN";$("#edit-split-note").hidden=command!=="UNJOIN";
   $("#edit-split-note").textContent=`${current?.segments.length??0} segments in the selected winding. Index 0 splits in half; a positive index cuts after that segment. Negative indices follow ASITIC indexing. Cutting after the last segment creates an empty winding. Undo restores the split.`;
   $("#edit-phase-field").hidden=command!=="PHASE";$("#edit-phase-note").hidden=command!=="PHASE";
-  $("#edit-phase-note").textContent=current?.electrical_phase===0?"Native phase state is zero; PHASE leaves directions unchanged.":`Electrical phase state: ${current?.electrical_phase??1}. PHASE reverses segment endpoints when the sign changes; the segment list keeps its order.`;
+  $("#edit-phase-note").textContent=current?.electrical_phase===null?`Electrical phase direction: ${current.electrical_phase_sign<0?"negative":"positive"}. PHASE reverses endpoints when the sign changes.`:current?.electrical_phase===0?"Native phase state is zero; PHASE leaves directions unchanged.":`Electrical phase state: ${current?.electrical_phase??1}. PHASE reverses segment endpoints when the sign changes; the segment list keeps its order.`;
   $("#edit-name-field").hidden=!["COPY","RENAME","UNJOIN"].includes(command);$("#edit-other-field").hidden=!["BEFRIEND","UNFRIEND"].includes(command);
   $("#edit-metal-field").hidden=!copy;$("#edit-origin-field").hidden=!copy||$("#edit-metal").value==="";
   $("#edit-x-field").hidden=!["MOVE","MOVETO","MOVEX","MOVEY","ROTATE"].includes(command)&&!position;$("#edit-y-field").hidden=!["MOVE","MOVETO"].includes(command)&&!position;
@@ -277,7 +278,7 @@ $("#edit-apply").addEventListener("click",()=>task(async()=>{
   const command=$("#edit-command").value,edit={command,winding:currentDefinition.winding||0};
   if(["MOVE","MOVETO","MOVEX"].includes(command))edit.x=numeric("#edit-x");
   if(["MOVE","MOVETO"].includes(command))edit.y=numeric("#edit-y");
-  if(command==="JOIN"){edit.others=Array.from($("#edit-join").selectedOptions,option=>Number(option.value));if(!edit.others.length)throw Error("Select at least one source winding to join.");}
+  if(["JOIN","JOINSHUNT"].includes(command)){edit.others=Array.from($("#edit-join").selectedOptions,option=>Number(option.value));if(!edit.others.length)throw Error("Select at least one source winding to join.");}
   if(command==="ERASE"){edit.windings=Array.from($("#edit-erase").selectedOptions,option=>Number(option.value));if(!edit.windings.length)throw Error("Select at least one winding to erase.");}
   if(command==="MOVEY")edit.y=numeric("#edit-x");
   if(command==="ROTATE")edit.angle=numeric("#edit-x");

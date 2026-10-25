@@ -4,10 +4,12 @@ from .scene_heap import GeometryArena
 from .command_numbers import length_um,angle_radians
 from .paired_geometry import _name
 from .retained_scalar import Real as R
+from .model import copy_geometry,copy_record,link_secondary
 
 ALIASES={}
 for names in [('MOVE','MV'),('MOVEX','MVX'),('MOVEY','MVY'),('MOVETO','MVTO','SETORIG','SETORIGIN'),('ROTATE','ROT','TURN'),('FLIPV','FLIPVERT','VFLIP','VERTFLIP'),('FLIPH','FLIPHORZ','HFLIP','HORZFLIP'),('FLIP','REVERSE','REV','REORDER'),('COPY','CP','DUPLICATE','DUP'),('RENAME','REN','NEWNAME','NAME'),('BEFRIEND','FRIEND'),('UNFRIEND','DEFRIEND'),('PHASE','PH'),('ERASE','DEL','DELETE','RM'),('JOIN','ADD','MATE','COUPLE'),('UNJOIN','SPLIT','BREAK','CUT'),('SPTOWIRE','DEMOLISH','SP2WIRE','BREAKUP')]:
     ALIASES.update((name,names[0])for name in names)
+ALIASES.update((name,'JOINSHUNT')for name in('JOINSHUNT','ADDSHUNT','MATESHUNT','SHUNT'))
 
 
 class EditedScene(list):
@@ -37,7 +39,7 @@ def apply_edits(shapes,technology,edits,*,with_links=False):
     def needs_arena(op):
         if not isinstance(op,dict):return False
         command=ALIASES.get(str(op.get('command','')).upper())
-        if command in('UNJOIN','SPTOWIRE'):return True
+        if command in('UNJOIN','SPTOWIRE','JOINSHUNT'):return True
         if command=='JOIN':
             sources=op.get('others',[op['other']]if 'other'in op else[])
             return isinstance(sources,list)and 1<=len(sources)<=11
@@ -45,30 +47,37 @@ def apply_edits(shapes,technology,edits,*,with_links=False):
         indices=op.get('windings',[op.get('winding',0)])
         return isinstance(indices,list)and 1<=len(indices)<=10
     arena=GeometryArena()if any(needs_arena(op)for op in edits)else None
-    addresses=[];segments=[];identities={};history=[]
+    addresses=[];segments=[];identities={};history=[];children={}
     if arena is not None:
         for i,shape in enumerate(slots):
             address=arena.malloc(0xbc);addresses.append(address);identities[address]=i
-            records=[arena.malloc(0xf0)for _ in shape.segments];segments.append(records);arena.write(shape,address,records)
+            records=[arena.malloc(0xf0)for _ in shape.segments];segments.append(records);shape.link_primary();arena.write(shape,address,records,children)
     def allocate(shape,records=None):
         if arena is None:slot=len(slots);slots.append(shape);friends.append(None)
         else:
             address=arena.malloc(0xbc);slot=identities.get(address)
             if slot is None:
                 slot=len(slots);identities[address]=slot;slots.append(None);friends.append(None);addresses.append(address);segments.append([])
-            slots[slot]=shape;segments[slot]=[arena.malloc(0xf0)for _ in shape.segments]if records is None else records;arena.write(shape,address,segments[slot])
+            slots[slot]=shape
+            if records is None:
+                records=[]
+                for segment in shape.segments:
+                    base=arena.malloc(0xf0);records.append(base);children[base]=[arena.malloc(0xf0)for _ in reversed(segment.secondary)][::-1]
+            segments[slot]=records;arena.write(shape,address,segments[slot],children)
         friends[slot]=None;live.append(slot)
     def release(slot,*,clear_peer=True):
         if not slots[slot].segments:raise ValueError('The original command faults on an empty segment chain')
         peer=friends[slot]
         if clear_peer and peer is not None:friends[peer]=None
-        arena.write(slots[slot],addresses[slot],segments[slot])
-        for address in segments[slot]:arena.free(address)
+        arena.write(slots[slot],addresses[slot],segments[slot],children)
+        for address in segments[slot]:
+            for child in children.pop(address,[]):arena.free(child)
+            arena.free(address)
         arena.free(addresses[slot]);live.remove(slot);slots[slot].segments=[];segments[slot]=[]
     def sync():
-        for i in live:arena.write(slots[i],addresses[i],segments[i])
+        for i in live:arena.write(slots[i],addresses[i],segments[i],children)
     def reload():
-        for i in live:arena.read(slots[i],addresses[i],segments[i])
+        for i in live:arena.read(slots[i],addresses[i],segments[i],children)
     def length(op,key):return length_um(op[key],grid_size=.1)
     def winding(value):
         if isinstance(value,bool)or not isinstance(value,int)or not 0<=value<len(live):raise ValueError('Invalid edit winding')
@@ -85,14 +94,15 @@ def apply_edits(shapes,technology,edits,*,with_links=False):
         if not isinstance(op,dict):raise ValueError('Each layout edit must be an object')
         command=ALIASES.get(str(op.get('command','')).upper())
         if command is None:raise ValueError('Unknown spatial edit command')
-        if command=='JOIN':
+        if command in('JOIN','JOINSHUNT'):
             sources=op.get('others',[op['other']]if 'other'in op else[])
             if not isinstance(sources,list)or not sources:raise ValueError('JOIN requires at least one source winding')
             indices=[op.get('winding',0),*sources];targets=[live[winding(i)]for i in indices[:12]]
             history.append([slots[live[i]].name if isinstance(i,int)and not isinstance(i,bool)and 0<=i<len(live)else f'winding {i}'for i in indices])
             target=slots[targets[0]]
             if len(indices)>12:target.warnings.append('Error:  Unknown argument type.');continue
-            if len(set(targets))!=len(targets):target.warnings.append('Error:  Cannot join a spiral to itslef.');continue
+            if command=='JOIN'and len(set(targets))!=len(targets):target.warnings.append('Error:  Cannot join a spiral to itslef.');continue
+            if command=='JOINSHUNT'and len(set(targets[1:]))!=len(targets[1:]):raise ValueError('The original JOINSHUNT faults on repeated source winding arguments')
             def metal(shape):
                 return shape.segments[0].metal if shape.kind=='via'else technology.metal_index(shape.parameters.get('metal',len(technology.metals)-1))
             def compatible(via,other):
@@ -103,6 +113,18 @@ def apply_edits(shapes,technology,edits,*,with_links=False):
                 target.warnings.append(f'Error:  Via layer {index} can only join to metals {layer.top} or {layer.bottom}.');return False
             for source_slot in targets[1:]:
                 source=slots[source_slot]
+                if command=='JOINSHUNT':
+                    if len(source.segments)>len(target.segments):raise ValueError('The original JOINSHUNT faults when the source has more primary segments than the target')
+                    if not target.segments or not source.segments:raise ValueError('The original JOINSHUNT faults on an empty segment chain')
+                    delta=[R(source.origin[axis])-R(target.origin[axis])for axis in range(2)]
+                    pairs=list(zip(reversed(target.segments),reversed(source.segments)))if source is not target else list(zip(target.segments,source.segments))
+                    for parent,record in pairs:
+                        for point in record.points:
+                            for axis in range(2):point[axis]=float(delta[axis]+R(point[axis]))
+                        child=copy_record(record);at=next(i for i,p in enumerate(target.segments)if p is parent);child._native_next=target.segments[at-1]if source is not target and at else target.segments[at+1]if source is target and at+1<len(target.segments)else None
+                        parent.secondary.insert(0,child);link_secondary(parent);base=segments[targets[0]][at];children.setdefault(base,[]).insert(0,arena.malloc(0xf0))
+                    target.link_primary();release(source_slot,clear_peer=False)
+                    continue
                 if target.kind=='via'and not compatible(target,source):continue
                 if source.kind=='via'and not compatible(source,target):continue
                 if not target.segments or not source.segments:raise ValueError('Original JOIN faults on an empty segment chain')
@@ -110,13 +132,25 @@ def apply_edits(shapes,technology,edits,*,with_links=False):
                 for segment in source.segments:
                     for point in segment.points:
                         for axis in range(2):point[axis]=float(delta[axis]+R(point[axis]))
-                    target.segments.append(copy.deepcopy(segment));segments[targets[0]].append(arena.malloc(0xf0))
+                    for child in segment.secondary:
+                        for point in child.points:
+                            for axis in range(2):point[axis]=float(delta[axis]+R(point[axis]))
+                    node=copy_record(segment,groups=True);previous=target.segments[-1]if target.segments else None
+                    for child in node.secondary:child._native_next=previous
+                    target.segments.append(node);base=arena.malloc(0xf0);segments[targets[0]].append(base);children[base]=[arena.malloc(0xf0)for _ in reversed(node.secondary)][::-1]
                 if target.kind=='wire'and source.kind in('square','polygon'):
                     target.origin[:]=source.origin;target.parameters=copy.deepcopy(source.parameters)
                     target.parameters['turns']=float(R(source.parameters.get('turns',0))+R(.25));target.electrical_phase=source.electrical_phase
                     if hasattr(source,'_native_divisions'):
                         target._native_divisions=source._native_divisions;target._native_turns=float(R(source._native_turns)+R(.25))
                 target.kind='joined';release(source_slot,clear_peer=False)
+                target.link_primary()
+            if command=='JOINSHUNT'and targets[0]in live and target.phase_sign<0:
+                for segment in target.all_segments:segment.reverse()
+                # Native command 421 falls through to PHASE with the deleted
+                # source pointer. Its positive sign is known; its absolute
+                # process address is not an input of the typed API.
+                target.electrical_phase=None;target._opaque_phase_sign=1
             continue
         if command=='ERASE':
             indices=op.get('windings',[op.get('winding',0)])
@@ -145,7 +179,15 @@ def apply_edits(shapes,technology,edits,*,with_links=False):
             for number,segment in enumerate(shape.segments):
                 copied=copy.copy(shape);copied.origin=shape.origin.copy();copied.parameters=copy.deepcopy(shape.parameters);copied.warnings=shape.warnings.copy()
                 copied.name=shape.name+'_'+str(number);copied.parameters['name']=copied.name
-                copied.kind='joined';copied.segments=[copy.deepcopy(segment)];allocate(copied)
+                copied.kind='joined';node=copy_record(segment,groups=True)
+                for child in node.secondary:child._native_next=None
+                copied.segments=[node];copied.link_primary();allocate(copied)
+                child=segment.secondary[0]if segment.secondary else None;child_index=0
+                while child is not None:
+                    leaf=copy.copy(copied);leaf.parameters=copy.deepcopy(copied.parameters);leaf.origin=copied.origin.copy();leaf.warnings=copied.warnings.copy();leaf.name=shape.name+'_'+str(number)+'_'+str(child_index);leaf.parameters['name']=leaf.name
+                    node=copy_record(child,groups=True)
+                    for branch in node.secondary:branch._native_next=None
+                    leaf.segments=[node];leaf.link_primary();allocate(leaf);child_index+=1;child=getattr(child,'_native_next',None)
             release(slot,clear_peer=False)
         elif command=='UNJOIN':
             requested=name(op['name'])
@@ -169,6 +211,7 @@ def apply_edits(shapes,technology,edits,*,with_links=False):
             cut=max(1,index);copied=copy.deepcopy(shape);copied.name=requested;copied.parameters['name']=requested;copied.kind='wire'
             copied.segments=shape.segments[cut:];shape.segments=shape.segments[:cut]
             records=segments[slot][cut:];segments[slot]=segments[slot][:cut]
+            shape.link_primary();copied.link_primary()
             # The native split allocates only the descriptor; it transfers the
             # original tail records without allocating or freeing segments.
             allocate(copied,records)
@@ -213,7 +256,7 @@ def apply_edits(shapes,technology,edits,*,with_links=False):
             x=length(op,'x')if'x'in op else None
             if'y'in op and x is None:raise ValueError('COPY Y requires X')
             y=length(op,'y')if'y'in op else None
-            copied=copy.deepcopy(shape);copied.name=requested;copied.parameters['name']=requested
+            copied=copy_geometry(shape);copied.name=requested;copied.parameters['name']=requested
             if x is not None and y is not None:copied.origin[:]=[x,y]
             if target is not None:
                 copied.parameters['metal']=target;metal=technology.metals[target]
@@ -239,16 +282,16 @@ def apply_edits(shapes,technology,edits,*,with_links=False):
             try:phase=int(value)
             except (TypeError,ValueError,OverflowError):raise ValueError('Phase must be a signed 32-bit integer')from None
             if not -(1<<31)<=phase<(1<<31):raise ValueError('Phase must be a signed 32-bit integer')
-            previous=shape.electrical_phase
+            previous=shape.phase_sign
             if phase>=0 and previous<0 or phase<0 and previous>0:
-                for segment in shape.segments:segment.reverse()
+                for segment in shape.all_segments:segment.reverse()
                 shape.electrical_phase=phase
         elif command=='ROTATE':shape.rotate(angle_radians(op['angle']),force=True)
         elif command=='FLIPV':shape.reflect(0)
         elif command=='FLIPH':shape.reflect(1)
         else:
             if not shape.segments:raise ValueError('The original FLIP faults on an empty segment chain')
-            shape.segments.reverse()
+            shape.reverse_segments()
             if arena is not None:segments[slot].reverse()
         if any(not math.isfinite(v)for i in live for v in slots[i].origin):raise ValueError('Edited origin exceeds the finite native range')
     scene=EditedScene(slots[i]for i in live);positions={slot:i for i,slot in enumerate(live)}

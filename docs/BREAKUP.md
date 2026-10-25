@@ -74,8 +74,10 @@ mesh DOM/compiled-solver regression check also passes.
 All parent hashes, original scripts and capture commands remain available.
 The model observer's coupled sprintf tap observes output only; no captured
 result enters the runtime package. This cohort covers primary segment chains.
-JOINSHUNT secondary groups, arbitrary native name-buffer overflows and the
-broader numerical/allocator/continuation gates remain unfinished. The existing
+[JOINSHUNT secondary groups](SHUNT.md) now have separate geometry, graph,
+GDS and model coverage, with six required raw phase-word failures retained.
+Arbitrary native name-buffer overflows and the broader
+numerical/allocator/continuation gates remain unfinished. The existing
 JOIN/UNJOIN FCOS differences are not corrected or waived by this feature.
 This development branch remains undeployed.
 

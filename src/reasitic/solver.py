@@ -19,6 +19,7 @@ from .impedance import assemble as assemble_impedance,self_impedance as _filamen
 from .mesh_counts import counts as _native_counts,maximum_width_cells
 from .retained_scalar import Real
 from .reduction import sum_complex as _sum_complex
+from .model import copy_record,link_secondary
 
 
 @lru_cache(maxsize=32768)
@@ -37,7 +38,7 @@ def inverse(matrix):
 
 
 @lru_cache(maxsize=32)
-def _subdivision(record):
+def _subdivision(record,count=None):
     # Frequency sweeps reuse geometry. Cache immutable coordinates, including
     # every input bit, while each returned segment remains a fresh object.
     values=struct.unpack("=20d",record)
@@ -46,8 +47,9 @@ def _subdivision(record):
         dx,dy,dz=(Real(b[k])-a[k]for k in range(3))
         return ((dx*dx+dy*dy)+dz*dz).sqrt()
     maximum=float(length(coordinates[:3],coordinates[3:6]))
-    if not min(length_step,half_width)<maximum:return None
-    count=math.ceil((Real(maximum)/Real(half_width)).value)
+    if count is None:
+        if not min(length_step,half_width)<maximum:return None
+        count=math.ceil((Real(maximum)/Real(half_width)).value)
     if count>2000:raise ValueError("Longitudinal mesh exceeds 2000 segments")
     rows=[[]for _ in range(count)]
     for offset in (0,6,12):
@@ -65,22 +67,32 @@ def _subdivision(record):
 
 def discretize(shape,length_step,half_width):
     """Native longitudinal subdivision; each edge retains its own slope."""
-    result = copy.deepcopy(shape)
-    result.segments = []
+    result=copy.copy(shape);result.origin=shape.origin.copy();result.parameters=copy.deepcopy(shape.parameters);result.warnings=shape.warnings.copy();result.segments=[]
     for source in shape.segments:
-        fields=(source.start,source.end,source.inner_start,source.inner_end,source.outer_start,source.outer_end)
-        rows=_subdivision(struct.pack("=20d",length_step,half_width,*(v for field in fields for v in field)))
-        if rows is None:
-            if len(result.segments)>=2000:raise ValueError("Longitudinal mesh exceeds 2000 segments")
-            result.segments.append(copy.deepcopy(source))
-            continue
-        if len(result.segments)+len(rows)>2000:
-            raise ValueError("Longitudinal mesh exceeds 2000 segments")
-        for row in rows:
-            segment = copy.deepcopy(source)
-            for i,field in enumerate((segment.start,segment.end,segment.inner_start,segment.inner_end,segment.outer_start,segment.outer_end)):
-                field[:]=row[3*i:3*i+3]
-            result.segments.append(segment)
+        def length(segment):
+            delta=[Real(segment.end[k])-segment.start[k]for k in range(3)]
+            return((delta[0]*delta[0]+delta[1]*delta[1])+delta[2]*delta[2]).sqrt()
+        maximum=float(length(source))
+        for child in source.secondary:
+            value=length(child)
+            if value>Real(maximum):maximum=float(value)
+        count=math.ceil((Real(maximum)/Real(half_width)).value)if min(length_step,half_width)<maximum else None
+        if count is not None and count>2000:raise ValueError('Longitudinal mesh exceeds 2000 segments')
+        total=count if count is not None else 1
+        if len(result.segments)+total>2000:raise ValueError('Longitudinal mesh exceeds 2000 segments')
+        def divided(record):
+            if count is None:return None
+            fields=(record.start,record.end,record.inner_start,record.inner_end,record.outer_start,record.outer_end)
+            return _subdivision(struct.pack('=20d',length_step,half_width,*(v for p in fields for v in p)),count)
+        primary=divided(source);branches=[(child,divided(child))for child in reversed(source.secondary)]
+        for index in range(total):
+            segment=copy_record(source);segment.secondary=[copy_record(child)for child,_ in branches]
+            for node,rows in[(segment,primary),*[(node,rows)for node,(_,rows)in zip(segment.secondary,branches)]]:
+                if rows is not None:
+                    for i,field in enumerate((node.start,node.end,node.inner_start,node.inner_end,node.outer_start,node.outer_end)):field[:]=rows[index][3*i:3*i+3]
+            for child in segment.secondary:child._native_next=result.segments[-1]if result.segments else None
+            link_secondary(segment);result.segments.append(segment)
+    result.link_primary()
     return result
 
 
@@ -111,6 +123,24 @@ class ImpedanceSystem:
     full_y: list | None = None
 
 
+def _filament_geometry(shape,technology,width_cell,thickness_cell,max_width_cells,max_filaments):
+    """Original indexed primary/secondary conductors and contiguous groups."""
+    metal_count=len(technology.metals);conductors=[s for s in shape.segments if s.metal<metal_count]
+    if not conductors:raise ValueError('LMAT requires at least one metal segment')
+    inputs=[];metadata=[];groups=[]
+    for parent in conductors:
+        indices=[]
+        for segment in(parent,*parent.secondary):
+            if segment.metal>=metal_count:raise ValueError('Native shunt filament references a via layer as a metal')
+            ny,nz=filament_counts(segment,width_cell,thickness_cell,max_width_cells)
+            if len(inputs)+ny*nz>max_filaments:raise ValueError(f'Mesh exceeds {max_filaments} filaments; increase cell sizes')
+            for yi in range(ny):
+                for zi in range(nz):
+                    indices.append(len(inputs));inputs.append(_filament_record(segment,shape.origin,yi,zi,ny,nz,width_cell,max_width_cells,technology));metadata.append((segment.metal,nz))
+        groups.append(indices)
+    return[(_checked_filament(row),metal,nz)for row,(metal,nz)in zip(filament_records(inputs),metadata)],groups
+
+
 def prepare_impedance(shape,technology,frequency_hz,*,length_cell=1000,width_cell=1000,
                       thickness_cell=1000,max_width_cells=500,capacitance_length_cell=None,
                       max_filaments=256,discretized=False,eddy=False,include_storage=False):
@@ -135,23 +165,7 @@ def prepare_impedance(shape,technology,frequency_hz,*,length_cell=1000,width_cel
     # tests the smaller limit, but its ceiling count divides by the inductive
     # length cell (half_width), even when the capacitance cell is different.
     meshed = shape if discretized else discretize(shape,capacitance_length_cell,length_cell)
-    metal_count = len(technology.metals)
-    conductors = [s for s in meshed.segments if s.metal<metal_count]
-    if not conductors:
-        raise ValueError("LMAT requires at least one metal segment")
-    filament_inputs,metadata,groups = [],[],[]
-    for segment in conductors:
-        ny,nz=filament_counts(segment,width_cell,thickness_cell,max_width_cells)
-        if len(filament_inputs)+ny*nz>max_filaments:
-            raise ValueError(f"Mesh exceeds {max_filaments} filaments; increase cell sizes")
-        indices = []
-        for yi in range(ny):
-            for zi in range(nz):
-                indices.append(len(filament_inputs))
-                filament_inputs.append(_filament_record(segment,shape.origin,yi,zi,ny,nz,width_cell,max_width_cells,technology))
-                metadata.append((segment.metal,nz))
-        groups.append(indices)
-    filaments=[(_checked_filament(row),metal,nz) for row,(metal,nz) in zip(filament_records(filament_inputs),metadata)]
+    filaments,groups=_filament_geometry(meshed,technology,width_cell,thickness_cell,max_width_cells,max_filaments)
     n = len(filaments)
     warnings = []
     native=mesh_mutual(b"".join(struct.pack("=8d",*wire) for wire,_,_ in filaments));pair=0;pairs=[]

@@ -33,9 +33,12 @@ def mesh_information(first,technology,mesh,*,model="pi2",second=None,ground=None
         else:shapes=[discretize(first,caplength if model!="lmat" else length,length)]
         total=segments=0
         for shape in shapes:
-            for segment in shape.segments:
-                if segment.metal>=len(technology.metals):continue
-                ny,nz=filament_counts(segment,width,thickness,values["max_width_cells"]);total+=ny*nz;segments+=1
+            for parent in shape.segments:
+                if parent.metal>=len(technology.metals):continue
+                segments+=1
+                for segment in(parent,*parent.secondary):
+                    if segment.metal>=len(technology.metals):raise ValueError('Native shunt filament references a via layer as a metal')
+                    ny,nz=filament_counts(segment,width,thickness,values['max_width_cells']);total+=ny*nz
         return dict(filaments=total,segments=segments,limit=256,within_limit=total<=256,model=model,mesh=values)
     def attempt(values):
         try:return count(values)

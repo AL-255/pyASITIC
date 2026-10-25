@@ -57,16 +57,18 @@ class GeometryArena:
   self.blocks[address]=(size,'free');self.unsorted.append(address)
  def number(self,address):return struct.unpack_from('<d',self.memory,address)[0]
  def store(self,address,value):struct.pack_into('<d',self.memory,address,value)
- def write(self,shape,address,segments):
+ def write(self,shape,address,segments,children=None):
   self.store(address+0x54,shape.origin[0]);self.store(address+0x5c,shape.origin[1])
-  for segment,base in zip(shape.segments,segments):
+  records=[pair for segment,base in zip(shape.segments,segments)for pair in[(segment,base),*zip(segment.secondary,(children or{}).get(base,()))]]
+  for segment,base in records:
    self.memory[base:base+0xf0]=bytes(0xf0)
    for point,offset in zip(segment.points,(0,24,0x44,0x5c,0x88,0xa0)):struct.pack_into('<3d',self.memory,base+offset,*point)
    for offset,value in((0x30,segment.primary_width if segment.primary_width is not None else segment.width),(0x38,segment.primary_thickness if segment.primary_thickness is not None else segment.thickness),(0x74,segment.width),(0x7c,segment.thickness),(0xb8,segment.width),(0xc0,segment.thickness),(0xcc,segment.width),(0xd4,segment.thickness)):self.store(base+offset,value)
    for offset,value in((0x40,segment.metal),(0x84,segment.metal),(0xc8,segment.metal),(0xdc,segment.metal),(0xe0,segment.nx),(0xe4,segment.ny)):struct.pack_into('<i',self.memory,base+offset,value)
- def read(self,shape,address,segments):
+ def read(self,shape,address,segments,children=None):
   shape.origin[:]=[self.number(address+0x54),self.number(address+0x5c)]
-  for segment,base in zip(shape.segments,segments):
+  records=[pair for segment,base in zip(shape.segments,segments)for pair in[(segment,base),*zip(segment.secondary,(children or{}).get(base,()))]]
+  for segment,base in records:
    for point,offset in zip(segment.points,(0,24,0x44,0x5c,0x88,0xa0)):point[:]=struct.unpack_from('<3d',self.memory,base+offset)
    segment.width=self.number(base+0xcc);segment.thickness=self.number(base+0xd4)
    segment.primary_width=self.number(base+0x30);segment.primary_thickness=self.number(base+0x38)

@@ -43,7 +43,9 @@ def capture_plain(*,output_name='join_plain_outcomes_original',job_source=jobs,c
    first=names[r['winding']];freq=format(r['frequency_ghz'],'.17g');script+=f'GEOM {first}\n'
    if r['action']=='calctrans':
     second=names[r['second_winding']];script+=f'CALCTRANS {first} {second} {freq}\n2PORTTRANS {first} {second} {freq} {freq} 1 S RECT s.out\n'
-   else:script+=f'PI2 {first} {freq}\n2PORT {first} {freq} {freq} 1 S RECT SLOW s.out\n'
+   else:
+    suffix=' '+names[r['ground']['winding']]if r.get('ground')else''
+    script+=f'PI2 {first} {freq}{suffix}\n2PORT {first} {freq} {freq} 1 S RECT SLOW s.out{suffix}\n'
    work=Path(directory)/str(len(results));work.mkdir();(work/'process.tek').write_text(r['technology']);(work/'input.asit').write_text(script)
    run=subprocess.run([str(original),'-g','-t','process.tek','-x','input.asit'],cwd=work,env=dict(os.environ,LD_LIBRARY_PATH=a.library_path),input=stdin,capture_output=True,text=True,start_new_session=True,timeout=120)
    successful=run.returncode==0 and(work/'s.out').exists()and'Could not generate capacitance matrix'not in run.stdout

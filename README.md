@@ -308,6 +308,15 @@ the original in Python and packaged Pyodide. Projects, undo, regeneration and
 GDS downloads retain the conversion. Existing exact numerical failures still
 prevent deployment of this branch.
 
+Development [JOINSHUNT](docs/SHUNT.md) adds parallel conductor branches,
+including native COPY/subdivision order, CAP/filament grouping, GDS preview
+and export. All defined coordinates/materials and 5,742 graph links across
+124 original states match. Twelve complete original models and their 12,256
+node-matrix words match exactly in Python and packaged Pyodide, as do all
+3,154 upper impedance entries. Six raw phase-word differences remain in a
+required failing gate; this feature remains undeployed with the other exact
+numerical and process-state gaps.
+
 Development [geometry storage replay](docs/GEOMETRY_STORAGE.md) now derives
 clone/COPY/JOIN addresses and complete records from earlier process state.
 All 140 native observations match 2,750 allocation/free events, 1,017,272
