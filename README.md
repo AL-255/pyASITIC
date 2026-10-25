@@ -379,7 +379,15 @@ They reuse existing cache tables, preserve native caller-frame/flag stores,
 and require all 2,520 second-entry/scope cache-table observations and 304 added
 console calls. Counting the shared entry boundary once, the two-solve replay
 checks 384 complete output heaps / 98,592,768 words. Broader startup/FP,
-changed-frequency cache paths and subsequent port records remain unfinished.
+changed-frequency cache paths and other port formats remain unfinished.
+
+[Continuing port output](docs/SHUNT_PORT_TAIL.md) now extends those histories
+through the S record, fclose and export return. All 28 complete files, raw
+`fprintf` arguments, live S globals and 168 additional full heaps match.
+FILE locking and unlink/free order follow the original, including the transient
+lock held while releasing the buffer. The cumulative replay requires 552
+distinct output-heap boundaries / 142,055,424 words. Startup/FP, following EOF/
+quit processing and the strict phase/math gaps remain unfinished.
 
 [Pre-CAP storage](docs/PRELUDE_STORAGE.md) additionally reproduces all 975 FFT
 scratch arrays and 130 stream buffers in the 130 selected native histories:

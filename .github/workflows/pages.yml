@@ -163,6 +163,7 @@ jobs:
           - {suite: shunt-node, shard: 1, shards: 1}
           - {suite: shunt-command, shard: 1, shards: 1}
           - {suite: shunt-second, shard: 1, shards: 1}
+          - {suite: shunt-port-tail, shard: 1, shards: 1}
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
@@ -326,6 +327,8 @@ jobs:
               node tools/check_shunt_command_transition_original.mjs /tmp/reasitic-pyodide/node_modules/pyodide/pyodide.mjs ;;
             shunt-second)
               node tools/check_shunt_second_driver_original.mjs /tmp/reasitic-pyodide/node_modules/pyodide/pyodide.mjs ;;
+            shunt-port-tail)
+              node tools/check_shunt_port_tail_original.mjs /tmp/reasitic-pyodide/node_modules/pyodide/pyodide.mjs ;;
             printf-transition)
               node tools/check_printf_transition_original.mjs /tmp/reasitic-pyodide/node_modules/pyodide/pyodide.mjs '' "$SHARD" "$SHARDS" ;;
             capstorage)

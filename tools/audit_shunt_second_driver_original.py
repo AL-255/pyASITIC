@@ -33,7 +33,7 @@ def expand_second(fixture,entry):
     return dict(case,label=entry['label'],cache_mode=entry['cache_mode'])
 
 
-def compare(fixture,entry,*,return_state=False):
+def compare(fixture,entry,*,return_state=False,observe_continuation=None):
     continuing=[];cached={}
     def cache_completed(label,heap,addresses,memory):
         if label!='scope':return
@@ -116,6 +116,7 @@ def compare(fixture,entry,*,return_state=False):
     result,heap,addresses,memory=nodes(fixture,entry,return_state=True,console=console,driver_compare=driver,expanded_case=case,console_start=start,report_model=source['driver']=='calctrans')
     result['differences'].extend(differences);result['differences'][:0]=before['differences']
     result.update(first=before,second_early_heap_words_checked=words,second_early_heap_boundaries_checked=boundaries,second_early_unknown_bytes=unknown,cache_tables_checked=cache_tables,cache_table_bytes_checked=cache_bytes,cache_files_checked=len(files),cache_file_bytes_checked=file_bytes)
+    if observe_continuation is not None:observe_continuation(history)
     if return_state:return result,heap,addresses,memory
     return result
 

@@ -115,11 +115,16 @@ also reproduces its parent report exactly: 130 main histories match, while the
 four extended histories retain 816 strict differences in the cold rectangular
 fault case. No older failing case or word is waived.
 
+The [port-output continuation](SHUNT_PORT_TAIL.md) now carries these 28 source
+histories through the following S record, fclose and export return on the same
+stream/memory/heap. It adds 168 full output-heap boundaries and compares the
+complete generated files. The subsequent EOF/quit path remains unfinished.
+
 ## Remaining work and reproduction
 
 Earlier startup/scene/heap/ABI/stack and typed geometry inputs remain explicit.
-Full startup, caller/FP state, changed-frequency cache paths, the following
-port-record append/close and later commands, six typed-API raw phase failures,
+Full startup, caller/FP state, changed-frequency cache paths, other port formats,
+later commands, six typed-API raw phase failures,
 FCOS/logarithm discrepancies and remaining trailing-via aliases are unfinished.
 Other static globals and unobserved register/stack state are not established
 by these heap checks. This development branch is not deployed and does not
