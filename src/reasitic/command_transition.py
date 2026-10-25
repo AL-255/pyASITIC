@@ -14,6 +14,8 @@ from .heap import HeapCorruption
 from .signal_install_storage import install_console_signals
 from .plt_fixup_storage import PltFixup
 from .dispatch_storage import DispatchStorage,enter_dispatch
+from .poll_storage import poll_select,select64_entry
+from .repl_storage import ReplStorage
 
 
 class CommandTransition:
@@ -144,7 +146,7 @@ class CommandTransition:
         else:m.put_u32(previous+layout['_chain']['offset'],following)
         buffer=m.u32(address+28);FileStorage(m,abi).closed_byte_stream(address)
         self.release('script.buffer',buffer)
-        loader_context=self.inputs.get('loader_context');incoming=None;loader=None
+        loader_context=self.inputs.get('loader_context');stdio=self.inputs.get('stdio_context');incoming=None;loader=None
         if loader_context:
             size=m.u32(address-4)&~7
             if not self.heap._cache_has_space(size):raise NotImplementedError('Closing FILE without a tcache return needs its volatile-register path')
@@ -157,13 +159,26 @@ class CommandTransition:
             # fclose returns its saved success status in EAX. No later PLT
             # entry observation supplies any of these incoming registers.
             incoming=dict(eax=0,ecx=m.u32(libc_base+0x22fe34+0xa0),edx=index)
+            if stdio:incoming.update((key,stdio['registers'][key])for key in ('cs','ss','ds','es','fs','gs','orig_eax'))
             loader=PltFixup(m,loader_context['loader_base'],tls_base=loader_context['tls_base'])
         self.release('script.file',address)
         if self.inputs['repl']['history_enabled']:raise NotImplementedError('Readline signal installation needs its initial action state')
         bases={symbol['address']-symbol['offset']for symbol in abi['libc_symbols'].values()}
         if len(bases)!=1:raise ValueError('Inconsistent earlier libc symbol bindings')
         installed=install_console_signals(m,self.inputs['workspace_address'],bases.pop(),loader=loader,loader_context=loader_context,incoming=incoming)
+        repl_storage=None
+        if stdio:
+            m.write(0x80cbab0,b'\0');m.put_u32(0x80cbab4,0);m.write(0x80cba60,b'\0')
         self.console.emit('message',b'ASITIC>  ',False)
+        if stdio:
+            repl_storage=ReplStorage(m,stdio,libc_base=libc_base,tls_base=loader_context['tls_base'])
+            registers=repl_storage.before_poll(installed['main_registers'],installed['line'])
+            registers=poll_select(m,registers,loader,loader_context)
+            select64_entry(m,registers,libc_base=libc_base,tls_base=loader_context['tls_base'],sar31_af=stdio['sar31_af'])
+            # The external input is the launcher's regular answers file.
+            # Kernel timeout copyback and the child IO frames remain missing
+            # source work; every later byte remains in the strict comparison.
+            repl_storage.before_input()
         stdin=self.inputs['stdin_stream'];raw=bytes.fromhex(stdin['data']);base,end=struct.unpack_from('<I',raw,28)[0],struct.unpack_from('<I',raw,8)[0]
         if base:raise NotImplementedError('Earlier buffered interactive input offset is not yet bound')
         source=InputStream(m,stdin['address'],bytes.fromhex(stdin['file_data']),0,self.allocate)
@@ -179,10 +194,11 @@ class CommandTransition:
         repl=self.inputs['repl'];history=repl['history_enabled']
         self.console.write_stream(repl['input_log'],text+(b'\n'if history else b''))
         self.console.write_stream(self.console.inputs['streams']['log']['address'],b'ASITIC>  '+text+(b'\n\n'if history else b''))
-        self.characters.normalize(m,line,0x8e)
+        if repl_storage:repl_storage.finish_line(self.characters,repl['input_log'],self.console.inputs['streams']['log']['address'])
+        else:self.characters.normalize(m,line,0x8e)
         dispatch=None;registers=None
         if loader is not None:
-            parent=installed['main_registers'];registers=enter_dispatch(m,self.inputs['workspace_address'],installed['main_frame'],line,ebx=parent['ebx'],edi=parent['edi'],flags=parent['eflags'])
+            parent=installed['main_registers'];registers=enter_dispatch(m,self.inputs['workspace_address'],installed['main_frame'],line,ebx=parent['ebx'],edi=parent['edi'],flags=parent['eflags'],inherited=parent)
             dispatch=DispatchStorage(m,self.characters,loader,loader_context)
             registers=dispatch.before_parser(dispatch.history(registers))
         self.point('parse')
@@ -199,4 +215,6 @@ class CommandTransition:
 
     def point(self,kind):
         address=self.inputs['workspace_address']
-        self.points.append(dict(kind=kind,events=len(self.events),regions=[dict(address=address,data=self.memory.read(address,4460)),dict(address=0x80d8660,data=self.memory.read(0x80d8660,120))]))
+        regions=[dict(address=address,data=self.memory.read(address,4460)),dict(address=0x80d8660,data=self.memory.read(0x80d8660,120))]
+        regions.extend(dict(address=r['address'],data=self.memory.read(r['address'],r['size']))for r in self.inputs.get('stdio_context',{}).get('regions',()))
+        self.points.append(dict(kind=kind,events=len(self.events),regions=regions))

@@ -81,7 +81,7 @@ class DispatchStorage:
         return result
 
 
-def enter_dispatch(memory,workspace,main_frame,line,*,ebx,edi,flags):
+def enter_dispatch(memory,workspace,main_frame,line,*,ebx,edi,flags,inherited=None):
     """main's retained acquisition arguments and subsequent dispatch call."""
     text=string(memory,line)+b'\0';remaining=5
     for a,b in zip(text,b'QUIT\0'):
@@ -94,4 +94,4 @@ def enter_dispatch(memory,workspace,main_frame,line,*,ebx,edi,flags):
     memory.put_u32(top-16,line);memory.put_u32(top-20,0x804b078)
     # The controlled direct-script startup has no delay-setting command.
     # The acquisition caller loads its initialized zero delay into EDX.
-    return dict(eax=0,ebx=ebx,ecx=remaining,edx=0,esi=line,edi=edi,ebp=main_frame,esp=top-20,eip=0x804c598,eflags=logical_flags(0,flags&~0x400))
+    return dict(inherited or {},eax=0,ebx=ebx,ecx=remaining,edx=0,esi=line,edi=edi,ebp=main_frame,esp=top-20,eip=0x804c598,eflags=logical_flags(0,flags&~0x400))

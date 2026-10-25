@@ -402,7 +402,12 @@ The independent [polling caller and timeval adapter](docs/POLL_STORAGE.md)
 now reproduce the descriptor-set setup, lazy `select` binding and 32-to-64-bit
 timeval conversion. Complete native regions/registers/FP state are compared
 at both boundaries. These component snapshots never seed the continuing
-simulation; prompt/stdio callers and kernel readiness/timing remain unfinished.
+simulation. The [REPL caller integration](docs/STDIO_TRANSITION.md) uses earlier
+complete standard-stream/lock/vtable state and connects polling in the same
+Memory. It reproduces all 17 registers at four lazy binding entries and the
+poll/select64 boundaries. With expanded static-region comparisons, the fresh
+continuing audit improves from 618 to 556 differences. Kernel effects and
+printf/libio child frames remain required unfinished work; older gates remain.
 
 Records use binary64 with selected retained-precision intermediates matching the
 reference's x87 arithmetic. The [native logarithm audit](docs/LOGARITHM_AUDIT.md)

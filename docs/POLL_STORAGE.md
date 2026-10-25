@@ -5,6 +5,10 @@ the ASITIC polling helper through the resolved libc `select` entry, and libc's
 32-bit timeval adapter through `select64` entry. Both operate on guest Memory.
 They execute no host poll, file operation, syscall or native code image.
 
+The subsequent [REPL caller integration](STDIO_TRANSITION.md) connects these
+operations using earlier first-driver stream and CPU state. The independent
+per-call snapshots below remain assertions only, never continuation seeds.
+
 The native helper (`0x804bdc4`, `repl_stdin_has_input` in the C++ reference)
 reserves its original frame, saves EBP/EDI/EBX, clears the complete 128-byte
 fd_set and sets descriptor zero. It initializes timeval `{0,100}`, pushes all
@@ -84,13 +88,13 @@ uncompressed SHA256
 
 ## Continuing work
 
-These are independent components, not yet connected to `CommandTransition`.
-Their per-call snapshots are never loaded into a continuing simulation. The
-preceding prompt/fflush caller needs earlier full legacy FILE/lock/vtable
-state. `select64`, kernel fd readiness and timeout copyback, stdin/libio,
+At this checkpoint these were independent components. The subsequent
+[stdio integration](STDIO_TRANSITION.md) supplies the earlier stream state
+and connects their source operations without loading any per-call snapshot.
+The complete `select64` body, kernel fd readiness and timeout copyback, stdin/libio,
 `strcat`, parser child ABI and signal/handler continuation remain unfinished.
-The existing continuing comparison still has 618 required differences; the
-older fixture still has 816. All arithmetic, JOIN/UNJOIN, heap/mapping and
+The loader-only comparison retains 618 required differences; the subsequent
+expanded comparison has 556. The older fixture still has 816. All arithmetic, JOIN/UNJOIN, heap/mapping and
 other analysis gates remain required. This checkpoint changes no deployed
 page or production guard.
 

@@ -6,6 +6,11 @@ comparison improves from 658 to 618 differing words: 293 before parser entry
 and 325 at the final abort. These are still required failures. The older
 fixtures without loader context remain separately required with 816 differences.
 
+The subsequent [REPL/stdio integration](STDIO_TRANSITION.md) connects source
+polling from earlier full standard-stream state and reduces the expanded
+continuing audit to 556 required differences. The 618-difference comparison
+documented here remains an independent older gate.
+
 ## Source behavior
 
 Main's retained input arguments and dispatch call derive from its earlier
