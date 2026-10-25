@@ -73,10 +73,13 @@ fails in the shard containing that case. There are no execution errors.
 The previous continuation gate's 198 differences stay required on its
 unchanged inputs. No tolerance or expected difference count is accepted.
 
-The eight complete CPU shards are running separately; full CPU/browser
-report equality is not yet established at this checkpoint. The targeted
-CPU continuation produces the same 34 residual differences and exact
-three GP pairs. Reports remain local. The source package is
+The eight complete CPU shards subsequently finished during the
+[kill/VDSO checkpoint](KILL_STORAGE.md). Their merged report equals the
+complete browser report across all 134 cases, counters and differences,
+including the 34 required residual words and exact three GP pairs.
+Historical negative-test sampling errors and the corrected independent
+rerun are recorded there; no strict gate is waived. Reports remain local.
+The source package for this comparison is
 `5495b4489a2361a6`; the numerical module is unchanged, SHA-256
 `c7869e98f4c18b5414dc172d836e7144ab3ebc0de2de0d1f2eec1a4fe1709186`.
 

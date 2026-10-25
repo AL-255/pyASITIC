@@ -16,6 +16,7 @@ from .plt_fixup_storage import PltFixup
 from .dispatch_storage import DispatchStorage,enter_dispatch
 from .poll_storage import poll_select,select64_entry
 from .select_storage import select64_dispatch,select_syscall_entry
+from .kill_storage import kill_vdso_entry,vdso_kernel_entry
 from .repl_storage import ReplStorage
 from .stdin_storage import StdinStorage
 
@@ -227,7 +228,11 @@ class CommandTransition:
         records=script_frame-12-4160
         identity=self.parser.parse(line,records,[ScanHistory(None,None,None)for _ in range(15)])
         if identity!=-1:raise NotImplementedError('Interactive command transition requires the outer dispatcher')
-        if dispatch is not None:dispatch.quit_binding(dispatch.parser_return(registers,identity,line))
+        if dispatch is not None:
+            registers=dispatch.quit_binding(dispatch.parser_return(registers,identity,line))
+            registers=kill_vdso_entry(m,registers,libc_base=libc_base,tls_base=loader_context['tls_base'])
+            if stdio and stdio.get('input_abi',{}).get('read_abi'):
+                vdso_kernel_entry(m,registers)
         # console_analysis.cpp releases the cache in descending packed pairs.
         metals=len(bytes.fromhex(self.technology[1]))//236
         for index in reversed(range(metals*(metals+1)//2)):

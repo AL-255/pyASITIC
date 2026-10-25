@@ -516,8 +516,8 @@ and memory. The complete browser report matches all three reached printf
 GP pairs and checks every byte of 103,364,142 retained later regions.
 Its strict gate retains 34 differences in the rectangular REPL case;
 the other 133 histories match. All earlier failing gates remain required.
-The complete CPU comparison is still running; this is not a parity or
-deployment claim.
+The complete CPU report subsequently matched the browser report exactly;
+this is not a parity or deployment claim.
 
 The [select64 dispatch source](docs/SELECT_DISPATCH.md) now reproduces
 timeout normalization, time32/time64 selection, invalid-input returns and
@@ -526,6 +526,13 @@ reports match, including 13 independent edge inputs. Integrated replay
 accounts for the two polling assertions, leaving 32 required final
 fatal/signal words across the complete 134-history browser comparison.
 The strict gate remains zero; kernel and fatal continuation are unfinished.
+
+The [kill/VDSO caller source](docs/KILL_STORAGE.md) supplies four further
+stack stores from live quit arguments and registers. Its complete native
+component reports agree in CPU Python and Pyodide, and 45 affected CPU
+tests pass. The complete browser continuation now retains 28 required
+final signal/cleanup words; saved FP state and the handler remain
+unfinished. No later FP snapshot supplies execution.
 
 The [integer formatter](docs/PRINTF_INTEGER.md) also matches all 5,472
 independent native int32 output requests in CPU Python and Pyodide.

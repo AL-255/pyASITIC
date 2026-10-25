@@ -9,15 +9,25 @@ from reasitic.dispatch_storage import DispatchStorage
 from reasitic.plt_fixup_storage import PltFixup
 
 
-def compare(fixture,case):
+def compare(fixture,case,*,kill=False):
     result=dict(label=case['label'],cache_mode=case['cache_mode'],operations_checked=0,words_checked=0,registers_checked=0,fp_bytes_checked=0,differences=[])
     for call_index,call in enumerate(case['dispatch_calls']):
         context=call['entry']
-        for phase,start,end,method in (('history','entry','history','history'),('normalization','history','parse','before_parser'),('quit','parsed','kill','quit_binding')):
+        operations=[('history','entry','history','history'),('normalization','history','parse','before_parser'),('quit','parsed','kill','quit_binding')]
+        if kill:operations.extend([('kill','kill','kill_vdso','kill_vdso_entry'),('vdso','kill_vdso','kill_kernel','vdso_kernel_entry')])
+        for phase,start,end,method in operations:
             if start not in call or end not in call:result['differences'].append(dict(kind='dispatch-missing-boundary',call=call_index,phase=phase));continue
             a,b=call[start],call[end];m=memory_for(fixture,a)
             storage=DispatchStorage(m,Characters(context['characters']),PltFixup(m,context['loader_base'],tls_base=context['tls_base']),context)
-            try:registers=getattr(storage,method)(a['registers'])
+            try:
+                if method=='kill_vdso_entry':
+                    from reasitic.kill_storage import kill_vdso_entry
+                    libc=next(x for x in context['maps']if x['name'].endswith('/libc.so.6'))
+                    registers=kill_vdso_entry(m,a['registers'],libc_base=m.u32(libc['address']),tls_base=context['tls_base'])
+                elif method=='vdso_kernel_entry':
+                    from reasitic.kill_storage import vdso_kernel_entry
+                    registers=vdso_kernel_entry(m,a['registers'])
+                else:registers=getattr(storage,method)(a['registers'])
             except (ValueError,NotImplementedError)as error:result['differences'].append(dict(kind='dispatch-runtime',phase=phase,call=call_index,reason=str(error)));continue
             result['operations_checked']+=1
             def check(actual,expected,kind,unit=4,address=0):

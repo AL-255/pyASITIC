@@ -80,9 +80,10 @@ The changed history's complete CPU report equals the browser report.
 The strict gate still requires zero differences. One browser shard fails
 that gate; the other seven pass all nine tests, with no execution errors.
 This is no whole-program parity claim. The earlier complete CPU printf
-cohort is still running separately; its completed warm shards 2, 4, 6 and
-8 match their earlier browser reports exactly. No full new CPU cohort
-equality is claimed from that partial evidence. Reports remain local.
+cohort subsequently finished during the [kill/VDSO checkpoint](KILL_STORAGE.md);
+its merged report matches the complete earlier browser cohort exactly.
+No full CPU cohort equality for this newer source is inferred from that
+earlier comparison. Reports remain local.
 
 The source package is `eb6fd51930e20567`. Numerical WASM is unchanged at
 SHA-256 `c7869e98f4c18b5414dc172d836e7144ab3ebc0de2de0d1f2eec1a4fe1709186`;
@@ -91,6 +92,11 @@ execution, elapsed-time copyback, select/poll returns and fatal/signal
 continuation remain unfinished. All other arithmetic, geometry, JOIN/
 UNJOIN and heap/mapping gates remain required. This branch is not promoted
 over the deployed Pages version.
+
+The subsequent [kill/VDSO source](KILL_STORAGE.md) supplies four more caller
+stores from produced registers, leaving 28 required final words in the
+complete browser continuation report. Saved signal FP and handler frames
+remain unfinished.
 
 ```sh
 python tools/capture_select_dispatch_original.py --reference ~/github/asitic-re \
