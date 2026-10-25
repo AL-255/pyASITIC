@@ -97,6 +97,14 @@ jobs:
           - {suite: printfbuffer, shard: 6, shards: 8}
           - {suite: printfbuffer, shard: 7, shards: 8}
           - {suite: printfbuffer, shard: 8, shards: 8}
+          - {suite: printffile, shard: 1, shards: 8}
+          - {suite: printffile, shard: 2, shards: 8}
+          - {suite: printffile, shard: 3, shards: 8}
+          - {suite: printffile, shard: 4, shards: 8}
+          - {suite: printffile, shard: 5, shards: 8}
+          - {suite: printffile, shard: 6, shards: 8}
+          - {suite: printffile, shard: 7, shards: 8}
+          - {suite: printffile, shard: 8, shards: 8}
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
@@ -214,6 +222,8 @@ jobs:
               node tools/check_flush_transition_original.mjs /tmp/reasitic-pyodide/node_modules/pyodide/pyodide.mjs ;;
             printfbuffer)
               node tools/check_printf_buffer_original.mjs /tmp/reasitic-pyodide/node_modules/pyodide/pyodide.mjs '' "$SHARD" "$SHARDS" ;;
+            printffile)
+              node tools/check_printf_file_original.mjs /tmp/reasitic-pyodide/node_modules/pyodide/pyodide.mjs '' "$SHARD" "$SHARDS" ;;
             capstorage)
               node tools/check_cap_storage_original.mjs /tmp/reasitic-pyodide/node_modules/pyodide/pyodide.mjs ;;
             workspaces)

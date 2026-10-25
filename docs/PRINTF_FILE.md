@@ -5,8 +5,10 @@ buffer switching, flush-to-FILE and count completion. Direct buffers
 update the actual FILE put pointer. Staged buffers invoke the modern
 vtable's xsputn/overflow callbacks. `output_file.py` follows the buffered
 output, stat, allocation, set-buffer and scalar mempcpy source paths.
-`malloc_top_storage.py` emits the top-split caller/frame stores while
-`Heap.malloc` makes the allocation decision.
+`malloc_top_storage.py` emits large-allocation caller/frame stores,
+including unsorted exact fits, same-bin and higher-bin splits, fastbin
+consolidation and top splits. `Heap.malloc` makes the allocation decision.
+Its source binmap marking and clearing now update the shared arena bytes.
 
 External descriptor facts precede execution. The libc stat converter
 builds both statx and time64 stat records from those named facts, without
@@ -24,7 +26,7 @@ plus heap state and physical headers. CPU Python and Pyodide reports
 agree exactly. Nine prototype source/mutation checks pass in Pyodide;
 17 existing stat, malloc and storage checks pass in CPU Python, and the
 earlier complete stat/malloc suites pass in Pyodide. This is prototype
-evidence only; the complete 134-history capture and validation are pending.
+evidence only; complete-cohort validation is described separately below.
 
 The draft child observer initially placed its doallocbuf breakpoint
 inside setb. Symbol inspection caught this; the observer was corrected
@@ -44,6 +46,36 @@ gzip stream in checksummed parts. No inferior instruction, register,
 memory, result, allocation or signal is replaced. Minimal environment
 guards precede capture.
 
+The complete capture contains **7,946 calls**: 3,973 initializers and 3,973
+completions. It retains 12,975 captured helper calls, including 132 actual
+allocations. One history has no calls. GDB outcomes are 132 next-driver
+stops, one SIGSEGV and one SIGABRT. Plain runs retain 130 normal outcomes,
+three SIGABRTs and one SIGSEGV. None of those outcomes is changed or omitted.
+
+The first complete eight-shard browser run retained 59 failures for fitting
+free-bin allocation paths. Those paths have now been implemented. A separate
+diagnostic checks every one of the 132 allocation calls, including all heap,
+memory, register, FP and captured-child targets, with zero differences.
+The complete 7,946-call CPU and eight-shard browser reruns are pending.
+Diagnostic allocation selection does not replace either full gate.
+
+Already-corrupted cache chains are re-observed from produced guest bytes.
+The audit derives all physical chunk, bin-link, fastbin and tcache errors,
+including the actual unmapped address, and compares the entire ordered error
+list. Native errors are neither dropped nor treated as permission to pass.
+Tests independently alter those error targets and require failure.
+
+The compact archive is 47,707,132 bytes in two checksummed parts:
+
+```text
+50810f69485e6883b76aba0cb4420c86378ecd61e0c519081daa5a75b2615047
+```
+
+Twenty-nine allocator, shared-memory, mapping, stat and storage regression
+checks pass in CPU Python. The complete 134-history continuing Pyodide
+report remains identical to the earlier report, including all 198 unresolved
+differences. Shared binmap stores introduce no new target differences there.
+
 Tests require every native target, verify provenance and shard coverage,
 and deliberately mutate later memory, registers, FP, heap fields and child
 registers. Independent earlier-byte mutations change the emitted text;
@@ -51,7 +83,7 @@ missing earlier bytes fail instead of using return snapshots. Init can
 write an uninitialized buffer, failed mode bypasses FILE access, and signed
 count overflow writes EOVERFLOW through the actual earlier errno TLS slot.
 
-Reproduction after the complete capture:
+Reproduction:
 
 ```sh
 python tools/capture_printf_file_original.py --reference ~/github/asitic-re \
@@ -64,7 +96,7 @@ node tools/check_printf_file_original.mjs /path/to/pyodide.mjs /tmp/printf-file-
 
 All eight disjoint browser shards are required. Reports stay local.
 Alternate vtables, terminal/unbuffered/error paths, owned-buffer replacement,
-large direct output writes, other malloc paths and the printf parser and
+large direct output writes, small/tcache/system malloc ABI and the printf parser and
 numeric formatters remain explicit unfinished work. These independent
 component checks do not prove whole-program parity. The earlier continuing
 gate retains its 198 required differences; integration remains unfinished.

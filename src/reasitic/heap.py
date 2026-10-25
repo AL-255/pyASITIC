@@ -321,6 +321,8 @@ class Heap:
     def _insert_bin(self,p):
         size=self.chunks[p].size;index=bin_index(size);chain=self.bins[index]
         self.binmap[index//32]|=1<<(index%32)
+        memory=self._storage_memory()
+        if memory is not None:memory.put_u32(self.arena_address+1080+4*(index//32),self.binmap[index//32])
         if size<1008:self._link_bin(index,p);return
         position=0
         while position<len(chain)and self.chunks[chain[position]].size>size:position+=1
@@ -398,7 +400,10 @@ class Heap:
             for bin_number,chain in enumerate(self.bins[index+1:],index+1):
                 if chain:
                     p=chain[-1];self._unlink_bin(bin_number,p);return self._split(p,size,small)
-                self.binmap[bin_number//32]&=~(1<<(bin_number%32))
+                block=bin_number//32;bit=1<<(bin_number%32)
+                if self.binmap[block]&bit:
+                    self.binmap[block]&=~bit;memory=self._storage_memory()
+                    if memory is not None:memory.put_u32(self.arena_address+1080+4*block,self.binmap[block])
             top=self.chunks[self.top]
             if top.size>=size+16:
                 p=self.top;remaining=top.size-size;top.size=size;top.previous_in_use=True
