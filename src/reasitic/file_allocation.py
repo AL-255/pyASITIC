@@ -86,7 +86,7 @@ class FileAllocation:
 
     def _stat(self,registers,destination):
         m=self.m;io=self.io;s=registers['esp'];fd=m.u32(m.u32(s+4)+56)
-        if fd:raise NotImplementedError('Earlier statx facts describe stdin only')
+        if fd!=io.profile.get('fd',0):raise ValueError('Stat descriptor differs from the earlier external file facts')
         # _IO_file_stat tail call, __fstat64_time64 and fstatat's local frame.
         m.put_u32(s+4,fd);m.put_u32(s-4,self.libc+0x10be09);f=s-12
         for offset,value in ((4,0x1000),(8,destination),(12,self.got-0x6c3a6),(16,fd),(20,self.libc+0x10be30)):
