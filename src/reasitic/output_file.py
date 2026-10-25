@@ -16,6 +16,7 @@ class OutputFile:
         self.p=parent;self.m=parent.m;self.libc=parent.libc;self.got=parent.got;self.tls=parent.tls
 
     def xsputn(self,registers):
+        if registers['eip']==self.libc+0x17fb00:return self.old_xsputn(registers)
         m=self.m;r=dict(registers);s=r['esp'];local=s-44;file=m.u32(s+4);source=m.u32(s+8);count=m.u32(s+12)
         if r['eip']!=self.libc+0x83fc0:raise NotImplementedError('Alternate xsputn needs its source ABI')
         m.put_u32(s-4,self.libc+0x83fc9);self.p._save4(r)
@@ -36,6 +37,75 @@ class OutputFile:
         r=self.default_xsputn(dict(r,eax=count//capacity,edx=count%capacity,ecx=capacity,ebp=source,esp=local-20,eip=self.libc+0x85570,eflags=add_flags(0,source,subtract_flags(local,4,r['eflags']))))
         r.update(eax=(r['eax']-count+count)&MASK,eflags=add_flags(local,28,r['eflags']))
         return self.p._return4(r,s)
+
+    def old_xsputn(self,registers):
+        """Old libio's first buffered write, including its overflow dispatcher."""
+        m=self.m;r=dict(registers);s=r['esp'];local=s-44;file=m.u32(s+4);source=m.u32(s+8);count=m.u32(s+12)
+        self.p._save4(r);m.put_u32(s-20,self.libc+0x17fb0f)
+        if not count:return self.p._return4(dict(r,eax=0,edx=0,eflags=add_flags(local,28,r['eflags'])),s)
+        flags=m.u32(file);pointer=m.u32(file+20);end=m.u32(file+24)
+        if pointer<end or not(~flags&0xa00):raise NotImplementedError('Old xsputn existing-space/line-buffer path needs its source ABI')
+        m.put_u32(local+4,0)
+        for off,value in ((12,MASK),(16,file),(20,self.libc+0x17fbe7)):m.put_u32(local-off,value)
+        incoming=dict(r,eax=pointer,ebx=self.got,ecx=end,edx=0,ebp=count,esi=source,edi=file,esp=local-20,eip=self.libc+0x84fb0,eflags=subtract_flags(local,8,r['eflags']))
+        r=self.p._child('overflow-dispatch',incoming,self.overflow_dispatch)
+        if r['eax']==MASK:raise NotImplementedError('Old xsputn failed overflow needs its return branch')
+        capacity=(m.u32(file+32)-m.u32(file+28))&MASK
+        if capacity<=127 or count>=capacity:raise NotImplementedError('Old xsputn direct stream writes need their source ABI')
+        for off,value in ((8,count),(12,source),(16,file),(20,self.libc+0x17fc29)):m.put_u32(local-off,value)
+        r=self.default_xsputn(dict(r,eax=count//capacity,edx=count%capacity,ecx=source,ebx=count,ebp=count,esp=local-20,eip=self.libc+0x85570,eflags=add_flags(0,source,subtract_flags(local,4,r['eflags']))))
+        return self.p._return4(dict(r,eax=count,edx=count,eflags=add_flags(local,28,r['eflags'])),s)
+
+    def overflow_dispatch(self,registers):
+        m=self.m;r=dict(registers);s=r['esp'];local=s-28;file=m.u32(s+4);ch=m.u32(s+8)
+        self.p._save4(r)
+        if not m.u32(file+104):
+            if m.u32(self.got+0x11c):m.put_u32(file+104,MASK)
+            else:
+                m.put_u32(local-12,MASK);m.put_u32(local-16,file);m.put_u32(local-20,self.libc+0x8502d)
+                incoming=dict(r,eax=0,ebx=r['ebx'],edx=0,esi=file,edi=self.got,ebp=ch,esp=local-20,eip=self.libc+0x7dd10,eflags=subtract_flags(local,8,r['eflags']))
+                r=self.p._child('file-orientation',incoming,self.orientation)
+        vt=self.p.vtable(file);target=m.u32(vt+12)
+        if target!=self.libc+0x17f350:raise NotImplementedError('Overflow dispatch callback needs its source ABI')
+        m.put_u32(s+4,file);m.put_u32(s+8,ch)
+        r=self.p._return4(dict(r,eax=target,edx=self.got-0x734,eflags=add_flags(local,12,r['eflags'])),s)
+        # __overflow restores its frame before this tail jump. The callback
+        # returns directly to the dispatcher's original caller.
+        r.update(esp=s,eip=target)
+        return self.p._child('old-overflow',r,self.old_overflow)
+
+    def orientation(self,registers):
+        m=self.m;r=dict(registers);s=r['esp'];local=s-44;file=m.u32(s+4);mode=m.u32(s+8)
+        if not mode&0x80000000 or m.u32(self.got+0x11c):raise NotImplementedError('File orientation needs its additional mode branch')
+        for off,key in ((4,'edi'),(8,'esi'),(12,'ebx')):m.put_u32(s-off,r[key])
+        m.put_u32(local+28,m.u32(self.tls+20))
+        first=file==m.u32(self.got+0x94);second=file==m.u32(self.got+0xe8);r['ecx']=(r['ecx']&~255)|int(second)
+        value=MASK
+        if not(first or second)and file!=m.u32(self.got+0xe4):
+            value=m.u32(file+104)
+            if not value:value=MASK;m.put_u32(file+104,value)
+        if m.u32(local+28)!=m.u32(self.tls+20):raise ValueError('File orientation stack canary mismatch')
+        return dict(r,eax=value,edx=0,esp=s+4,eip=m.u32(s),eflags=add_flags(local,32,r['eflags']))
+
+    def old_overflow(self,registers):
+        m=self.m;r=dict(registers);s=r['esp'];local=s-28;file=m.u32(s+4);ch=m.u32(s+8);flags=m.u32(file)
+        self.p._save4(r);m.put_u32(s-20,self.libc+0x17f35d)
+        if flags&8 or flags&0x800 or m.u32(file+16)or ch!=MASK:raise NotImplementedError('Old overflow needs an empty buffer and EOF staging')
+        m.put_u32(local-16,file);m.put_u32(local-20,self.libc+0x17f489)
+        incoming=dict(r,eax=0,ebx=self.got,edx=flags,esi=file,edi=ch,esp=local-20,eip=self.libc+0x85440,eflags=subtract_flags(local,12,r['eflags']))
+        r=self.p._child('doallocbuf',incoming,self.doallocbuf)
+        pointer=m.u32(file+28);end=m.u32(file+32);flags=m.u32(file)
+        if flags&0x202:raise NotImplementedError('Old overflow line/unbuffered transition needs its source ABI')
+        for off,value in ((8,pointer),(20,pointer),(16,pointer),(4,pointer),(12,pointer),(24,end),(0,flags|0x800)):m.put_u32(file+off,value)
+        for off,value in ((8,0),(12,pointer),(16,file),(20,self.libc+0x17f40e)):m.put_u32(local-off,value)
+        r=self.p._child('old-do-write',dict(r,eax=0,ecx=end,edx=pointer,ebp=pointer,esp=local-20,eip=self.libc+0x17efe0,eflags=subtract_flags(pointer,pointer,r['eflags'])),self.old_do_write)
+        return self.p._return4(dict(r,eflags=add_flags(local,12,r['eflags'])),s)
+
+    def old_do_write(self,registers):
+        m=self.m;r=dict(registers);s=r['esp']
+        if m.u32(s+12):raise NotImplementedError('Old do_write nonempty output needs its source ABI')
+        m.put_u32(s-4,r['ebx'])
+        return dict(r,eax=0,esp=s+4,eip=m.u32(s),eflags=add_flags(s-12,8,r['eflags']))
 
     def default_xsputn(self,registers):
         m=self.m;r=dict(registers);s=r['esp'];local=s-44;file=m.u32(s+4);source=m.u32(s+8);count=m.u32(s+12)

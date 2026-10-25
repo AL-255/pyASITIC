@@ -159,7 +159,11 @@ class PrintfFPFlow:
                     value=self.read(args[1],r)
                     if self.condition(op[4:],r['eflags']):self.write(args[0],value,r)
                 elif op=='call':
-                    destination=self.read(args[0],r)+(self.libc if args[0][0]=='i'else 0);self.push(nextpc,r);r['eip']=destination;r=self.execute(r);nextpc=r['eip']
+                    destination=self.read(args[0],r)+(self.libc if args[0][0]=='i'else 0);self.push(nextpc,r)
+                    # GMP's unrolled subtraction uses CALL to the very next
+                    # instruction to obtain its PC, then discards that word
+                    # before an indirect jump. It stays in this source frame.
+                    if destination!=nextpc:r['eip']=destination;r=self.execute(r);nextpc=r['eip']
                 elif op.startswith('j'):
                     take=op=='jmp'or(not r['ecx']if op=='jecxz'else self.condition(op[1:],r['eflags']))
                     if take:

@@ -500,6 +500,15 @@ CPU words across overlapping TLS owners and all three boundaries. No
 later formatter snapshot supplies execution. Connecting this parent to
 continuing command/console output remains unfinished.
 
+The [public printf entry source](docs/PRINTF_ENTRY.md) now carries actual
+variadic arguments through that whole parent on shared memory. Its complete
+capture retains all 3,973 calls and 123,122 helpers across the unchanged
+134 histories. An independent 18-call native probe covers all three public
+entries, extreme binary64 inputs and the old stdout allocation/output
+chain. It exposed and fixed two multiprecision PC-flow omissions. All
+kernel-owned fields stay required; continuing command integration remains
+unfinished.
+
 The [integer formatter](docs/PRINTF_INTEGER.md) also matches all 5,472
 independent native int32 output requests in CPU Python and Pyodide.
 Its seven tests cover integer boundaries, flags/modifiers/precision,

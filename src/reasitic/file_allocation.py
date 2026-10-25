@@ -42,6 +42,7 @@ class FileAllocation:
 
     def before_malloc(self,registers):
         m=self.m;io=self.io;r=dict(registers);s=r['esp'];a=m.u32(s+4);vt=m.u32(a+148)
+        if io.legacy_base is None:raise NotImplementedError('Legacy input allocation needs earlier streambuf bindings')
         if r['eflags']&0x400 or m.u32(a+28)or m.u32(a+56)!=0:raise NotImplementedError('File allocation needs empty-buffer stdin and forward copies')
         # _IO_doallocbuf and its accepted foreign-vtable callback.
         for offset,key in ((4,'ebp'),(8,'edi'),(12,'esi'),(16,'ebx')):m.put_u32(s-offset,r[key])

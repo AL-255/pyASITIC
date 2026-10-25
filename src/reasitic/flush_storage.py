@@ -48,7 +48,7 @@ class FlushStorage(LibioABI):
         m.put_u32(local-16,a);m.put_u32(local-20,self.libc+0x75bd2)
         r.update(esp=local-20,eflags=subtract_flags(local,12,r['eflags']))
         target=m.u32(vt+48)
-        if target==self.legacy_base+0x22114:
+        if self.legacy_base is not None and target==self.legacy_base+0x22114:
             r=self._wrapper(r,0x22114,0x1ca9b,b'_IO_file_sync',[a]);r=self._sync(r);r=self._legacy_return(r)
         elif target==self.libc+0x833f0:r=self._sync(dict(r,eip=target))
         else:raise NotImplementedError('Stream sync callback needs its own source')
@@ -97,7 +97,7 @@ class FlushStorage(LibioABI):
         for off,value in ((8,count),(12,buffer),(16,a),(20,self.libc+0x81d33)):m.put_u32(local-off,value)
         r.update(esp=local-20,eflags=subtract_flags(local,4,r['eflags']))
         target=m.u32(vt+60)
-        if target==self.legacy_base+0x221e4:
+        if self.legacy_base is not None and target==self.legacy_base+0x221e4:
             r=self._wrapper(r,0x221e4,0x1c9cb,b'_IO_file_write',[a,buffer,count]);r=self._file_write(r);r=self._legacy_return(r)
         elif target==self.libc+0x83f30:r=self._file_write(dict(r,eip=target))
         else:raise NotImplementedError('File write callback needs its own source')

@@ -28,8 +28,8 @@ class PrintfInstructionFlagsTests(unittest.TestCase):
         report=run(p);self.assertEqual(report['cases_checked'],16528);self.assertEqual(len(report['differences']),1);self.assertEqual(report['differences'][0]['name'],'eflags')
 
     def test_generated_original_program_and_complete_instruction_extents(self):
-        raw=(ROOT/'src/reasitic/printf_fp_program.json').read_bytes();self.assertEqual(hashlib.sha256(raw).hexdigest(),'c72c83dbfccf4015b236fb1d7384aefdf0b886ca05a065827eb544390717df98')
-        source=json.loads(raw);self.assertEqual(source['libc_sha256'],LIBC_SHA256);self.assertEqual(source['ranges'],[list(x)for x in RANGES]);self.assertEqual(len(program()),5314)
+        raw=(ROOT/'src/reasitic/printf_fp_program.json').read_bytes();self.assertEqual(hashlib.sha256(raw).hexdigest(),'dc3f3d4a61156e5bc4b9e7ac13ac88ab13ce7e396672fd7ff02f50e6c6fc195c')
+        source=json.loads(raw);self.assertEqual(source['libc_sha256'],LIBC_SHA256);self.assertEqual(source['ranges'],[list(x)for x in RANGES]);self.assertEqual(len(program()),5316)
         for start,end,_ in RANGES:
             pc=start
             for address,length,_op,_args,raw in source['instructions']:

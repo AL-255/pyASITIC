@@ -22,7 +22,7 @@ def engine(fixture,state):
     return m,VfprintfStorage(file,shr1_af=fixture['integer_cpu']['shr1_af'],xstate=bytes.fromhex(state['xstate']))
 
 
-def compare(fixture,case):
+def compare(fixture,case,*,storage_factory=None,call_kind='vfprintf'):
     result=dict(label=case['label'],cache_mode=case['cache_mode'],parent_calls_required=len(case['printf_calls']),boundary_states_checked=0,boundary_words_checked=0,boundary_registers_checked=0,boundary_fp_bytes_checked=0,differences=[],**dict.fromkeys(COUNTERS,0))
     for index,call in enumerate(case['printf_calls']):
         boundary=call.get('formatter',{});observations=[]
@@ -30,7 +30,7 @@ def compare(fixture,case):
         start,end=(boundary.get(key)for key in('children_start','children_end'))
         if isinstance(start,bool)or isinstance(end,bool)or not isinstance(start,int)or not isinstance(end,int)or not 0<=start<=end<=len(call['children']):raise ValueError('Invalid whole-parent formatter child boundary indices')
         def factory(f,a):
-            m,storage=engine(f,a);reference=weakref.proxy(storage)
+            m,storage=(storage_factory or engine)(f,a);reference=weakref.proxy(storage)
             def observe(name,registers,xstate):
                 observations.append(name);key={'formatter-before':'before','formatter-after':'after'}[name]
                 if key not in boundary:return
@@ -46,17 +46,17 @@ def compare(fixture,case):
                 else:actual=reference.formatter_children_end;expected=end
                 if actual!=expected:result['differences'].append(dict(kind='vfprintf-whole-child-boundary',call=index,boundary=name,actual=actual,original=expected))
             storage.observer=observe;return m,storage
-        checked=compare_state(fixture,dict(case,printf_calls=[dict(call,kind='vfprintf')]),storage_factory=factory)
+        checked=compare_state(fixture,dict(case,printf_calls=[dict(call,kind=call_kind)]),storage_factory=factory)
         for key in COUNTERS:result[key]+=checked[key]
         result['differences'].extend(dict(d,call=index)for d in checked['differences'])
         if checked['calls_checked']and observations!=['formatter-before','formatter-after']:result['differences'].append(dict(kind='vfprintf-whole-observer-boundaries',call=index,actual=observations))
     return result
 
 
-def run(fixture,*,shard=1,shards=1):
+def run(fixture,*,shard=1,shards=1,storage_factory=None,call_kind='vfprintf'):
     indices=selected_indices(len(fixture['cases']),shard,shards);results=[]
     for i in indices:
-        c=fixture['cases'][i];r=compare(fixture,c);results.append(r);print(f"{c['label']}/{c['cache_mode']}: {r['calls_checked']} whole parents, {r['boundary_states_checked']} source boundary assertions, {len(r['differences'])} differences",flush=True)
+        c=fixture['cases'][i];r=compare(fixture,c,storage_factory=storage_factory,call_kind=call_kind);results.append(r);print(f"{c['label']}/{c['cache_mode']}: {r['calls_checked']} whole parents, {r['boundary_states_checked']} source boundary assertions, {len(r['differences'])} differences",flush=True)
     report=dict(total_cases=len(fixture['cases']),shard=shard,shards=shards,case_indices=indices,cases=len(results),cases_without_calls=sum(not fixture['cases'][i]['printf_calls']for i in indices),native_terminal_counts=dict(collections.Counter(fixture['cases'][i]['signal']for i in indices)),results=results,differences=sum(len(r['differences'])for r in results))
     for key in('parent_calls_required',*COUNTERS,'boundary_states_checked','boundary_words_checked','boundary_registers_checked','boundary_fp_bytes_checked'):report[key]=sum(r[key]for r in results)
     return report

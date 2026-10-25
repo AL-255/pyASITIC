@@ -65,7 +65,8 @@ class PrintfFile:
             m.put_u32(local+8,count)
             for offset,value in ((8,count),(12,source),(16,file),(20,self.libc+0x58666)):m.put_u32(local-offset,value)
             incoming=dict(r,eax=file,edx=source,ecx=self.got-0x734,esi=count,ebp=vt,esp=local-20,eip=m.u32(vt+28),eflags=subtract_flags(local,4,r['eflags']))
-            r=self._child('xsputn',incoming,OutputFile(self).xsputn)
+            kind='old-xsputn'if incoming['eip']==self.libc+0x17fb00 else'xsputn'
+            r=self._child(kind,incoming,OutputFile(self).xsputn)
             if r['eax']!=count:
                 m.put_u32(buf+20,0)
             else:

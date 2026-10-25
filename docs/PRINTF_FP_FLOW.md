@@ -11,9 +11,13 @@ loads recorded output, later memory or return registers to obtain a result.
 `lift_printf_fp_original.py` is an offline source-generation step. It
 requires the pinned libc SHA-256
 `e936bd40e5479b27721efeade1b502623436a8be2bd8bd0f0ccf8c4f7229a0d0`.
-The generated program retains all 5,314 instructions and their bytes,
-addresses and operands across the declared ranges. Its 221,203 bytes have
-SHA-256 `c72c83dbfccf4015b236fb1d7384aefdf0b886ca05a065827eb544390717df98`.
+The generated program retains all 5,316 instructions and their bytes,
+addresses and operands across the declared ranges. Its 221,305 bytes have
+SHA-256 `dc3f3d4a61156e5bc4b9e7ac13ac88ab13ce7e396672fd7ff02f50e6c6fc195c`.
+The [independent public-entry probe](PRINTF_ENTRY.md) added the two
+instructions of the MPN PC-add thunk, without changing an older instruction.
+It also verifies the call-to-next-instruction PC idiom used by the unrolled
+subtractor on extreme exponents.
 The glibc-derived source is LGPL-2.1-or-later, with the bundled license.
 The runtime reads guest operands from actual earlier memory, including
 the original ELF tables. Unknown bytes still fail.

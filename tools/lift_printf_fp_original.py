@@ -7,7 +7,7 @@ import argparse,hashlib,json,os,re,subprocess
 from pathlib import Path
 ROOT=Path(__file__).resolve().parents[1]
 LIBC_SHA256='e936bd40e5479b27721efeade1b502623436a8be2bd8bd0f0ccf8c4f7229a0d0'
-RANGES=[(0x50620,0x51fe0,'mpn'),(0x57850,0x579d0,'grouping'),(0x58230,0x58570,'buffer'),
+RANGES=[(0x50610,0x50614,'mpn-pc-add'),(0x50620,0x51fe0,'mpn'),(0x57850,0x579d0,'grouping'),(0x58230,0x58570,'buffer'),
         (0x58810,0x5ab70,'decimal'),(0x60788,0x608a0,'argument'),(0x60a10,0x60a90,'long-double-argument'),
         (0x617c8,0x617e0,'decimal-call'),(0x88510,0x8854c,'alloca-cutoff'),(0xbbc10,0xbbc53,'memset'),
         (0x61f3b,0x61f49,'mode-flags'),
