@@ -416,6 +416,15 @@ file-stat inputs. The expanded audit also checks the complete main input
 buffer and improves from 556 to 382 required differences. Stat/allocator,
 kernel, string-copy, parser and other child-frame work remains unfinished.
 
+The [file-stat and buffer-allocation callers](docs/FILE_ALLOCATION.md) now
+construct the Linux statx and libc time64 records from earlier named external
+file facts, then install the buffer returned by the same guest allocator.
+Both independent caller operations match every captured region, all 17
+registers and unchanged FP state in Python and Pyodide. Connecting them to
+the continuing histories resolves 84 more differences, from 382 to 298,
+with no newly differing address/phase pairs. Malloc's internal ABI and the
+other unfinished child frames remain required failures.
+
 Records use binary64 with selected retained-precision intermediates matching the
 reference's x87 arithmetic. The [native logarithm audit](docs/LOGARITHM_AUDIT.md)
 adds 8,182 instruction cases and 10,327 multiplier cases with complete request

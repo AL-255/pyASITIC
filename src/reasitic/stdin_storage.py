@@ -18,8 +18,9 @@ class StdinStorage:
         if self.legacy['plt']['elf_sha256']!='bca97b602b1eec9f0b591bec0fa4dc5f84f1382636cc8f10094f1da8a3c77d34':
             raise NotImplementedError('Stdin wrappers need the pinned legacy streambuf ABI')
         self.legacy_base=memory.u32(self.legacy['address']);self.legacy_got=loader._dynamic(self.legacy['address'],3)
-        stat=profile['stdin_stat'];block=stat['st_blksize']
-        if stat['st_mode']&0o170000!=0o100000:raise NotImplementedError('Stdin allocation needs regular-file stat metadata')
+        stat=profile['statx']['fields']if 'statx'in profile else profile['stdin_stat']
+        block=stat['blksize']if 'statx'in profile else stat['st_blksize']
+        if(stat['mode']if 'statx'in profile else stat['st_mode'])&0o170000!=0o100000:raise NotImplementedError('Stdin allocation needs regular-file stat metadata')
         self.buffer_size=min(8192,block)if block>0 else 8192
 
     def _bind(self,registers,name,provider=None):
@@ -40,7 +41,7 @@ class StdinStorage:
         m=self.m;entry=registers['esp'];f=entry-4;pc=self.legacy_base+offset
         m.put_u32(f,registers['ebp']);m.put_u32(f-4,registers['ebx']);m.put_u32(f-8,pc+9)
         for i,value in enumerate(reversed(arguments)):m.put_u32(f-8-4*i,value)
-        s=f-8-4*len(arguments);m.put_u32(s,pc+(24 if len(arguments)==1 else 30))
+        s=f-8-4*len(arguments);m.put_u32(s,pc+21+3*len(arguments))
         r=dict(registers,ebp=f,ebx=self.legacy_got,esp=s,eflags=add_flags(pc+9,addend,registers['eflags']))
         return self._bind(r,name,self.legacy)
 
@@ -92,8 +93,20 @@ class StdinStorage:
     def before_allocate(self):
         m=self.m;u=self.underflow_frame;local=u-40;a=self.stream
         m.put_u32(local-16,a);m.put_u32(local-20,self.libc+0x82fe4)
-        # The stat/allocator child frame is not synthesized from observations.
-        # Its source allocation and actual field writes happen in InputStream.
+        if 'statx'in self.profile:
+            from .file_allocation import FileAllocation
+            self.allocation=FileAllocation(self)
+            r=dict(self.underflow,eax=0,edx=0,edi=self.got,esi=a,ebp=u,esp=local-20,eip=self.libc+0x85440,
+                eflags=subtract_flags(local,12,self.underflow['eflags']))
+            self.malloc_entry=self.allocation.before_malloc(r)
+
+    def after_allocate(self,buffer,capacity):
+        if 'statx'in self.profile:
+            # Heap.malloc computes this pointer on the same guest allocator.
+            # Its internal ABI is still missing; _IO_setb overwrites both
+            # volatile ECX/EDX before using them in the implemented path.
+            r=dict(self.malloc_entry,eax=buffer,esp=self.malloc_entry['esp']+4,eip=self.libc+0x75523)
+            self.allocation.after_malloc(r)
 
     def before_read(self,buffer,capacity):
         m=self.m;u=self.underflow_frame;local=u-40;a=self.stream;vt=self.vtable

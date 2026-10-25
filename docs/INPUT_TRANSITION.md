@@ -1,5 +1,10 @@
 # Native stdin and newline append
 
+This records the 382-difference stdin checkpoint. The subsequent
+[file-allocation integration](FILE_ALLOCATION.md) implements the stat syscall
+record and allocation callers and reduces the continuing gate to 298
+differences. The original fixture and its strict comparisons remain required.
+
 The continuing source now executes the narrow fgets/getline/uflow caller
 stores, legacy C++ stream wrappers, foreign-vtable acceptance fast path and
 the short newline append in the same simulation Memory. All **eight** lazy

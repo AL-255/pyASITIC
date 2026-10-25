@@ -23,6 +23,7 @@ class InputStream:
                     if abi:abi.before_allocate()
                     capacity=abi.buffer_size if abi else 4096
                     bb=self.allocate('stdin.buffer',capacity);be=bb+capacity
+                    if abi:abi.after_allocate(bb,capacity)
                     m.put_u32(a+28,bb);m.put_u32(a+32,be)
                 if abi:abi.before_read(bb,be-bb)
                 for offset in (4,8,12,16,20,24):m.put_u32(a+offset,bb)

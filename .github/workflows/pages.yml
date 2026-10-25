@@ -83,7 +83,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        suite: [baseline, dependencies, resonance, extended, technologies, fft, matrix, contacts, general, spectral, transformer, composition, splitting, storage, geometry, heap, mappings, shared, inductive, prelude, prestorage, libio, cachestore, driverhist, console, nodehistory, commandtransition, signalframes, signalinstall, loaderlookup, pltfixup, loadertransition, dispatchstore, pollstore, stdiotransition, inputtransition, capstorage, workspaces, history, filaments, mutual, eddy, metrics]
+        suite: [baseline, dependencies, resonance, extended, technologies, fft, matrix, contacts, general, spectral, transformer, composition, splitting, storage, geometry, heap, mappings, shared, inductive, prelude, prestorage, libio, cachestore, driverhist, console, nodehistory, commandtransition, signalframes, signalinstall, loaderlookup, pltfixup, loadertransition, dispatchstore, pollstore, stdiotransition, inputtransition, fileallocation, stattransition, capstorage, workspaces, history, filaments, mutual, eddy, metrics]
         include:
           - {suite: erasure, shard: 1, shards: 4}
           - {suite: erasure, shard: 2, shards: 4}
@@ -184,6 +184,10 @@ jobs:
               node tools/check_stdio_transition_original.mjs /tmp/reasitic-pyodide/node_modules/pyodide/pyodide.mjs ;;
             inputtransition)
               node tools/check_input_transition_original.mjs /tmp/reasitic-pyodide/node_modules/pyodide/pyodide.mjs ;;
+            fileallocation)
+              node tools/check_file_allocation_original.mjs /tmp/reasitic-pyodide/node_modules/pyodide/pyodide.mjs ;;
+            stattransition)
+              node tools/check_stat_transition_original.mjs /tmp/reasitic-pyodide/node_modules/pyodide/pyodide.mjs ;;
             capstorage)
               node tools/check_cap_storage_original.mjs /tmp/reasitic-pyodide/node_modules/pyodide/pyodide.mjs ;;
             workspaces)
