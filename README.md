@@ -471,6 +471,14 @@ registers, FP bytes and 12,975 captured helper calls. Corrupted cache
 diagnostics remain checked. The continuing gate still has the same 198
 required differences; printf parent formatting and integration remain unfinished.
 
+The [vfprintf caller source](docs/VFPRINTF.md) matches all 7,946 phases around
+3,973 formatter calls across 134 histories in CPU Python and Pyodide. The
+complete reports agree on every caller-owned region, heap/error state,
+register, FP byte and 20,921 captured caller helpers. Formatter boundaries
+are independent component inputs, never continuing-replay seeds; all 3,973
+formatter calls and 30,267 middle helpers remain pending. The parser,
+numeric formatting and the 198-difference continuing gate remain unfinished.
+
 Records use binary64 with selected retained-precision intermediates matching the
 reference's x87 arithmetic. The [native logarithm audit](docs/LOGARITHM_AUDIT.md)
 adds 8,182 instruction cases and 10,327 multiplier cases with complete request

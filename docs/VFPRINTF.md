@@ -69,7 +69,16 @@ images. The 46,399,324-byte gzip archive is stored as two checksummed parts:
 54c0415c44ffd9cf37c78a825c326f433782d90fa920a74eff69dcd163a2d327
 ```
 
-Full CPU and eight-shard browser caller-phase validation are in progress.
+The full unsharded CPU audit and all eight browser caller-phase shards
+pass all 11 tests. Browser shards partition all 134 histories exactly once.
+Both runtimes match all 7,946 caller phases,
+1,902,553,920 four-byte units, 135,082 output registers, 19,388,240 FP
+bytes and 711,314 entry/return registers of 20,921 caller helpers, with
+zero differences. Overlapping owners and partial-word tails stay included.
+The 3,973 formatter calls and 30,267 middle helpers remain required work.
+The complete CPU report equals the merged browser report in every counter
+and per-case result. These are caller-phase results; formatting itself is
+not executed by this audit or treated as completed.
 The complete previous FILE-helper CPU regression passes all 11 tests and
 retains an identical full report for all 7,946 calls. Its shared comparison
 logic now accepts an explicit source-storage factory; the default algorithm,
@@ -92,6 +101,9 @@ node tools/check_vfprintf_original.mjs /path/to/pyodide.mjs /tmp/vfprintf-part.j
 ```
 
 All eight disjoint browser shards are required. Reports stay local.
+The verified source package is `82393d56d37332a0`; the compiled numerical
+module remains unchanged at SHA-256
+`c7869e98f4c18b5414dc172d836e7144ab3ebc0de2de0d1f2eec1a4fe1709186`.
 This component does not establish complete formatting, continuing-call
 integration or whole-program parity. The broader gate still retains its
 198 unresolved differences.
