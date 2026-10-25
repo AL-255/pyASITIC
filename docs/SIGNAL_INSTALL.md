@@ -94,6 +94,12 @@ activity leaves a different word. The loader's earlier writes still need
 to be implemented. The source does not overwrite this word with the later
 observed value or remove it from comparison.
 
+The subsequent independent [loader lookup component](LOADER_LOOKUP.md)
+reproduces all eight observed lazy-symbol searches and their complete return
+regions/registers. It does not initialize the continuing replay from those
+later call frames. Earlier loader state, PLT trampoline and `_dl_fixup`
+integration remain required; the 816 differences below are unchanged.
+
 All 83 affected CPU tests pass, including the nine new regression tests. The
 nine tests and the complete 390-call audit also pass in packaged Pyodide,
 version `a95b925e330e962b`. The full compiled continuing audit was rerun: all

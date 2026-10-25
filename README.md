@@ -376,6 +376,13 @@ observed calls match their full stacks/registers. The continuing rectangular
 case improves to 816 differing boundary words; every remaining word stays
 required, with loader and later caller-stack work still unfinished.
 
+An independent [ELF loader lookup component](docs/LOADER_LOOKUP.md) now
+reproduces the hash/version search and ABI stores of all eight lazy lookups
+observed across those 134 histories. Complete return regions, registers and
+FP bytes match. Its snapshots are component inputs only; connecting the
+resolver through earlier loader state and the PLT caller frames remains
+unfinished, so the continuing gate retains all 816 required differences.
+
 Records use binary64 with selected retained-precision intermediates matching the
 reference's x87 arithmetic. The [native logarithm audit](docs/LOGARITHM_AUDIT.md)
 adds 8,182 instruction cases and 10,327 multiplier cases with complete request
