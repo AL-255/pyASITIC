@@ -95,6 +95,12 @@ and FP state, outer command return, subsequent analyses and the remaining
 hardware-math/phase/alias paths are unfinished. The six typed-API raw phase-word
 failures remain required; this development branch is not deployed.
 
+The later [command continuation](SHUNT_COMMAND_TRANSITION.md) now carries this
+same source memory through the outer script parser and port-file setup to the
+next analysis entry in all 28 cases. It adds 28 full heaps and checks the next
+driver's reference arguments. That subsequent numerical solve remains outside
+the current continuous replay.
+
 The archive `shunt_node_history_original.json.gz` is 15,738,418 bytes,
 SHA-256 `a397c6ede8441115decec48bb37b798f993cda3723e0dc9a743c101c76228308`.
 It retains the original command files, plain outcomes, minimal environment,

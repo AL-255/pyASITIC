@@ -120,6 +120,9 @@ The later [node/driver continuation](SHUNT_NODE_HISTORY.md) carries this same
 source state through node work arrays, global port stores, model reporting,
 matrix destruction and first driver return for every one of these 28 cases.
 It adds 84 complete output heaps without replacing any earlier comparison.
+The [following command continuation](SHUNT_COMMAND_TRANSITION.md) adds another
+28 full heaps through direct-script parsing and next analysis entry. Complete
+startup/FP state and the following numerical solve remain unfinished.
 
 The archive `shunt_driver_history_original.json.gz` is 14,207,922 bytes,
 SHA-256 `6f2be97328dadcfefed4466c09c6137629e67e1966267b89b35ae9f4d21266b4`.

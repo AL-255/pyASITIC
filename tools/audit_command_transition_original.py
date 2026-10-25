@@ -14,13 +14,14 @@ from audit_allocator_original import state_differences
 from capture_command_transition_original import expand_case
 
 
-def compare(fixture,entry,*,return_state=False):
+def compare(fixture,entry,*,return_state=False,node_compare=None):
     console=ConsoleStorage(entry['console_inputs']);inputs=entry['transition_inputs']
     initial=tuple((r['address'],bytes.fromhex(r['data']))for r in inputs['initial_regions'])
     if 'loader_context'in inputs:
         from audit_loader_lookup_original import data as loader_data
         initial+=tuple((r['address'],loader_data(fixture,r))for r in inputs['loader_context']['regions'])
-    before,heap,addresses,memory=node(fixture,entry,return_state=True,console=console,initial_regions=initial)
+    producer=node if node_compare is None else node_compare
+    before,heap,addresses,memory=producer(fixture,entry,return_state=True,console=console,initial_regions=initial)
     result=dict(label=entry['label'],cache_mode=entry['cache_mode'],before=before,differences=list(before['differences']),events_checked=0,buffers_checked=0,buffer_bytes_checked=0,heap_words_checked=0,component_words_checked=0,points_checked=0,point_words_checked=0,unknown_bytes=0,console_calls_checked=0,calendar_calls_checked=0,files_checked=0,file_bytes_checked=0,faults_checked=0,stdin_positions_checked=0)
     if 'printf_transition_calls'in entry:result.update(printf_calls_checked=0,printf_registers_checked=0,point_bytes_checked=0,component_bytes_checked=0)
     if entry['post_driver']is None:

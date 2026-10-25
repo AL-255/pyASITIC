@@ -53,6 +53,13 @@ class GeometryStorage:
             if address in seen:raise ValueError('Geometry secondary chain has a cycle')
             seen.add(address);yield address;address=self.memory.u32(address+0xe8)
 
+    def reset_mesh_counts(self,shape):
+        # Parser type 8 resets only the primary segment chain. Secondary
+        # branches retain their counts, as in reset_geometry_mesh_counts.
+        for address in self.segments(shape):
+            self.memory.put_u32(address+0xe0,0xffffffff)
+            self.memory.put_u32(address+0xe4,0xffffffff)
+
     def _number(self,address):return struct.unpack('<d',self.memory.read(address,8))[0]
     def _store(self,address,value):self.memory.write(address,struct.pack('<d',float(value)))
     def _floating_copy(self,destination,source):self._store(destination,R(self._number(source)))

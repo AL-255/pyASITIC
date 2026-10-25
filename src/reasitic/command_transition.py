@@ -31,7 +31,7 @@ class CommandTransition:
         self.geometry=GeometryStorage(heap,memory,head)
         self.strings=LegacyStrings(memory,lambda size,allocator:self.allocate('filename',size,allocator),lambda address,allocator:self.release('filename',address,allocator),nil_address=strings['nil_address'],pool_address=strings['pool_address'])
         self.characters=Characters(inputs['character_tables'])
-        self.parser=CommandStorage(memory,self.characters,self.find_shape,console.warning)
+        self.parser=CommandStorage(memory,self.characters,self.find_shape,console.warning,reset_mesh=self.geometry.reset_mesh_counts)
         self.stack=NativePortStack(memory,inputs['registers']['ebp'])
 
     def allocate(self,name,size,allocator='malloc'):
@@ -122,7 +122,8 @@ class CommandTransition:
             if kind not in (0,1,16,17,18,4):self.console.warning('Warning:  User defined structure type may not be compatible with 2port command.')
             if kind==4:raise NotImplementedError('Capacitor analysis after port setup is not bound')
             if m.read(0x80d86c8,1)!=b'\0':raise NotImplementedError('Analytical port dispatch is not bound')
-        self.result=dict(driver='calctrans'if transformer else'pi2',arguments=[first_shape,second_shape,first_shape]if transformer else[first_shape,first_shape])
+        reference=m.u32(arg(8)+256)if count>8 else first_shape
+        self.result=dict(driver='calctrans'if transformer else'pi2',arguments=[first_shape,second_shape,reference]if transformer else[first_shape,reference])
 
     def run(self):
         m=self.memory;inputs=self.inputs;records=inputs['workspace_address'];line=records+4160

@@ -364,6 +364,15 @@ and guest-memory port values are checked. The combined replay requires 178
 complete output heaps / 45,574,144 words. Source port publication now follows
 the native store order; complete process continuation remains unfinished.
 
+[Branch command continuation](docs/SHUNT_COMMAND_TRANSITION.md) carries that
+same memory through direct-script parsing and port-file setup to the next
+analysis entry in all 28 histories. Explicit ground parsing now resets only
+primary mesh counts and forwards the parsed reference to the next driver.
+The added 28 full heaps, 56 parser/header boundaries and 28 generated files
+match; together these driver/node/command histories require 206 complete
+output heaps / 52,813,824 words. Startup/FP, subsequent numerical analyses and
+the strict phase/math gaps remain unfinished; this branch is not deployed.
+
 [Pre-CAP storage](docs/PRELUDE_STORAGE.md) additionally reproduces all 975 FFT
 scratch arrays and 130 stream buffers in the 130 selected native histories:
 4,526,080 bytes match exactly in the compiled browser backend. Four added small
