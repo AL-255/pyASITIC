@@ -58,6 +58,46 @@ class FileStorage:
         self._put(address,'file','_fileno',-1);self._put(address,'file','_offset',-1)
 
 
+def close_byte_stream(memory,address,abi,*,tls_base,release,observe=None,flush=None):
+    """Successful narrow fclose on the live FILE, list and thread lock.
+
+    release(address, caller) executes the caller's actual allocator. The
+    observation hooks run before the original two free calls. Neither hook
+    supplies state. Input streams have no output flush callback.
+    """
+    m=memory;fields=abi['file']['fields'];chain=fields['_chain']['offset']
+    point=lambda label:None if observe is None else observe(label)
+    point('close_entry')
+    head=abi['libc_symbols']['_IO_list_all']['address'];following=m.u32(address+chain)
+    if m.u32(head)==address:m.put_u32(head,following)
+    else:
+        previous=m.u32(head);seen=set()
+        while previous and m.u32(previous+chain)!=address:
+            if previous in seen:raise ValueError('FILE chain has a cycle')
+            seen.add(previous);previous=m.u32(previous+chain)
+        if not previous:raise ValueError('Closing FILE is absent from its continuing list')
+        m.put_u32(previous+chain,following)
+    m.put_u32(address,m.u32(address)&~0x80)
+    lock=m.u32(address+fields['_lock']['offset']);locked=not bool(m.u32(address)&0x8000)
+    if locked:
+        if m.u32(tls_base+12):raise NotImplementedError('Multithreaded fclose requires its lock/wait path')
+        thread=m.u32(tls_base+8);owner=m.u32(lock+8)
+        if not owner:
+            if m.u32(lock):raise NotImplementedError('Contended fclose requires its lock/wait path')
+            m.put_u32(lock,1);m.put_u32(lock+8,thread)
+        elif owner==thread:m.put_u32(lock+4,m.u32(lock+4)+1)
+        else:raise NotImplementedError('Contended fclose requires its lock/wait path')
+    if flush is not None:flush()
+    buffer=m.u32(address+fields['_IO_buf_base']['offset'])
+    point('free.buffer');release(buffer,abi['libc_base']+0x85439)
+    FileStorage(m,abi).closed_byte_stream(address)
+    if locked:
+        depth=m.u32(lock+4)
+        if depth:m.put_u32(lock+4,depth-1)
+        else:m.put_u32(lock+8,0);m.put_u32(lock,0)
+    point('free.file');release(address,abi['libc_base']+0x758ab)
+
+
 def copy_cache_headers(memory,substrate_address,metal_address,header,substrates,metals):
     """The two fread destinations receive the external file's actual bytes.
 

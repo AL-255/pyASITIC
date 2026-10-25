@@ -18,7 +18,7 @@ def expand_tail(fixture,entry):
     return dict(tail,states=[dict(s,memory_regions=[region(r)for r in s['memory_regions']])for s in tail['states']],buffers=[region(r)for r in tail['buffers']])
 
 
-def compare(fixture,entry,*,return_state=False):
+def compare(fixture,entry,*,return_state=False,observe_continuation=None):
     continuing=[]
     before,heap,addresses,memory=second(fixture,entry,return_state=True,observe_continuation=continuing.append)
     if len(continuing)!=1:raise ValueError('Port output requires the continuing second driver')
@@ -71,6 +71,7 @@ def compare(fixture,entry,*,return_state=False):
     for expected in files:
         if storage.name.decode()!=expected['name']or bytes(storage.stream.data).hex()!=expected['data']:result['differences'].append(dict(kind='tail-file',name=expected['name'],actual=bytes(storage.stream.data).hex(),original=expected['data']))
         result['files_checked']+=1;result['file_bytes_checked']+=len(expected['data'])//2
+    if observe_continuation is not None:observe_continuation(history)
     if return_state:return result,heap,addresses,memory
     return result
 

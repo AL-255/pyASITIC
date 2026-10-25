@@ -389,6 +389,13 @@ lock held while releasing the buffer. The cumulative replay requires 552
 distinct output-heap boundaries / 142,055,424 words. Startup/FP, following EOF/
 quit processing and the strict phase/math gaps remain unfinished.
 
+[Script EOF and shutdown](docs/SHUNT_SHUTDOWN.md) now retain the actual outer
+input stream and match 168 added complete EOF/close heaps plus all independent
+FILE/buffer/list/workspace bytes. A new read-only capture continues every
+unchanged history to actual native process exit. The full shutdown audit still
+fails on missing register and interactive/cleanup continuation; those later
+targets remain required, with identical CPU/browser reports.
+
 [Pre-CAP storage](docs/PRELUDE_STORAGE.md) additionally reproduces all 975 FFT
 scratch arrays and 130 stream buffers in the 130 selected native histories:
 4,526,080 bytes match exactly in the compiled browser backend. Four added small

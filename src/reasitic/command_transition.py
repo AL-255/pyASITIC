@@ -132,6 +132,7 @@ class CommandTransition:
         if end-base!=len(self.script):raise NotImplementedError('Script initial external-file offset needs its earlier descriptor position')
         source=InputStream(m,inputs['script_stream']['address'],self.script,end-base,self.allocate)
         histories=[ScanHistory(None,None,None)for _ in range(15)]
+        self.script_stream=source;self.scan_histories=histories
         while source.readline(line,300)is not None:
             self.console.warning(string(m,line));self.characters.normalize(m,line,2)
             if m.read(line,1)==b'#':continue

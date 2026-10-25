@@ -10,7 +10,7 @@ from .node_storage import PORT_ADDRESSES
 from .network_metrics import _scattering
 from .printf_float_digits import format_binary64
 from .retained_scalar import Real as R
-from .libio_storage import FileStorage
+from .libio_storage import close_byte_stream
 
 SCATTERING_ADDRESSES=dict(s11=0x80d8d58,s12=0x80d8d28,s21=0x80d8d48,s22=0x80d8d18)
 RECTANGULAR=b'\n'+b'  '.join([b'%-20.15e']*9)
@@ -46,37 +46,9 @@ class PortOutputStorage:
         self.stream.write(b'\n'+b'  '.join(fields));self.point('record_return')
 
     def close(self):
-        m=self.memory;file=self.stream.address;fields=self.abi['file']['fields'];chain=fields['_chain']['offset']
-        self.point('close_entry')
-        # fclose unlinks before close_it flushes and releases the buffer.
-        head=self.abi['libc_symbols']['_IO_list_all']['address'];following=m.u32(file+chain)
-        if m.u32(head)==file:m.put_u32(head,following)
-        else:
-            previous=m.u32(head);seen=set()
-            while previous and m.u32(previous+chain)!=file:
-                if previous in seen:raise ValueError('FILE chain has a cycle')
-                seen.add(previous);previous=m.u32(previous+chain)
-            if not previous:raise ValueError('Port FILE is absent from its continuing list')
-            m.put_u32(previous+chain,following)
-        m.put_u32(file,m.u32(file)&~0x80)
-        lock=m.u32(file+fields['_lock']['offset']);locked=not bool(m.u32(file)&0x8000)
-        if locked:
-            if m.u32(self.tls+12):raise NotImplementedError('Multithreaded fclose requires its lock/wait path')
-            thread=m.u32(self.tls+8);owner=m.u32(lock+8)
-            if not owner:
-                if m.u32(lock):raise NotImplementedError('Contended fclose requires its lock/wait path')
-                m.put_u32(lock,1);m.put_u32(lock+8,thread)
-            elif owner==thread:m.put_u32(lock+4,m.u32(lock+4)+1)
-            else:raise NotImplementedError('Contended fclose requires its lock/wait path')
-        self.stream.flush();self.point('free.buffer')
-        self.release(self.stream.buffer,self.abi['libc_base']+0x85439)
-        FileStorage(m,self.abi).closed_byte_stream(file)
-        if locked:
-            depth=m.u32(lock+4)
-            if depth:m.put_u32(lock+4,depth-1)
-            else:m.put_u32(lock+8,0);m.put_u32(lock,0)
-        self.point('free.file')
-        self.release(file,self.abi['libc_base']+0x758ab);self.point('export_return')
+        close_byte_stream(self.memory,self.stream.address,self.abi,tls_base=self.tls,
+                          release=self.release,observe=self.point,flush=self.stream.flush)
+        self.point('export_return')
 
     def run(self):
         m=self.memory;first,last,step=(struct.unpack('<d',m.read(address,8))[0]for address in(0x80d86a0,0x80d86a8,0x80d86b0))
