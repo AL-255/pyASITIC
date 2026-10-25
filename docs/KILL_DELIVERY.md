@@ -83,8 +83,8 @@ signal-frame capture, tests and audit remain unchanged and required.
 
 This component starts at kill with actual earlier FP state. It does not
 replace the continuing driver's missing FP propagation with that snapshot.
-The current driver result remains unchanged at 28 required final words;
-its affected complete CPU report is identical to the preceding checkpoint.
+At the delivery checkpoint the driver remained at 28 required final words;
+its affected complete CPU report was identical to the preceding checkpoint.
 Every older gate remains required, and the continuation assertion stays
 zero. Reports remain local.
 
@@ -92,8 +92,11 @@ The new whole-stack evidence corrects the previous diagnosis: four remaining
 non-FP words are parser caller-frame stores already present at kill entry,
 not handler stores. They remain identical at VDSO, syscall, interrupted and
 handler entry. The other 24 words change during extended FP-state saving.
-Continuing parser frames and actual earlier FP state must be produced before
-this complete delivery operation can be connected. Handler body, process
+The subsequent [parser caller component](PARSER_CALLERS.md) produces the
+four earlier parser words from the continuing register/argument/event state.
+Its full browser continuation retains the other 24 saved-FP words. Actual
+earlier FP state must still be produced before this complete delivery
+operation can be connected. Handler body, process
 cleanup and the broader numerical/geometry/JOIN/mapping discrepancies also
 remain unfinished; this is not whole-program parity.
 

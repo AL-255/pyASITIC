@@ -537,10 +537,16 @@ The [whole kill-to-handler source](docs/KILL_DELIVERY.md) now reproduces
 130 actual deliveries across all 134 unchanged histories, starting once
 from earlier kill GP/FP state. CPU and Pyodide reports agree exactly across
 520 produced boundaries, complete owned memory and all GP/FP/mask targets.
-The continuing driver still retains 28 words: 24 saved FP words and four
-earlier parser caller stores. Connecting this operation requires that
-earlier state to be produced by the driver; whole-program parity remains
-unfinished.
+At that checkpoint the continuing driver retained 28 words: 24 saved FP
+words and four earlier parser caller stores. The subsequent
+[parser caller source](docs/PARSER_CALLERS.md) supplies those four stores
+through actual argument-count and alias-comparison events on the continuing
+Memory. Its complete CPU/browser component reports agree with zero
+differences across 471 operations, including all 465 native alias-argument
+pushes. All ten new tests pass in both runtimes. The full 134-history browser
+continuation retains 24 required saved-FP words; actual earlier FP propagation
+and whole-program parity remain unfinished. The strict gate still requires
+zero, and this branch is not promoted over the deployed Pages version.
 
 The [integer formatter](docs/PRINTF_INTEGER.md) also matches all 5,472
 independent native int32 output requests in CPU Python and Pyodide.

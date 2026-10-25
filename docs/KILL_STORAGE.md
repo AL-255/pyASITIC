@@ -88,6 +88,10 @@ lie in saved signal FP state, and four are parser caller stores already
 present before kill. They are not written by the handler.
 The independent complete signal-frame component remains required;
 connecting it needs the actual continuing FP and interrupted CPU state.
+The subsequent [parser caller integration](PARSER_CALLERS.md) supplies all
+four parser words from actual continuing inputs and lookup events, leaving
+24 saved-FP words in the complete browser comparison. The strict assertion
+continues to require zero.
 This checkpoint does not manufacture FP bytes or execute signal delivery,
 kernel return, the complete handler or final process cleanup. Those paths
 and every broader arithmetic, geometry, JOIN/UNJOIN and mapping gate remain

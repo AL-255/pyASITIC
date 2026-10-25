@@ -17,6 +17,7 @@ from .dispatch_storage import DispatchStorage,enter_dispatch
 from .poll_storage import poll_select,select64_entry
 from .select_storage import select64_dispatch,select_syscall_entry
 from .kill_storage import kill_vdso_entry,vdso_kernel_entry
+from .parser_callers import ParserCallers
 from .repl_storage import ReplStorage
 from .stdin_storage import StdinStorage
 
@@ -226,7 +227,8 @@ class CommandTransition:
             registers=dispatch.before_parser(dispatch.history(registers))
         self.point('parse')
         records=script_frame-12-4160
-        identity=self.parser.parse(line,records,[ScanHistory(None,None,None)for _ in range(15)])
+        parser_abi=ParserCallers(m,registers)if dispatch is not None else None
+        identity=self.parser.parse(line,records,[ScanHistory(None,None,None)for _ in range(15)],abi=parser_abi)
         if identity!=-1:raise NotImplementedError('Interactive command transition requires the outer dispatcher')
         if dispatch is not None:
             registers=dispatch.quit_binding(dispatch.parser_return(registers,identity,line))

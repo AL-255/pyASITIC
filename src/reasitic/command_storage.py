@@ -94,8 +94,15 @@ def scan(text,kind):
     return float.fromhex(value)if b'0x'in token.lower()else float(value)
 
 
-def lookup(text):
-    return next((row for row in CATALOG if text in tuple(a.encode()for a in row[1])),None)
+def lookup(text,*,abi=None):
+    for index,row in enumerate(CATALOG):
+        for alias,name in enumerate(row[1]):
+            if abi is not None:abi.before_compare(index,alias)
+            if text==name.encode():
+                if abi is not None:abi.catalog_result(index,row)
+                return row
+    if abi is not None:abi.catalog_result(-1,None)
+    return None
 
 
 class CommandStorage:
@@ -159,7 +166,8 @@ class CommandStorage:
         if kind==10:m.write(address+256,struct.pack('<f',binary32(Real(result)*Real(float.fromhex('0x1.1df46a2529d39p-6')))))
         return True
 
-    def parse(self,line,records,histories):
+    def parse(self,line,records,histories,*,abi=None):
+        if abi is not None:abi.validate(line,records);abi.count(0)
         m=self.memory;c=self.characters;c.normalize(m,line,0x8e)
         if m.read(line,1)in (b'\0',b'#'):return -3
         tokens=self._tokens(line)
@@ -169,8 +177,10 @@ class CommandStorage:
         for token in tokens:
             target=records+260*(count+1);value=string(m,token)[:256]
             m.write(target,value+b'\0'*(256-len(value)));count+=1
+            if abi is not None:abi.count(count)
             if count==15:break
-        row=lookup(string(m,records))
+        if abi is not None:abi.begin_lookup()
+        row=lookup(string(m,records),abi=abi)
         if row is None:return -2
         identity,_,minimum,maximum,usage,types=row
         if not minimum<=count<=maximum:self.warn(('Invalid Argument(s):  '+usage).encode());return -3
