@@ -292,6 +292,14 @@ Implemented so far:
   pinned Pyodide. The geometry-only arena is not a full native process-heap
   emulator; broader allocator-dependent command histories remain unverified.
 
+Development [JOIN](docs/JOIN_PORTING.md) and [UNJOIN](docs/UNJOIN_PORTING.md)
+retain failing exact model gates and remain undeployed. New original captures
+check all 1,685 upper impedance entries across eight UNJOIN model sessions.
+Two entries in the split-balun coupled model diverge at the same FCOS operand
+as JOIN; every production filament/material input and CAP component matches.
+CPU and browser reports agree, including the remaining model differences.
+The two separate trailing-via heap-alias failures also remain unresolved.
+
 Development [geometry storage replay](docs/GEOMETRY_STORAGE.md) now derives
 clone/COPY/JOIN addresses and complete records from earlier process state.
 All 140 native observations match 2,750 allocation/free events, 1,017,272

@@ -5,6 +5,14 @@ model. It does **not** supply a runtime correction. JOIN remains on its
 development branch with the exact model comparison failing; see
 [JOIN_PORTING.md](JOIN_PORTING.md).
 
+An independent [UNJOIN assembly and production-model audit](UNJOIN_PORTING.md)
+now identifies the same native FCOS operand in two split-balun mutual calls.
+All 1,685 captured upper entries across eight UNJOIN model sessions remain
+required. The two affected entries, their complete helper/instruction outputs
+and the propagated model differences are checked in both runtimes. These new
+command traces supplement the independent instruction corpus below; none of
+its inputs, expected words or strict comparisons changes.
+
 ## Independent evidence
 
 `capture_trig_instructions_native.py` compiles an i386 instruction driver using

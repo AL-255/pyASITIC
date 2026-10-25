@@ -18,7 +18,6 @@ from reasitic.inductance import segment_mutual
 from reasitic.mutual_geometry import canonical,planar,spatial,angle
 from reasitic.parallel import segment_self_inductance,cross_section_log_integral,effective_separation,parallel_segment_mutual
 from reasitic.polygon import _trig
-from test_conductor_metrics_original import rows
 
 
 def raw(value):return struct.pack('<IIH',*value.words()).hex()
@@ -54,6 +53,7 @@ def instruction(event):
 
 
 def main():
+    from test_conductor_metrics_original import rows
     directory=ROOT/'tests/fixtures';fixture=json.loads((directory/'mutual_command_traces_original.json').read_text());parent=directory/'conductor_metrics_original.json'
     assert hashlib.sha256(parent.read_bytes()).hexdigest()==fixture['parent_sha256']
     parents=json.loads(parent.read_text())['cases'];counts=collections.Counter();differences=collections.Counter();details=[];jobs=[]

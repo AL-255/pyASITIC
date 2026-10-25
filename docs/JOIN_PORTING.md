@@ -107,6 +107,13 @@ only its stated wire model and interaction scope. The combined CPython JOIN,
 ERASE, spatial, COPY and PHASE run checks 23 tests and has one failure, the
 finite joined CALCTRANS case. Existing regression expectations remain exact.
 
+The subsequent complete [UNJOIN assembly investigation](UNJOIN_PORTING.md)
+independently identifies the same FCOS instruction and operand in that port's
+tail-other coupled-model failure. All generated filament/material inputs and
+CAP components match there; two upper entries propagate into the later model.
+Both failures still require an exact numerical implementation, with no
+operand-specific correction or weakened gate.
+
 Mixed-generator creation, general converted-VIA table histories and secondary
 segment groups remain outside this JOIN capture scope. The separate UNJOIN
 development port and its unresolved model cases are documented in

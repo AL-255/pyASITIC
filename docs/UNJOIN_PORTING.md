@@ -81,9 +81,78 @@ screenshots. This Chrome check does not certify the unresolved balun models.
 
 All nine unobserved runs are retained in
 `unjoin_plain_outcomes_original.json.gz`; all eight produced reports, including
-the failing cases, are in `unjoin_sessions_original.json.gz`. The numerical
-cause of the tail-other coupled mismatch is not yet isolated. Do not assume
-that it is the previously captured JOIN cosine operand.
+the failing cases, are in `unjoin_sessions_original.json.gz`. The tail-other
+numerical mismatch is now isolated by the independent assembly and instruction
+captures below. The earlier trailing-via heap-alias failures remain separate
+and unresolved.
+
+## Coupled tail-other numerical divergence
+
+`unjoin_assembly_original.json.gz` retains the first actual upper impedance
+assembly from all eight original model-producing UNJOIN scripts. The ninth
+plain outcome, the empty-winding fault, remains in the required parent archive.
+These read-only observations stop at assembly return before inversion, then
+terminate the isolated inferior; they do not observe command termination.
+Every original filament input, material value, count and defined upper cell
+remains present. Minimal environment guards precede observation. No numerical
+code, input, register, memory, allocation, CPU affinity or result is replaced.
+
+The complete 1,685-entry CPU and compiled-browser assembly reports agree
+exactly. Seven sessions have zero upper-entry differences, including the two
+cases whose later via stamp aliases CAP. The 47-filament tail-other coupled
+case differs at exactly two upper entries: `(9,42)` and `(9,45)`.
+
+`unjoin_mutual_traces_original.json.gz` reruns the unchanged tail-other script
+and captures both actual pair calls. Their arguments match the independently
+observed assembly records. Every reached helper and selected elementary
+instruction output is retained: two complete pair returns, two canonical
+statuses, two complete canonical coordinate outputs, two spatial helper
+returns, ten FPATAN, two FCOS, two FSIN, two FYL2XP1 and six FYL2X stores.
+Both FCOS calls at `0x80614cc` consume `00504a60a2da0fc9fe3f` and return
+`00b467cd33f304b5fe3f`; the current runtime returns
+`01b467cd33f304b5fe3f`. This independently confirms the same instruction and
+operand implicated in JOIN. All the other captured elementary-instruction
+stores and canonical results match. The complete-pair and spatial-helper
+returns differ in both cases, giving six required trace differences.
+
+The actual production request also checks every generated filament and
+material record against the original, with zero differences. An observer
+records the arguments and result of the real assembly call and returns its
+unmodified result; native inputs never replace generated geometry or values.
+The production result retains all 4,418 capacitance components exactly. The
+two upper-entry differences propagate to 368 of 4,418 inductive-admittance
+components, all 23 Y/Z/model words and all eight S words. These 401 production
+differences remain required, in addition to the two independent assembly and
+six trace comparisons. Complete CPU and browser reports agree exactly,
+including all those required differences. This is an identified cause, not an
+implemented FCOS correction or whole-simulator parity claim.
+
+The assembly archive is 24,522 bytes, SHA-256
+`9856a53bc2aa90ee158d56988692e560fa74e76119925965e1c6a83fbadb015c`.
+The helper/instruction archive is 6,348 bytes, SHA-256
+`cdefe00c76213ee681e6f91c1b9022c5944abaccebe25cbea0ac1a5c4b959eac`.
+Both retain mandatory parent hashes and exact capture commands.
+The new seven-test suite requires zero numerical differences and is a separate
+required browser CI job. Four provenance/input/target-integrity tests pass in
+both runtimes; the three assembly, helper/instruction and production-model
+tests fail their exact zero-difference assertions in both. All earlier
+full-model, JOIN, UNJOIN and numerical
+gates remain required, with their existing exact expectations.
+
+```sh
+python tools/capture_unjoin_assembly_original.py --reference ~/github/asitic-re \
+  --library-path /path/to/i386/libs
+python tools/capture_unjoin_mutual_traces_original.py --reference ~/github/asitic-re \
+  --library-path /path/to/i386/libs
+PYTHONPATH=src:tests python -m unittest test_unjoin_assembly_original -v
+python tools/audit_unjoin_assembly_original.py --output /tmp/unjoin-assembly-cpu.json
+node tools/check_unjoin_assembly_original.mjs /path/to/pyodide.mjs /tmp/unjoin-assembly-wasm.json
+```
+
+Both strict audits exit nonzero. The existing runtime, mathematical
+approximations and tolerances are unchanged; no operand-specific correction
+or native output table is introduced. The source package remains
+`8ef350c4fd0013ba`, and this branch remains undeployed.
 
 ## Trailing via aliases a capacitance cell
 
