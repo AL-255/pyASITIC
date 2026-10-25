@@ -531,8 +531,16 @@ The [kill/VDSO caller source](docs/KILL_STORAGE.md) supplies four further
 stack stores from live quit arguments and registers. Its complete native
 component reports agree in CPU Python and Pyodide, and 45 affected CPU
 tests pass. The complete browser continuation now retains 28 required
-final signal/cleanup words; saved FP state and the handler remain
-unfinished. No later FP snapshot supplies execution.
+final signal/cleanup words. No later FP snapshot supplies execution.
+
+The [whole kill-to-handler source](docs/KILL_DELIVERY.md) now reproduces
+130 actual deliveries across all 134 unchanged histories, starting once
+from earlier kill GP/FP state. CPU and Pyodide reports agree exactly across
+520 produced boundaries, complete owned memory and all GP/FP/mask targets.
+The continuing driver still retains 28 words: 24 saved FP words and four
+earlier parser caller stores. Connecting this operation requires that
+earlier state to be produced by the driver; whole-program parity remains
+unfinished.
 
 The [integer formatter](docs/PRINTF_INTEGER.md) also matches all 5,472
 independent native int32 output requests in CPU Python and Pyodide.

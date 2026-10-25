@@ -95,8 +95,10 @@ over the deployed Pages version.
 
 The subsequent [kill/VDSO source](KILL_STORAGE.md) supplies four more caller
 stores from produced registers, leaving 28 required final words in the
-complete browser continuation report. Saved signal FP and handler frames
-remain unfinished.
+complete browser continuation report. The later
+[delivery comparison](KILL_DELIVERY.md) identifies the remaining words as
+saved signal FP and earlier parser caller frames; connecting the actual
+continuing state remains unfinished.
 
 ```sh
 python tools/capture_select_dispatch_original.py --reference ~/github/asitic-re \

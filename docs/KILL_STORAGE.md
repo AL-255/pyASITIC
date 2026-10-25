@@ -81,7 +81,11 @@ technology byte matches the current sources. Numerical WASM is unchanged
 at SHA-256 `c7869e98f4c18b5414dc172d836e7144ab3ebc0de2de0d1f2eec1a4fe1709186`,
 and its packaged source rebuilds it byte for byte.
 
-The remaining words lie in saved signal FP state and handler frames.
+The later [whole kill-to-handler comparison](KILL_DELIVERY.md) reproduces
+all 130 reached deliveries from actual earlier kill GP/FP state with zero
+differences. It also corrects the diagnosis: 24 remaining continuation words
+lie in saved signal FP state, and four are parser caller stores already
+present before kill. They are not written by the handler.
 The independent complete signal-frame component remains required;
 connecting it needs the actual continuing FP and interrupted CPU state.
 This checkpoint does not manufacture FP bytes or execute signal delivery,
