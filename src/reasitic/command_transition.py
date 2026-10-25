@@ -171,9 +171,10 @@ class CommandTransition:
         repl_storage=None;input_storage=None
         if stdio:
             m.write(0x80cbab0,b'\0');m.put_u32(0x80cbab4,0);m.write(0x80cba60,b'\0')
-        self.console.emit('message',b'ASITIC>  ',False)
+        flush_abi=bool(stdio and stdio.get('flush_abi'))
+        self.console.emit('message',b'ASITIC>  ',False,flush=not flush_abi)
         if stdio:
-            repl_storage=ReplStorage(m,stdio,libc_base=libc_base,tls_base=loader_context['tls_base'])
+            repl_storage=ReplStorage(m,stdio,libc_base=libc_base,tls_base=loader_context['tls_base'],loader=loader,loader_context=loader_context)
             registers=repl_storage.before_poll(installed['main_registers'],installed['line'])
             registers=poll_select(m,registers,loader,loader_context)
             select64_entry(m,registers,libc_base=libc_base,tls_base=loader_context['tls_base'],sar31_af=stdio['sar31_af'])
@@ -203,10 +204,14 @@ class CommandTransition:
             registers=input_storage.returned(len(read));input_storage.append_newline(registers,repl_storage.frame);text=string(m,line)
         else:text=string(m,line)+b'\n';m.write(line,text+b'\0')
         repl=self.inputs['repl'];history=repl['history_enabled']
-        self.console.write_stream(repl['input_log'],text+(b'\n'if history else b''))
-        self.console.write_stream(self.console.inputs['streams']['log']['address'],b'ASITIC>  '+text+(b'\n\n'if history else b''))
-        if repl_storage:repl_storage.finish_line(self.characters,repl['input_log'],self.console.inputs['streams']['log']['address'])
-        else:self.characters.normalize(m,line,0x8e)
+        self.console.write_stream(repl['input_log'],text+(b'\n'if history else b''),flush=not flush_abi)
+        output_log=self.console.inputs['streams']['log']['address']
+        def write_output():self.console.write_stream(output_log,b'ASITIC>  '+text+(b'\n\n'if history else b''),flush=not flush_abi)
+        if flush_abi:repl_storage.finish_line(self.characters,repl['input_log'],output_log,write_output=write_output)
+        elif repl_storage:
+            write_output();repl_storage.finish_line(self.characters,repl['input_log'],output_log)
+        else:write_output()
+        if not repl_storage:self.characters.normalize(m,line,0x8e)
         dispatch=None;registers=None
         if loader is not None:
             parent=installed['main_registers'];registers=enter_dispatch(m,self.inputs['workspace_address'],installed['main_frame'],line,ebx=parent['ebx'],edi=parent['edi'],flags=parent['eflags'],inherited=parent)

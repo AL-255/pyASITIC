@@ -8,43 +8,17 @@ i386 ABI. Additional stat/allocator/read paths remain unfinished.
 from .dispatch_storage import logical_flags
 from .signal_install_storage import add_flags,subtract_flags
 from .command_storage import string
+from .libio_abi import LibioABI
 
 
-class StdinStorage:
+class StdinStorage(LibioABI):
     def __init__(self,memory,loader,context,profile,*,libc_base,tls_base,heap=None):
-        self.m,self.loader,self.context,self.profile=memory,loader,context,profile
-        self.heap=heap
-        self.libc,self.tls,self.got=libc_base,tls_base,libc_base+0x22fe34
-        self.legacy=next(x for x in context['maps']if x['name'].endswith('/libstdc++-libc6.1-1.so.2'))
-        if self.legacy['plt']['elf_sha256']!='bca97b602b1eec9f0b591bec0fa4dc5f84f1382636cc8f10094f1da8a3c77d34':
-            raise NotImplementedError('Stdin wrappers need the pinned legacy streambuf ABI')
-        self.legacy_base=memory.u32(self.legacy['address']);self.legacy_got=loader._dynamic(self.legacy['address'],3)
+        super().__init__(memory,loader,context,libc_base=libc_base,tls_base=tls_base)
+        self.profile,self.heap=profile,heap
         stat=profile['statx']['fields']if 'statx'in profile else profile['stdin_stat']
         block=stat['blksize']if 'statx'in profile else stat['st_blksize']
         if(stat['mode']if 'statx'in profile else stat['st_mode'])&0o170000!=0o100000:raise NotImplementedError('Stdin allocation needs regular-file stat metadata')
         self.buffer_size=min(8192,block)if block>0 else 8192
-
-    def _bind(self,registers,name,provider=None):
-        provider=provider or next(x for x in self.context['maps']if x['address']==self.context['main_map'])
-        return self.loader.bind_import(registers,provider['address'],name,provider['plt'])['registers']
-
-    def _guard(self,registers,return_pc):
-        """The accepted-foreign-vtable fast path, derived from earlier TLS/GOT."""
-        m=self.m;entry=registers['esp']-4;local=entry-44;target=self.libc+0x81640
-        encoded=m.u32(self.got+0x1a30);decoded=((encoded>>9)|(encoded<<23))&0xffffffff
-        if decoded^m.u32(self.tls+24)!=target:raise NotImplementedError('Foreign-vtable validation needs its loader-namespace branch')
-        m.put_u32(entry,return_pc);m.put_u32(entry-4,registers['ebx']);m.put_u32(entry-8,self.libc+0x8164a)
-        m.put_u32(local+28,m.u32(self.tls+20))
-        return dict(registers,eax=0,edx=target,eip=return_pc,eflags=add_flags(local,40,registers['eflags']))
-
-    def _wrapper(self,registers,offset,addend,name,arguments):
-        """Legacy PIC wrapper, including its actual saved EBX and call args."""
-        m=self.m;entry=registers['esp'];f=entry-4;pc=self.legacy_base+offset
-        m.put_u32(f,registers['ebp']);m.put_u32(f-4,registers['ebx']);m.put_u32(f-8,pc+9)
-        for i,value in enumerate(reversed(arguments)):m.put_u32(f-8-4*i,value)
-        s=f-8-4*len(arguments);m.put_u32(s,pc+21+3*len(arguments))
-        r=dict(registers,ebp=f,ebx=self.legacy_got,esp=s,eflags=add_flags(pc+9,addend,registers['eflags']))
-        return self._bind(r,name,self.legacy)
 
     def enter(self,registers):
         m=self.m;r=self._bind(registers,b'fgets');s=r['esp'];f=s-4;self.entry=dict(r);self.fgets_frame=f

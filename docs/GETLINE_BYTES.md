@@ -1,5 +1,10 @@
 # Scalar getline search and copy
 
+The subsequent [flush checkpoint](FLUSH_STORAGE.md) connects complete
+fflush/sync/write source and reduces the new continuing fixture to 198
+required differences. This getline fixture and its strict 284-difference
+gate remain required unchanged.
+
 `getline_bytes.py` implements the pinned i386 internal memchr and memcpy
 called directly by `_IO_getline_info`. These routines are scalar, using
 byte/word loads, arithmetic and REP MOVS; they do not execute SIMD or x87

@@ -449,6 +449,13 @@ generated entry/return registers exact. The continuing gate retains its
 284 required differences; later overwrites and other child frames remain
 unfinished.
 
+The [flush/sync/write source](docs/FLUSH_STORAGE.md) reproduces all 414
+captured flushes, including complete memory, registers, FP bytes and virtual
+write effects. The continuing prompt and logs now execute those routines
+on their existing buffers, resolving 86 required memory differences without
+introducing new ones. Its 198 remaining differences and all older failing
+gates remain required; exact whole-program fidelity is still unfinished.
+
 Records use binary64 with selected retained-precision intermediates matching the
 reference's x87 arithmetic. The [native logarithm audit](docs/LOGARITHM_AUDIT.md)
 adds 8,182 instruction cases and 10,327 multiplier cases with complete request

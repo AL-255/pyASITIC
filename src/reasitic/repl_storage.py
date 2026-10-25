@@ -1,9 +1,8 @@
 """Original main/acquisition/stdio caller stores around source stream IO.
 
-Only caller frames and the proven successful single-threaded fflush return
-ABI are implemented here. printf/libio child frames, kernel polling and
-stdin read internals remain separate work; their missing bytes are still
-checked by the complete continuing comparison.
+Complete successful fflush executes when its earlier ABI inputs are present.
+Older contexts retain their missing child effects. printf child frames and
+kernel polling remain separate work, checked by the continuing comparison.
 
 The fflush/sync and orientation stores follow glibc 2.39 iofflush.c,
 fileops.c and genops.c, Copyright (C) 1993-2024 Free Software Foundation,
@@ -14,16 +13,23 @@ from .signal_install_storage import add_flags
 
 
 class ReplStorage:
-    def __init__(self,memory,context,*,libc_base,tls_base):
+    def __init__(self,memory,context,*,libc_base,tls_base,loader=None,loader_context=None):
         self.m,self.context,self.libc_base,self.tls_base=memory,context,libc_base,tls_base
+        self.flush_storage=None
+        if context.get('flush_abi'):
+            from .flush_storage import FlushStorage
+            if loader is None or loader_context is None:raise ValueError('Flush ABI needs earlier loader inputs')
+            self.flush_storage=FlushStorage(memory,loader,loader_context,libc_base=libc_base,tls_base=tls_base)
 
     def _flush_return(self,registers):
         """Known caller/prologue stores and successful unlocked return ABI.
 
         The source ConsoleStorage/stream operation supplies successful IO.
         No later native call state supplies a register or pointer here.
-        Internal sync/printf frames are deliberately not synthesized.
+        Complete sync executes with earlier flush inputs; older contexts
+        retain their missing internal frames in the strict comparison.
         """
+        if self.flush_storage:return self.flush_storage.flush(dict(registers,eip=self.libc_base+0x75b80))
         m=self.m;s=registers['esp'];stream=m.u32(s+4);lock=m.u32(stream+72)
         if m.u32(stream)&0x8000 or m.u32(self.tls_base+12) or any(m.u32(lock+i)for i in (0,4,8)):
             raise NotImplementedError('fflush return ABI needs an unlocked single-threaded stream')
@@ -79,7 +85,7 @@ class ReplStorage:
         if orient and not mode:m.put_u32(stream+104,0xffffffff)
         return dict(result,esp=f-1056,eip=self.libc_base+0x75f70)
 
-    def finish_line(self,characters,input_log,output_log):
+    def finish_line(self,characters,input_log,output_log,*,write_output=None):
         """Append/log caller frames and the real normalization local stores."""
         m=self.m;f=self.frame;parent=self.poll_registers;line=parent['esi'];prompt=0x80b4821
         for offset,value in ((1040,0x80b4895),(1044,line),(1048,0x804b617),
@@ -91,6 +97,7 @@ class ReplStorage:
             m.put_u32(log-offset,value)
         registers=dict(parent,ebx=line,esi=prompt,ebp=log,esp=log-28)
         self._flush_return(registers)
+        if write_output:write_output()
         for offset,value in ((28,line),(32,prompt),(36,0x80b4c16),(40,output_log),(44,0x804bea3),
                              (12,output_log),(16,0x804beb1)):
             m.put_u32(log-offset,value)

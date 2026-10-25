@@ -35,13 +35,13 @@ class ConsoleStorage:
             if memory.read(address,len(data))!=data:raise ValueError('Earlier console FILE prefix differs from initial memory')
         self.memory=memory
 
-    def _write(self,name,data):
+    def _write(self,name,data,*,flush=True):
         stream=self.inputs['streams'].get(name)
         if stream is None:raise ValueError('Console emitter requires an open '+name+' stream')
-        self.write_stream(stream['address'],data)
+        self.write_stream(stream['address'],data,flush=flush)
 
-    def write_stream(self,address,data):
-        """The same flushed narrow stream path, including the input log."""
+    def write_stream(self,address,data,*,flush=True):
+        """Buffered narrow output; an explicit ABI caller may defer its flush."""
         memory=self.memory
         flags,rp,re,rb,wb,wp,we,bb,be=struct.unpack('<9I',memory.read(address,36))
         if flags&0x20a or not flags&0x800 or not bb or not bb<be or not bb<=wp<=be or (rp,re,rb,wb,we)!=(bb,bb,bb,bb,be):
@@ -51,25 +51,25 @@ class ConsoleStorage:
             if wp==be:wp=bb
             count=min(be-wp,len(data)-offset)
             memory.write(wp,data[offset:offset+count]);wp+=count;offset+=count
-        # Every console emitter explicitly fflushes every stream it uses.
-        # A successful flush resets the put pointer without clearing bytes.
-        memory.put_u32(address+20,bb)
+        # Existing emitters flush by default. Explicit ABI callers retain
+        # the put pointer until source fflush resets it, preserving tails.
+        memory.put_u32(address+20,bb if flush else wp)
 
-    def emit(self,kind,text,to_log=True):
+    def emit(self,kind,text,to_log=True,*,flush=True):
         text=text.encode()if isinstance(text,str)else bytes(text)
         record=dict(kind=kind,text=text.hex(),**self.position)
         if kind in ('message','error'):record['to_log']=bool(to_log)
         self.calls.append(record)
-        if kind=='status':self._write('stdout',b'\r'+text);return
+        if kind=='status':self._write('stdout',b'\r'+text,flush=flush);return
         if kind=='output':
-            self._write('stdout',text);self._write('log',text)
-            if self.inputs['recording']:self._write('recording',text)
+            self._write('stdout',text,flush=flush);self._write('log',text,flush=flush)
+            if self.inputs['recording']:self._write('recording',text,flush=flush)
             return
         if kind not in ('message','error'):raise ValueError('Unknown source console emitter')
-        self._write('stdout',b'\n'+text)
+        self._write('stdout',b'\n'+text,flush=flush)
         logged=b'\n'+text+(b'\n'if kind=='error'else b'')
-        if to_log:self._write('log',logged)
-        if self.inputs['recording']:self._write('recording',logged)
+        if to_log:self._write('log',logged,flush=flush)
+        if self.inputs['recording']:self._write('recording',logged,flush=flush)
 
     def warning(self,text):self.emit('error',text,bool(self.inputs['streams'].get('log')))
     def dot(self):
