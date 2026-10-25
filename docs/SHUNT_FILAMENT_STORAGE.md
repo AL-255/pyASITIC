@@ -41,7 +41,7 @@ array release after CAP scope and before first node whose original request is at
 Every plain run and native outcome remains present. Later bytes and pointers
 are assertions only.
 
-Python and packaged Pyodide produce identical full reports:
+Python and packaged Pyodide both require exact native values:
 
 | Check | Exact coverage |
 | --- | ---: |
@@ -61,11 +61,10 @@ allocation size, pointer or cleanup owner. Changing a later expected table
 word or free pointer produces a required failure without changing the source
 tables or allocator execution.
 
-This table/lifetime comparison does not claim all captured numerical
-workspaces or complete final heap bytes are generated for all 28 runs. Their
-observations are retained for the remaining numerical integration. Final
-allocator comparison here checks the logical state and chunk metadata; it is
-distinct from a complete numerical-byte replay.
+This table/lifetime comparison checks the logical allocator state and chunk
+metadata. The separate numerical replay below additionally checks all captured
+bounded released arrays and complete first-node matrices. Neither comparison
+claims complete final heap-byte equality.
 
 ## Contact-group header fix
 
@@ -89,28 +88,47 @@ with the production CAP solver.
 
 ## Actual branch storage hooks through node entry
 
-The cold and warm coarse-wire branch cases additionally execute the actual
-`StorageHistory` hooks through first node entry. CAP and LMAT buffers and
-inverse workspaces come from the source numerical algorithms, and contacts
-come from the production record generator. The initial driver heap and
-source-generated geometry continue through preparation, numerical arrays,
-branch tables and geometry cleanup without a later byte reset.
+All 28 branch cases now execute the actual `StorageHistory` hooks through
+first node entry. CAP and LMAT buffers and inverse workspaces come from the
+source numerical algorithms, and contacts come from the production record
+generator. The initial driver heap and source-generated geometry continue
+through preparation, numerical arrays, branch tables and geometry cleanup
+without a later byte reset.
 
-Both histories match all 72 allocation/free events, every one of their 28
-released arrays / 696 bytes, final allocator state and all eight CAP/inductive
-node words. This is a two-case complete branch-history check. The broader
-28-case numerical-byte/eddy/via integration remains unfinished; passing table
-checks do not replace it. Existing full storage-history gates remain required.
+The history preserves the native order of small inverses, eddy correction and
+via stores. `prepare_impedance(include_storage=True)` retains the pre-eddy
+impedance alongside the corrected result. Segment-folded correction follows
+the first small inverse's cleanup. Packed square correction writes its actual
+real matrix in column-major order before release. Eddy-only runs still execute
+the final small inverse; the later full-matrix cleanup must preserve that
+result. Via stamps execute from the source records, independently of native
+observer events, into the same shared memory before the final inverse.
 
-Six new tests pass in Python and packaged Pyodide. Fourteen existing CPU
-contact/geometry/lifetime/storage tests pass too. The prior complete
+The numerical replay matches **1,950 allocation/free events**, all **476
+captured released arrays / 193,592 bytes**, **12,576 CAP/inductive first-node
+binary64 words**, all **14 via stores / 56 before-and-after words**, and final
+logical allocator state. This includes coarse/refined wire and square cases,
+repeated branches, explicit ground, coupled wire/balun windings, eddy folding,
+packed square eddy correction and unequal branches. Released-array coverage is
+bounded to the capture's 16,384-byte maximum per allocation; larger released
+arrays are not asserted by this observer. Both first-node matrices are checked
+in full. No final native output initializes or repairs source memory.
+
+Ten tests pass in Python and packaged Pyodide. Mutating a later numerical
+workspace or via result produces the required failure without changing source
+buffers, addresses or allocator execution. Omitting segment-folded eddy
+correction fails the original first-node comparison. Memory attachment also
+defers filament reads until the caller requests the plan, preserving the
+earlier memory-only continuation contract without reseeding any bytes.
+The public mesh preflight independently matches every native branch filament
+and conductor-group count across the fourteen distinct requests.
+Thirteen existing CPU contact/geometry/storage tests pass too. The prior complete
 130-case browser storage-history audit retains zero differences across
 12,877 events and all checked numerical/cache/node words, including its
 native fault and predicted cache errors. The shunt webpage regression also
 passes all 124 geometry histories, GDS/project flows and twelve displayed/
 downloaded models; its six raw phase-word assertions remain required failures.
-The required
-`shunt-filaments` Pages job executes the complete new report and mutation
+The required `shunt-filaments` Pages job executes the complete new report and mutation
 tests. The earlier phase, JOIN/UNJOIN, heap and continuing-process gates are
 unchanged; the six typed-API raw phase-word failures still prevent deployment.
 
@@ -121,7 +139,7 @@ parent hashes, minimal environments and original binary/library digests.
 It is not included in the runtime package. No native instruction, numerical
 input, register, memory, allocation, affinity or returned result is replaced.
 
-Source package: `2af6019d24c14554`; numerical WASM remains SHA-256
+Source package: `ed1c96df0b305682`; numerical WASM remains SHA-256
 `c7869e98f4c18b5414dc172d836e7144ab3ebc0de2de0d1f2eec1a4fe1709186`.
 
 ```sh

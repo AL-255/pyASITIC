@@ -64,41 +64,76 @@ def compare(case,*,return_state=False):
     return report
 
 
-def compare_branch_history(case):
-    """Actual StorageHistory hooks through first node for the coarse wire pair."""
+def compare_branch_history(case,*,return_state=False):
+    """Actual numerical stores through first node on the earlier geometry heap."""
     from reasitic.storage_history import StorageHistory,symmetric_inverse_storage
     from reasitic.contact_storage import write_prepared
-    from audit_shared_heap_original import ported_impedance
+    from reasitic.vias import stamp_memory
+    from audit_shared_heap_original import ported_impedance,via_records
     from audit_cap_storage_original import ported_buffers
     from audit_contact_storage_original import ported_records
-    if case['label']!='wire/coarse':raise ValueError('This complete-history check specifies the coarse wire input')
     prefix,heap,addresses,memory=geometry_setup(case,return_state=True)
-    report=dict(label=case['label'],cache_mode=case['cache_mode'],differences=list(prefix['differences']),events_checked=0,workspace_arrays_checked=0,workspace_bytes_checked=0,node_words_checked=0)
+    report=dict(label=case['label'],cache_mode=case['cache_mode'],differences=list(prefix['differences']),events_checked=0,workspace_arrays_checked=0,workspace_bytes_checked=0,node_words_checked=0,via_stores_checked=0,via_words_checked=0)
+    if report['differences']:return report
+    def check(kind,actual,expected,**where):
+        if actual!=expected:report['differences'].append(dict(kind=kind,actual=actual,original=expected,**where))
     prepared=ported_impedance(case);shape,technology=ported_inductance_geometry(case);mesh=_mesh(case['request'],technology);contacts=ported_records(case);inverse={};buffers=ported_buffers(case,inverse_storage=inverse)
     inverse.update(symmetric_inverse_storage(prepared.full,'ind.full_inverse'))
+    records=via_records(case);eddy=case['request'].get('eddy',False)
+    if records or eddy:inverse.update(symmetric_inverse_storage(prepared.reduced_y,'ind.reduced_inverse'))
+    boundary=None
+    if case['request']['action']=='calctrans':
+        from reasitic.bridge import _shapes
+        from reasitic.solver import discretize
+        first=discretize(_shapes(case['request'],technology)[case['request']['first_winding']],mesh['capacitance_length_cell'],mesh['length_cell'])
+        boundary=sum(s.metal<len(technology.metals)for s in first.segments)
     write_prepared(memory,contacts,addresses)
-    history=StorageHistory(heap,addresses,initial_regions=(),key=heap._cache_key,contacts=contacts,capacitance=buffers,impedance=prepared,technology=technology,mesh=mesh,geometry_addresses=[addresses[f'geometry.segment.{i}']for i in range(len(shape.segments))],via_records=[],inverse_storage=inverse,geometry_shape_address=addresses['geometry.descriptor'],memory=memory)
-    layout=history.filament_layout;plan=iter(combined_network_storage([len(g.contacts)for g in contacts],len(layout.conductors),prepared.filaments,0,clone_segments=len(shape.segments),group_segments=layout.group_segments,clone_children=layout.clone_children))
-    targets={w['event_index']:w for w in case['workspace_storage']}
+    history=StorageHistory(heap,addresses,initial_regions=(),key=heap._cache_key,contacts=contacts,capacitance=buffers,impedance=prepared,technology=technology,mesh=mesh,geometry_addresses=[addresses[f'geometry.segment.{i}']for i in range(len(shape.segments))],via_records=records,termination_boundary=boundary,termination_ohm=float(case['request'].get('termination_ohm',0)),inverse_storage=inverse,geometry_shape_address=addresses['geometry.descriptor'],memory=memory)
+    layout=history.filament_layout;plan=iter(combined_network_storage([len(g.contacts)for g in contacts],len(layout.conductors),prepared.filaments,len(records),clone_segments=len(shape.segments),group_segments=layout.group_segments,clone_children=layout.clone_children,eddy=eddy,eddy_matrix_size=layout.eddy_matrix_size(technology,int(eddy))))
+    targets={w['event_index']:w for w in case['workspace_storage']};produced={};stamps=[];stamp_count=0
     for index,event in enumerate(case['events']):
-        if event['kind']not in('allocate','free'):continue
-        item=next(plan);history.before(item)
-        if item.action=='allocate':
-            address=heap.malloc(item.size);addresses[item.name]=address;history.allocated(item,address)
-        else:
-            address=addresses[item.name]
-            if index in targets:
-                original=targets[index];expected=bytes.fromhex(original['data']);actual=memory.read(address,len(expected))
-                if actual!=expected:report['differences'].append(dict(kind='branch-history-workspace',name=item.name,actual=actual.hex(),original=expected.hex()))
-                report['workspace_arrays_checked']+=1;report['workspace_bytes_checked']+=len(expected)
-            heap.free(address)
-        if address!=event['address']:report['differences'].append(dict(kind='branch-history-address',name=item.name,actual=address,original=event['address']))
-        report['events_checked']+=1
+        if event['kind']in('allocate','free'):
+            item=next(plan);check('branch-history-interface',(item.action,item.allocator),(event['kind'],event['allocator']),event=index);history.before(item)
+            if item.action=='allocate':
+                check('branch-history-request',item.size,event['request'],name=item.name)
+                address=heap.malloc(item.size);addresses[item.name]=address;history.allocated(item,address)
+                if item.name=='ind.via_scratch':
+                    history.begin_stamps()
+                    # Execute every source via, independently of later native
+                    # observer records. These stamps allocate/free no storage.
+                    for group,record in records:
+                        target=addresses['ind.output']+16*group*(len(prepared.groups)+1)
+                        before=memory.read(target,16)
+                        if stamp_memory(memory,target,record):stamps.append((group,target,before,memory.read(target,16)))
+            else:
+                address=addresses[item.name]
+                if index in targets:
+                    original=targets[index];check('branch-history-workspace-owner',address,original['address'],name=item.name)
+                    check('branch-history-workspace-size',history.sizes[item.name],original['size'],name=item.name)
+                    expected=bytes.fromhex(original['data']);actual=memory.read(address,len(expected));produced[item.name]=actual
+                    check('branch-history-workspace',actual.hex(),expected.hex(),name=item.name)
+                    report['workspace_arrays_checked']+=1;report['workspace_bytes_checked']+=len(expected)
+                heap.free(address);history.released(item)
+            check('branch-history-address',address,event['address'],name=item.name);report['events_checked']+=1
+        elif event['kind']=='via_entry':
+            check('branch-history-via-matrix-owner',addresses['ind.output'],case['via']['matrix']['data'])
+            check('branch-history-via-matrix-size',len(prepared.groups),case['via']['matrix']['size'])
+            check('branch-history-via-shape-owner',addresses['geometry.descriptor'],case['via']['shape_address'])
+        elif event['kind']=='via_write':
+            group,address,before,after=stamps[stamp_count];stamp_count+=1
+            check('branch-history-via-ordinal',stamp_count-1,event['ordinal'])
+            check('branch-history-via-index',group,event['index']);check('branch-history-via-owner',address,event['address'])
+            check('branch-history-via-before',before.hex(),event['before']);check('branch-history-via-after',after.hex(),event['after']);report['via_stores_checked']+=1;report['via_words_checked']+=4
+        elif event['kind']=='via_return':history.finish_stamps()
+    check('branch-history-remaining-events',[e.name for e in plan],[])
+    check('branch-history-workspace-count',report['workspace_arrays_checked'],len(targets))
+    check('branch-history-via-count',report['via_stores_checked'],len(records))
     for name,key in(('cap.output','capacitance'),('ind.output','inductance')):
         target=bytes.fromhex(case['node'][key]);actual=memory.read(addresses[name],len(target))
-        if actual!=target:report['differences'].append(dict(kind='branch-history-node',name=name,actual=actual.hex(),original=target.hex()))
+        produced[name]=actual;check('branch-history-node',actual.hex(),target.hex(),name=name)
         report['node_words_checked']+=len(target)//8
     report['differences'].extend(state_differences(heap,next(s for s in case['allocator_states']if s['label']=='node')))
+    if return_state:return report,heap,addresses,memory,produced
     return report
 
 
@@ -109,9 +144,9 @@ def run(fixture):
     contact_results=[contacts(c)for c in fixture['cases']]
     report['contacts']=dict(cases=len(contact_results),differences=sum(len(r['differences'])for r in contact_results),results=contact_results)
     for key in('objects_checked','bytes_checked','unknown_bytes'):report['contacts'][key]=sum(r[key]for r in contact_results)
-    histories=[compare_branch_history(c)for c in fixture['cases']if c['label']=='wire/coarse']
+    histories=[compare_branch_history(c)for c in fixture['cases']]
     report['histories']=dict(cases=len(histories),differences=sum(len(r['differences'])for r in histories),results=histories)
-    for key in('events_checked','workspace_arrays_checked','workspace_bytes_checked','node_words_checked'):report['histories'][key]=sum(r[key]for r in histories)
+    for key in('events_checked','workspace_arrays_checked','workspace_bytes_checked','node_words_checked','via_stores_checked','via_words_checked'):report['histories'][key]=sum(r[key]for r in histories)
     report['differences']+=report['contacts']['differences']+report['histories']['differences']
     return report
 

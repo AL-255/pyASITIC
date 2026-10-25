@@ -31,9 +31,9 @@ class StorageHistory:
         self.contacts=contacts;self.capacitance=capacitance;self.impedance=impedance
         self.capacitance_producer=capacitance_producer
         self.technology=technology;self.mesh=mesh;self.geometry_addresses=geometry_addresses;self.via_records=via_records
-        self.filament_layout=FilamentLayout(impedance.meshed,len(technology.metals))
-        self.filament_pointers=self.filament_layout.pointers(memory,geometry_addresses,addresses=addresses)
+        self._geometry_memory=memory;self._filament_layout=None;self._filament_pointers=None
         self.termination_boundary=termination_boundary;self.cap_written=False;self.sizes={}
+        self.final_y=None
         self.termination_ohm=termination_ohm
         self.inverse_storage={}if inverse_storage is None else inverse_storage
         if memory is None:
@@ -43,6 +43,21 @@ class StorageHistory:
             for segment,address in zip(impedance.meshed.segments,geometry_addresses):
                 self.memory.write(address,struct.pack('<d',segment.start[0]))
             if geometry_shape_address is not None and contacts:self.memory.write(geometry_shape_address,contacts[0].name)
+
+    @property
+    def filament_layout(self):
+        # A continuation can attach its memory before supplying any numerical
+        # context. Read geometry only when the filament plan is requested.
+        if self._filament_layout is None:
+            layout=FilamentLayout(self.impedance.meshed,len(self.technology.metals))
+            pointers=layout.pointers(self._geometry_memory,self.geometry_addresses,addresses=self.addresses)
+            self._filament_layout,self._filament_pointers=layout,pointers
+        return self._filament_layout
+
+    @property
+    def filament_pointers(self):
+        self.filament_layout
+        return self._filament_pointers
 
     def matrix(self,name,values):
         ComplexView(self.memory,self.addresses[name],len(values)).write(values)
@@ -65,10 +80,11 @@ class StorageHistory:
             shunt=R(1e15)if R(self.termination_ohm)<R(float.fromhex('0x1.b7cdfd9d7bdbbp-34'))else R(1)/R(self.termination_ohm)
             view.set(k,k,complex(float(shunt+R(old.real)),old.imag+0.))
         if allocate and name=='ind.reduced_inverse.work':self.matrix('ind.output',self.impedance.reduced_y)
+        if allocate and name=='ind.final_inverse.work'and self.final_y is None:self.finish_stamps()
         if not allocate:
             # With no vias/eddy and admittance output, native LMAT reduces
             # directly to Y and skips both small-matrix inverse wrappers.
-            if name=='ind.full'and not self.via_records:self.matrix('ind.output',self.impedance.reduced_y)
+            if name=='ind.full'and not self.via_records and self.impedance.eddy_details is None:self.matrix('ind.output',self.impedance.reduced_y)
             # Native factor/inverse routines fill pivots and overwrite scratch
             # elements. Do not pretend that constructor zeros are final values.
             if name.endswith(('.pivots','.work','.inverse_work')):
@@ -82,8 +98,21 @@ class StorageHistory:
                 # Native assembly writes only the upper triangle; the
                 # constructor's lower-triangle zeros survive this inverse.
                 self.matrix('ind.full',[[p.full_y[i][j]if i<=j else 0j for j in range(n)]for i in range(n)])
-            if name=='ind.reduced_inverse.inverse_work':self.matrix('ind.output',self.impedance.reduced_z)
+            if name=='ind.reduced_inverse.inverse_work':
+                p=self.impedance
+                self.matrix('ind.output',p.reduced_z if p.pre_eddy_z is None else p.pre_eddy_z)
+            if name=='ind.eddy.matrix':
+                matrix=self.impedance.eddy_details['matrix'];n=len(matrix)
+                self.memory.write(self.addresses[name],b''.join(struct.pack('<d',matrix[i][j])for j in range(n)for i in range(n)))
+                self.matrix('ind.output',self.impedance.reduced_z)
             if name=='ind.final_inverse.inverse_work':self.matrix('ind.output',self.final_y)
+
+    def released(self,event):
+        # Segment folding has no allocated eddy matrix. It follows the first
+        # small inverse's cleanup and precedes via entry / the final inverse.
+        details=self.impedance.eddy_details
+        if event.name=='ind.reduced_inverse.work'and details is not None and 'matrix'not in details:
+            self.matrix('ind.output',self.impedance.reduced_z)
 
     def allocated(self,event,address):
         self.sizes[event.name]=event.size

@@ -345,9 +345,10 @@ failures and the broader numerical/process gates remain required.
 122 native pointer/count tables at construction and release across 28 runs,
 including full allocation/free order and child cleanup. A reused contact-header
 bug is fixed; all 1,064 prepared/numbered contact/group records match their
-defined fields. Two coarse branch histories additionally match every released
-array and first-node matrix through the actual shared storage hooks. Broader
-numerical-byte and startup integration remains unfinished.
+defined fields. All 28 branch histories additionally match the 476 captured
+released buffers, 12,576 first-node matrix words and 14 via stores through the
+actual shared storage hooks, including both eddy paths. Complete heap-byte,
+earlier cache and startup integration remain unfinished.
 
 [Pre-CAP storage](docs/PRELUDE_STORAGE.md) additionally reproduces all 975 FFT
 scratch arrays and 130 stream buffers in the 130 selected native histories:

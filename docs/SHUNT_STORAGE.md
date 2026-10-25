@@ -130,8 +130,9 @@ startup/prompt memory. Its four capacitor phase-word and two JOINSHUNT
 source-address differences remain in the strict zero-difference gate.
 This shared-memory result does not waive them. [Filament-array storage](SHUNT_FILAMENT_STORAGE.md)
 now covers branch table bytes and complete lifetimes/cleanup across all 28
-runs, including native reused contact headers and two actual coarse-wire
-numerical histories. Broader numerical-byte/eddy/via integration and earlier
+runs, including native reused contact headers. All 28 numerical histories now
+match every captured bounded released buffer and complete first-node matrix,
+including eddy correction and via stamps. Complete heap-byte equality and earlier
 contact/cache history through the complete numerical driver remain required. Known
 FCOS/logarithm, trailing-via aliases and continuing-process failures remain
 required; this development branch is undeployed.

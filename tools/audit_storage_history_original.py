@@ -44,7 +44,7 @@ def compare(case,initial_regions=(),*,context=None,return_state=False,console=No
         first=discretize(shapes[case['request']['first_winding']],mesh['capacitance_length_cell'],mesh['length_cell'])
         boundary=sum(s.metal<len(technology.metals)for s in first.segments)
     scope=next(s for s in case['allocator_states']if s['label']=='scope')
-    if records:inverse_storage.update(symmetric_inverse_storage(prepared.reduced_y,'ind.reduced_inverse'))
+    if records or prepared.eddy_details is not None:inverse_storage.update(symmetric_inverse_storage(prepared.reduced_y,'ind.reduced_inverse'))
     if context is None:
         addresses['geometry.descriptor']=case['via']['shape_address'];addresses.update((f'geometry.segment.{i}',p)for i,p in enumerate(case['via']['segment_addresses']))
         key=scope['tcache_key']
@@ -117,7 +117,7 @@ def compare(case,initial_regions=(),*,context=None,return_state=False,console=No
                     observed=workspaces[event_index];assert observed['address']==address and observed['size']==history.sizes[expected.name]
                     native=bytes.fromhex(observed['data']);check_bytes(address,native,'workspace-word',name=expected.name)
                     result['workspace_arrays_checked']+=1;result['workspace_bytes_checked']+=len(native)
-                try:heap.free(address)
+                try:heap.free(address);history.released(expected)
                 except UnknownMemory as error:
                     result['differences'].append(dict(kind='unknown-allocator-read',name=expected.name,address=error.address));break
             result['events_checked']+=1

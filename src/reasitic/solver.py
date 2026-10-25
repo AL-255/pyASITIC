@@ -121,6 +121,7 @@ class ImpedanceSystem:
     eddy_details: object
     filaments: int
     full_y: list | None = None
+    pre_eddy_z: list | None = None
 
 
 def _filament_geometry(shape,technology,width_cell,thickness_cell,max_width_cells,max_filaments):
@@ -148,8 +149,9 @@ def prepare_impedance(shape,technology,frequency_hz,*,length_cell=1000,width_cel
 
     This is the shared preparation used by solve_impedance. The returned
     reduced impedance includes native eddy correction but no via stores.
-    include_storage retains the full inverse for guest-memory history without
-    changing its calculation; normal solves release that extra reference.
+    include_storage retains the full inverse and a pre-eddy impedance copy
+    for guest-memory history without changing their calculation; normal solves
+    release those extra references.
     """
     values = (frequency_hz,length_cell,width_cell,thickness_cell)
     if not all(math.isfinite(v) and v>0 for v in values):
@@ -183,11 +185,12 @@ def prepare_impedance(shape,technology,frequency_hz,*,length_cell=1000,width_cel
     reduced_y = [[_sum_complex(full_y[r][c] for r in rows for c in columns)
                   for columns in groups] for rows in groups]
     reduced_z = inverse_symmetric(reduced_y)
+    pre_eddy_z=[row.copy()for row in reduced_z]if include_storage and eddy else None
     eddy_details=None
     if eddy:
         from .eddy import add_eddy
         eddy_details=add_eddy(reduced_z,meshed,technology,frequency_hz,int(eddy),warnings)
-    return ImpedanceSystem(meshed,groups,full,reduced_y,reduced_z,warnings,eddy_details,n,full_y if include_storage else None)
+    return ImpedanceSystem(meshed,groups,full,reduced_y,reduced_z,warnings,eddy_details,n,full_y if include_storage else None,pre_eddy_z)
 
 
 def solve_impedance(shape,technology,frequency_hz,*,length_cell=1000,width_cell=1000,
