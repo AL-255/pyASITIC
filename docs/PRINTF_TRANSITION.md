@@ -87,6 +87,12 @@ parity. Remaining work includes select64/kernel/fatal continuation and
 the broader floating-point, JOIN/UNJOIN and mapping discrepancies. It is
 not promoted over the deployed Pages version.
 
+The subsequent [select64 dispatch integration](SELECT_DISPATCH.md) executes
+the timeout setup and syscall-helper saves through VDSO entry. It accounts
+for both polling-word assertions, leaving 32 final fatal/signal words in
+the complete new browser continuation report. The earlier captures and
+strict zero-difference gates remain required.
+
 ```sh
 python tools/capture_printf_transition_original.py --reference ~/github/asitic-re \
   --library-path /path/to/i386/libs --debug-directory /path/to/debug

@@ -91,7 +91,10 @@ uncompressed SHA256
 At this checkpoint these were independent components. The subsequent
 [stdio integration](STDIO_TRANSITION.md) supplies the earlier stream state
 and connects their source operations without loading any per-call snapshot.
-The complete `select64` body, kernel fd readiness and timeout copyback, stdin/libio,
+The subsequent [select64 dispatch source](SELECT_DISPATCH.md) implements
+timeout normalization, the EINVAL return and syscall-helper stores through
+VDSO entry, including independent null/time64/overflow inputs. The rest of
+the `select64` body, kernel fd readiness and timeout copyback, stdin/libio,
 `strcat`, parser child ABI and signal/handler continuation remain unfinished.
 The loader-only comparison retains 618 required differences; the subsequent
 expanded comparison has 556. The older fixture still has 816. All arithmetic, JOIN/UNJOIN, heap/mapping and

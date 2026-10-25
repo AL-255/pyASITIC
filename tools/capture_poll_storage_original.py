@@ -79,9 +79,9 @@ gdb.events.exited.connect(poll_exited)
 '''
 
 
-def commands(debug_directory):
+def commands(debug_directory,observer=OBSERVER):
     return ('set pagination off\nset confirm off\nset debuginfod enabled off\nset breakpoint pending on\n'
-            'set debug-file-directory '+str(debug_directory)+'\nhandle SIGQUIT nostop noprint pass\npython\n'+OBSERVER+
+            'set debug-file-directory '+str(debug_directory)+'\nhandle SIGQUIT nostop noprint pass\npython\n'+observer+
             '\nend\nrun -g -t process.tek -x input.asit < answers.txt\npython\n'
             'signal=poll_exit_signal\nif poll_next is None and gdb.selected_inferior().pid:\n'
             ' try:signal=int(gdb.parse_and_eval("$_siginfo.si_signo"))\n except gdb.error:pass\n'

@@ -149,6 +149,7 @@ jobs:
           - {suite: printf-transition, shard: 6, shards: 8}
           - {suite: printf-transition, shard: 7, shards: 8}
           - {suite: printf-transition, shard: 8, shards: 8}
+          - {suite: select-dispatch, shard: 1, shards: 1}
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
@@ -284,6 +285,8 @@ jobs:
               node tools/check_vfprintf_whole_original.mjs /tmp/reasitic-pyodide/node_modules/pyodide/pyodide.mjs '' "$SHARD" "$SHARDS" ;;
             printf-entry)
               node tools/check_printf_entry_original.mjs /tmp/reasitic-pyodide/node_modules/pyodide/pyodide.mjs '' "$SHARD" "$SHARDS" ;;
+            select-dispatch)
+              node tools/check_select_dispatch_original.mjs /tmp/reasitic-pyodide/node_modules/pyodide/pyodide.mjs ;;
             printf-transition)
               node tools/check_printf_transition_original.mjs /tmp/reasitic-pyodide/node_modules/pyodide/pyodide.mjs '' "$SHARD" "$SHARDS" ;;
             capstorage)

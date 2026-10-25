@@ -15,6 +15,7 @@ from .signal_install_storage import install_console_signals
 from .plt_fixup_storage import PltFixup
 from .dispatch_storage import DispatchStorage,enter_dispatch
 from .poll_storage import poll_select,select64_entry
+from .select_storage import select64_dispatch,select_syscall_entry
 from .repl_storage import ReplStorage
 from .stdin_storage import StdinStorage
 
@@ -180,7 +181,9 @@ class CommandTransition:
             self.printf_calls=repl_storage.printf_calls
             registers=repl_storage.before_poll(installed['main_registers'],installed['line'])
             registers=poll_select(m,registers,loader,loader_context)
-            select64_entry(m,registers,libc_base=libc_base,tls_base=loader_context['tls_base'],sar31_af=stdio['sar31_af'])
+            registers=select64_entry(m,registers,libc_base=libc_base,tls_base=loader_context['tls_base'],sar31_af=stdio['sar31_af'])
+            registers=select64_dispatch(m,registers,libc_base=libc_base,tls_base=loader_context['tls_base'])
+            select_syscall_entry(m,registers,libc_base=libc_base,tls_base=loader_context['tls_base'])
             # The external input is the launcher's regular answers file.
             # Kernel timeout copyback and the child IO frames remain missing
             # source work; every later byte remains in the strict comparison.

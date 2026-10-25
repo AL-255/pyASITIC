@@ -519,6 +519,14 @@ the other 133 histories match. All earlier failing gates remain required.
 The complete CPU comparison is still running; this is not a parity or
 deployment claim.
 
+The [select64 dispatch source](docs/SELECT_DISPATCH.md) now reproduces
+timeout normalization, time32/time64 selection, invalid-input returns and
+the syscall-helper saves through VDSO entry. Complete CPU/browser component
+reports match, including 13 independent edge inputs. Integrated replay
+accounts for the two polling assertions, leaving 32 required final
+fatal/signal words across the complete 134-history browser comparison.
+The strict gate remains zero; kernel and fatal continuation are unfinished.
+
 The [integer formatter](docs/PRINTF_INTEGER.md) also matches all 5,472
 independent native int32 output requests in CPU Python and Pyodide.
 Its seven tests cover integer boundaries, flags/modifiers/precision,

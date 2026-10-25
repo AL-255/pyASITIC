@@ -8,16 +8,26 @@ from reasitic.poll_storage import poll_select,select64_entry
 from reasitic.plt_fixup_storage import PltFixup
 
 
-def compare(fixture,case):
+def compare(fixture,case,*,dispatch=False,phases=None):
     result=dict(label=case['label'],cache_mode=case['cache_mode'],operations_checked=0,words_checked=0,registers_checked=0,fp_bytes_checked=0,differences=[])
     for index,call in enumerate(case['poll_calls']):
         context=call['entry'];libc=next(x for x in context['maps']if x['name'].endswith('/libc.so.6'))
-        for phase,start,end in (('poll','entry','select'),('timeval','select','select64')):
+        operations=phases
+        if operations is None:
+            operations=[('poll','entry','select'),('timeval','select','select64')]
+            if dispatch:operations.extend([('dispatch','select64','syscall'),('syscall','syscall','vdso')])
+        for phase,start,end in operations:
             if start not in call or end not in call:result['differences'].append(dict(kind='poll-missing-boundary',call=index,phase=phase));continue
             a,b=call[start],call[end];m=memory_for(fixture,a)
             try:
                 if phase=='poll':registers=poll_select(m,a['registers'],PltFixup(m,context['loader_base'],tls_base=context['tls_base']),context)
-                else:registers=select64_entry(m,a['registers'],libc_base=m.u32(libc['address']),tls_base=context['tls_base'],sar31_af=fixture['integer_cpu']['sar31_af'])
+                elif phase=='timeval':registers=select64_entry(m,a['registers'],libc_base=m.u32(libc['address']),tls_base=context['tls_base'],sar31_af=fixture['integer_cpu']['sar31_af'])
+                elif phase=='dispatch':
+                    from reasitic.select_storage import select64_dispatch
+                    registers=select64_dispatch(m,a['registers'],libc_base=m.u32(libc['address']),tls_base=context['tls_base'])
+                else:
+                    from reasitic.select_storage import select_syscall_entry
+                    registers=select_syscall_entry(m,a['registers'],libc_base=m.u32(libc['address']),tls_base=context['tls_base'])
             except (ValueError,NotImplementedError)as error:result['differences'].append(dict(kind='poll-runtime',phase=phase,call=index,reason=str(error)));continue
             result['operations_checked']+=1
             def check(actual,expected,kind,unit=4,address=0):
