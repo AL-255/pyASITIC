@@ -59,7 +59,11 @@ def format_inputs(ctx):
  tls=ctx['tls_base'];base=u32(next(x['address']for x in ctx['maps']if x['name'].endswith('/libc.so.6')));got=base+0x22fe34
  thread=u32(tls);size=gdb.lookup_type('struct pthread').sizeof;regions.append(dict(address=tls,data=mem(tls,size).hex()))
  slot=(thread+u32(got+0x16c))&0xffffffff;regions.append(dict(address=slot,data=mem(slot,4).hex()))
- ctx['format_inputs']=dict(elf_data=elf,pthread_size=size,format=fmt,format_bytes=len(raw)+1,format_owner=dict(address=start,size=end-start),locale_slot=slot,locale=u32(slot))
+ ro=gdb.parse_and_eval('_rtld_global_ro');static_size=int(ro['_dl_tls_static_size']);static_align=int(ro['_dl_tls_static_align'])
+ assert static_size>=size and static_align>0 and static_align&(static_align-1)==0
+ static_start=tls-(static_size-size);regions.append(dict(address=static_start,data=mem(static_start,static_size).hex()))
+ ctx['format_inputs']=dict(elf_data=elf,pthread_size=size,format=fmt,format_bytes=len(raw)+1,format_owner=dict(address=start,size=end-start),locale_slot=slot,locale=u32(slot),
+  static_tls=dict(address=static_start,size=static_size,alignment=static_align,tcb_size=size,loader_ro=int(ro.address),size_address=int(ro['_dl_tls_static_size'].address)))
 class FormatPoint(gdb.Breakpoint):
  def __init__(self,pc):super().__init__('*'+hex(pc),internal=True)
  def stop(self):

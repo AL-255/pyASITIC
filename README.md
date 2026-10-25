@@ -483,13 +483,13 @@ remain unfinished.
 The [formatter source and required audits](docs/PRINTF_FORMAT.md) now
 implement entry/literal output, narrow strings, decimal width/precision
 parsing and scalar padding. Its complete CPU report and merged eight-shard
-browser report agree for all 134 histories. All 4,105 entry prefixes and
-2,129 complete literal/string/integer calls execute with exact register, FP and
-helper behavior. Every conversion and complete pthread owner remains
-required: 1,976 unfinished floating-point calls and 762 complete-call rseq CPU-field
-words still fail; the prefix gate retains 380 rseq word differences.
-This work is not connected to continuing replay and does not establish
-formatter parity.
+browser reports agree for all 134 histories. The complete audits now
+executes every one of the 4,105 formatter calls, including all 1,976
+formerly unfinished floating conversions. Registers, produced FP state,
+all 104,036 helpers and non-kernel memory match. The gates still fail on
+4,048 complete-call and 868 prefix rseq word occurrences, including
+overlapping TLS owners. Whole-parent integration and continuing replay
+remain unfinished.
 
 The [integer formatter](docs/PRINTF_INTEGER.md) also matches all 5,472
 independent native int32 output requests in CPU Python and Pyodide.
@@ -501,14 +501,16 @@ The [binary64 decimal component](docs/PRINTF_FLOAT_DIGITS.md) computes the
 original multiprecision scaling and rounding for `e/f/g`. Its independent
 native probe checks 73,360 text outputs and 70,281 finite mantissa
 extractions, including all binary64 exponents and four rounding modes.
-The complete floating formatter ABI and its produced FP state remain
-unfinished; the original floating-call gates are unchanged.
+The [floating formatter ABI flow](docs/PRINTF_FP_FLOW.md) now retains the
+original scratch stores, registers and helper boundaries as well as its
+text and produced FP state. All original calls and kernel words stay required.
 
 The separate [x87 formatter-state component](docs/X87_FORMAT_STATE.md)
 also checks a continuous 41,072-instruction native chain and 2,420 full
 Linux XSAVE observations. It produces masked argument-copy/classification
 state, including sticky exceptions, physical stack slots and comparison
-flags. Binding these components to the complete formatter remains unfinished.
+flags. The complete formatter now uses this state component; integration
+into the vfprintf parent and continuing replay remains unfinished.
 
 Records use binary64 with selected retained-precision intermediates matching the
 reference's x87 arithmetic. The [native logarithm audit](docs/LOGARITHM_AUDIT.md)

@@ -1,8 +1,8 @@
-"""Pinned i386 printf formatter entry, literal and narrow-string output.
+"""Pinned i386 printf literals, narrow strings, integers and binary64 output.
 
 Follows glibc 2.39 stdio-common/vfprintf-internal.c, LGPL-2.1-or-later;
-see web/GLIBC-LGPL-2.1.txt. Numeric formatting and remaining conversion
-branches stay explicit unfinished source work. No host formatting,
+see web/GLIBC-LGPL-2.1.txt. Remaining conversion/error branches stay
+explicit unfinished source work. No host formatting,
 expected text or later state is loaded.
 """
 from .signal_install_storage import add_flags,subtract_flags
@@ -13,17 +13,20 @@ from .printf_padding import PrintfPadding
 from .printf_integer import PrintfInteger
 from .dispatch_storage import logical_flags
 from .getline_bytes import cmp8
+from .x87_format_state import X87FormatState
+from .printf_fp_flow import PrintfFPFlow
 
 MASK=0xffffffff
 
 
 class PrintfFormat:
-    def __init__(self,file_storage,*,shr1_af):
+    def __init__(self,file_storage,*,shr1_af,xstate=None):
         self.file=file_storage;self.m=file_storage.m;self.libc=file_storage.libc;self.got=file_storage.got;self.tls=file_storage.tls
         self.heap=file_storage.heap;self.children=file_storage.children
         self.strings=StrchrnulStorage(self.m,libc_base=self.libc);self.writer=PrintfBuffer(self.m,libc_base=self.libc,shr1_af=shr1_af)
         self.lengths=StrlenStorage(self.m,libc_base=self.libc,shr1_af=shr1_af);self.padding=PrintfPadding(file_storage)
         self.integers=PrintfInteger(self)
+        self.xstate=None if xstate is None else bytes(xstate);self.fp=None;self.fpflow=None
 
     def before_initial_write(self,registers):
         m=self.m;r=dict(registers);s=r['esp'];local=s-1252
@@ -70,7 +73,7 @@ class PrintfFormat:
 
     def _parse(self,r,base):
         m=self.m
-        while r['ecx']not in(self.libc+0x60ce0,self.libc+0x612c8,self.libc+0x612a0,self.libc+0x61240,self.libc+0x61180):
+        while r['ecx']not in(self.libc+0x60ce0,self.libc+0x612c8,self.libc+0x612a0,self.libc+0x61240,self.libc+0x61180,self.libc+0x60788,self.libc+0x6078c):
             handler=r['ecx']-self.libc
             if handler==0x60c00: # '-' flag, through the original first-step table.
                 p=m.u32(base+0x84)+1;m.put_u32(base+0x84,p);r['edx']=m.read(p,1)[0];m.write(base+0x76,b' ');m.put_u32(base+0x18,1)
@@ -104,7 +107,6 @@ class PrintfFormat:
                     if r['eax']==MASK:raise NotImplementedError('Overflowing printf precision needs its error source')
                     r['edx']=m.read(m.u32(base+0x84),1)[0]
                 r=self._dispatch(r,base,-0x72f34)
-            elif handler in(0x60788,0x6078c):raise NotImplementedError('Floating-point printf needs its original formatter source and produced FP state')
             else:raise NotImplementedError('Printf conversion parser and numeric formatter need their source implementation')
         return r
 
@@ -149,7 +151,12 @@ class PrintfFormat:
             jump=m.u32(r['esi']+4*r['eax']);r['ecx']=(jump+r['ebx'])&MASK;r['eflags']=add_flags(jump,r['ebx'],r['eflags'])
             for offset in (0x50,0x30,0x44,0,0x38,0x24,0x18,0x2c,0x28):m.put_u32(base+offset,0)
             r=self._parse(r,base)
-            r=self._string(r,base)if r['ecx']==self.libc+0x60ce0 else self.integers.convert(r,base)
+            if r['ecx']in(self.libc+0x60788,self.libc+0x6078c):
+                if self.xstate is None:raise ValueError('Floating-point printf requires its actual earlier XSAVE input')
+                if self.fp is None:
+                    self.fp=X87FormatState(self.xstate,pointer_mode='masked-error-pointers');self.fpflow=PrintfFPFlow(self,self.fp)
+                r=self.fpflow.execute(dict(r,eip=r['ecx']),stop=0x608a0);self.xstate=self.fp.serialize()
+            else:r=self._string(r,base)if r['ecx']==self.libc+0x60ce0 else self.integers.convert(r,base)
             # 608a0: search and write the next literal span after conversion.
             r['eax']=m.u32(base+0x84);n=m.u32(base+0x34);m.put_u32(base+0x34,n+1)
             r['esi']=(r['eax']+1)&MASK
@@ -169,6 +176,9 @@ class PrintfFormat:
         m.put_u32(r['esp']-4,self.libc+0x605b8)
         incoming=dict(r,esp=r['esp']-4,eip=self.libc+0x58750)
         r=self.file._child('write',incoming,self._write)
+        # 605b8 ADD ESP,16 restores the conversion frame even when the
+        # first field has no width/precision reader to update ESP again.
+        r.update(esp=local+8,eflags=add_flags(local-8,16,r['eflags']))
         mode=m.u32(buffer+20)
         if mode and m.read(end,1)!=b'\0':r=self._conversions(r,local+8)
         if m.u32(local+1220)!=m.u32(self.tls+20):raise ValueError('Printf formatter stack canary mismatch')

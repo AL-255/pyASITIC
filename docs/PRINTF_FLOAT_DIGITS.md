@@ -57,19 +57,14 @@ The verified source package is `faa6feb8ad5e9fbb`; the numerical module
 remains unchanged at SHA-256
 `c7869e98f4c18b5414dc172d836e7144ab3ebc0de2de0d1f2eec1a4fe1709186`.
 
-This is a decimal digit component, **not a completed formatter ABI**.
-`PrintfFormat` still rejects floating conversions. All 1,976 original
-floating formatter calls remain required and unfinished, alongside all
-earlier memory/register/FP/helper comparisons and rseq differences.
-No text-only path is wired in while claiming that unchanged incoming FP
-state is a produced result. The separate [x87 state component](X87_FORMAT_STATE.md)
-now produces the masked binary64 argument-copy and classification state
-against independent native instruction targets. Binding the components
-to original stack allocations, GPR stores, limb helper boundaries and
-complete return state remains unfinished, along with fault/rounding cases
-beyond that component, long double, hexadecimal floating conversion,
-locale and allocation/error paths. Whole-parent and continuing replay
-remain unfinished.
+This is the independently tested decimal digit component. The separate
+[floating ABI flow](PRINTF_FP_FLOW.md) now executes the original scratch
+stores and helper calls using the [x87 state component](X87_FORMAT_STATE.md).
+All 1,976 formerly unfinished original floating calls execute in the
+complete CPU audit, with produced FP state and every earlier required
+target retained. The strict gate still fails on kernel rseq words.
+Whole-parent/continuing integration and remaining extended, hexadecimal,
+locale, allocation and fault branches remain unfinished.
 
 ```sh
 python tools/capture_printf_float_digits_original.py

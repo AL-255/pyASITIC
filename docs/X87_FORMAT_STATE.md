@@ -72,13 +72,13 @@ Reports remain local. The verified source package is `7a46086e96284bad`;
 the numerical module remains unchanged at SHA-256
 `c7869e98f4c18b5414dc172d836e7144ab3ebc0de2de0d1f2eec1a4fe1709186`.
 
-This component is not yet bound to `PrintfFormat` or to the
-[decimal digit component](PRINTF_FLOAT_DIGITS.md). All 1,976 original
-floating formatter calls remain unfinished required targets. Original
-formatter stack/GPR stores, limb helper boundaries, allocation/error
-paths, long double, hexadecimal and locale paths, whole-parent execution
-and continuing replay remain unfinished. The existing full formatter
-gates are unchanged and must still fail.
+The [floating formatter ABI flow](PRINTF_FP_FLOW.md) now uses this
+component in `PrintfFormat`. All 1,976 formerly unfinished floating calls
+execute in the complete CPU audit, including produced FP state, original
+stack/GPR stores and helper boundaries. Required kernel rseq targets
+still fail. Long double, hexadecimal/locale/allocation/fault paths beyond
+the captured calls, whole-parent execution and continuing replay remain
+unfinished.
 
 ```sh
 python tools/capture_x87_formatter_instructions_native.py

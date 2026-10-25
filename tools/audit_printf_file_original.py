@@ -92,7 +92,8 @@ def compare(fixture,case,*,storage_factory=engine):
         for name,value in b['registers'].items():
             if registers.get(name)!=value:result['differences'].append(dict(kind='printf-register',call=index,name=name,actual=registers.get(name),original=value))
             result['registers_checked']+=1
-        check(bytes.fromhex(a['xstate']),bytes.fromhex(b['xstate']),'printf-fp-byte',unit=1);result['fp_bytes_checked']+=len(b['xstate'])//2
+        produced_fp=getattr(storage,'xstate',None)
+        check(bytes.fromhex(a['xstate'])if produced_fp is None else produced_fp,bytes.fromhex(b['xstate']),'printf-fp-byte',unit=1);result['fp_bytes_checked']+=len(b['xstate'])//2
         if len(storage.children)!=len(call['children']):result['differences'].append(dict(kind='printf-child-count',call=index,actual=len(storage.children),original=len(call['children'])))
         for child,(actual,expected)in enumerate(zip(storage.children,call['children'])):
             result['children_checked']+=1

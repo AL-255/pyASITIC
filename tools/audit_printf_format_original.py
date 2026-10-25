@@ -10,7 +10,8 @@ from reasitic.printf_format import PrintfFormat
 
 
 def engine(fixture,state):
-    m,file=file_engine(fixture,state);return m,PrintfFormat(file,shr1_af=fixture['integer_cpu']['shr1_af'])
+    m,file=file_engine(fixture,state);state=expand_state(fixture,state)
+    return m,PrintfFormat(file,shr1_af=fixture['integer_cpu']['shr1_af'],xstate=bytes.fromhex(state['xstate']))
 
 
 def compare(fixture,case,*,prefix=False):

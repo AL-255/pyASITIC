@@ -39,6 +39,10 @@ class PrintfFormatTests(unittest.TestCase):
                 a=unpack_state(f,call['before']);self.assertEqual(a['registers']['esp']+4,call['after']['registers']['esp'])
                 self.assertLessEqual(set(a['environment']),{'PATH','HOME','LANG','LC_ALL','LD_LIBRARY_PATH','TERM','INPUTRC','LINES','COLUMNS','PWD','SHLVL','_'})
                 self.assertEqual(a['format_inputs']['pthread_size'],1216)
+                tls=a['format_inputs']['static_tls'];self.assertEqual(tls['tcb_size'],1216)
+                self.assertGreaterEqual(tls['size'],tls['tcb_size']);self.assertEqual(tls['address']+tls['size'],a['tls_base']+tls['tcb_size'])
+                self.assertEqual(tls['size_address'],tls['loader_ro']+832)
+                self.assertTrue(any(r['address']==tls['address']and r['size']==tls['size']for r in expand_state(f,call['before'])['regions']))
                 libc=next(e for e in a['format_inputs']['elf_data']if e['path'].endswith('/libc.so.6'))
                 self.assertEqual(libc['elf_sha256'],'e936bd40e5479b27721efeade1b502623436a8be2bd8bd0f0ccf8c4f7229a0d0')
                 # This pinned libc has one merged .got, no .got.plt section.
@@ -77,6 +81,20 @@ class PrintfFormatTests(unittest.TestCase):
             address=storage.got+0x16c if which=='got'else m.u32(s+8)if which=='format'else m.u32(m.u32(s+12))
             m.forget(address,4 if which=='got'else 1)
             with self.subTest(which=which),self.assertRaises(UnknownMemory):storage.format(r)
+
+    def test_actual_float_state_is_produced_and_missing_earlier_tls_fails(self):
+        call=self.case['printf_calls'][9];a=expand_state(self.fixture,call['before']);b=expand_state(self.fixture,call['after']);m,storage=engine(self.fixture,a)
+        result=storage.format(a['registers']);self.assertEqual(result,b['registers']);self.assertEqual(storage.xstate,bytes.fromhex(b['xstate']))
+        self.assertNotEqual(storage.xstate,bytes.fromhex(a['xstate']),'Floating execution must produce the changed native FP slots/status')
+        self.assertEqual(storage.children,call['children'])
+        m,storage=engine(self.fixture,a);slot=(a['tls_base']+m.u32(storage.got+0x90))&0xffffffff;m.forget(slot,4)
+        with self.assertRaises(UnknownMemory):storage.format(a['registers'])
+
+    def test_float_arguments_are_computed_and_earlier_fp_is_required(self):
+        a=expand_state(self.fixture,self.case['printf_calls'][9]['before']);m,storage=engine(self.fixture,a);s=a['registers']['esp'];buf=m.u32(s+4);pointer=m.u32(buf+4);args=m.u32(s+12)
+        m.write(args,bytes.fromhex('000000000000f43f'));storage.format(a['registers']);self.assertIn(b'1.25',m.read(pointer,m.u32(buf+4)-pointer))
+        m,storage=engine(self.fixture,a);storage.xstate=None
+        with self.assertRaisesRegex(ValueError,'actual earlier XSAVE'):storage.format(a['registers'])
 
     def test_target_changes_never_disappear_behind_unfinished_conversions(self):
         f=self.fixture;c=copy.deepcopy(self.one);call=c['printf_calls'][0];b=expand_state(f,call['after']);call['after']=b

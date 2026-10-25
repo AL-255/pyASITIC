@@ -6,11 +6,13 @@ literal spans, narrow strings, decimal width/precision parsing, scalar
 string probes and padding stores. They use the same guest memory and
 buffer writer as `PrintfFile`. They do not call host string formatting,
 load expected output, or substitute a later native snapshot. The
-[integer component](PRINTF_INTEGER.md) adds native int32 paths. The separate
-[decimal component](PRINTF_FLOAT_DIGITS.md) computes binary64 e/f/g digits
-but is not yet bound to the original formatter ABI or produced FP state. Floating,
-wide, positional, registered-handler, null-string and flush/error paths
-remain explicit unfinished source branches.
+[integer component](PRINTF_INTEGER.md) adds native int32 paths. The
+[floating ABI flow](PRINTF_FP_FLOW.md) now executes binary64 decimal
+conversion with the original scratch stores, helper calls and produced
+FP state. The independent [decimal](PRINTF_FLOAT_DIGITS.md) and
+[x87](X87_FORMAT_STATE.md) components supply additional native checks.
+Extended/hexadecimal, wide, positional, registered-handler, null-string
+and remaining flush/error paths stay explicit unfinished branches.
 
 `capture_printf_format_original.py` observes every formatter invocation
 in the existing 67 jobs, cold and warm. This includes calls outside the
@@ -22,7 +24,8 @@ metadata. No non-FILE pointer is reinterpreted as a FILE.
 
 Earlier owned data includes stack, heap, arena, ELF read-only/data/GOT
 sections, full `struct pthread`, format bytes with actual aligned padding,
-locale controls and actual output-buffer owners. Later complete memory,
+locale controls, the complete loader-declared static TLS extent and actual
+output-buffer owners. Later complete memory,
 heap/errors, 17 registers, XSAVE bytes and every captured helper entry and
 return remain assertions. All overlapping owners and partial words are
 retained. The initial write boundary supplies a separate prefix audit,
@@ -34,41 +37,52 @@ The first full capture omitted the libc GOT locale slot. Its complete
 The source failed on that unknown earlier word; it did not infer the word
 from later state. A corrected capture owns the GOT sections at entry.
 
-The corrected full archive retains all 134 histories, 4,105 formatter
+The full archive retains all 134 histories, 4,105 formatter
 calls and 104,036 captured helpers: 3,973 FILE-buffer calls and 132
 memory-buffer calls. Both native fault histories remain present (one
 SIGSEGV, one SIGABRT), alongside 132 normal observed runs. The lossless
-codec verifies 12,315 states, 54,055 pages and every ordered owner. The
-two-part archive is 56,655,603 bytes, SHA-256
+codec verifies 12,315 states, 54,708 pages and every ordered owner. The
+two-part archive is 56,824,093 bytes, SHA-256
+`3229e7382362788a7f958b89e50f22ee8ce9ec0f72c6a3570b2dac91021b5693`.
+The earlier 56,655,603-byte archive is retained unchanged locally at
+`/tmp/pyasitic-printf-format-before-static-tls`, SHA-256
 `edc7724655ee6279ee2f224b41f351ed5c0d23cd0fb321734173447e74b41278`.
+The static-TLS recapture preserves every request/script/stdin/variant,
+native outcome and per-history call/helper count. It corrects the missing
+earlier ctype TLS slot without inferring a pointer from later state.
 
 The entry audit executes every one of the 4,105 prefixes. It compares
-1,371,660,698 four-byte units, 69,785 final registers, 10,016,200 FP
+1,374,813,338 four-byte units, 69,785 final registers, 10,016,200 FP
 bytes and 139,570 registers at 4,105 search-helper boundaries. Registers,
-FP and helpers match; 380 kernel-maintained rseq CPU-field words remain
+FP and helpers match; 868 kernel-maintained rseq CPU-field word occurrences remain
 required memory differences.
 
-The complete audit attempts all 4,105 calls and executes 2,129 complete
-literal/string/integer calls, including the nine-column `%-11.11s` format
-and all 132 native `asctime` formatters. It compares
-710,969,455 four-byte units, 36,193 final registers, 5,194,760 FP bytes and
-933,980 registers at 27,470 helper boundaries. Registers, FP and helpers
-match. The gate still fails on 1,976 unimplemented floating-point
-calls and 762 rseq CPU-field words. No conversion cohort is
-removed, and no unexecuted call or its helpers are declared complete.
+The complete CPU and browser audits execute all 4,105 calls, adding all 1,976 formerly
+unfinished floating calls to the literal/string/integer paths, including
+the nine-column `%-11.11s` format and all 132 native `asctime` formatters.
+It compares 1,374,813,338 four-byte units, 69,785 final registers,
+10,016,200 produced FP bytes and 3,537,224 registers at all 104,036 helper
+boundaries. Registers, FP, helpers and non-kernel memory match. The gate
+still fails on 4,048 rseq CPU-field word occurrences. No conversion,
+owner or overlapping assertion is removed.
 
-The full CPU report and merged eight-shard browser report are identical
-in every case, counter and difference. Eight corrected CPU shards also
-merge to that same complete report. Each corrected shard runs nine
-tests: eight pass, while the combined native comparison retains two
-failing subtests (prefix and complete). All shards exit nonzero.
+Eight disjoint CPU and browser shards run the complete required tests.
+Their merged reports agree exactly in every case, counter and difference.
+All sixteen final shard runs execute eleven tests: ten pass, and the
+combined native comparison retains two failing subtests. All exit nonzero.
+Both native comparison subtests (prefix and complete) remain failing
+because the kernel-maintained rseq words are required. The new regression
+checks require actual earlier FP and TLS inputs, changed float arguments
+to reach output, and produced FP bytes to match their changed native
+state. Reports retain every case, counter and difference.
 
 The rseq words are part of the complete pthread owner and are not
 exempted. CPU affinity, the inferior, return state and recorded targets
 are not changed to hide CPU migration.
 The pinned libc debug type places `rseq_area.cpu_id_start` and `cpu_id`
 at pthread offsets 1184 and 1188 (`0x4a0` and `0x4a4`), with a complete
-pthread size of 1216 bytes. These targets need external kernel-event
+pthread size of 1216 bytes. The full static-TLS owner also includes those
+words, and both overlapping assertions stay required. These targets need external kernel-event
 modeling; the formatter's string instructions do not write them.
 
 Both strict audits, all native histories and all original terminal
@@ -90,6 +104,6 @@ node tools/check_printf_format_original.mjs /path/to/pyodide.mjs /tmp/format-par
 
 No formatter call boundary initializes continuing replay. The broader
 continuing gate's 198 required differences remain unresolved.
-The verified source package is `487886e57d1cec75`; the compiled numerical
+The verified source package is `ba1bb18a1356eb05`; the compiled numerical
 module remains unchanged at SHA-256
 `c7869e98f4c18b5414dc172d836e7144ab3ebc0de2de0d1f2eec1a4fe1709186`.

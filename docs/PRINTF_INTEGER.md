@@ -67,9 +67,10 @@ python tools/build_site.py
 node tools/check_printf_integer_original.mjs /path/to/pyodide.mjs /tmp/integer-wasm.json
 ```
 
-Long-long integers, floating-point formatting with produced FP state,
-localized/grouped formatting and remaining parser/error/flush branches
-remain unfinished. No call snapshot initializes continuing replay; the
+The subsequent [floating ABI flow](PRINTF_FP_FLOW.md) now implements the
+captured binary64 floating paths with produced FP state. Long-long
+integers, localized/grouped formatting and remaining parser/error/flush
+branches stay unfinished. No call snapshot initializes continuing replay; the
 broader 198-difference gate remains required. The verified source package
 is `487886e57d1cec75`. The numerical module remains unchanged at SHA-256
 `c7869e98f4c18b5414dc172d836e7144ab3ebc0de2de0d1f2eec1a4fe1709186`.
