@@ -35,11 +35,26 @@ of calls. GDB outcomes are 132 next-driver stops, one SIGSEGV and one
 SIGABRT. Plain runs retain 127 normal outcomes, six SIGABRTs and one
 SIGSEGV. Every actual outcome remains recorded.
 
-The full source comparisons are running. The two-history prototype matches
-all 426 captured calls in CPU Python and Pyodide, including every region,
-register, FP byte and child register boundary. This does not establish
-full-cohort source parity or exact whole-program completion. The earlier
-continuing gate retains its 198 required differences.
+CPU Python and Pyodide now match **all 28,143 captured calls**, with identical
+complete reports and zero native comparison differences. The audit checks
+6,723,271,384 four-byte units, 478,431 return registers, 68,668,920 FP bytes
+and all 826,404 entry/return registers of the 24,306 memcpy children. Units
+include overlapping owners and partial-word tails. Each of the 134 histories
+occurs exactly once in the merged eight-shard browser report; every counter
+and per-case result agrees with the unsharded CPU report.
+
+The 196-case focused CPU run passed its full source audit and every other
+test except a stale provenance check that expected context fields inline.
+That check now verifies the factored context hashes and original fields,
+and passes targeted reruns in CPU Python and Pyodide. Its recorded initial
+error was not converted into an accepted result. The first two complete
+browser jobs were rerun with the corrected test and retain identical native
+reports. All eight complete browser jobs now pass all 15 component and
+storage tests. No numerical source, target byte or tolerance changed.
+
+This establishes full-cohort parity for the buffer writer. Printf parsing,
+formatting, parent frames and whole-program completion remain unfinished.
+The earlier continuing gate retains its 198 required differences.
 
 ## Storage and reproduction
 
@@ -65,7 +80,7 @@ each part as a separate gzip file. The archive SHA-256 is:
 
 Future captures compact each complete native state while collecting it,
 verify the page conversion, and update the archive parts and manifest
-automatically. The running capture used the earlier dense producer; its
+automatically. This capture used the earlier dense producer; its
 GDB observer is byte-identical to the updated capture tool. No native
 recapture or altered observation was used to change the storage format.
 

@@ -456,6 +456,13 @@ on their existing buffers, resolving 86 required memory differences without
 introducing new ones. Its 198 remaining differences and all older failing
 gates remain required; exact whole-program fidelity is still unfinished.
 
+The [printf buffer writer](docs/PRINTF_BUFFER.md) matches all 28,143 native
+calls across the complete 134-history corpus in CPU Python and Pyodide,
+including every owned region, return register, FP byte and memcpy child
+entry/return register. Lossless archive parts retain every original target.
+Printf's parent formatting algorithms still need integration, so the
+198-difference continuing gate remains required and failing.
+
 Records use binary64 with selected retained-precision intermediates matching the
 reference's x87 arithmetic. The [native logarithm audit](docs/LOGARITHM_AUDIT.md)
 adds 8,182 instruction cases and 10,327 multiplier cases with complete request
