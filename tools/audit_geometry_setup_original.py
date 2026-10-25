@@ -13,27 +13,34 @@ from audit_allocator_original import state_differences
 from audit_cap_prelude_original import compare as prelude
 
 
-def compare(case,*,return_state=False,include_prelude=True,observe_headers=False,initial_regions=()):
+def compare(case,*,return_state=False,include_prelude=True,observe_headers=False,initial_regions=(),source_context=None):
     context=case['setup_context'];output=case['setup_output'];initial=case['allocator_states'][0]
     assert initial['label']=='driver_entry'
-    heap=Heap(initial);memory=Memory(heap.address_space)
-    for region in context['memory_regions']:memory.write(region['address'],bytes.fromhex(region['data']))
-    memory.write(initial['arena_address'],bytes.fromhex(initial['arena_bytes']))
-    for address,data in initial_regions:memory.write(address,data)
-    strings=context['strings'];memory.write(strings['address'],bytes.fromhex(strings['data']))
-    geometry=GeometryStorage(heap,memory,context['head'])
-    geometry.strings=LegacyStrings(memory,geometry.string_allocate,geometry.release,nil_address=strings['nil_address'],pool_address=strings['pool_address'])
+    if source_context is None:
+        heap=Heap(initial);memory=Memory(heap.address_space)
+        for region in context['memory_regions']:memory.write(region['address'],bytes.fromhex(region['data']))
+        memory.write(initial['arena_address'],bytes.fromhex(initial['arena_bytes']))
+        for address,data in initial_regions:memory.write(address,data)
+        strings=context['strings'];memory.write(strings['address'],bytes.fromhex(strings['data']))
+        geometry=GeometryStorage(heap,memory,context['head'])
+        geometry.strings=LegacyStrings(memory,geometry.string_allocate,geometry.release,nil_address=strings['nil_address'],pool_address=strings['pool_address'])
+    else:
+        if initial_regions:raise ValueError('Continuing geometry cannot load initial regions')
+        geometry=source_context['geometry'];heap=geometry.heap;memory=geometry.memory
     # The initial tcache is caller state. Subsequent cache stores and geometry
     # stores share these bytes; there is no contacts-entry byte reset.
-    key=None
-    for chain in initial['tcache']:
-        if chain:
-            key=memory.u32(chain[0]+4);break
-    if key is None:raise ValueError('Capture needs an initial tcache key observation')
-    heap.observe_cache_stores(memory,key)
-    if observe_headers:heap.observe_header_stores(memory)
+    if source_context is None:
+        key=None
+        for chain in initial['tcache']:
+            if chain:
+                key=memory.u32(chain[0]+4);break
+        if key is None:raise ValueError('Capture needs an initial tcache key observation')
+        heap.observe_cache_stores(memory,key)
+        if observe_headers:heap.observe_header_stores(memory)
     mesh=_mesh(case['request'],Technology.from_text(case['request']['technology']))
-    first,second=geometry.setup(context['driver'],context['arguments'],cap_length=mesh['capacitance_length_cell'],length=mesh['length_cell'])
+    driver=context['driver']if source_context is None else source_context['driver']
+    arguments=context['arguments']if source_context is None else source_context['arguments']
+    first,second=geometry.setup(driver,arguments,cap_length=mesh['capacitance_length_cell'],length=mesh['length_cell'])
     result=dict(label=case['label'],cache_mode=case['cache_mode'],events_checked=0,allocations_checked=0,geometry_bytes_checked=0,string_bytes_checked=0,prefix=None,differences=[])
     differences=result['differences'];observed=case['setup_events']
     if len(geometry.events)!=len(observed):differences.append(dict(kind='event-count',actual=len(geometry.events),original=len(observed)))

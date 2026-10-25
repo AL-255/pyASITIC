@@ -370,8 +370,16 @@ analysis entry in all 28 histories. Explicit ground parsing now resets only
 primary mesh counts and forwards the parsed reference to the next driver.
 The added 28 full heaps, 56 parser/header boundaries and 28 generated files
 match; together these driver/node/command histories require 206 complete
-output heaps / 52,813,824 words. Startup/FP, subsequent numerical analyses and
+output heaps / 52,813,824 words. Startup/FP and
 the strict phase/math gaps remain unfinished; this branch is not deployed.
+
+[Consecutive branch analyses](docs/SHUNT_SECOND_DRIVER.md) now continue all 28
+histories through the second complete driver/node solve on that same memory.
+They reuse existing cache tables, preserve native caller-frame/flag stores,
+and require all 2,520 second-entry/scope cache-table observations and 304 added
+console calls. Counting the shared entry boundary once, the two-solve replay
+checks 384 complete output heaps / 98,592,768 words. Broader startup/FP,
+changed-frequency cache paths and subsequent port records remain unfinished.
 
 [Pre-CAP storage](docs/PRELUDE_STORAGE.md) additionally reproduces all 975 FFT
 scratch arrays and 130 stream buffers in the 130 selected native histories:

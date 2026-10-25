@@ -91,15 +91,17 @@ new tests and every complete branch continuation, alongside all older gates.
 
 Earlier driver-entry heap/scene/strings, cache bindings/files, console ABI and
 entry ESP are still explicit inputs. Complete startup, the whole caller stack
-and FP state, outer command return, subsequent analyses and the remaining
+and FP state, full outer command cleanup, later analyses and the remaining
 hardware-math/phase/alias paths are unfinished. The six typed-API raw phase-word
 failures remain required; this development branch is not deployed.
 
 The later [command continuation](SHUNT_COMMAND_TRANSITION.md) now carries this
 same source memory through the outer script parser and port-file setup to the
 next analysis entry in all 28 cases. It adds 28 full heaps and checks the next
-driver's reference arguments. That subsequent numerical solve remains outside
-the current continuous replay.
+driver's reference arguments. The
+[second-driver continuation](SHUNT_SECOND_DRIVER.md) extends all 28 selected
+histories through that following solve and return on the same source heap.
+Complete startup/FP and later port records remain unfinished.
 
 The archive `shunt_node_history_original.json.gz` is 15,738,418 bytes,
 SHA-256 `a397c6ede8441115decec48bb37b798f993cda3723e0dc9a743c101c76228308`.

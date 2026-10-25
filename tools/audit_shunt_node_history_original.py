@@ -7,8 +7,9 @@ from audit_node_history_original import compare as node
 from audit_shunt_driver_history_original import compare as driver
 
 
-def compare(fixture,entry,*,return_state=False,console=None,initial_regions=()):
-    return node(fixture,entry,return_state=return_state,driver_compare=driver,console=console,initial_regions=initial_regions)
+def compare(fixture,entry,*,return_state=False,console=None,initial_regions=(),observe_driver_boundary=None):
+    def producer(*args,**kwargs):return driver(*args,**kwargs,observe_boundary=observe_driver_boundary)
+    return node(fixture,entry,return_state=return_state,driver_compare=producer,console=console,initial_regions=initial_regions)
 
 
 def run(fixture):

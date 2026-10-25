@@ -14,13 +14,13 @@ from audit_allocator_original import state_differences
 from capture_node_history_original import expand_case
 
 
-def compare(fixture,entry,*,return_state=False,console=None,initial_regions=(),driver_compare=None):
+def compare(fixture,entry,*,return_state=False,console=None,initial_regions=(),driver_compare=None,expanded_case=None,console_start=0,report_model=True):
     if console is None:console=ConsoleStorage(entry['console_inputs'])
     console.position['post_events']=0
     producer=driver if driver_compare is None else driver_compare
     before,heap,addresses,memory=producer(fixture,entry,return_state=True,console=console,initial_regions=initial_regions)
     result=dict(label=entry['label'],cache_mode=entry['cache_mode'],before=before,differences=list(before['differences']),events_checked=0,allocations_checked=0,buffers_checked=0,buffer_bytes_checked=0,heap_boundaries_checked=0,heap_words_checked=0,unknown_heap_bytes=0,port_words_checked=0,port_memory_words_checked=0,unknown_port_bytes=0,console_calls_checked=0,faults_checked=0)
-    case=expand_case(fixture,entry)
+    case=expand_case(fixture,entry)if expanded_case is None else expanded_case
     def check(address,native,kind,**identity):
         try:complete=memory.read(address,len(native))
         except UnknownMemory:complete=None
@@ -78,7 +78,7 @@ def compare(fixture,entry,*,return_state=False,console=None,initial_regions=(),d
                         boundary('node_return');ports(case['post_output']['ports'],history.ports)
                         if case['post_output']['status']!=1:result['differences'].append(dict(kind='node-status',actual=1,original=case['post_output']['status']))
                         cap=bytes.fromhex(case['post_output']['capacitance']);check(addresses['cap.output'],cap,'node-cap-word')
-                        console.report_nodes(history.ports,_frequency(case['request']),transformer=case['request']['action']=='calctrans')
+                        if report_model:console.report_nodes(history.ports,_frequency(case['request']),transformer=case['request']['action']=='calctrans')
                     address=addresses[event.name]
                     if address!=native['address']:result['differences'].append(dict(kind='post-free-owner',name=event.name,actual=address,original=native['address']))
                     record=buffers[index];expected_size=history.sizes.get(event.name,16*n*n)
@@ -96,9 +96,9 @@ def compare(fixture,entry,*,return_state=False,console=None,initial_regions=(),d
             boundary('driver_return');ports(case['post_driver']['ports'],history.ports)
             if case['post_driver']['status']!=1:result['differences'].append(dict(kind='driver-status',actual=1,original=case['post_driver']['status']))
         if result['buffers_checked']!=len(buffers):result['differences'].append(dict(kind='post-buffer-count',actual=result['buffers_checked'],original=len(buffers)))
-    original=case['console_calls'];result['console_calls_checked']=min(len(console.calls),len(original))
-    if len(console.calls)!=len(original):result['differences'].append(dict(kind='console-call-count',actual=len(console.calls),original=len(original)))
-    for index,(actual,expected)in enumerate(zip(console.calls,original)):
+    original=case['console_calls'];calls=console.calls[console_start:];result['console_calls_checked']=min(len(calls),len(original))
+    if len(calls)!=len(original):result['differences'].append(dict(kind='console-call-count',actual=len(calls),original=len(original)))
+    for index,(actual,expected)in enumerate(zip(calls,original)):
         if actual!=expected:result['differences'].append(dict(kind='console-call',index=index,actual=actual,original=expected))
     if return_state:return result,heap,addresses,memory
     return result

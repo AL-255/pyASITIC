@@ -17,17 +17,20 @@ from audit_allocator_original import state_differences
 from project_prelude_storage_original import expand_case
 
 
-def compare(case,*,return_state=False,cache_files=None,console=None,initial_regions=(),observe_boundary=None):
+def compare(case,*,return_state=False,cache_files=None,console=None,initial_regions=(),observe_boundary=None,source_context=None):
     from reasitic.cache_storage import CacheStorage,initial_regions as cache_regions
     cached=cache_files is not None
-    console_regions=console.initial_regions(tuple((r['address'],bytes.fromhex(r['data']))for r in case['setup_context']['memory_regions']))if console is not None else()
-    regions=tuple(cache_regions(case['cache_inputs'])if cached else())+console_regions+tuple(initial_regions)
-    before,heap,addresses,memory=geometry(case,return_state=True,include_prelude=False,observe_headers=True,initial_regions=regions)
+    console_regions=console.initial_regions(tuple((r['address'],bytes.fromhex(r['data']))for r in case['setup_context']['memory_regions']))if console is not None and source_context is None else()
+    if source_context is not None:
+        if initial_regions:raise ValueError('Continuing prelude cannot load initial regions')
+        regions=()
+    else:regions=tuple(cache_regions(case['cache_inputs'])if cached else())+console_regions+tuple(initial_regions)
+    before,heap,addresses,memory=geometry(case,return_state=True,include_prelude=False,observe_headers=True,initial_regions=regions,source_context=source_context)
     result=dict(label=case['label'],cache_mode=case['cache_mode'],geometry=before,events_checked=0,allocations_checked=0,file_records_checked=0,header_arrays_checked=0,workspaces_checked=0,file_buffers_checked=0,bytes_checked=0,unknown_bytes=0,differences=list(before['differences']))
     if result['differences']:return result
     initial=next(s for s in case['allocator_states']if s['label']=='contacts_entry')
-    counts,metals,substrates,nx=dimensions(case);abi=initial['io_abi'];block=abi['filesystem_block_size']
-    plan=capacitance_prelude_storage(counts,metals,substrates,nx,cache_mode=case['cache_mode'],file_bytes=abi['file_plus']+abi['lock']+abi['wide_data'],buffer_bytes=min(abi['buffer_default'],block)if block>0 else abi['buffer_default'])
+    counts,metals,substrates,nx=dimensions(case);abi=initial['io_abi']if source_context is None else source_context['io_abi'];block=abi['filesystem_block_size']
+    plan=capacitance_prelude_storage(counts,metals,substrates,nx,cache_mode=case.get('prelude_cache_mode',case['cache_mode']),file_bytes=abi['file_plus']+abi['lock']+abi['wide_data'],buffer_bytes=min(abi['buffer_default'],block)if block>0 else abi['buffer_default'])
     objects={e.name:e for e in plan if e.action=='allocate'};observed={r['event_index']:r for r in case['prelude_storage']}
     inputs=case['libio_inputs'];stdio=case.get('transition_inputs',{}).get('stdio_context',{});errno_address=None
     if stdio.get('printf_abi'):
@@ -36,12 +39,14 @@ def compare(case,*,return_state=False,cache_files=None,console=None,initial_regi
     files=FileStorage(memory,inputs,errno_address=errno_address)
     technology=Technology.from_text(case['request']['technology']);frequency=_frequency(case['request']);contacts=ported_records(case);prepared=False
     driver=next(s for s in case['allocator_states']if s['label']=='driver_entry');history_index=None
-    if 'esp'in driver:
+    if source_context is not None or 'esp'in driver:
         from reasitic.contact_stack import contact_frames
-        history_index=contact_frames(case['setup_context']['driver'],driver['esp'])['index']
+        history_index=contact_frames(source_context['driver']if source_context is not None else case['setup_context']['driver'],source_context['driver_esp']if source_context is not None else driver['esp'])['index']
     cache=CacheStorage(memory,case['cache_inputs'],technology,frequency,cache_files)if cached else None
     if console is not None:
-        console.bind(memory);console.position['setup_events']=before['events_checked'];console.begin_capacitance(frequency)
+        if source_context is None:console.bind(memory)
+        elif console.memory is not memory:raise ValueError('Continuing console must retain the driver memory')
+        console.position['setup_events']=before['events_checked'];console.begin_capacitance(frequency)
     if observe_boundary is not None:observe_boundary('contacts_entry',heap,addresses,memory)
     if len(plan)!=len(case['prefix_events']):result['differences'].append(dict(kind='event-count',actual=len(plan),original=len(case['prefix_events'])))
     for index,(event,native)in enumerate(zip(plan,case['prefix_events'])):
@@ -114,6 +119,10 @@ def compare(case,*,return_state=False,cache_files=None,console=None,initial_regi
         if address!=native['address']:result['differences'].append(dict(kind='address',index=index,name=name,actual=address,original=native['address']))
         result['events_checked']+=1
         if console is not None:console.position['prefix_events']=result['events_checked']
+    if not prepared:
+        write_prepared(memory,contacts,addresses,history_index=history_index)
+        if cache is not None:cache.write_coefficients()
+        if console is not None:console.contacts_ready(sum(counts))
     result['differences'].extend(state_differences(heap,next(s for s in case['allocator_states']if s['label']=='scope'),memory=memory if cached else None))
     if observe_boundary is not None:observe_boundary('scope',heap,addresses,memory)
     if return_state:return result,heap,addresses,memory

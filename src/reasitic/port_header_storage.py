@@ -43,6 +43,42 @@ class NativePortStack:
         address=self.frame-(1208 if command==524 else 1200)
         return address,struct.unpack('<i',self.memory.read(address,4))[0]
 
+    def driver_entry(self,driver,arguments,frequency,termination=0.,*,libc_base):
+        """First sweep sample's actual i386 call layout and argument stores.
+
+        Dispatcher 0x805bd40 reserves 0x444 bytes and saves three registers.
+        Ground export 0x8087770 calls wrapper 0x8052b60; transformer export
+        0x8087ad0 calls CALCTRANS directly. The pending fflush argument in
+        the ground path survives until after the analysis call.
+        """
+        sp=self.frame-0x444-3*4
+        if driver=='calctrans':
+            frame=sp-5*4-4-4  # export arguments, CALL, saved EBP
+            sp=frame-0x24-3*4
+            entry=sp-4-16-3*4-4  # print slot, two doubles, shapes, CALL
+            caller=0x8087bb9
+            data=struct.pack('<3I2d',*arguments,frequency,termination)
+            self.memory.write(entry+4,data);self.memory.write(entry+32,b'\1\0')
+        elif driver=='pi2':
+            export_frame=sp-2*4-4-4
+            sp=export_frame-0x28-3*4
+            flush_entry=sp-4-4  # FILE argument and fflush CALL
+            sync_slot=flush_entry-4-3*4-12-12-4-4
+            # Pinned i386 fflush: saved EBP/registers, twelve local bytes,
+            # twelve alignment bytes, FILE argument and virtual sync CALL.
+            self.memory.put_u32(sync_slot,(libc_base+0x75bd2)&0xffffffff)
+            frame=sp-4-6*4-4-4  # fflush, wrapper arguments, CALL, EBP
+            entry=frame-4-3*4-4-8-2*4-4
+            caller=0x8052c27
+            # The preceding fflush's virtual _IO_SYNC CALL at libc+0x75bcf
+            # writes this return slot. PUSHW 0 later replaces only its low
+            # half, preserving the high bytes in the print-flag padding.
+            assert sync_slot==entry+20
+            self.memory.write(entry+4,struct.pack('<2Id',*arguments,frequency));self.memory.write(entry+20,b'\0\0')
+        else:raise ValueError('Unsupported port analysis driver')
+        self.memory.put_u32(entry,caller)
+        return dict(esp=entry&0xffffffff,ebp=frame&0xffffffff,caller=caller,pc=0x8051280 if driver=='calctrans'else 0x8050b2c)
+
 
 def calendar(timestamp,tzif):
     def block(offset,width):

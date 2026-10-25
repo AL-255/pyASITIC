@@ -14,7 +14,7 @@ from audit_allocator_original import state_differences
 from capture_command_transition_original import expand_case
 
 
-def compare(fixture,entry,*,return_state=False,node_compare=None):
+def compare(fixture,entry,*,return_state=False,node_compare=None,observe_transition=None):
     console=ConsoleStorage(entry['console_inputs']);inputs=entry['transition_inputs']
     initial=tuple((r['address'],bytes.fromhex(r['data']))for r in inputs['initial_regions'])
     if 'loader_context'in inputs:
@@ -112,6 +112,7 @@ def compare(fixture,entry,*,return_state=False,node_compare=None):
                 for name,value in b[phase].items():
                     result['printf_registers_checked']+=1
                     if a[phase].get(name)!=value:result['differences'].append(dict(kind='transition-printf-register',index=index,phase=phase,name=name,actual=a[phase].get(name),original=value))
+    if observe_transition is not None:observe_transition(history)
     if return_state:return result,heap,addresses,memory
     return result
 

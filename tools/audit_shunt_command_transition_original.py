@@ -7,8 +7,9 @@ from audit_command_transition_original import compare as transition
 from audit_shunt_node_history_original import compare as node
 
 
-def compare(fixture,entry,*,return_state=False):
-    return transition(fixture,entry,return_state=return_state,node_compare=node)
+def compare(fixture,entry,*,return_state=False,observe_transition=None,observe_driver_boundary=None):
+    def producer(*args,**kwargs):return node(*args,**kwargs,observe_driver_boundary=observe_driver_boundary)
+    return transition(fixture,entry,return_state=return_state,node_compare=producer,observe_transition=observe_transition)
 
 
 def run(fixture):

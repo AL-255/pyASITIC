@@ -90,10 +90,16 @@ neither introduces nor waives those existing failures.
 
 Earlier driver-entry scene/heap/strings, ABI, files, cache bindings and stack
 remain explicit component inputs. Complete startup, the full caller/FP state,
-the second numerical analysis, further commands/cleanup, the six typed-API raw
+changed-frequency cache paths, further commands/cleanup, the six typed-API raw
 phase-word failures, FCOS/logarithm discrepancies and remaining trailing-via
 aliases are unfinished. This development branch is not deployed and does not
 establish whole-program parity.
+
+The later [second-driver continuation](SHUNT_SECOND_DRIVER.md) now carries
+these 28 source histories through their following complete numerical/node
+solve and return, reusing the first solve's cache and allocator state. It
+retains the earlier inputs and all strict gates above. Changed-frequency
+cache paths and following port-record/close operations remain unfinished.
 
 `shunt_command_transition_original.json.gz` is 16,607,883 bytes, SHA-256
 `ba68ca6de8fbe254d2766c0c89a52245ffab49e5c02ad3e7a82ba1254e94c1d2`.

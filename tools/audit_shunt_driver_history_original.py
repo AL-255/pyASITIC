@@ -9,7 +9,7 @@ from reasitic.memory import UnknownMemory
 from reasitic.contact_stack import contact_frames
 
 
-def compare(fixture,entry,*,return_state=False,console=None,initial_regions=()):
+def compare(fixture,entry,*,return_state=False,console=None,initial_regions=(),observe_boundary=None):
     case=expand_case(fixture,entry);differences=[];words=boundaries=unknown=0
     initial=next(s for s in case['allocator_states']if s['label']=='driver_entry')
     if 'esp'not in initial:raise ValueError('Complete contact replay requires the earlier driver ESP')
@@ -28,6 +28,7 @@ def compare(fixture,entry,*,return_state=False,console=None,initial_regions=()):
                     unknown+=4;differences.append(dict(kind='unknown-early-heap-word',boundary=label,address=address+offset));continue
                 if value!=native[offset:offset+4]:differences.append(dict(kind='early-heap-word',boundary=label,address=address+offset,actual=value.hex(),original=native[offset:offset+4].hex()))
         boundaries+=1
+        if observe_boundary is not None:observe_boundary(label,heap,addresses,memory)
     result,heap,addresses,memory=console_history(fixture,entry,return_state=True,observe_boundary=boundary,console=console,check_calls=console is None,initial_regions=initial_regions)
     contact_entry=next(s for s in case['allocator_states']if s['label']=='contacts_entry')
     if frames['contacts_entry']!=contact_entry['esp']:differences.append(dict(kind='contact-entry-esp',actual=frames['contacts_entry'],original=contact_entry['esp']))
