@@ -6,7 +6,7 @@ from .paired_geometry import _name
 from .retained_scalar import Real as R
 
 ALIASES={}
-for names in [('MOVE','MV'),('MOVEX','MVX'),('MOVEY','MVY'),('MOVETO','MVTO','SETORIG','SETORIGIN'),('ROTATE','ROT','TURN'),('FLIPV','FLIPVERT','VFLIP','VERTFLIP'),('FLIPH','FLIPHORZ','HFLIP','HORZFLIP'),('FLIP','REVERSE','REV','REORDER'),('COPY','CP','DUPLICATE','DUP'),('RENAME','REN','NEWNAME','NAME'),('BEFRIEND','FRIEND'),('UNFRIEND','DEFRIEND'),('PHASE','PH'),('ERASE','DEL','DELETE','RM'),('JOIN','ADD','MATE','COUPLE'),('UNJOIN','SPLIT','BREAK','CUT')]:
+for names in [('MOVE','MV'),('MOVEX','MVX'),('MOVEY','MVY'),('MOVETO','MVTO','SETORIG','SETORIGIN'),('ROTATE','ROT','TURN'),('FLIPV','FLIPVERT','VFLIP','VERTFLIP'),('FLIPH','FLIPHORZ','HFLIP','HORZFLIP'),('FLIP','REVERSE','REV','REORDER'),('COPY','CP','DUPLICATE','DUP'),('RENAME','REN','NEWNAME','NAME'),('BEFRIEND','FRIEND'),('UNFRIEND','DEFRIEND'),('PHASE','PH'),('ERASE','DEL','DELETE','RM'),('JOIN','ADD','MATE','COUPLE'),('UNJOIN','SPLIT','BREAK','CUT'),('SPTOWIRE','DEMOLISH','SP2WIRE','BREAKUP')]:
     ALIASES.update((name,names[0])for name in names)
 
 
@@ -26,7 +26,7 @@ def apply_edits(shapes,technology,edits,*,with_links=False):
     paired=len(shapes)==2 and shapes[0].kind in('transformer','balun')
     generator_parameters=copy.deepcopy(shapes[0].parameters)if shapes else{}
     slots=list(shapes);live=list(range(len(slots)))
-    if any(isinstance(op,dict)and ALIASES.get(str(op.get('command','')).upper())=='UNJOIN'for op in edits):
+    if any(isinstance(op,dict)and ALIASES.get(str(op.get('command','')).upper())in('UNJOIN','SPTOWIRE')for op in edits):
         for shape in slots:
             p=shape.parameters;kind=shape.kind
             shape._native_divisions=int(p['nx'])if kind=='via'else int(p.get('sides',4))if kind in('polygon','ring','symmetric_polygon')else 1 if kind in('wire','capacitor')else 4
@@ -37,7 +37,7 @@ def apply_edits(shapes,technology,edits,*,with_links=False):
     def needs_arena(op):
         if not isinstance(op,dict):return False
         command=ALIASES.get(str(op.get('command','')).upper())
-        if command=='UNJOIN':return True
+        if command in('UNJOIN','SPTOWIRE'):return True
         if command=='JOIN':
             sources=op.get('others',[op['other']]if 'other'in op else[])
             return isinstance(sources,list)and 1<=len(sources)<=11
@@ -72,7 +72,11 @@ def apply_edits(shapes,technology,edits,*,with_links=False):
     def length(op,key):return length_um(op[key],grid_size=.1)
     def winding(value):
         if isinstance(value,bool)or not isinstance(value,int)or not 0<=value<len(live):raise ValueError('Invalid edit winding')
-        return value
+        # Command arguments resolve by name from the native descriptor-list
+        # head. SPTOWIRE can create duplicate names without rejecting them;
+        # subsequent commands therefore reach the most recently created one.
+        selected=slots[live[value]].name
+        return next(i for i in reversed(range(len(live)))if slots[live[i]].name==selected)
     def name(value):
         result=_name(value)
         if not result or len(result.encode('utf8'))>79 or any(c in ' ,\t\n\r\v\f'for c in result):raise ValueError('Edit name must be one command token of 1–79 bytes')
@@ -132,7 +136,18 @@ def apply_edits(shapes,technology,edits,*,with_links=False):
         history.append([shape.name])
         dangling=peer is not None and peer not in live
         if dangling and command in('MOVE','MOVEX','MOVEY','MOVETO'):sync()
-        if command=='UNJOIN':
+        if command=='SPTOWIRE':
+            if not shape.segments:raise ValueError('The original SPTOWIRE faults on an empty segment chain')
+            # geometry_edit.cpp allocates every new descriptor/record before
+            # releasing the source. It copies descriptor fields without its
+            # friend link, retains local coordinates/origin, and does not
+            # reject names which already exist in the scene.
+            for number,segment in enumerate(shape.segments):
+                copied=copy.copy(shape);copied.origin=shape.origin.copy();copied.parameters=copy.deepcopy(shape.parameters);copied.warnings=shape.warnings.copy()
+                copied.name=shape.name+'_'+str(number);copied.parameters['name']=copied.name
+                copied.kind='joined';copied.segments=[copy.deepcopy(segment)];allocate(copied)
+            release(slot,clear_peer=False)
+        elif command=='UNJOIN':
             requested=name(op['name'])
             if any(slots[i].name==requested for i in live):shape.warnings.append('Error:  Spiral name already in use.');continue
             if not shape.segments:raise ValueError('The original UNJOIN faults on an empty segment chain')

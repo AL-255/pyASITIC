@@ -34,6 +34,7 @@ function controls() {
   for(const el of document.querySelectorAll(".layout-edits input,.layout-edits select,.layout-edits button"))el.disabled=!ready||busy||!hasWindings;
   for(const id of["edit-undo","edit-reset"])$("#"+id).disabled=!ready||busy||!currentDefinition?.edits?.length;
   if($("#edit-command").value==="JOIN"&&(current?.windings.length??0)<2)$("#edit-apply").disabled=true;
+  if($("#edit-command").value==="SPTOWIRE"&&!hasSegments)$("#edit-apply").disabled=true;
   $("#generate").disabled = !ready || busy;
   for (const id of ["simulate", "sweep", "lmat", "capacitance", "pi2", "selfres"]) $("#"+id).disabled = !ready || busy || !hasSegments;
   for(const id of ["download-gds","download-project"])$("#"+id).disabled=!ready||busy||!current;

@@ -300,6 +300,14 @@ as JOIN; every production filament/material input and CAP component matches.
 CPU and browser reports agree, including the remaining model differences.
 The two separate trailing-via heap-alias failures also remain unresolved.
 
+The development [SPTOWIRE / BREAKUP operation](docs/BREAKUP.md) converts a
+winding into separately selectable segment objects while preserving native
+coordinates, materials, descriptor reuse and generated names. All 111 captured
+states / 22,788 XYZ words and seven complete finite Pi2/CALCTRANS models match
+the original in Python and packaged Pyodide. Projects, undo, regeneration and
+GDS downloads retain the conversion. Existing exact numerical failures still
+prevent deployment of this branch.
+
 Development [geometry storage replay](docs/GEOMETRY_STORAGE.md) now derives
 clone/COPY/JOIN addresses and complete records from earlier process state.
 All 140 native observations match 2,750 allocation/free events, 1,017,272
