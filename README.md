@@ -460,8 +460,8 @@ The [printf buffer writer](docs/PRINTF_BUFFER.md) matches all 28,143 native
 calls across the complete 134-history corpus in CPU Python and Pyodide,
 including every owned region, return register, FP byte and memcpy child
 entry/return register. Lossless archive parts retain every original target.
-Printf's parent formatting algorithms still need integration, so the
-198-difference continuing gate remains required and failing.
+The whole-parent integration below now uses these routines; the
+198-difference continuing command gate remains required and failing.
 
 The [printf FILE setup/completion source](docs/PRINTF_FILE.md) matches all
 7,946 calls across the same 134-history cohort in CPU Python and Pyodide,
@@ -469,7 +469,7 @@ including 132 buffer allocations through bin searches, consolidation and
 top splits. Complete reports agree on all owned memory, heap state,
 registers, FP bytes and 12,975 captured helper calls. Corrupted cache
 diagnostics remain checked. The continuing gate still has the same 198
-required differences; printf parent formatting and integration remain unfinished.
+required differences; integration into continuing command output remains unfinished.
 
 The [vfprintf caller source](docs/VFPRINTF.md) matches all 7,946 phases around
 3,973 formatter calls across 134 histories in CPU Python and Pyodide. The
@@ -477,19 +477,28 @@ complete reports agree on every caller-owned region, heap/error state,
 register, FP byte and 20,921 captured caller helpers. Formatter boundaries
 are independent component inputs, never continuing-replay seeds. This caller
 audit does not execute the 3,973 formatter bodies or their 30,267 middle
-helpers; whole-parent integration and the 198-difference continuing gate
-remain unfinished.
+helpers. The separate whole-parent audit below now executes the complete
+body; the 198-difference continuing gate remains unfinished.
 
 The [formatter source and required audits](docs/PRINTF_FORMAT.md) now
 implement entry/literal output, narrow strings, decimal width/precision
 parsing and scalar padding. Its complete CPU report and merged eight-shard
 browser reports agree for all 134 histories. The complete audits now
-executes every one of the 4,105 formatter calls, including all 1,976
+execute every one of the 4,105 formatter calls, including all 1,976
 formerly unfinished floating conversions. Registers, produced FP state,
 all 104,036 helpers and non-kernel memory match. The gates still fail on
 4,048 complete-call and 868 prefix rseq word occurrences, including
-overlapping TLS owners. Whole-parent integration and continuing replay
-remain unfinished.
+overlapping TLS owners. Continuing replay remains unfinished.
+
+The [whole vfprintf parent](docs/VFPRINTF_WHOLE.md) now runs its caller,
+formatter and completion on the same live memory, heap and FILE from
+parent entry. All 3,973 parents, 7,946 produced inner-boundary states and
+119,149 helpers execute in CPU Python and Pyodide with identical complete
+reports. Final and helper registers, produced FP state and non-kernel
+memory match. The strict gate retains 8,028 assertions on the two rseq
+CPU words across overlapping TLS owners and all three boundaries. No
+later formatter snapshot supplies execution. Connecting this parent to
+continuing command/console output remains unfinished.
 
 The [integer formatter](docs/PRINTF_INTEGER.md) also matches all 5,472
 independent native int32 output requests in CPU Python and Pyodide.
@@ -509,8 +518,8 @@ The separate [x87 formatter-state component](docs/X87_FORMAT_STATE.md)
 also checks a continuous 41,072-instruction native chain and 2,420 full
 Linux XSAVE observations. It produces masked argument-copy/classification
 state, including sticky exceptions, physical stack slots and comparison
-flags. The complete formatter now uses this state component; integration
-into the vfprintf parent and continuing replay remains unfinished.
+flags. The complete formatter and whole vfprintf parent now use this
+state component; integration into continuing replay remains unfinished.
 
 Records use binary64 with selected retained-precision intermediates matching the
 reference's x87 arithmetic. The [native logarithm audit](docs/LOGARITHM_AUDIT.md)

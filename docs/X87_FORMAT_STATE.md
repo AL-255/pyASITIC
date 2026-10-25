@@ -77,8 +77,9 @@ component in `PrintfFormat`. All 1,976 formerly unfinished floating calls
 execute in the complete CPU audit, including produced FP state, original
 stack/GPR stores and helper boundaries. Required kernel rseq targets
 still fail. Long double, hexadecimal/locale/allocation/fault paths beyond
-the captured calls, whole-parent execution and continuing replay remain
-unfinished.
+the captured calls and continuing replay remain unfinished. The
+[whole vfprintf parent](VFPRINTF_WHOLE.md) now carries the formatter's
+produced FP state into its own completion without a boundary reset.
 
 ```sh
 python tools/capture_x87_formatter_instructions_native.py

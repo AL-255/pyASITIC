@@ -7,11 +7,12 @@ FILE-buffer initialization, formatter call site, count completion and
 epilogue. It calls the existing `PrintfFile` source on the same Memory and
 Heap, including its actual large-allocation paths.
 
-`call(registers, formatter)` connects those source phases to an explicit
-formatter callback. Without that implementation it raises. It does not
+`call(registers)` now connects those source phases to the real formatter
+when actual earlier CPU/FP inputs are provided. The optional explicit
+formatter callback is a test interface. Missing inputs raise. It does not
 render with Python percent formatting, load a recorded return state, or
-fill missing bytes from a fixture. The parser and numeric formatter remain
-required work at libc+0x60530. Locked/cancellation, incompatible-stream,
+fill missing bytes from a fixture. The separate [whole-parent audit](VFPRINTF_WHOLE.md)
+executes libc+0x60530 on the same live state. Locked/cancellation, incompatible-stream,
 wide-stream and argument/error branches also remain explicit boundaries.
 
 ## Independent component boundary
@@ -107,6 +108,7 @@ module remains unchanged at SHA-256
 This component does not establish complete formatting, continuing-call
 integration or whole-program parity. The broader gate still retains its
 198 unresolved differences.
-The separate [formatter component](PRINTF_FORMAT.md) now implements
-literal/narrow-string paths and retains complete nonzero formatter gates;
-it does not change this caller audit into whole-parent execution.
+The separate [formatter component](PRINTF_FORMAT.md) now implements all
+captured literal/string/integer/binary64 paths with produced FP state.
+The [whole-parent audit](VFPRINTF_WHOLE.md) adds continuous parent execution
+while preserving this independent caller-phase audit and its inputs.

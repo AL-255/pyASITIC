@@ -71,9 +71,9 @@ class VfprintfTests(unittest.TestCase):
         self.assertEqual(m.u32(file+104),0);storage.before_formatter(r);self.assertEqual(m.u32(file+104),0xffffffff)
         self.assertEqual(m.u32(file+28),0,'Setup does not allocate the later output buffer')
 
-    def test_no_default_formatter_or_later_snapshot_substitution(self):
+    def test_missing_earlier_formatter_cpu_fp_inputs_are_not_invented(self):
         a=expand_state(self.fixture,self.one['printf_calls'][0]['before']);m,storage=engine(self.fixture,a)
-        with self.assertRaisesRegex(NotImplementedError,'parser and numeric formatter'):storage.call(a['registers'])
+        with self.assertRaisesRegex(NotImplementedError,'actual earlier CPU/FP'):storage.call(a['registers'])
 
     def test_callback_uses_same_memory_and_suffix_count(self):
         a=expand_state(self.fixture,self.one['printf_calls'][0]['before']);m,storage=engine(self.fixture,a);seen=[]

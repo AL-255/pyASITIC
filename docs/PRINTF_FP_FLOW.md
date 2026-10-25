@@ -89,8 +89,9 @@ unchanged at SHA-256
 `c7869e98f4c18b5414dc172d836e7144ab3ebc0de2de0d1f2eec1a4fe1709186`.
 The source
 does not filter a conversion, native outcome, owner or kernel word.
-Full formatter integration into the vfprintf parent and continuing
-replay remains unfinished, as do unimplemented extended/hexadecimal,
+The [whole vfprintf parent](VFPRINTF_WHOLE.md) now uses this formatter
+on the same live source state. Integration into continuing replay
+remains unfinished, as do unimplemented extended/hexadecimal,
 unmasked-fault, registered/wide/localized and allocation/error branches
 beyond the original captured paths. The broader 198-difference
 continuing gate remains required. Component success does not establish

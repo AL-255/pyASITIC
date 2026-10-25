@@ -102,7 +102,9 @@ python tools/build_site.py
 node tools/check_printf_format_original.mjs /path/to/pyodide.mjs /tmp/format-part.json 1 8
 ```
 
-No formatter call boundary initializes continuing replay. The broader
+The [whole vfprintf parent](VFPRINTF_WHOLE.md) now executes this formatter
+from the earlier parent input, with inner snapshots used only as
+assertions. No formatter call boundary initializes continuing replay. The broader
 continuing gate's 198 required differences remain unresolved.
 The verified source package is `ba1bb18a1356eb05`; the compiled numerical
 module remains unchanged at SHA-256

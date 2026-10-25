@@ -125,6 +125,14 @@ jobs:
           - {suite: printf-float-digits}
           - {suite: x87-formatter-state}
           - {suite: printf-instruction-flags}
+          - {suite: vfprintf-whole, shard: 1, shards: 8}
+          - {suite: vfprintf-whole, shard: 2, shards: 8}
+          - {suite: vfprintf-whole, shard: 3, shards: 8}
+          - {suite: vfprintf-whole, shard: 4, shards: 8}
+          - {suite: vfprintf-whole, shard: 5, shards: 8}
+          - {suite: vfprintf-whole, shard: 6, shards: 8}
+          - {suite: vfprintf-whole, shard: 7, shards: 8}
+          - {suite: vfprintf-whole, shard: 8, shards: 8}
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
@@ -256,6 +264,8 @@ jobs:
               node tools/check_x87_formatter_instructions_native.mjs /tmp/reasitic-pyodide/node_modules/pyodide/pyodide.mjs ;;
             printf-instruction-flags)
               node tools/check_printf_integer_flags_native.mjs /tmp/reasitic-pyodide/node_modules/pyodide/pyodide.mjs ;;
+            vfprintf-whole)
+              node tools/check_vfprintf_whole_original.mjs /tmp/reasitic-pyodide/node_modules/pyodide/pyodide.mjs '' "$SHARD" "$SHARDS" ;;
             capstorage)
               node tools/check_cap_storage_original.mjs /tmp/reasitic-pyodide/node_modules/pyodide/pyodide.mjs ;;
             workspaces)

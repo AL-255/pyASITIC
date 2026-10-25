@@ -1,8 +1,8 @@
-"""Pinned i386 vfprintf caller before and after its real formatter child.
+"""Pinned i386 vfprintf caller with its real formatter on shared guest memory.
 
 Follows glibc 2.39 stdio-common/vfprintf-internal.c, LGPL-2.1-or-later;
-see web/GLIBC-LGPL-2.1.txt. Parser/numeric formatting is an explicit child
-boundary; no formatted text or child return snapshot supplies execution.
+see web/GLIBC-LGPL-2.1.txt. Whole calls require earlier CPU/FP inputs;
+no formatted text or child return snapshot supplies execution.
 """
 from .signal_install_storage import add_flags,subtract_flags
 
@@ -10,9 +10,11 @@ MASK=0xffffffff
 
 
 class VfprintfStorage:
-    def __init__(self,file_storage):
+    def __init__(self,file_storage,*,shr1_af=None,xstate=None):
         self.file=file_storage;self.m=file_storage.m;self.libc=file_storage.libc;self.got=file_storage.got;self.tls=file_storage.tls
         self.heap=file_storage.heap;self.children=file_storage.children
+        self.shr1_af=shr1_af;self.xstate=None if xstate is None else bytes(xstate);self.observer=None
+        self.formatter_children_start=None;self.formatter_children_end=None
 
     def before_formatter(self,registers):
         m=self.m;r=dict(registers);s=r['esp'];local=s-220
@@ -53,6 +55,16 @@ class VfprintfStorage:
         return self.file._return4(dict(r,eax=count,eflags=add_flags(local,204,r['eflags'])),s)
 
     def call(self,registers,formatter=None):
+        if formatter is None and(self.shr1_af is None or self.xstate is None):raise NotImplementedError('Vfprintf parser and numeric formatter requires actual earlier CPU/FP inputs')
         incoming=self.before_formatter(registers)
-        if formatter is None:raise NotImplementedError('Vfprintf parser and numeric formatter source is not connected')
-        return self.after_formatter(formatter(incoming))
+        self.formatter_children_start=len(self.children)
+        if self.observer:self.observer('formatter-before',dict(incoming),self.xstate)
+        if formatter is None:
+            from .printf_format import PrintfFormat
+            child=PrintfFormat(self.file,shr1_af=self.shr1_af,xstate=self.xstate);result=child.format(incoming);self.xstate=child.xstate
+        else:result=formatter(incoming)
+        self.formatter_children_end=len(self.children)
+        if self.observer:self.observer('formatter-after',dict(result),self.xstate)
+        return self.after_formatter(result)
+
+    def vfprintf(self,registers):return self.call(registers)
