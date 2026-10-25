@@ -398,6 +398,12 @@ regions/registers/FP state. The fresh continuing comparison improves from
 658 to 618 differing words; newly exposed later overwrites remain required
 failures alongside all older gates.
 
+The independent [polling caller and timeval adapter](docs/POLL_STORAGE.md)
+now reproduce the descriptor-set setup, lazy `select` binding and 32-to-64-bit
+timeval conversion. Complete native regions/registers/FP state are compared
+at both boundaries. These component snapshots never seed the continuing
+simulation; prompt/stdio callers and kernel readiness/timing remain unfinished.
+
 Records use binary64 with selected retained-precision intermediates matching the
 reference's x87 arithmetic. The [native logarithm audit](docs/LOGARITHM_AUDIT.md)
 adds 8,182 instruction cases and 10,327 multiplier cases with complete request
