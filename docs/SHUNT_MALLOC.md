@@ -91,8 +91,8 @@ and descriptor positions match. The strict full report nevertheless contains
 
 The expanded audit exposes more stack differences as the previously stopped
 histories advance. No word, owner, history, outcome or tolerance is waived.
-Portable CPU and final packaged Pyodide reports must agree in every difference
-and coverage counter. Full audit commands intentionally return nonzero while
+Portable CPU and final packaged Pyodide reports agree exactly in every
+difference and coverage counter. Full audit commands return nonzero while
 these requirements remain.
 
 Eight new regression tests cover complete provenance, every independent
@@ -101,7 +101,8 @@ independence, missing controls, inconsistent earlier arena inputs, complete
 later allocator fields and changed later FP assertions. The older changed-request test now executes the newly
 supported 8,192-byte allocation and checks its actual header instead of
 requiring the former unsupported-path exception. All previous native output
-targets remain unchanged.
+targets remain unchanged. All eight new tests pass in portable Python and the
+final packaged compiled runtime. CI discovery includes all eight.
 
 The prior 28-history port report remains at zero. The prior 134 command
 reports and eight printf/parser shards retain every parent field, including
