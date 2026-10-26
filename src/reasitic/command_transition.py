@@ -7,7 +7,7 @@ import struct
 from .command_storage import Characters,CommandStorage,ScanHistory,string
 from .geometry_storage import GeometryStorage
 from .legacy_strings import LegacyStrings
-from .libio_storage import FileStorage
+from .libio_storage import FileStorage,close_byte_stream
 from .stdio_storage import InputStream,OutputStream
 from .port_header_storage import NativePortStack,calendar,header
 from .heap import HeapCorruption
@@ -144,6 +144,18 @@ class CommandTransition:
         self._script_eof(source)
 
     def _script_eof(self,source):
+        tls=self.inputs.get('port_tail_abi',{}).get('tls_base',self.inputs.get('loader_context',{}).get('tls_base'))
+        if tls is not None:
+            buffer=self.memory.u32(source.address+28);returned=None
+            def observe(label):
+                nonlocal returned
+                if label=='free.file':returned=self._script_return_abi(source.address)
+            def release(address,caller):self.release('script.buffer'if address==buffer else'script.file',address)
+            close_byte_stream(self.memory,source.address,self.libio,tls_base=tls,release=release,observe=observe)
+            return self._after_script_close(returned)
+        # Older contexts lack the thread ABI needed for transient lock stores.
+        # Their final-field path remains partial, with its existing strict
+        # targets; genuine earlier TLS enables the shared complete close above.
         m=self.memory;address=source.address;abi=self.libio;layout=abi['file']['fields'];head=abi['libc_symbols']['_IO_list_all']['address']
         pointer=m.u32(head);previous=None
         while pointer!=address:
@@ -154,6 +166,12 @@ class CommandTransition:
         else:m.put_u32(previous+layout['_chain']['offset'],following)
         buffer=m.u32(address+28);FileStorage(m,abi).closed_byte_stream(address)
         self.release('script.buffer',buffer)
+        returned=self._script_return_abi(address)
+        self.release('script.file',address)
+        return self._after_script_close(returned)
+
+    def _script_return_abi(self,address):
+        m=self.memory;abi=self.libio
         loader_context=self.inputs.get('loader_context');stdio=self.inputs.get('stdio_context');incoming=None;loader=None
         if loader_context:
             size=m.u32(address-4)&~7
@@ -169,11 +187,19 @@ class CommandTransition:
             incoming=dict(eax=0,ecx=m.u32(libc_base+0x22fe34+0xa0),edx=index)
             if stdio:incoming.update((key,stdio['registers'][key])for key in ('cs','ss','ds','es','fs','gs','orig_eax'))
             loader=PltFixup(m,loader_context['loader_base'],tls_base=loader_context['tls_base'])
-        self.release('script.file',address)
+        return loader_context,stdio,incoming,loader
+
+    def _after_script_close(self,returned,*,allocate=None,release=None,point=None,observe_io=None):
+        m=self.memory;abi=self.libio
+        loader_context,stdio,incoming,loader=returned
+        allocate=self.allocate if allocate is None else allocate
+        release=self.release if release is None else release
+        point=self.point if point is None else point
         if self.inputs['repl']['history_enabled']:raise NotImplementedError('Readline signal installation needs its initial action state')
         bases={symbol['address']-symbol['offset']for symbol in abi['libc_symbols'].values()}
         if len(bases)!=1:raise ValueError('Inconsistent earlier libc symbol bindings')
-        installed=install_console_signals(m,self.inputs['workspace_address'],bases.pop(),loader=loader,loader_context=loader_context,incoming=incoming)
+        libc_base=bases.pop()
+        installed=install_console_signals(m,self.inputs['workspace_address'],libc_base,loader=loader,loader_context=loader_context,incoming=incoming)
         repl_storage=None;input_storage=None
         if stdio:
             m.write(0x80cbab0,b'\0');m.put_u32(0x80cbab4,0);m.write(0x80cba60,b'\0')
@@ -182,25 +208,28 @@ class CommandTransition:
         if printf_abi:self.console.record('message',string(m,0x80b4821),False)
         else:self.console.emit('message',b'ASITIC>  ',False,flush=not flush_abi)
         if stdio:
-            repl_storage=ReplStorage(m,stdio,libc_base=libc_base,tls_base=loader_context['tls_base'],loader=loader,loader_context=loader_context,heap=self.heap)
+            repl_storage=ReplStorage(m,stdio,libc_base=libc_base,tls_base=loader_context['tls_base'],loader=loader,loader_context=loader_context,heap=self.heap,observe=observe_io)
             self.printf_calls=repl_storage.printf_calls
             registers=repl_storage.before_poll(installed['main_registers'],installed['line'])
             registers=poll_select(m,registers,loader,loader_context)
             registers=select64_entry(m,registers,libc_base=libc_base,tls_base=loader_context['tls_base'],sar31_af=stdio['sar31_af'])
             registers=select64_dispatch(m,registers,libc_base=libc_base,tls_base=loader_context['tls_base'])
-            select_syscall_entry(m,registers,libc_base=libc_base,tls_base=loader_context['tls_base'])
+            syscall=select_syscall_entry(m,registers,libc_base=libc_base,tls_base=loader_context['tls_base'])
+            if stdio.get('input_abi',{}).get('read_abi'):
+                vdso_kernel_entry(m,syscall);repl_storage.regular_poll_return(syscall)
             # The external input is the launcher's regular answers file.
             # Kernel timeout copyback and the child IO frames remain missing
             # source work; every later byte remains in the strict comparison.
             registers=repl_storage.before_input(orient=not stdio.get('input_abi'))
+            self.stdin_position=repl_storage.positions[0]
             if stdio.get('input_abi'):
-                input_storage=StdinStorage(m,loader,loader_context,stdio['input_abi'],libc_base=libc_base,tls_base=loader_context['tls_base'],heap=self.heap)
+                input_storage=StdinStorage(m,loader,loader_context,stdio['input_abi'],libc_base=libc_base,tls_base=loader_context['tls_base'],heap=self.heap,positions=repl_storage.positions,observe=observe_io)
                 input_storage.enter(registers)
         stdin=self.inputs['stdin_stream'];raw=bytes.fromhex(stdin['data']);base,end=struct.unpack_from('<I',raw,28)[0],struct.unpack_from('<I',raw,8)[0]
-        if base:raise NotImplementedError('Earlier buffered interactive input offset is not yet bound')
+        if base and'file_position'not in stdin:raise NotImplementedError('Earlier buffered interactive input requires its descriptor position')
         if input_storage and input_storage.profile.get('read_abi')and'file_position'not in stdin:
             raise ValueError('Read ABI needs the earlier descriptor position')
-        source=InputStream(m,stdin['address'],bytes.fromhex(stdin['file_data']),self.stdin_position,self.allocate)
+        source=InputStream(m,stdin['address'],bytes.fromhex(stdin['file_data']),self.stdin_position,allocate)
         # execute_command_script's 0x116c-byte frame has returned. main's
         # input line is EBP-0x400; dispatch_command_line subsequently reserves
         # its own 0x1040-byte command records. Both reuse the original stack.
@@ -228,7 +257,8 @@ class CommandTransition:
             parent=installed['main_registers'];registers=enter_dispatch(m,self.inputs['workspace_address'],installed['main_frame'],line,ebx=parent['ebx'],edi=parent['edi'],flags=parent['eflags'],inherited=parent)
             dispatch=DispatchStorage(m,self.characters,loader,loader_context)
             registers=dispatch.before_parser(dispatch.history(registers))
-        self.point('parse')
+        self.repl_registers=registers
+        point('parse')
         records=script_frame-12-4160
         parser_abi=ParserCallers(m,registers)if dispatch is not None else None
         identity=self.parser.parse(line,records,[ScanHistory(None,None,None)for _ in range(15)],abi=parser_abi)
@@ -241,8 +271,8 @@ class CommandTransition:
         # console_analysis.cpp releases the cache in descending packed pairs.
         metals=len(bytes.fromhex(self.technology[1]))//236
         for index in reversed(range(metals*(metals+1)//2)):
-            for name in ('xy','x','y'):self.release('cache.'+name,self.memory.u32(self.cache_arrays[name]['pointer_address']+4*index),'array')
-        for name in ('xy','x','y'):self.release('cache.'+name+'.pointers',self.cache_arrays[name]['pointer_address'],'array')
+            for name in ('xy','x','y'):release('cache.'+name,self.memory.u32(self.cache_arrays[name]['pointer_address']+4*index),'array')
+        for name in ('xy','x','y'):release('cache.'+name+'.pointers',self.cache_arrays[name]['pointer_address'],'array')
         raise NotImplementedError('Process cleanup after the cache tables is not yet bound')
 
     def point(self,kind):

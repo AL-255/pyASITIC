@@ -7,14 +7,19 @@ from .signal_install_storage import add_flags
 
 
 class LibioABI:
-    def __init__(self,memory,loader,context,*,libc_base,tls_base):
+    def __init__(self,memory,loader,context,*,libc_base,tls_base,observe=None):
         self.m,self.loader,self.context=memory,loader,context
         self.libc,self.tls,self.got=libc_base,tls_base,libc_base+0x22fe34
+        self.observe=observe
+
         self.legacy=next((x for x in context['maps']if x['name'].endswith('/libstdc++-libc6.1-1.so.2')),None)
         if self.legacy is not None and self.legacy['plt']['elf_sha256']!='bca97b602b1eec9f0b591bec0fa4dc5f84f1382636cc8f10094f1da8a3c77d34':
             raise NotImplementedError('Legacy IO needs the pinned streambuf ABI')
         self.legacy_base=None if self.legacy is None else memory.u32(self.legacy['address'])
         self.legacy_got=None if self.legacy is None else loader._dynamic(self.legacy['address'],3)
+
+    def _observed(self,phase,kind,registers):
+        if self.observe is not None:self.observe(phase,kind,registers,self.positions)
 
     def _bind(self,registers,name,provider=None):
         provider=provider or next(x for x in self.context['maps']if x['address']==self.context['main_map'])

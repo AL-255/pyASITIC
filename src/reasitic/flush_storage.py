@@ -11,7 +11,7 @@ from .signal_install_storage import add_flags,subtract_flags
 
 
 class FlushStorage(LibioABI):
-    def __init__(self,*args,**kwargs):super().__init__(*args,**kwargs);self.writes=[]
+    def __init__(self,*args,positions=None,**kwargs):super().__init__(*args,**kwargs);self.writes=[];self.positions={}if positions is None else positions
 
     def _save4(self,r):
         for offset,key in ((4,'ebp'),(8,'edi'),(12,'esi'),(16,'ebx')):self.m.put_u32(r['esp']-offset,r[key])
@@ -30,6 +30,7 @@ class FlushStorage(LibioABI):
         return r
 
     def flush(self,registers):
+        self._observed('before','fflush',registers)
         m=self.m;r=dict(registers);s=r['esp'];a=m.u32(s+4)
         if r['eip']!=self.libc+0x75b80:raise NotImplementedError('Alternate fflush needs its source ABI')
         if not a:raise NotImplementedError('Flush-all needs the complete stream-list traversal')
@@ -59,9 +60,10 @@ class FlushStorage(LibioABI):
             if depth:m.put_u32(lock+4,depth-1);r['eflags']=subtract_flags(depth,1,r['eflags'])
             else:
                 m.put_u32(lock+8,0);m.put_u32(lock,0);r['eflags']=logical_flags(0,r['eflags'])
-        return self._return4(r,s)
+        result=self._return4(r,s);self._observed('after','fflush',result);return result
 
     def _sync(self,r):
+        self._observed('before','sync',r)
         m=self.m;s=r['esp'];a=m.u32(s+4);local=s-28
         if r['eip']!=self.libc+0x833f0:raise NotImplementedError('Interposed file sync needs its own source')
         for offset,key in ((4,'edi'),(8,'esi'),(12,'ebx')):m.put_u32(s-offset,r[key])
@@ -73,9 +75,33 @@ class FlushStorage(LibioABI):
             for offset,value in ((8,count),(12,r['edx']),(16,a),(20,self.libc+0x8349d)):m.put_u32(local-offset,value)
             r.update(ecx=mode,eax=count,esp=local-20,eip=self.libc+0x82da0)
             r=self._do_write(r)
-        if m.u32(a+4)!=m.u32(a+8):raise NotImplementedError('Unread input sync needs its seek syscall')
+        if m.u32(a+4)!=m.u32(a+8):
+            delta=(m.u32(a+4)-m.u32(a+8))&0xffffffff;high=0xffffffff if delta&0x80000000 else 0
+            offset=int.from_bytes(m.read(a+70,1),'little',signed=True);vt=m.u32(a+148+offset)
+            r.update(eax=delta,edx=(vt-(self.got-0x734))&0xffffffff,ecx=self.got-0x734,edi=vt,esp=local)
+            if r['edx']>0x593:
+                m.put_u32(local+12,delta);r=self._guard(r,self.libc+0x834d1);r['eax']=m.u32(local+12)
+            for off,value in((4,1),(8,high),(12,delta),(16,a),(20,self.libc+0x83468)):m.put_u32(local-off,value)
+            r.update(edx=high,esp=local-20)
+            target=m.u32(vt+64)
+            if self.legacy_base is not None and target==self.legacy_base+0x221b4:
+                entry=r['esp'];f=entry-4
+                for off,key in((0,'ebp'),(4,'edi'),(8,'esi'),(12,'ebx')):m.put_u32(f-off,r[key])
+                for off,value in((16,self.legacy_base+0x221bf),(16,1),(20,high),(24,delta),(28,a),(32,self.legacy_base+0x221d9)):m.put_u32(f-off,value)
+                r=dict(r,ebp=f,ebx=self.legacy_got,esi=delta,edi=high,esp=f-32,
+                       eflags=add_flags(self.legacy_base+0x221bf,0x1c9f9,r['eflags']))
+                r=self._bind(r,b'_IO_file_seek',self.legacy)
+                from .seek_storage import SeekStorage
+                r=SeekStorage(m,libc_base=self.libc,tls_base=self.tls,positions=self.positions,observe=self.observe).file_seek(r)
+                r.update(ebx=m.u32(f-12),esi=m.u32(f-8),edi=m.u32(f-4),ebp=m.u32(f),esp=f+8,eip=m.u32(f+4))
+            elif target==self.libc+0x83e80:
+                from .seek_storage import SeekStorage
+                r=SeekStorage(m,libc_base=self.libc,tls_base=self.tls,positions=self.positions,observe=self.observe).file_seek(dict(r,eip=target))
+            else:raise NotImplementedError('Stream seek callback needs its source ABI')
+            m.put_u32(a+8,m.u32(a+4))
         m.write(a+76,b'\xff'*8)
-        return dict(r,eax=0,ebx=m.u32(s-12),esi=m.u32(s-8),edi=m.u32(s-4),esp=s+4,eip=m.u32(s),eflags=add_flags(local,16,r['eflags']))
+        result=dict(r,eax=0,ebx=m.u32(s-12),esi=m.u32(s-8),edi=m.u32(s-4),esp=s+4,eip=m.u32(s),eflags=add_flags(local,16,r['eflags']))
+        self._observed('after','sync',result);return result
 
     def _do_write(self,r):
         m=self.m;s=r['esp'];local=s-12;a=m.u32(s+4);buffer=m.u32(s+8);count=m.u32(s+12)

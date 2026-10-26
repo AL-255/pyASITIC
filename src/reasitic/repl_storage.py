@@ -14,13 +14,14 @@ from .signal_install_storage import add_flags
 
 
 class ReplStorage:
-    def __init__(self,memory,context,*,libc_base,tls_base,loader=None,loader_context=None,heap=None):
+    def __init__(self,memory,context,*,libc_base,tls_base,loader=None,loader_context=None,heap=None,observe=None):
         self.m,self.context,self.libc_base,self.tls_base=memory,context,libc_base,tls_base
+        self.positions={0:context['stdin_position']}
         self.flush_storage=None
         if context.get('flush_abi'):
             from .flush_storage import FlushStorage
             if loader is None or loader_context is None:raise ValueError('Flush ABI needs earlier loader inputs')
-            self.flush_storage=FlushStorage(memory,loader,loader_context,libc_base=libc_base,tls_base=tls_base)
+            self.flush_storage=FlushStorage(memory,loader,loader_context,libc_base=libc_base,tls_base=tls_base,positions=self.positions,observe=observe)
         self.printf_storage=None;self.printf_calls=[]
         if context.get('printf_abi'):
             from .printf_file import PrintfFile
@@ -60,8 +61,8 @@ class ReplStorage:
 
     def before_poll(self,parent,line):
         m=self.m;top=parent['esp'];main=parent['ebp'];prompt=0x80b4821
-        if not self.context['stdin_regular'] or self.context['stdin_position']!=0:
-            raise NotImplementedError('REPL caller needs earlier regular-file stdin at its beginning')
+        if not self.context['stdin_regular']:
+            raise NotImplementedError('REPL caller needs earlier regular-file stdin')
         if m.u32(0x80d8644)!=0x804b4fc or m.read(0x80cbab0,1)!=b'\0' or m.read(0x80cbab8,1)!=b'\0':
             raise NotImplementedError('REPL caller needs direct stdio with recording disabled')
         m.put_u16(top-4,1);m.put_u32(top-8,line);m.put_u32(top-12,prompt);m.put_u32(top-16,0x804b072)
@@ -103,6 +104,17 @@ class ReplStorage:
         # The first narrow __underflow sets orientation through _IO_fwide.
         if orient and not mode:m.put_u32(stream+104,0xffffffff)
         return dict(result,esp=f-1056,eip=self.libc_base+0x75f70)
+
+    def regular_poll_return(self,syscall):
+        """Regular files are readable, including at EOF, in the virtual IO.
+
+        The original poll wrapper converts the nonzero ready count to one
+        and TEST defines its flags. Select's volatile ECX is its read-fd-set
+        argument. Elapsed timeout copyback/other kernel stack effects remain
+        separate unfinished work, asserted by the complete IO stack audit.
+        """
+        if not self.context['stdin_regular']:raise NotImplementedError('Nonregular readiness requires its external input event')
+        self.poll_registers.update(eax=1,edx=1,ecx=syscall['ecx'],eflags=logical_flags(1,self.poll_registers['eflags']))
 
     def finish_line(self,characters,input_log,output_log,*,write_output=None,incoming=None):
         """Append/log caller frames and the real normalization local stores."""

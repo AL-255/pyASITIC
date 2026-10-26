@@ -396,6 +396,14 @@ unchanged history to actual native process exit. The full shutdown audit still
 fails on missing register and interactive/cleanup continuation; those later
 targets remain required, with identical CPU/browser reports.
 
+[Continuing stdin and QUIT](docs/SHUNT_REPL.md) now uses genuine earlier
+loader/stdio inputs, seeks and refills existing input buffers, and releases
+the native cache tables in all 18 buffered-input histories. Complete earlier
+cache mmap allocations supply their original headers and padding. All 28
+histories remain in the full audit, including ten unfinished first-buffer
+malloc paths. Heap/file/register checks advance, while complete IO stack and
+process-cleanup failures remain explicit.
+
 [Pre-CAP storage](docs/PRELUDE_STORAGE.md) additionally reproduces all 975 FFT
 scratch arrays and 130 stream buffers in the 130 selected native histories:
 4,526,080 bytes match exactly in the compiled browser backend. Four added small

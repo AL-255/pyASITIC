@@ -12,9 +12,10 @@ from .libio_abi import LibioABI
 
 
 class StdinStorage(LibioABI):
-    def __init__(self,memory,loader,context,profile,*,libc_base,tls_base,heap=None):
-        super().__init__(memory,loader,context,libc_base=libc_base,tls_base=tls_base)
+    def __init__(self,memory,loader,context,profile,*,libc_base,tls_base,heap=None,positions=None,observe=None):
+        super().__init__(memory,loader,context,libc_base=libc_base,tls_base=tls_base,observe=observe)
         self.profile,self.heap=profile,heap
+        self.positions={}if positions is None else positions
         stat=profile['statx']['fields']if 'statx'in profile else profile['stdin_stat']
         block=stat['blksize']if 'statx'in profile else stat['st_blksize']
         if(stat['mode']if 'statx'in profile else stat['st_mode'])&0o170000!=0o100000:raise NotImplementedError('Stdin allocation needs regular-file stat metadata')
@@ -22,10 +23,11 @@ class StdinStorage(LibioABI):
 
     def enter(self,registers):
         m=self.m;r=self._bind(registers,b'fgets');s=r['esp'];f=s-4;self.entry=dict(r);self.fgets_frame=f
+        self._observed('before','fgets',r)
         if r['eip']!=self.libc+0x75f70:raise NotImplementedError('Stdin fgets implementation differs from the pinned ABI')
         self.line=m.u32(s+4);self.limit=m.u32(s+8)-1;self.stream=m.u32(s+12);a=self.stream;self.flags=m.u32(a)
-        if self.limit<=0 or m.u32(a+28)or m.u32(a+4)!=m.u32(a+8)or m.u32(a+36)or m.u32(a+48)or self.flags&0x917:
-            raise NotImplementedError('Stdin ABI needs the first buffered narrow read without backup/error state')
+        if self.limit<=0 or m.u32(a+4)!=m.u32(a+8)or m.u32(a+36)or m.u32(a+48)or self.flags&0x917:
+            raise NotImplementedError('Stdin ABI needs an exhausted narrow buffer without backup/error state')
         lock=m.u32(a+72)
         if any(m.u32(lock+i)for i in (0,4,8))or m.u32(self.tls+12):raise NotImplementedError('Stdin fgets needs its uncontended single-threaded lock path')
         m.put_u32(f,r['ebp'])
@@ -63,6 +65,7 @@ class StdinStorage(LibioABI):
         r=self._wrapper(r,0x220f4,0x1cabb,b'_IO_file_underflow',[a])
         if r['eip']!=self.libc+0x82de0:raise NotImplementedError('Stdin file underflow interposition is not bound')
         self.underflow=dict(r);u=r['esp']-4;self.underflow_frame=u
+        self._observed('before','underflow',r)
         m.put_u32(u,r['ebp']);m.put_u32(u-4,r['edi']);m.put_u32(u-8,r['esi']);m.put_u32(u-12,r['ebx'])
 
     def before_allocate(self):
@@ -108,11 +111,19 @@ class StdinStorage(LibioABI):
     def read_buffer(self,file_data,position):
         if self.profile.get('read_abi'):
             from .read_storage import ReadStorage
+            self._observed('before','read',self.read_entry)
             storage=ReadStorage(self.m,libc_base=self.libc,tls_base=self.tls)
             self.read_result=storage.read(self.read_entry,file_data,position)
+            self.positions[0]=self.read_result['position'];self._observed('after','read',self.read_result['registers'])
             if self.profile.get('getline_bytes_abi')and self.read_offset!=0xffffffffffffffff:
                 self.m.write(self.stream+76,((self.read_offset+len(self.read_result['data']))&0xffffffffffffffff).to_bytes(8,'little'))
-            return self.read_result['data'],self.read_result['position']
+            contents=self.read_result['data']
+            if contents:
+                self.m.put_u32(self.stream+8,self.buffer+len(contents))
+                r=dict(self.underflow,eax=contents[0],ecx=self.m.u32(self.stream+76),edx=self.m.u32(self.stream+80),esp=self.underflow['esp']+4,eip=self.m.u32(self.underflow['esp']),
+                       eflags=subtract_flags(self.m.u32(self.stream+80),0xffffffff,self.underflow['eflags']))
+                self._observed('after','underflow',r)
+            return contents,self.read_result['position']
         data=file_data[position:position+self.capacity];self.m.write(self.buffer,data)
         return data,position+len(data)
 
@@ -148,8 +159,9 @@ class StdinStorage(LibioABI):
             for offset,value in ((8,count-1),(12,self.buffer+1),(16,self.line+1),(20,self.libc+0x773f6)):
                 m.put_u32(local-offset,value)
         m.put_u32(a,m.u32(a)|(self.flags&32));lock=m.u32(a+72);m.put_u32(lock+8,0);m.put_u32(lock,0)
-        return dict(self.entry,eax=self.line,ecx=m.u32(self.tls+12),edx=lock,esp=self.entry['esp']+4,
+        result=dict(self.entry,eax=self.line,ecx=m.u32(self.tls+12),edx=lock,esp=self.entry['esp']+4,
                     eip=m.u32(self.entry['esp']),eflags=logical_flags(m.u32(lock+4),self.entry['eflags']))
+        self._observed('after','fgets',result);return result
 
     def append_newline(self,registers,frame):
         m=self.m;source=0x80b4895;line=self.line
