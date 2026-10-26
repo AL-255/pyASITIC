@@ -106,6 +106,8 @@ The strict full audit retains **531,744 failures**:
 The broader audit checks many previously unexecuted states. Its larger failure
 count is not a tolerance change or a passing full-program result. Both full
 commands return nonzero while the stack/FP/exit requirements remain.
+The complete portable CPU and final packaged Pyodide reports agree exactly,
+including every difference and coverage counter.
 
 Eight new regression tests cover native provenance and every complete region,
 all independent closes, actual continuous log release, changed later targets,
@@ -116,6 +118,15 @@ preserve its newly exposed 24 stack failures in each tested history. Their
 native targets are unchanged. The previous malloc fixture also advances to
 224 heap boundaries and still fails strictly. Broader phase/math, startup,
 command/model and final process requirements remain active.
+All 45 targeted portable regression checks pass, including the eight new
+checks; all eight new compiled-runtime checks pass too. CI discovery includes
+all eight. The older 130+4 command reports retain every parent field (zero and
+816 differences), and every one of the eight printf/parser shards retains the
+parent report, including its 24 saved-FP differences. The prior 28-history port
+report remains at zero. The previous malloc fixture now reaches all 224 heap
+boundaries and reports 324,224 strict failures; its additional 672 exit-entry
+stack words remain required. The downloadable native source archive rebuilds
+the unchanged numerical WASM byte for byte.
 
 `shunt_cleanup_original.json.gz`: 47,712,672 bytes, SHA-256
 `742506203a60080aa25ac03c2e0c5e6ba194467208c346e35ea1a14b15d7b32d`.
