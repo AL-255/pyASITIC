@@ -9,12 +9,12 @@ Individual ELF destructor bodies and full CPU/stack/FP ABI remain unfinished.
 
 
 class ExitStorage:
-    def __init__(self,history,*,observe=None):
+    def __init__(self,history,*,observe=None,release=None):
         self.history=history;self.m=history.memory;self.heap=history.heap
         self.inputs=history.inputs['exit_inputs'];self.ctx=history.inputs['loader_context']
         self.controls=self.inputs['controls'];self.fields=self.inputs['link_fields']
         self.tls=self.ctx['tls_base'];self.loader=self.ctx['loader_base'];self.libc=history.libio['libc_base']
-        self.observe=observe;self.calls=[];self.orders=[];self.object_order=[]
+        self.observe=observe;self.release=release;self.observe_crt=None;self.calls=[];self.orders=[];self.object_order=[]
 
     def control(self,name):return self.controls[name]['address']
     def field(self,map_,name):
@@ -132,7 +132,11 @@ class ExitStorage:
         if old:
             pc=base+m.u32(old+4);self.call('fini',pc,[],lambda:self.fini_body(pc))
 
-    def fini_body(self,pc):raise NotImplementedError(f'ELF finalizer body {pc:#x} requires its source implementation')
+    def fini_body(self,pc):
+        if pc==0x80b4784 and'crt_inputs'in self.history.inputs:
+            from .crt_storage import CRTStorage
+            self.crt=CRTStorage(self,observe=self.observe_crt);return self.crt.main_fini()
+        raise NotImplementedError(f'ELF finalizer body {pc:#x} requires its source implementation')
 
     def dispatch(self,pc,args):
         if pc!=self.loader+0x4e80:raise NotImplementedError(f'Registered exit callback {pc:#x} requires its source implementation')

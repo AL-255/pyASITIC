@@ -1573,3 +1573,12 @@ order matches every native history; later bodies remain unexecuted. All
 required. Full stack/GP/FP, earlier lazy-binding counter effects, ELF bodies,
 final stdio and process exit still fail strictly; no later order/free/status
 is loaded as execution input.
+
+[Main CRT continuation](docs/SHUNT_CRT.md) completes the two application
+global/member destructors, actual string-pool lock stores, live ELF binding
+and legacy frame-registry removal. All 420 independent calls / 812 output
+boundaries match their non-stack memory, allocator states and 252 defined
+returns. Same-memory full continuation now enters MesaGL's finalizer.
+Complete stack/GP/FP, earlier bindings, remaining destructors and process
+exit remain strict requirements; semantic value lookup never fabricates
+caller registers or copies a later target into the source.

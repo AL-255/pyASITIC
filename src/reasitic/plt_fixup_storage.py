@@ -5,11 +5,11 @@ Copyright (C) 1995-2024 Free Software Foundation, Inc., LGPL-2.1-or-later;
 see web/GLIBC-LGPL-2.1.txt. Python translation (C) 2026 pyASITIC authors.
 ABI stores are pinned to the documented Ubuntu i386 loader/libc builds.
 """
-from .loader_lookup_storage import LoaderLookup
+from .loader_lookup_value import LoaderLookupValue
 from .signal_install_storage import add_flags
 
 
-class PltFixup(LoaderLookup):
+class PltFixup(LoaderLookupValue):
     def __init__(self,memory,base,*,tls_base):
         super().__init__(memory,base);self.tls_base=tls_base
     def bind_import(self,registers,map_,name,plt):
@@ -34,12 +34,47 @@ class PltFixup(LoaderLookup):
             entry=dict(registers);entry.update(esp=s-8,eip=self.base+0x11ba0)
             result=self.resolve(entry);result['lazy']=True;return result
         raise ValueError('Named import absent from the ELF PLT relocations')
+    def bind_value(self,map_,name,plt):
+        """Execute the ELF value algorithm without inventing caller CPU state.
+
+        Used by semantic destructor continuation. Full stack/GP/FP execution
+        remains explicitly missing in the complete audits.
+        """
+        m=self.m;info=m.u32(map_+40)
+        if not info or not plt:raise NotImplementedError('Import has no ordinary i386 PLT metadata')
+        size=m.u32(info+4)
+        if size%8 or plt['size']!=16*(size//8+1):raise NotImplementedError('Alternate i386 PLT layout is not implemented')
+        rels=self._dynamic(map_,23);symtab=self._dynamic(map_,6);strings=self._dynamic(map_,5)
+        for offset in range(0,size,8):
+            reloc=rels+offset;symbol=symtab+16*(m.u32(reloc+4)>>8)
+            if self._string(strings+m.u32(symbol))!=name:continue
+            slot=m.u32(map_)+m.u32(reloc);target=m.u32(slot);unresolved=plt['address']+16*(offset//8+1)+6
+            if target!=unresolved:return dict(target=target,relocation_address=slot,lazy=False)
+            if m.u32(self.tls_base+12):raise NotImplementedError('Multithreaded PLT scope locking is not implemented')
+            if m.u32(map_+448):raise NotImplementedError('Audited PLT binding is not implemented')
+            provider=map_
+            if self._byte(symbol+13)&3==0:
+                version=0;verinfo=m.u32(map_+244)
+                if verinfo:
+                    versions=m.u32(verinfo+4)+(m.u32(map_)if self._byte(map_+422)&32 else 0)
+                    version=m.u32(map_+384)+16*(m.u16(versions+2*(m.u32(reloc+4)>>8))&0x7fff)
+                    if not m.u32(version+4):version=0
+                result=self.value(strings+m.u32(symbol),map_,symbol,m.u32(map_+488),version);provider=result['provider'];symbol=result['symbol']
+            value=m.u32(symbol+4)+(0 if m.u16(symbol+14)==0xfff1 else m.u32(provider))
+            if self._byte(symbol+12)&15==10:value=self._ifunc_value(provider,symbol)
+            if not m.u32(self.got-0x458):self._put(slot,value)
+            return dict(target=value,provider=provider,symbol=symbol,relocation_address=slot,lazy=True)
+        raise ValueError('Named import absent from the ELF PLT relocations')
     def _ifunc(self,provider,symbol,stack):
         m=self.m;offset=m.u32(symbol+4);base=m.u32(provider)
         if offset not in(0xa3c30,0xa3e10):raise NotImplementedError('This IFUNC resolver source path is not implemented')
         # i386 IFUNC selectors follow CPU usable/preference bits.
         # Its PC thunk writes a return word but has no frame or FP effects.
-        got=base+0x22fe34;self._put(stack-4,base+offset+9);cpu=m.u32(got+0x10c)
+        self._put(stack-4,base+offset+9);return self._ifunc_value(provider,symbol)
+    def _ifunc_value(self,provider,symbol):
+        m=self.m;offset=m.u32(symbol+4);base=m.u32(provider)
+        if offset not in(0xa3c30,0xa3e10):raise NotImplementedError('This IFUNC resolver source path is not implemented')
+        got=base+0x22fe34;cpu=m.u32(got+0x10c)
         if offset==0xa3e10:
             # strcmp.c: SSE4.2, then SSSE3, then the ia32 implementation.
             features=m.u32(cpu+0x74)

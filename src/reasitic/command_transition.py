@@ -281,7 +281,7 @@ class CommandTransition:
         point('exit')
         if 'exit_inputs'not in self.inputs:raise NotImplementedError('Libc exit handlers and loader finalizers are not yet bound')
         from .exit_storage import ExitStorage
-        self.exiting=ExitStorage(self,observe=observe_exit);self.exiting.run(0)
+        self.exiting=ExitStorage(self,observe=observe_exit,release=default_release if release_cleanup is None else release_cleanup);self.exiting.run(0)
 
     def point(self,kind):
         address=self.inputs['workspace_address']

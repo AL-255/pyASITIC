@@ -1,5 +1,9 @@
 # Exit lists and loader dependency traversal
 
+The subsequent [main CRT continuation](SHUNT_CRT.md) completes the first
+destructor when its genuine earlier CRT inputs are available. This historical
+fixture and all of its strict targets remain unchanged.
+
 The continuing source now executes libc's exit-list traversal, decodes the
 registered loader callback, sorts the actual loader namespace and enters the
 first object's ELF finalizer. All fourteen unchanged scripts, cold and warm,

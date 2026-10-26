@@ -36,9 +36,10 @@ def phase(fixture,entry,expected,engine,record,identity,counts,differences):
     differences.append(dict(kind='exit-fp-continuation-missing',**identity,bytes=len(expected['xstate'])//2));counts['exit_phases_checked']+=1
 
 
-def compare(fixture,entry,*,return_state=False):
+def compare(fixture,entry,*,return_state=False,observe_crt=None):
     entry=expand_case(fixture,entry);native=entry['shutdown']['exit_calls'];differences=[];seen=[];counts=dict.fromkeys(EXIT_TOTALS,0);counts['native_exit_calls']=len(native)
     def observe(which,engine,record,storage):
+        if observe_crt is not None:engine.observe_crt=lambda p,c,r:observe_crt(p,c,r,storage)
         index=record['index'];identity=dict(call=index,phase=which);seen.append((index,which))
         if which=='before':counts['exit_calls_checked']+=1
         if index>=len(native):differences.append(dict(kind='exit-extra-call',**identity));return

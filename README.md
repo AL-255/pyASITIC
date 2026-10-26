@@ -422,6 +422,13 @@ Complete stack/GP/FP execution, earlier missing lazy bindings and the
 destructor bodies remain strict failures; computed order is not treated
 as execution of later callbacks.
 
+[Main CRT continuation](docs/SHUNT_CRT.md) now executes the actual global
+string destructors, pool locks and frame-registry removal, then returns to
+the loader and enters MesaGL's finalizer. All 420 independent native calls
+match their checked non-stack stores and defined returns. Complete
+stack/GP/FP, earlier lazy bindings and the remaining finalizers still fail
+strictly; no later snapshot supplies the continuing execution.
+
 [Pre-CAP storage](docs/PRELUDE_STORAGE.md) additionally reproduces all 975 FFT
 scratch arrays and 130 stream buffers in the 130 selected native histories:
 4,526,080 bytes match exactly in the compiled browser backend. Four added small

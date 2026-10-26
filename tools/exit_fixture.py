@@ -3,6 +3,7 @@ import copy,gzip,hashlib,json
 from pathlib import Path
 
 INLINE=('label','esp','ebp')
+BYTE_BANKS=('driver_heap_pages','loader_regions','storage_pages','storage_blobs','cache_file_pages')
 REFERENCE='Every complete exit heap dictionary expands identically before its dense representation is replaced. Label and ABI markers remain inline; every other field is retained in the SHA256 content bank. No owner, field, word, state or outcome is omitted. Each expansion returns independent mutable containers, so later assertion mutations cannot alter earlier component inputs.'
 
 
@@ -20,16 +21,17 @@ def heap(fixture,point):
 
 def expand_case(fixture,entry):
     # Only assertion transport is expanded. No runtime input is initialized.
-    calls=[]
-    for call in entry['shutdown']['exit_calls']:
-        calls.append(dict(call,**{phase:dict(call[phase],heap=heap(fixture,call[phase]))for phase in('before','after')if phase in call}))
-    return dict(entry,shutdown=dict(entry['shutdown'],exit_calls=calls))
+    shutdown=dict(entry['shutdown'])
+    for name in('exit_calls','crt_calls'):
+        if name not in shutdown:continue
+        shutdown[name]=[dict(call,**{phase:dict(call[phase],heap=heap(fixture,call[phase]))for phase in('before','after')if phase in call})for call in shutdown[name]]
+    return dict(entry,shutdown=shutdown)
 
 
 def factor(fixture):
     bank={};count=0
     for entry in fixture['cases']:
-        for call in entry['shutdown']['exit_calls']:
+        for call in entry['shutdown']['exit_calls']+entry['shutdown'].get('crt_calls',[]):
             for phase in('before','after'):
                 if phase not in call:continue
                 point=call[phase];original=point['heap'];body={k:v for k,v in original.items()if k not in INLINE};key=content_key(body)
@@ -50,7 +52,7 @@ def factor_file(path):
 def read_fixture(path):
     path=Path(path);fixture=json.loads(gzip.decompress(path.read_bytes()))
     for bank,info in fixture.get('external_banks',{}).items():
-        if bank not in('driver_heap_pages','loader_regions')or Path(info['file']).name!=info['file']:raise ValueError('Invalid native exit bank owner')
+        if bank not in BYTE_BANKS or Path(info['file']).name!=info['file']:raise ValueError('Invalid native exit bank owner')
         raw=(path.parent/info['file']).read_bytes()
         if hashlib.sha256(raw).hexdigest()!=info['sha256']:raise ValueError('Changed complete native exit bank')
         values=json.loads(gzip.decompress(raw))
@@ -60,10 +62,12 @@ def read_fixture(path):
     return fixture
 
 
-def externalize_file(path):
+def externalize_file(path,*,banks=('driver_heap_pages','loader_regions')):
     path=Path(path);fixture=json.loads(gzip.decompress(path.read_bytes()));external={}
-    for bank in('driver_heap_pages','loader_regions'):
-        values=fixture[bank];name='shunt_exit_'+bank+'_original.json.gz';target=path.parent/name
+    prefix=path.name.removesuffix('_original.json.gz')
+    for bank in banks:
+        if bank not in BYTE_BANKS:raise ValueError('Invalid native byte bank')
+        values=fixture[bank];name=prefix+'_'+bank+'_original.json.gz';target=path.parent/name
         with gzip.GzipFile(str(target),'wb',mtime=0)as stream:stream.write((json.dumps(values,separators=(',',':'))+'\n').encode())
         if json.loads(gzip.decompress(target.read_bytes()))!=values:raise ValueError('External bank changed captured native content')
         if target.stat().st_size>=100*1024**2:raise ValueError('Native bank requires further lossless factoring')
