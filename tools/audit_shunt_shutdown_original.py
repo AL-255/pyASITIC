@@ -22,7 +22,7 @@ def expand_shutdown(fixture,entry):
     return dict(shutdown,states=[dict(s,memory_regions=[region(r)for r in s['memory_regions']],component_regions=[component(r)for r in s['component_regions']])for s in shutdown['states']],buffers=[region(r)for r in shutdown['buffers']])
 
 
-def compare(fixture,entry,*,return_state=False,continue_repl=False,observe_malloc=None,observe_cleanup=None):
+def compare(fixture,entry,*,return_state=False,continue_repl=False,observe_malloc=None,observe_cleanup=None,observe_exit=None):
     continuing=[]
     before,heap,addresses,memory=port_tail(fixture,entry,return_state=True,observe_continuation=continuing.append)
     if len(continuing)!=1:raise ValueError('Shutdown requires the actual continuing port history')
@@ -64,7 +64,7 @@ def compare(fixture,entry,*,return_state=False,continue_repl=False,observe_mallo
                 result['registers_checked']+=1
                 if registers.get(name)!=value:result['differences'].append(dict(kind='shutdown-register',label=label,name=name,actual=registers.get(name),original=value))
         if 'stdin_position'in state and history.stdin_position!=state['stdin_position']:result['differences'].append(dict(kind='shutdown-stdin-position',label=label,actual=history.stdin_position,original=state['stdin_position']))
-    storage=ScriptEOFStorage(history,observe=observe,observe_malloc=observe_malloc,observe_cleanup=observe_cleanup)
+    storage=ScriptEOFStorage(history,observe=observe,observe_malloc=observe_malloc,observe_cleanup=observe_cleanup,observe_exit=observe_exit)
     console_start=len(history.console.calls)
     try:
         storage.run()

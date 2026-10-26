@@ -9,7 +9,7 @@ from .memory import UnknownMemory
 
 
 class ScriptEOFStorage:
-    def __init__(self,history,*,observe=None,observe_malloc=None,observe_cleanup=None):
+    def __init__(self,history,*,observe=None,observe_malloc=None,observe_cleanup=None,observe_exit=None):
         self.history=history;self.heap=history.heap;self.memory=history.memory
         self.console=history.console;self.stream=history.script_stream
         self.buffer=self.memory.u32(self.stream.address+28)
@@ -18,6 +18,7 @@ class ScriptEOFStorage:
         self.io_calls=[];self.io_pending=[]
         self.malloc_calls=[];self.observe_malloc=observe_malloc
         self.observe_cleanup=observe_cleanup
+        self.observe_exit=observe_exit
 
     def point(self,label):
         if label=='script.free.file':self.return_abi=self.history._script_return_abi(self.stream.address)
@@ -60,9 +61,11 @@ class ScriptEOFStorage:
         if not self.complete:raise ValueError('The source script must return before entering the REPL')
         def cleanup_observe(phase,cleanup,address):
             if self.observe_cleanup is not None:self.observe_cleanup(phase,cleanup,address,self)
+        def exit_observe(phase,engine,record):
+            if self.observe_exit is not None:self.observe_exit(phase,engine,record,self)
         self.history._after_script_close(self.return_abi,allocate=self.allocate,release=self.release_named,
                                         point=lambda kind:self.point('interactive.parse'if kind=='parse'else kind),observe_io=self.observe_io,
-                                        release_cleanup=self.release,observe_cleanup=cleanup_observe)
+                                        release_cleanup=self.release,observe_cleanup=cleanup_observe,observe_exit=exit_observe)
 
     def observe_io(self,phase,kind,registers,positions):
         if kind=='malloc':

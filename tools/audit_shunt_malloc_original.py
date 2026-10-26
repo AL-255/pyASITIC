@@ -48,7 +48,7 @@ def compare_isolated(fixture,entry):
     return result
 
 
-def compare(fixture,entry,*,return_state=False,observe_cleanup=None):
+def compare(fixture,entry,*,return_state=False,observe_cleanup=None,observe_exit=None):
     native=entry['shutdown']['malloc'];differences=[];seen=[];counts=dict.fromkeys(MALLOC_TOTALS,0);counts['native_malloc_calls']=len(native)
     def observe(phase,registers,storage):
         index=len(storage.malloc_calls)-1;seen.append((index,phase))
@@ -83,7 +83,7 @@ def compare(fixture,entry,*,return_state=False,observe_cleanup=None):
         # full earlier x87/SIMD execution has not yet supplied a source XSAVE.
         differences.append(dict(kind='malloc-fp-continuation-missing',call=index,phase=phase,bytes=len(expected['xstate'])//2))
         counts['malloc_phases_checked']+=1
-    result,h,a,m,storage=parent.compare(fixture,entry,return_state=True,observe_malloc=observe,observe_cleanup=observe_cleanup)
+    result,h,a,m,storage=parent.compare(fixture,entry,return_state=True,observe_malloc=observe,observe_cleanup=observe_cleanup,observe_exit=observe_exit)
     for index,call in enumerate(native):
         for phase in call:
             for region in call[phase]['regions']:data(fixture,region)

@@ -190,7 +190,7 @@ class CommandTransition:
             loader=PltFixup(m,loader_context['loader_base'],tls_base=loader_context['tls_base'])
         return loader_context,stdio,incoming,loader
 
-    def _after_script_close(self,returned,*,allocate=None,release=None,point=None,observe_io=None,release_cleanup=None,observe_cleanup=None):
+    def _after_script_close(self,returned,*,allocate=None,release=None,point=None,observe_io=None,release_cleanup=None,observe_cleanup=None,observe_exit=None):
         m=self.memory;abi=self.libio
         loader_context,stdio,incoming,loader=returned
         allocate=self.allocate if allocate is None else allocate
@@ -279,7 +279,9 @@ class CommandTransition:
         self.cleanup=ProcessCleanup(self,release=default_release if release_cleanup is None else release_cleanup,observe=observe_cleanup)
         self.cleanup.close_logs()
         point('exit')
-        raise NotImplementedError('Libc exit handlers and loader finalizers are not yet bound')
+        if 'exit_inputs'not in self.inputs:raise NotImplementedError('Libc exit handlers and loader finalizers are not yet bound')
+        from .exit_storage import ExitStorage
+        self.exiting=ExitStorage(self,observe=observe_exit);self.exiting.run(0)
 
     def point(self,kind):
         address=self.inputs['workspace_address']

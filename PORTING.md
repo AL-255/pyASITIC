@@ -1564,3 +1564,12 @@ through both log fclose operations to libc exit entry. The read-only capture
 adds all public close/free-entry and X11 finalizer regions, not later runtime
 inputs. Full heap/FILE/list/lock stores match, including locks held at buffer
 free. Stack/FP/register execution and actual libc/loader exit remain required.
+
+The [exit-list/loader continuation](docs/SHUNT_EXIT.md) uses genuine earlier
+lists, pointer guards, loader globals, all twenty namespace maps and raw ELF
+metadata to enter the first actual destructor. Its computed nineteen-object
+order matches every native history; later bodies remain unexecuted. All
+4,243,637,580 captured exit-region bytes and every parent target remain
+required. Full stack/GP/FP, earlier lazy-binding counter effects, ELF bodies,
+final stdio and process exit still fail strictly; no later order/free/status
+is loaded as execution input.

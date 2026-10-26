@@ -7,8 +7,8 @@ from audit_loader_lookup_original import data
 ROOT=Path(__file__).resolve().parents[1]
 
 
-def compare(fixture,entry,*,return_state=False,observe_malloc=None,observe_cleanup=None):
-    result,heap,addresses,memory,storage=parent.compare(fixture,entry,return_state=True,continue_repl=True,observe_malloc=observe_malloc,observe_cleanup=observe_cleanup)
+def compare(fixture,entry,*,return_state=False,observe_malloc=None,observe_cleanup=None,observe_exit=None):
+    result,heap,addresses,memory,storage=parent.compare(fixture,entry,return_state=True,continue_repl=True,observe_malloc=observe_malloc,observe_cleanup=observe_cleanup,observe_exit=observe_exit)
     result.update(printf_calls_checked=0,printf_registers_checked=0,native_io_calls=len(entry['shutdown']['io']),io_calls_checked=0,io_words_checked=0,io_registers_checked=0,io_positions_checked=0,io_unknown_bytes=0)
     actual=storage.history.printf_calls;native=entry['shutdown']['printf']
     if len(actual)!=len(native):result['differences'].append(dict(kind='repl-printf-count',actual=len(actual),original=len(native)))

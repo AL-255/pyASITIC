@@ -40,7 +40,7 @@ def compare_phase(fixture,expected,cleanup,call,event_count,counts,differences,i
     counts['cleanup_phases_checked']+=1
 
 
-def compare(fixture,entry,*,return_state=False):
+def compare(fixture,entry,*,return_state=False,observe_exit=None):
     native=entry['shutdown']['cleanup'];differences=[];seen=[];counts=dict.fromkeys(CLEANUP_TOTALS,0);counts['native_cleanup_calls']=len(native)
     def observe(phase,cleanup,address,storage):
         index=len(cleanup.calls)-1;call=cleanup.calls[-1];ordinal=len(call['free'])-1 if phase=='free'else None;identity=dict(call=index,phase=phase)
@@ -57,7 +57,7 @@ def compare(fixture,entry,*,return_state=False):
         elif phase in target:expected=target[phase]
         else:differences.append(dict(kind='cleanup-extra-phase',**identity));return
         compare_phase(fixture,expected,cleanup,call,len(storage.events),counts,differences,identity)
-    result,h,a,m,storage=parent.compare(fixture,entry,return_state=True,observe_cleanup=observe)
+    result,h,a,m,storage=parent.compare(fixture,entry,return_state=True,observe_cleanup=observe,observe_exit=observe_exit)
     for index,call in enumerate(native):
         phases=[(phase,None,call[phase])for phase in('before','after')if phase in call]+[('free',ordinal,point['state'])for ordinal,point in enumerate(call.get('free',[]))]
         for phase,ordinal,point in phases:

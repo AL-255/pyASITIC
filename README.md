@@ -414,6 +414,14 @@ through 56 log closes. Complete stack/register/FP and final
 libc/loader execution remain strict failures; no observed finalizer free list
 supplies source execution.
 
+The subsequent [exit-list and loader traversal](docs/SHUNT_EXIT.md) now
+decodes the actual registered callback and computes the native finalizer
+order of all nineteen initialized objects in each of the 28 histories.
+The continuing source reaches the first ELF destructor on the same heap.
+Complete stack/GP/FP execution, earlier missing lazy bindings and the
+destructor bodies remain strict failures; computed order is not treated
+as execution of later callbacks.
+
 [Pre-CAP storage](docs/PRELUDE_STORAGE.md) additionally reproduces all 975 FFT
 scratch arrays and 130 stream buffers in the 130 selected native histories:
 4,526,080 bytes match exactly in the compiled browser backend. Four added small

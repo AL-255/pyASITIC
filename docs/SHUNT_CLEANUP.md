@@ -1,5 +1,9 @@
 # Continuing log closure to libc exit entry
 
+The subsequent [exit-list/loader work](SHUNT_EXIT.md) now continues beyond
+this historical checkpoint when genuine earlier exit metadata is available.
+The original cleanup fixture and all of its strict targets remain unchanged.
+
 The source now continues all fourteen original scripts, cold and warm, from
 cache release through input-log and output-log closure to the native libc
 `exit` entry. It uses the existing heap, FILE list, locks and current control
