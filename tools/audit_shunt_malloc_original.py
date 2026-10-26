@@ -5,7 +5,7 @@ ROOT=Path(__file__).resolve().parents[1]
 sys.path.insert(0,str(ROOT/'src'))
 import audit_shunt_repl_original as parent
 from audit_malloc_storage_original import engine
-from audit_allocator_original import state_differences
+from audit_allocator_original import state_differences,heap_mapping_owners
 from audit_loader_lookup_original import data
 from reasitic.memory import MemoryFault,UnknownMemory
 
@@ -48,7 +48,7 @@ def compare_isolated(fixture,entry):
     return result
 
 
-def compare(fixture,entry,*,return_state=False):
+def compare(fixture,entry,*,return_state=False,observe_cleanup=None):
     native=entry['shutdown']['malloc'];differences=[];seen=[];counts=dict.fromkeys(MALLOC_TOTALS,0);counts['native_malloc_calls']=len(native)
     def observe(phase,registers,storage):
         index=len(storage.malloc_calls)-1;seen.append((index,phase))
@@ -58,8 +58,7 @@ def compare(fixture,entry,*,return_state=False):
         # owners supply actual values. Later malloc snapshots are assertions.
         expected=native[index][phase];m,h=storage.memory,storage.heap;inputs=storage.history.inputs
         workspace=inputs['workspace_address'];stack=next(r for r in inputs['initial_regions']if r['address']<=workspace and workspace+4460<=r['address']+len(r['data'])//2)
-        base=h.parameters['sbrk_base'];owners=[(stack['address'],len(stack['data'])//2)]
-        owners.extend((start,end-start)for start,end in sorted(h.address_space.ranges)if start<=base<end)
+        owners=[(stack['address'],len(stack['data'])//2),*heap_mapping_owners(h)]
         owners.append((h.arena_address,h.arena_size))
         if owners!=[(r['address'],r['size'])for r in expected['regions']]:differences.append(dict(kind='malloc-region-owners',call=index,phase=phase,actual=owners))
         for region in expected['regions']:
@@ -84,7 +83,7 @@ def compare(fixture,entry,*,return_state=False):
         # full earlier x87/SIMD execution has not yet supplied a source XSAVE.
         differences.append(dict(kind='malloc-fp-continuation-missing',call=index,phase=phase,bytes=len(expected['xstate'])//2))
         counts['malloc_phases_checked']+=1
-    result,h,a,m,storage=parent.compare(fixture,entry,return_state=True,observe_malloc=observe)
+    result,h,a,m,storage=parent.compare(fixture,entry,return_state=True,observe_malloc=observe,observe_cleanup=observe_cleanup)
     for index,call in enumerate(native):
         for phase in call:
             for region in call[phase]['regions']:data(fixture,region)

@@ -9,7 +9,7 @@ from .memory import UnknownMemory
 
 
 class ScriptEOFStorage:
-    def __init__(self,history,*,observe=None,observe_malloc=None):
+    def __init__(self,history,*,observe=None,observe_malloc=None,observe_cleanup=None):
         self.history=history;self.heap=history.heap;self.memory=history.memory
         self.console=history.console;self.stream=history.script_stream
         self.buffer=self.memory.u32(self.stream.address+28)
@@ -17,18 +17,21 @@ class ScriptEOFStorage:
         self.events=[];self.freed=[];self.observe=observe;self.complete=False
         self.io_calls=[];self.io_pending=[]
         self.malloc_calls=[];self.observe_malloc=observe_malloc
+        self.observe_cleanup=observe_cleanup
 
     def point(self,label):
         if label=='script.free.file':self.return_abi=self.history._script_return_abi(self.stream.address)
         if self.observe is not None:self.observe(label,self)
 
-    def release(self,address,caller):
+    def release(self,address,caller,*,before_free=None):
         m=self.memory;index=len(self.events)
         if address:
             word=m.u32(address-4);size=(word&~7)-(8 if word&2 else 4)
             self.freed.append(dict(event_index=index,address=address,size=size,data=m.read(address,size)))
         item=dict(kind='free',allocator='free',address=address,caller=caller)
-        self.events.append(item);self.heap.free(address);item['returned']=True
+        self.events.append(item)
+        if before_free is not None:before_free()
+        self.heap.free(address);item['returned']=True
 
     def run(self):
         self.point('script.read')
@@ -55,8 +58,11 @@ class ScriptEOFStorage:
 
     def resume_repl(self):
         if not self.complete:raise ValueError('The source script must return before entering the REPL')
+        def cleanup_observe(phase,cleanup,address):
+            if self.observe_cleanup is not None:self.observe_cleanup(phase,cleanup,address,self)
         self.history._after_script_close(self.return_abi,allocate=self.allocate,release=self.release_named,
-                                        point=lambda kind:self.point('interactive.parse'if kind=='parse'else kind),observe_io=self.observe_io)
+                                        point=lambda kind:self.point('interactive.parse'if kind=='parse'else kind),observe_io=self.observe_io,
+                                        release_cleanup=self.release,observe_cleanup=cleanup_observe)
 
     def observe_io(self,phase,kind,registers,positions):
         if kind=='malloc':

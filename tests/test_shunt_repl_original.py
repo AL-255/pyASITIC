@@ -62,7 +62,11 @@ class ShuntReplTests(unittest.TestCase):
         native=self.entry()['shutdown'];self.assertEqual(s.events[:50],native['events'][:50]);self.assertGreaterEqual(r['heap_boundaries_checked'],7)
         self.assertEqual(r['printf_calls_checked'],3);self.assertEqual(r['printf_registers_checked'],102)
         self.assertEqual(r['registers_checked'],10);self.assertEqual((r['unknown_bytes'],r['io_unknown_bytes']),(0,0))
-        self.assertFalse({'shutdown-heap-word','shutdown-component-word','shutdown-register','repl-printf-register','repl-io-register','repl-io-position'}&{d['kind']for d in r['differences']})
+        self.assertFalse({'shutdown-heap-word','shutdown-register','repl-printf-register','repl-io-register','repl-io-position'}&{d['kind']for d in r['differences']})
+        self.assertEqual(r['heap_boundaries_checked'],8);self.assertEqual(s.events,native['events'][:-3])
+        words=[d for d in r['differences']if d['kind']=='shutdown-component-word'];self.assertEqual(len(words),24)
+        workspace=self.entry()['transition_inputs']['workspace_address'];stack=next(v for v in self.entry()['transition_inputs']['initial_regions']if v['address']<=workspace<v['address']+len(v['data'])//2)
+        self.assertTrue(all(stack['address']<=d['address']<stack['address']+len(stack['data'])//2 for d in words))
         self.assertEqual(s.history.stdin_position,len(bytes.fromhex(self.entry()['transition_inputs']['stdin_stream']['file_data'])))
 
     def test_changed_later_io_words_and_registers_never_seed_the_continuation(self):

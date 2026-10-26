@@ -38,11 +38,12 @@ class CommandTransition:
         item=dict(kind='allocate',name=name,request=size,allocator=allocator);self.events.append(item)
         address=self.heap.malloc(size);item.update(address=address,returned=True);return address
 
-    def release(self,name,address,allocator='malloc'):
+    def release(self,name,address,allocator='malloc',*,before_free=None):
         item=dict(kind='free',name=name,address=address,allocator=allocator);index=len(self.events);self.events.append(item)
         if address:
             word=self.memory.u32(address-4);size=(word&~7)-(8 if word&2 else 4)
             self.freed.append(dict(event_index=index,address=address,size=size,data=self.memory.read(address,size)))
+        if before_free is not None:before_free()
         try:self.heap.free(address)
         except HeapCorruption as error:
             # glibc libc_fatal.c maps an abort-message page independently of
@@ -189,7 +190,7 @@ class CommandTransition:
             loader=PltFixup(m,loader_context['loader_base'],tls_base=loader_context['tls_base'])
         return loader_context,stdio,incoming,loader
 
-    def _after_script_close(self,returned,*,allocate=None,release=None,point=None,observe_io=None):
+    def _after_script_close(self,returned,*,allocate=None,release=None,point=None,observe_io=None,release_cleanup=None,observe_cleanup=None):
         m=self.memory;abi=self.libio
         loader_context,stdio,incoming,loader=returned
         allocate=self.allocate if allocate is None else allocate
@@ -273,7 +274,12 @@ class CommandTransition:
         for index in reversed(range(metals*(metals+1)//2)):
             for name in ('xy','x','y'):release('cache.'+name,self.memory.u32(self.cache_arrays[name]['pointer_address']+4*index),'array')
         for name in ('xy','x','y'):release('cache.'+name+'.pointers',self.cache_arrays[name]['pointer_address'],'array')
-        raise NotImplementedError('Process cleanup after the cache tables is not yet bound')
+        from .process_cleanup import ProcessCleanup
+        def default_release(address,caller,*,before_free):self.release('cleanup',address,before_free=before_free)
+        self.cleanup=ProcessCleanup(self,release=default_release if release_cleanup is None else release_cleanup,observe=observe_cleanup)
+        self.cleanup.close_logs()
+        point('exit')
+        raise NotImplementedError('Libc exit handlers and loader finalizers are not yet bound')
 
     def point(self,kind):
         address=self.inputs['workspace_address']

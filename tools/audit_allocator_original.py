@@ -11,6 +11,25 @@ from reasitic.allocation_plan import combined_network_storage
 from reasitic.heap import Heap,SystemAllocationRequired
 
 
+def merged_ranges(ranges):
+    result=[]
+    for start,end in sorted(ranges):
+        if result and start<=result[-1][1]:result[-1][1]=max(result[-1][1],end)
+        else:result.append([start,end])
+    return result
+
+
+def heap_mapping_owners(heap):
+    """Complete live heap extent, including contiguous source brk extensions."""
+    base=heap.parameters['sbrk_base']
+    # Heap supports the contiguous main arena. Its system_mem tracks all brk
+    # extensions. The executable's BSS may touch this VMA but is a separate
+    # owner, so merging every adjacent process mapping would include it.
+    size=heap.system_mem
+    if not heap.address_space.contains(base,size):raise ValueError('Source heap extent is not fully mapped')
+    return [(base,size)]
+
+
 def state_differences(heap,state,*,memory=None):
     differences=[]
     # Optional later external-node bytes are assertion targets only. Never
@@ -49,13 +68,7 @@ def state_differences(heap,state,*,memory=None):
         mapped=[dict(address=p,prev_size=c.previous,size_word=c.size|2)for p,c in sorted(heap.mapped.items())]
         native=[{key:c[key]for key in ('address','prev_size','size_word')}for c in state['mapped_chunks']]
         if mapped!=native:differences.append(dict(kind='mapped-chunks',boundary=state['label'],actual=mapped,original=native))
-        def merge(ranges):
-            result=[]
-            for start,end in sorted(ranges):
-                if result and start<=result[-1][1]:result[-1][1]=max(result[-1][1],end)
-                else:result.append([start,end])
-            return result
-        actual=merge(heap.address_space.ranges);original=merge((m['start'],m['end'])for m in state['maps'])
+        actual=merged_ranges(heap.address_space.ranges);original=merged_ranges((m['start'],m['end'])for m in state['maps'])
         if actual!=original:differences.append(dict(kind='mapped-ranges',boundary=state['label'],actual=actual,original=original))
     return differences
 

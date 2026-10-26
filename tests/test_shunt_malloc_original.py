@@ -48,10 +48,15 @@ class ShuntMallocTests(unittest.TestCase):
     def test_unbuffered_source_reaches_quit_and_cache_release(self):
         r,h,a,m,s=self.source();self.assertEqual(r['before']['differences'],[])
         self.assertEqual((r['malloc_calls_checked'],r['malloc_phases_checked'],r['malloc_words_checked'],r['malloc_registers_checked'],r['malloc_heap_boundaries_checked'],r['malloc_unknown_bytes']),(1,2,645678,34,2,0))
-        self.assertEqual(s.events,self.entry()['shutdown']['events'][:len(s.events)])
-        self.assertEqual(r['heap_boundaries_checked'],7);self.assertEqual((r['printf_calls_checked'],r['registers_checked']),(3,10))
-        self.assertEqual([d['reason']for d in r['differences']if d['kind']=='shutdown-runtime'],['Process cleanup after the cache tables is not yet bound'])
-        self.assertFalse({'shutdown-heap-word','shutdown-component-word','malloc-register','malloc-heap-field','physical-chunks','physical-header-errors','state'}&{d['kind']for d in r['differences']})
+        self.assertEqual(s.events,self.entry()['shutdown']['events'][:-3])
+        self.assertEqual(r['heap_boundaries_checked'],8);self.assertEqual((r['printf_calls_checked'],r['registers_checked']),(3,10))
+        self.assertEqual([d['reason']for d in r['differences']if d['kind']=='shutdown-runtime'],['Libc exit handlers and loader finalizers are not yet bound'])
+        self.assertFalse({'shutdown-heap-word','malloc-register','malloc-heap-field','physical-chunks','physical-header-errors','state'}&{d['kind']for d in r['differences']})
+        # The newly executed exit-entry boundary exposes inherited stack
+        # effects. Every word remains a failure in the complete audit.
+        words=[d for d in r['differences']if d['kind']=='shutdown-component-word'];self.assertEqual(len(words),24)
+        workspace=self.entry()['transition_inputs']['workspace_address'];stack=next(v for v in self.entry()['transition_inputs']['initial_regions']if v['address']<=workspace<v['address']+len(v['data'])//2)
+        self.assertTrue(all(stack['address']<=d['address']<stack['address']+len(stack['data'])//2 for d in words))
         self.assertEqual(sum(d['kind']=='malloc-fp-continuation-missing'for d in r['differences']),2)
 
     def test_later_malloc_targets_do_not_initialize_the_full_source(self):

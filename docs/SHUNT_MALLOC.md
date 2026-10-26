@@ -1,5 +1,10 @@
 # Continuing stdin allocation through QUIT
 
+This checkpoint precedes [continuing log closure](SHUNT_CLEANUP.md). The same
+source now closes the logs and reaches exit entry on this fixture too. The
+counts below describe the earlier checkpoint; every native target remains
+required in the subsequent audit.
+
 The source replay now handles first-buffer stdin allocation in the ten
 previously blocked keyword-created histories. All fourteen unchanged scripts,
 cold and warm, now reach QUIT parsing and cache release using the same

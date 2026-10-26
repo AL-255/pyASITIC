@@ -1558,3 +1558,9 @@ scripts through QUIT/cache release. Ten independent complete native malloc
 calls match every memory/register/FP/heap target. The full audit keeps all
 prior requirements and adds both live malloc endpoints; inherited stack,
 earlier FP, log/process cleanup and existing phase/math gaps remain failures.
+
+[Log-close continuation](docs/SHUNT_CLEANUP.md) now carries those same heaps
+through both log fclose operations to libc exit entry. The read-only capture
+adds all public close/free-entry and X11 finalizer regions, not later runtime
+inputs. Full heap/FILE/list/lock stores match, including locks held at buffer
+free. Stack/FP/register execution and actual libc/loader exit remain required.
