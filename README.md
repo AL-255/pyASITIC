@@ -400,9 +400,12 @@ targets remain required, with identical CPU/browser reports.
 loader/stdio inputs, seeks and refills existing input buffers, and releases
 the native cache tables in all 18 buffered-input histories. Complete earlier
 cache mmap allocations supply their original headers and padding. All 28
-histories remain in the full audit, including ten unfinished first-buffer
-malloc paths. Heap/file/register checks advance, while complete IO stack and
-process-cleanup failures remain explicit.
+histories remain in the full audit. The subsequent
+[stdin malloc continuation](docs/SHUNT_MALLOC.md) now carries the other ten
+histories through first-buffer allocation, QUIT and cache release too. All ten
+independent native malloc calls match their complete memory/register/FP/heap
+targets. Full-history heap/file/register checks advance, while complete IO and
+malloc stack, earlier FP and process-cleanup failures remain explicit.
 
 [Pre-CAP storage](docs/PRELUDE_STORAGE.md) additionally reproduces all 975 FFT
 scratch arrays and 130 stream buffers in the 130 selected native histories:

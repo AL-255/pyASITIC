@@ -77,6 +77,7 @@ class StdinStorage(LibioABI):
             r=dict(self.underflow,eax=0,edx=0,edi=self.got,esi=a,ebp=u,esp=local-20,eip=self.libc+0x85440,
                 eflags=subtract_flags(local,12,self.underflow['eflags']))
             self.malloc_entry=self.allocation.before_malloc(r)
+            self._observed('before','malloc',self.malloc_entry)
             if self.profile.get('malloc_abi'):
                 from .malloc_storage import MallocStorage
                 if self.heap is None:raise ValueError('Malloc ABI requires the continuing guest heap')
@@ -90,6 +91,7 @@ class StdinStorage(LibioABI):
                 # Older inputs lack malloc controls. Its internal ABI remains
                 # absent there; _IO_setb overwrites volatile ECX/EDX before use.
                 r=dict(self.malloc_entry,eax=buffer,esp=self.malloc_entry['esp']+4,eip=self.libc+0x75523)
+            self._observed('after','malloc',r)
             self.allocation.after_malloc(r)
 
     def before_read(self,buffer,capacity):

@@ -1,5 +1,10 @@
 # Continuing stdin, QUIT and cache release
 
+This checkpoint precedes the [shared malloc continuation](SHUNT_MALLOC.md),
+which now carries the remaining ten histories through QUIT and cache release.
+The counts and explicit failures below describe this earlier checkpoint;
+the follow-up retains these targets and adds complete malloc endpoints.
+
 The development replay now resumes the same script, heap, memory and console
 through native signal installation, prompt output, stdin flush/read, logging,
 normalization, QUIT parsing and cache release for all 18 buffered-input

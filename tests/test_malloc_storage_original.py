@@ -55,7 +55,9 @@ class MallocStorageTests(unittest.TestCase):
         self.assertEqual(m.u32(registers['esp']-16),registers['ebx']);self.assertEqual(m.u32(registers['esp']-4),registers['ebp'])
         self.assertEqual(result['ebx'],registers['ebx']);self.assertEqual(result['ebp'],registers['ebp']);self.assertEqual(result['eax'],pointer)
         h,m,storage=engine(self.fixture,a,call['entry']);m.put_u32(registers['esp']+4,8192)
-        with self.assertRaisesRegex(NotImplementedError,'unsorted exact-fit'):storage.enter(registers)
+        storage.enter(registers);pointer=h.malloc(8192);result=storage.returned(pointer)
+        self.assertEqual(result['eax'],pointer);self.assertEqual(h.chunks[pointer-8].size,8208)
+        self.assertEqual(m.u32(pointer-4)&~7,8208)
 
     def test_missing_earlier_malloc_control_is_not_filled_from_later_state(self):
         call=self.case['allocation_calls'][0];a=copy.deepcopy(call['malloc']);h,m,storage=engine(self.fixture,a,call['entry']);m.forget(storage.got+0x78,4)

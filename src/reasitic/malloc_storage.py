@@ -1,8 +1,8 @@
-"""Pinned i386 malloc caller/unsorted exact-fit ABI stores.
+"""Pinned i386 large malloc ABI, sharing bin/top/consolidation execution.
 
 Follows glibc 2.39 malloc/malloc.c, LGPL-2.1-or-later;
 see web/GLIBC-LGPL-2.1.txt. Heap.malloc remains the allocation algorithm.
-Other allocator paths require their own source ABI before connection.
+Small/tcache allocator paths require their own source ABI before connection.
 """
 from .heap import request_size,bin_index
 from .signal_install_storage import add_flags
@@ -13,6 +13,7 @@ class MallocStorage:
         self.heap=heap;self.m=memory;self.libc=libc_base;self.got=libc_base+0x22fe34;self.tls=tls_base
 
     def enter(self,registers):
+        self.large=None
         m=self.m;h=self.heap;r=dict(registers);s=r['esp'];request=m.u32(s+4);size=request_size(request);index=h._cache_index(size)
         if r['eip']!=self.libc+0x9ea00:raise NotImplementedError('Malloc interposition needs its own ABI')
         if not m.read(self.got+0x3c04,1)[0]or m.u32(self.tls+12):raise NotImplementedError('Malloc ABI needs initialized single-thread state')
@@ -23,10 +24,12 @@ class MallocStorage:
         if h.arena_address!=self.got+0x92c:raise NotImplementedError('Malloc alternate arenas need their source ABI')
         if not cache or index<h.parameters['tcache_bins']:
             raise NotImplementedError('Malloc tcache paths need their source ABI')
-        if size<1008 or h.have_fastchunks or m.read(self.got+0x3c18,1)[0]!=h.max_fast:
-            raise NotImplementedError('Malloc small/consolidation paths need their source ABI')
-        if not h.bins[1]or h.chunks[h.bins[1][-1]].size!=size:
-            raise NotImplementedError('Malloc ABI needs an unsorted exact-fit candidate')
+        if size<1008:raise NotImplementedError('Malloc small branches need their source ABI')
+        if h.have_fastchunks or not h.bins[1]or h.chunks[h.bins[1][-1]].size!=size:
+            from .malloc_top_storage import MallocTopStorage
+            self.large=MallocTopStorage(h,m,libc_base=self.libc,tls_base=self.tls)
+            self.large.enter(r);return
+        if m.read(self.got+0x3c18,1)[0]!=h.max_fast:raise ValueError('Malloc fastbin controls differ from the continuing heap')
         if m.u32(self.got+0x3c14):raise NotImplementedError('Malloc perturbation needs its child copy ABI')
         candidate=h.bins[1][-1];head=h._bin_head(1);following=candidate+size
         next_word=m.u32(following+4)
@@ -47,6 +50,7 @@ class MallocStorage:
             m.put_u32(self.inner+offset,value)
 
     def returned(self,pointer):
+        if self.large is not None:return self.large.returned(pointer)
         if pointer!=self.candidate+8:raise ValueError('Malloc returned a different source candidate')
         r=self.registers;s=r['esp']
         return dict(r,eax=pointer,ecx=self.following_word,edx=0,esp=s+4,eip=self.m.u32(s),

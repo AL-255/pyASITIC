@@ -1550,3 +1550,11 @@ retained scaling/truncation. The new checks are mandatory in CI. Arbitrary
 partial scans, retained prompt retry histories, all side-count/resource limits,
 and broader geometry-edit/branch-group workflows remain separate work; this
 change does not establish whole-program equivalence.
+
+The subsequent [continuing stdin malloc audit](docs/SHUNT_MALLOC.md) shares the
+existing large malloc ABI between printf and stdin, publishes arena/fastbin
+stores from the continuing source heap, and advances all fourteen cold/warm
+scripts through QUIT/cache release. Ten independent complete native malloc
+calls match every memory/register/FP/heap target. The full audit keeps all
+prior requirements and adds both live malloc endpoints; inherited stack,
+earlier FP, log/process cleanup and existing phase/math gaps remain failures.

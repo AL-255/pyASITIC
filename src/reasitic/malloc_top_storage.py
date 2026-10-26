@@ -14,6 +14,10 @@ class MallocTopStorage:
         self.got=libc_base+0x22fe34
 
     def malloc(self,registers):
+        self.enter(registers)
+        return self.returned(self.heap.malloc(self.request))
+
+    def enter(self,registers):
         m,h=self.m,self.heap;r=dict(registers);s=r['esp'];request=m.u32(s+4);size=request_size(request);index=h._cache_index(size)
         if r['eip']!=self.libc+0x9ea00:raise NotImplementedError('Alternate malloc needs its source ABI')
         if not m.read(self.got+0x3c04,1)[0]or m.u32(self.tls+12):raise NotImplementedError('Top malloc needs initialized single-thread state')
@@ -51,19 +55,22 @@ class MallocTopStorage:
         for chain in h.bins[1:]:
             for candidate in chain:
                 if m.u32(m.u32(candidate+8)+12)!=candidate or m.u32(m.u32(candidate+12)+8)!=candidate:raise ValueError('Malloc free-bin physical links differ from the continuing heap')
-        sizes={p:c.size for p,c in h.chunks.items()}
-        exact_word=m.u32(exact+size+4)|1 if exact is not None else None
-        pointer=h.malloc(request)
+        self.registers=r;self.request=request;self.size=size;self.local=local;self.inner=inner;self.top=top;self.exact=exact
+        self.sizes={p:c.size for p,c in h.chunks.items()}
+        self.exact_word=m.u32(exact+size+4)|1 if exact is not None else None
+
+    def returned(self,pointer):
+        m,h=self.m,self.heap;r=self.registers;s=r['esp'];size=self.size;local=self.local;inner=self.inner;top=self.top;exact=self.exact
         candidate=pointer-8;ecx=0
         if exact is not None:
             if candidate!=exact:raise ValueError('Malloc source decision differs from its unsorted exact fit')
-            ecx=exact_word
+            ecx=self.exact_word
         elif candidate==top:
             m.put_u32(h.arena_address+56,h.top)
             # alloc_perturb still executes its frame and PIC thunk when disabled.
             m.put_u32(inner-4,self.libc+0x9e16c);m.put_u32(inner-8,size|1);m.put_u32(inner-12,self.libc+0x9a986)
         else:
-            original_size=sizes[candidate];remaining=original_size-size;selected=bin_index(original_size)
+            original_size=self.sizes[candidate];remaining=original_size-size;selected=bin_index(original_size)
             m.put_u32(inner+20,original_size)
             if selected==bin_index(size):
                 m.put_u32(inner+24,remaining);m.put_u32(inner-4,self.libc+0x9e0a5);m.put_u32(inner-8,original_size);m.put_u32(inner-12,candidate)

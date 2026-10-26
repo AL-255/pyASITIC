@@ -12,7 +12,7 @@ warranty of merchantability or fitness for a particular purpose.
 Python translation Copyright (C) 2026 pyASITIC authors.
 """
 from dataclasses import dataclass
-from .memory import MemoryFault
+from .memory import MemoryFault,UnknownMemory
 
 
 class SystemAllocationRequired(NotImplementedError):
@@ -94,6 +94,13 @@ class AddressSpace:
 
 class Heap:
     """Arena metadata and ordered free lists, with no numerical fixture data."""
+    ARENA_FIELDS=dict(flags=4,have_fastchunks=8,top=56,last_remainder=60,system_mem=1108,max_system_mem=1112)
+
+    def __setattr__(self,name,value):
+        object.__setattr__(self,name,value)
+        memory=getattr(self,'_arena_memory',None)
+        if memory is not None and name in self.ARENA_FIELDS:memory.put_u32(self.arena_address+self.ARENA_FIELDS[name],int(value))
+
     def __init__(self,snapshot):
         self.chunks={c['address']:Chunk(c['size_word']&~7,c['prev_size'],bool(c['size_word']&1))for c in snapshot['chunks']}
         self.top=snapshot['top'];self.last_remainder=snapshot['last_remainder']
@@ -102,6 +109,7 @@ class Heap:
         self.flags=snapshot['flags'];self.system_mem=snapshot['system_mem']
         self.arena_address=snapshot['arena_address']
         raw=bytes.fromhex(snapshot['arena_bytes'])
+        self._initial_arena=raw;self.arena_size=len(raw);self._arena_memory=None
         self.binmap=[int.from_bytes(raw[offset:offset+4],'little')for offset in range(1080,1096,4)]
         self.max_system_mem=int.from_bytes(raw[1112:1116],'little')
         self.address_space=AddressSpace(snapshot['maps'],snapshot.get('mapping_policy'))
@@ -131,6 +139,14 @@ class Heap:
         current=self._cache_memory or self._cache_write_memory
         if current is not None and current is not memory:raise ValueError('Header and cache stores must share memory')
         self._header_memory=memory
+        # Bind an already supplied, genuine earlier arena image. Minimal
+        # component contexts without that image retain their partial ABI;
+        # no later snapshot or reconstructed image fills the missing bytes.
+        try:arena=memory.read(self.arena_address,self.arena_size)
+        except(MemoryFault,UnknownMemory):arena=None
+        if arena is not None:
+            if arena!=self._initial_arena:raise ValueError('Earlier arena image differs from the initial heap')
+            self._arena_memory=memory
 
     def _head(self,p):
         if self._header_memory is not None:
@@ -150,6 +166,7 @@ class Heap:
         # Unlike tcache, fastbin links name chunk headers, not user pointers.
         memory=self._storage_memory()
         if memory is not None:memory.put_u32(p+8,following^((p+8)>>12))
+        if self._arena_memory is not None:self._arena_memory.put_u32(self.arena_address+12+4*((self.chunks[p].size>>3)-2),p)
 
     def observe_cache_stores(self,memory,key):
         """Trace logical tcache stores before numerical corruption is possible.
@@ -360,6 +377,7 @@ class Heap:
             if chain:
                 p=chain.pop(0)
                 while chain and self._cache_has_space(size):self._cache_put(chain.pop(0),size)
+                if self._arena_memory is not None:self._arena_memory.put_u32(self.arena_address+12+4*((size>>3)-2),chain[0]if chain else 0)
                 return p+8
         small=size<1008;index=bin_index(size)
         if small:
@@ -456,7 +474,8 @@ class Heap:
 
     def _consolidate(self):
         self.have_fastchunks=False
-        for chain in self.fastbins:
+        for index,chain in enumerate(self.fastbins):
+            if self._arena_memory is not None:self._arena_memory.put_u32(self.arena_address+12+4*index,0)
             while chain:self._merge(chain.pop(0))
 
     def free(self,address):

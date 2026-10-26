@@ -9,13 +9,14 @@ from .memory import UnknownMemory
 
 
 class ScriptEOFStorage:
-    def __init__(self,history,*,observe=None):
+    def __init__(self,history,*,observe=None,observe_malloc=None):
         self.history=history;self.heap=history.heap;self.memory=history.memory
         self.console=history.console;self.stream=history.script_stream
         self.buffer=self.memory.u32(self.stream.address+28)
         self.abi=history.libio;self.tls=history.inputs['port_tail_abi']['tls_base']
         self.events=[];self.freed=[];self.observe=observe;self.complete=False
         self.io_calls=[];self.io_pending=[]
+        self.malloc_calls=[];self.observe_malloc=observe_malloc
 
     def point(self,label):
         if label=='script.free.file':self.return_abi=self.history._script_return_abi(self.stream.address)
@@ -58,6 +59,11 @@ class ScriptEOFStorage:
                                         point=lambda kind:self.point('interactive.parse'if kind=='parse'else kind),observe_io=self.observe_io)
 
     def observe_io(self,phase,kind,registers,positions):
+        if kind=='malloc':
+            if phase=='before':self.malloc_calls.append({})
+            self.malloc_calls[-1][phase]=dict(registers)
+            if self.observe_malloc is not None:self.observe_malloc(phase,registers,self)
+            return
         m=self.memory;stdin=self.history.inputs['stdin_stream']['address'];s=registers['esp']
         if phase=='before':
             if m.u32(s+(12 if kind=='fgets'else 4))!=(0 if kind=='llseek'else stdin):return

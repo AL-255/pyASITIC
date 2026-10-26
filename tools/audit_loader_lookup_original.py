@@ -10,9 +10,11 @@ from reasitic.loader_lookup_storage import LoaderLookup
 
 def data(fixture,region):
     if 'pages'in region:
+        bank=region.get('page_bank','loader_pages')
+        if bank not in('loader_pages','driver_heap_pages'):raise ValueError('Unknown native region page bank')
         pages=[]
         for key in region['pages']:
-            page=bytes.fromhex(fixture['loader_pages'][key])
+            page=bytes.fromhex(fixture[bank][key])
             if hashlib.sha256(page).hexdigest()!=key:raise ValueError('Invalid loader page content')
             pages.append(page)
         raw=b''.join(pages)
